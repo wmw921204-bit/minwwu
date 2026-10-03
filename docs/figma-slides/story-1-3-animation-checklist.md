@@ -16,7 +16,7 @@
 | 2 | 10:00 开场（全黑） | 电脑屏幕特写，透明度 0 | Smart Animate 1.2s · 点击 |
 | 3 | "I think I'm ready." | **从电脑屏幕往后拉，整个桌面亮起来** | Smart Animate 2.0s · 点击 |
 | 4 | **时间卡 6:40** | 全景（淡到 12%） | Smart Animate 1.4s · 点击 |
-| 5 | 走廊（门缝 + 声波） | 全景 | Smart Animate 1.2s · 自动（1 秒后） |
+| 5 | 走廊（门外的光） | 全景 | Smart Animate 1.2s · 自动（1 秒后） |
 | 6 | 那一句问题 | 推近到本子 | Smart Animate 1.2s · 点击 |
 | 7 | What if I freeze again? | 推近到桌沿（重影 = 在抖） | Smart Animate 1.2s · 点击 |
 | 8 | 撕裂 | 同上 | Smart Animate **0.15s linear** · 点击 |
@@ -30,7 +30,7 @@
 
 每页的 speaker notes 里都写了讲稿和 ▶ 点击时机。
 
-## 需要手动加的对象动画（25 个）
+## 需要手动加的对象动画（24 个）
 
 在 **Animate 面板 → Object animations** 里添加，图层名前面的编号就是点击顺序。
 
@@ -41,10 +41,9 @@
 | 3 | 3 | `3 · awake` | 进入 · Fade（越快越好） | On click |
 | 3 | 4 | `4a · I think` | 进入 · Fade | On click |
 | 3 | 4 | `4b · I'm ready.` | 进入 · Fade | After previous |
-| 5 | 1 | `1a · door` | 进入 · Fade | On click |
-| 5 | 1 | `1b · voices` | 进入 · Slide in（从右） | After previous |
+| 5 | 1 | `1 · light` | 进入 · Fade（慢一点） | On click |
 | 5 | 2 | `2a · blur` | 进入 · Fade | On click |
-| 5 | 2 | `2b · door light` | 进入 · Fade | After previous |
+| 5 | 2 | `2b · light flood` | 进入 · Fade（慢一点） | After previous |
 | 6 | 1 | `1a · again` | 进入 · Fade | On click |
 | 6 | 1 | `1b · again` | 进入 · Fade | After previous |
 | 6 | 1 | `1c · nothing` | 进入 · Fade | After previous |
