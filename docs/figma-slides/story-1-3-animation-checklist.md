@@ -2,6 +2,34 @@
 
 > **注意（2026-10-04）：**Figma 文件已经被重新整理过（换了照片，加入了翻页时钟和很多过渡页），下面"页面顺序"和"对象动画"两张表里的页码已经对不上了。翻页时钟的最新做法见下一节。
 
+## 分组和点击流程（故事部分只需要点 4 次）
+
+Figma 按 section 从上到下、从左到右播放。每段动画页放在它前面那张主页后面的 section 里，可以折叠，播放顺序不变。
+
+| Section | 内容 | 点击 |
+|---|---|---|
+| Story | 团队的第 1、2 页 → **开场（第 3 页）** → **10:00（第 4 页）** | 在开场页点 1 次；在 10:00 页点 1 次 |
+| 动画 · 10:00 → 06:40 | 第 5–7 页：翻页，"I'm ready." 放大后淡出 | 全自动 |
+| 06:40 | **06:40（第 8 页）** | 点 1 次 |
+| 动画 · 06:40 → 03:10 | 第 9–34 页：06:38 "Walk me through…"、翻到 06:35、焦虑字块、"I knew exactly…"、单词掉落、黑屏光标、翻到 03:10 | 全自动 |
+| 03:10 | **03:10（第 35 页）** | 点 1 次 |
+| 动画 · 03:10 → Still waiting | 第 36–50 页：翻到 01:56、手机、锁屏、拇指、手机熄灭、翻到 01:50、"Still waiting." | 全自动，停在 "Still waiting." |
+| Story（后半） | 团队的页面 | — |
+
+自动播放的停留时间是按旁白语速（每秒约 2.4 个词）估的。哪一段画面和讲话对不上，就改那一页的 After delay：
+
+| 页 | 停留 | 对应旁白 |
+|---|---|---|
+| 第 12 页（Walk me through…） | 4.0s | Back to the notes. Same line, three times. Still nothing. |
+| 第 15 页（06:35 落定） | 4.0s | And now my hands are shaking… Maybe that'll help. |
+| 第 16–25 页（字块堆叠） | 约 4s | But then there's this thought: "What if I freeze again?" |
+| 第 26 页（大字块） | 2.5s | They're going to notice. |
+| 第 27 页（I knew exactly…） | 3.2s | Last time, I knew exactly what I wanted to say. |
+| 第 28–30 页（单词掉落） | 约 2.5s | The words just wouldn't come out. |
+| 第 31 页（黑屏光标） | 5.5s | Okay. One more practice. Except… now I don't even know where to start. |
+| 第 41 页（手机） | 2.0s | So I pick up my phone, and… my mind just goes blank. |
+| 第 46 页（手机熄灭） | 2.5s | After a few seconds, the phone goes back on the desk. |
+
 ## 翻页时钟（电脑屏幕上的倒计时）
 
 - **时间一律四位数：**10:00 → 06:40 → 06:38 → 06:35 → 03:10 → 01:56 → 01:50。前面的 0 一直显示，数字位置不再左右挪动。
@@ -29,15 +57,14 @@
 
 - **第 12 页**（06:38，"Walk me through your design process."）点一下之后，后面全部自动播放：
   1. **第 13–15 页**：时钟从 06:38 翻到 06:35，画面上只有照片和时钟，没有字。
-  2. **第 15 → 16 页**：时钟落定后停 0.6s，第一块字以 0.15s 的 Dissolve 出现。
+  2. **第 15 → 16 页**：时钟落定后停 4s（配合 "hands are shaking" 那句），第一块字以 0.15s 的 Dissolve 出现。
   3. **第 16–25 页**：每页多贴几块，累计块数依次是 1、2、3、5、8、13、21、34、52、78。前三块是一块一块出现，之后几块几块出现，越来越快：每页停留时间 0.55s → 0.08s，每次 Smart Animate 0.12s。
   4. **第 22–25 页**：字块底下加一层黑底 `anx_bg`，透明度 25% → 50% → 80% → 100%，照片和时钟被一点点埋掉。
-  5. **第 26 页**：停 0.35s 后，最上面盖上一块大的 "What if I freeze again?"（`b_freeze`，150px，倾斜 3°），停在这里等点击。
-- **第 26 → 27 页**（"I knew exactly what I wanted to say."）：Smart Animate 1.2s，点击触发，满屏的字淡出。
+  5. **第 26 页**：停 0.35s 后，最上面盖上一块大的 "What if I freeze again?"（`b_freeze`，150px，倾斜 3°），停 2.5s 后自动进入下一页。
+- **第 26 → 27 页**（"I knew exactly what I wanted to say."）：Smart Animate 1.2s，自动，满屏的字淡出。
 - **字块样式：**黑底，白字 Elms Sans Light 带光晕，字号 56–124。角度大多是 0°、±90°、180°，少数斜 5–22°。
 - **图层：**每页都有一个 `anx` 组，里面是 `b01`…`b78`（顺序就是出现顺序）、`anx_bg`、`b_freeze`。名字不要改，Smart Animate 靠名字配对。
 - **措辞：**用的都是原来那 10 句焦虑的话，另外拆出了几个短句来填空，比如 "Blank."、"Can't think."、"Out of time."、"Nervous."、"Can't speak."、"Freeze."。
-- 这次插入了 10 页，原来第 17 页及以后的页码都往后推了 10。
 
 文件：https://www.figma.com/slides/FDimDe1JBAGF2fDnU1jlR3
 
