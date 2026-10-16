@@ -196,10 +196,14 @@ button.pill--dark { padding: 14px 28px; font-size: 18px; }
   transition: flex-grow .9s var(--ease), background .3s;
   contain: layout paint;
 }
-.xp__role { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.xp__role { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 .xp__card.is-active { flex-grow: 1.9; background: #202020; }
 .xp__card:hover { background: #222; }
 .xp__date { color: var(--grey); }
+.xp__org { margin-top: -6px; color: rgba(255,255,255,.6); font-size: 15px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.xp__desc { display: none; color: rgba(255,255,255,.75); font-size: 15px; line-height: 1.55; max-width: 34em; }
+.xp__card.is-active .xp__desc { display: block; animation: fadeUp .6s var(--ease); }
+@keyframes fadeUp { from { opacity: 0; transform: translateY(8px); } }
 .xp__role { font: 600 clamp(24px, 2.2vw, 32px)/1.25 var(--f-grotesk); letter-spacing: -0.01em; }
 .xp__card .tags { margin-top: auto; opacity: 0; transform: translateY(8px); transition: .5s var(--ease); }
 .xp__card.is-active .tags { opacity: 1; transform: none; }
@@ -293,10 +297,10 @@ button.pill--dark { padding: 14px 28px; font-size: 18px; }
 .table__row span:nth-child(2) { text-align: center; }
 .table__row span:last-child { text-align: right; }
 .table__row--head { font: 400 13px/1 var(--f-display); text-transform: uppercase; color: rgba(255,255,255,.4); border-bottom: 1px solid var(--line-dark); }
-a.table__row { font: 400 13px/1 var(--f-display); color: #bbb; overflow: hidden; isolation: isolate; }
-a.table__row::before { content: ""; position: absolute; inset: 0; background: var(--accent); transform: scaleY(0); transform-origin: bottom; transition: transform .6s var(--ease); z-index: -1; }
-a.table__row:hover { color: #fff; padding-inline: 24px; }
-a.table__row:hover::before { transform: none; }
+.table__row:not(.table__row--head) { font: 400 13px/1.3 var(--f-display); color: #bbb; overflow: hidden; isolation: isolate; }
+.table__row:not(.table__row--head)::before { content: ""; position: absolute; inset: 0; background: var(--accent); transform: scaleY(0); transform-origin: bottom; transition: transform .6s var(--ease); z-index: -1; }
+.table__row:not(.table__row--head):hover { color: #fff; padding-inline: 24px; }
+.table__row:not(.table__row--head):hover::before { transform: none; }
 a.table__row span:last-child::after { content: " ↗"; display: inline-block; opacity: 0; transform: translateX(-8px); transition: .4s var(--ease); }
 a.table__row:hover span:last-child::after { opacity: 1; transform: none; }
 .table__name { font: 400 24px/1.25 var(--f-body); color: #fff; }
@@ -506,10 +510,16 @@ a.table__row:hover span:last-child::after { opacity: 1; transform: none; }
 [data-scatter] span { display: inline-block; transition: translate .5s var(--ease), rotate .5s var(--ease); }
 .connect { pointer-events: auto; }
 
-/* blend-mode cursor */
-.dot-cursor { position: fixed; left: 0; top: 0; z-index: 99; width: 14px; height: 14px; margin: -7px 0 0 -7px; border-radius: 50%; background: #fff; mix-blend-mode: difference; pointer-events: none; transition: width .3s var(--ease), height .3s var(--ease), margin .3s var(--ease), opacity .2s; }
-.dot-cursor.is-big { width: 46px; height: 46px; margin: -23px 0 0 -23px; }
+/* cursor: a small accent dot that opens into a soft ring over things you can use */
+.dot-cursor { position: fixed; left: 0; top: 0; z-index: 99; width: 12px; height: 12px; margin: -6px 0 0 -6px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 0 2px rgba(255,255,255,.85), 0 2px 10px rgba(0,0,0,.25); pointer-events: none; transition: width .35s var(--ease), height .35s var(--ease), margin .35s var(--ease), background .35s, box-shadow .35s, opacity .2s; }
+.dot-cursor.is-big { width: 44px; height: 44px; margin: -22px 0 0 -22px; background: rgba(222,101,54,.16); box-shadow: inset 0 0 0 1.5px var(--accent); }
 .dot-cursor.is-hidden { opacity: 0; }
+
+/* skill logos pop up on hover */
+.skills__list li { position: relative; }
+.skill-logo { position: absolute; left: 50%; top: -.78em; width: .82em; height: .82em; translate: -50% 0; border-radius: 28%; background: #1b1b1b; box-shadow: 0 10px 24px rgba(0,0,0,.5), inset 0 0 0 1px rgba(255,255,255,.12); scale: 0; rotate: -20deg; transition: scale .5s cubic-bezier(.34,1.56,.64,1), rotate .5s cubic-bezier(.34,1.56,.64,1); pointer-events: none; }
+.skill-logo::before { content: ""; position: absolute; inset: 22%; background: var(--c); -webkit-mask: var(--logo) center / contain no-repeat; mask: var(--logo) center / contain no-repeat; }
+.skills__list li:hover .skill-logo { scale: 1; rotate: 8deg; }
 
 @media (max-width: 1024px) {
   .talk { grid-template-columns: 1fr; }
