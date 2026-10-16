@@ -50,56 +50,76 @@
     };
     requestAnimationFrame(frame);
 
-    // interactive dot field: dots glow near the cursor and ripples roll out from where it moves or clicks
+    // interactive dot field: a dense, slightly scattered grid; organic ripples roll out from the
+    // centre, from the cursor and from clicks, and dots near the cursor glow
     const cv = $(".loader__field", loader);
     const ctx = cv.getContext("2d");
-    const gap = 26;
-    let W = 0, H = 0, dpr = 1, dots = [];
+    const gap = 15;
+    let W = 0, H = 0, dots = null, n = 0;
     const size = () => {
-      dpr = Math.min(2, devicePixelRatio || 1);
+      const dpr = Math.min(2, devicePixelRatio || 1);
       W = innerWidth; H = innerHeight;
       cv.width = W * dpr; cv.height = H * dpr;
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-      dots = [];
-      for (let y = gap / 2; y < H; y += gap) for (let x = gap / 2; x < W; x += gap) dots.push(x, y);
+      const pts = [];
+      for (let y = gap / 2; y < H + gap; y += gap) {
+        for (let x = gap / 2; x < W + gap; x += gap) {
+          // jitter each dot and give it its own size and phase so the field never looks gridded
+          pts.push(x + (Math.random() - 0.5) * gap * 0.8, y + (Math.random() - 0.5) * gap * 0.8, 0.6 + Math.random() * 0.7, Math.random() * 6.283);
+        }
+      }
+      dots = new Float32Array(pts); n = pts.length;
     };
     size();
     addEventListener("resize", size);
     const ripples = [];
-    const addRipple = (x, y, power = 1) => { ripples.push({ x, y, t: performance.now(), power }); if (ripples.length > 14) ripples.shift(); };
+    const addRipple = (x, y, power = 1) => {
+      ripples.push({ x, y, t: performance.now(), power, band: 40 + Math.random() * 50, speed: 0.4 + Math.random() * 0.25,
+        a1: Math.random() * 6.283, a2: Math.random() * 6.283, w1: 2 + ((Math.random() * 3) | 0), w2: 5 + ((Math.random() * 4) | 0) });
+      if (ripples.length > 16) ripples.shift();
+    };
     let mx = -999, my = -999, lx = 0, ly = 0;
     loader.addEventListener("pointermove", (e) => {
       mx = e.clientX; my = e.clientY;
-      if (Math.hypot(mx - lx, my - ly) > 70) { addRipple(mx, my, 0.6); lx = mx; ly = my; }
+      if (Math.hypot(mx - lx, my - ly) > 60) { addRipple(mx, my, 0.5 + Math.random() * 0.4); lx = mx; ly = my; }
     });
-    loader.addEventListener("pointerdown", (e) => addRipple(e.clientX, e.clientY, 1.6));
+    loader.addEventListener("pointerdown", (e) => addRipple(e.clientX, e.clientY, 1.5));
     loader.addEventListener("pointerleave", () => { mx = my = -999; });
-    // ambient ripples from the centre so it feels alive without a mouse
+    // ambient ripples from around the logo at irregular times
+    const cx = () => W / 2 + (Math.random() - 0.5) * 120, cy = () => H * 0.46 + (Math.random() - 0.5) * 90;
     addRipple(W / 2, H * 0.46, 1.2);
-    const ambient = setInterval(() => addRipple(W / 2, H * 0.46, 0.9), 1400);
-    const speed = 0.55, band = 70, life = 2600;
+    let ambient;
+    const nextAmbient = () => { ambient = setTimeout(() => { addRipple(cx(), cy(), 0.6 + Math.random() * 0.6); nextAmbient(); }, 700 + Math.random() * 1200); };
+    nextAmbient();
+    const life = 2800;
     const draw = (now) => {
-      if (!root.classList.contains("intro")) { clearInterval(ambient); return; }
+      if (!root.classList.contains("intro")) { clearTimeout(ambient); return; }
       ctx.clearRect(0, 0, W, H);
       for (let i = ripples.length - 1; i >= 0; i--) if (now - ripples[i].t > life) ripples.splice(i, 1);
-      for (let i = 0; i < dots.length; i += 2) {
-        let x = dots[i], y = dots[i + 1], glow = 0, dx = 0, dy = 0;
+      const t = now * 0.001;
+      for (let i = 0; i < n; i += 4) {
+        // slow drift so the field breathes even when nothing happens
+        const ph = dots[i + 3];
+        let x = dots[i] + Math.sin(t * 0.7 + ph) * 1.2, y = dots[i + 1] + Math.cos(t * 0.6 + ph) * 1.2;
+        let glow = 0, dx = 0, dy = 0;
         for (const r of ripples) {
-          const age = now - r.t, rad = age * speed;
+          const age = now - r.t;
           const ddx = x - r.x, ddy = y - r.y, d = Math.hypot(ddx, ddy) || 1;
+          // wobbly wave front: radius varies with angle
+          const ang = Math.atan2(ddy, ddx);
+          const rad = age * r.speed * (1 + 0.12 * Math.sin(ang * r.w1 + r.a1) + 0.06 * Math.sin(ang * r.w2 + r.a2));
           const off = d - rad;
-          if (off > -band && off < band) {
-            const k = Math.cos((off / band) * Math.PI * 0.5) * (1 - age / life) * r.power;
-            dx += (ddx / d) * k * 7; dy += (ddy / d) * k * 7; glow = Math.max(glow, k);
+          if (off > -r.band && off < r.band) {
+            const k = Math.cos((off / r.band) * Math.PI * 0.5) * (1 - age / life) * r.power;
+            dx += (ddx / d) * k * 6; dy += (ddy / d) * k * 6; if (k > glow) glow = k;
           }
         }
         const md = Math.hypot(x - mx, y - my);
-        const near = md < 150 ? 1 - md / 150 : 0;
-        const a = 0.13 + glow * 0.55 + near * 0.6;
-        const rad = 1 + glow * 1.4 + near * 1.8;
-        const hot = Math.max(glow, near);
-        ctx.fillStyle = hot > 0.15 ? `rgba(222,101,54,${Math.min(1, a).toFixed(3)})` : `rgba(255,255,255,${a.toFixed(3)})`;
-        ctx.beginPath(); ctx.arc(x + dx, y + dy, rad, 0, 6.283); ctx.fill();
+        const near = md < 140 ? 1 - md / 140 : 0;
+        const a = 0.1 + glow * 0.6 + near * 0.6;
+        const rr = dots[i + 2] * (1 + glow * 1.2 + near * 1.4);
+        ctx.fillStyle = Math.max(glow, near) > 0.12 ? `rgba(222,101,54,${Math.min(1, a).toFixed(3)})` : `rgba(255,255,255,${a.toFixed(3)})`;
+        ctx.beginPath(); ctx.arc(x + dx, y + dy, rr, 0, 6.283); ctx.fill();
       }
       requestAnimationFrame(draw);
     };
