@@ -473,6 +473,80 @@ $$("[data-glow]").forEach((el) => {
   });
 });
 
+/* ---------- Deck: stacked sheets, click to deal the next one ---------- */
+$$("[data-deck]").forEach((deck) => {
+  const stage = $(".deck__stage", deck);
+  const cards = $$("img", stage);
+  const n = cards.length;
+  const countEl = $(".deck__count b", deck);
+  const labelEl = $(".deck__label", deck);
+  const dotsEl = $(".deck__dots", deck);
+  let cur = 0, busy = false;
+  const dots = cards.map((c, i) => {
+    const b = document.createElement("button");
+    b.type = "button";
+    b.setAttribute("aria-label", c.dataset.label || `Sheet ${i + 1}`);
+    b.addEventListener("click", () => go(i));
+    dotsEl.append(b);
+    return b;
+  });
+  // the stage takes the front sheet's ratio, capped so tall sheets still fit the screen
+  const fit = () => {
+    const c = cards[cur];
+    const ar = c.getAttribute("width") / c.getAttribute("height");
+    const room = deck.clientWidth - 2 * (parseFloat(getComputedStyle(deck).getPropertyValue("--gap")) || 0);
+    const w = Math.min(room, 1022, innerHeight * 0.72 * ar);
+    stage.style.width = `${w}px`;
+    stage.style.height = `${w / ar}px`;
+    stage.style.aspectRatio = "auto";
+  };
+  const paint = () => {
+    cards.forEach((c, i) => c.style.setProperty("--k", (i - cur + n) % n));
+    countEl.textContent = String(cur + 1).padStart(2, "0");
+    labelEl.textContent = cards[cur].dataset.label || "";
+    dots.forEach((d, i) => d.setAttribute("aria-current", String(i === cur)));
+    fit();
+  };
+  const go = (to) => {
+    to = (to + n) % n;
+    if (busy || to === cur) return;
+    const forward = to === (cur + 1) % n;
+    const back = to === (cur - 1 + n) % n && !forward;
+    if (reduceMotion || (!forward && !back)) { cur = to; paint(); return; }
+    busy = true;
+    if (forward) {
+      // the front sheet slides away, then tucks in at the back of the pile
+      const out = cards[cur];
+      out.classList.add("is-out");
+      setTimeout(() => {
+        out.classList.remove("is-out");
+        cur = to; paint();
+        busy = false;
+      }, 380);
+    } else {
+      // the bottom sheet jumps out to the side and slides back on top
+      const inc = cards[to];
+      inc.classList.add("no-anim", "is-out");
+      inc.style.setProperty("--k", 0);
+      inc.offsetWidth;
+      inc.classList.remove("no-anim");
+      cur = to;
+      requestAnimationFrame(() => { inc.classList.remove("is-out"); paint(); });
+      setTimeout(() => { busy = false; }, 420);
+    }
+  };
+  // click the left third to go back, anywhere else for the next sheet
+  const side = (e) => e.clientX - stage.getBoundingClientRect().left < stage.offsetWidth / 3 ? -1 : 1;
+  stage.addEventListener("pointermove", (e) => { stage.dataset.cursor = side(e) < 0 ? "Prev" : "Next"; });
+  stage.addEventListener("click", (e) => go(cur + (e.detail ? side(e) : 1)));
+  stage.addEventListener("keydown", (e) => {
+    if (e.key === "ArrowRight") { e.preventDefault(); go(cur + 1); }
+    if (e.key === "ArrowLeft") { e.preventDefault(); go(cur - 1); }
+  });
+  addEventListener("resize", fit);
+  paint();
+});
+
 /* ---------- Custom cursor label over projects and galleries ---------- */
 if (!reduceMotion && matchMedia("(hover: hover) and (pointer: fine)").matches && $("[data-cursor]")) {
   const cursor = document.createElement("div");

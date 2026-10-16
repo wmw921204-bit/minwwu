@@ -16,7 +16,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&family=Poppins:wght@400;500;600&family=Sulphur+Point:wght@400&display=swap">
   <link rel="stylesheet" href="../styles.css?v=20261017a">
-  <link rel="stylesheet" href="../case.css?v=20261017b">
+  <link rel="stylesheet" href="../case.css?v=20261017d">
 </head>
 <body class="case case--warm">
   <a class="skip" href="#main">Skip to content</a>
@@ -128,10 +128,40 @@
           <button role="tab" aria-selected="false" tabindex="-1">Persona</button>
         </div>
         <div class="switcher__stage">
-          <figure class="switcher__panel is-active" role="tabpanel"><img src="../assets/projects/swifthome/miro-interview.webp" alt="Interview transcript with coded needs" width="1022" height="694" loading="lazy"><p>Conversational interviews on daily life, especially work, food and life transitions.</p></figure>
-          <figure class="switcher__panel" role="tabpanel"><img src="../assets/projects/swifthome/miro-empathy.webp" alt="Empathy map: thoughts, sounds, sights, words, pain and gain" width="1022" height="1073" loading="lazy"><p>Empathy maps surfaced motivations, environment and pain points.</p></figure>
+          <figure class="switcher__panel is-active" role="tabpanel">
+            <div class="deck" data-deck>
+              <button class="deck__stage" type="button" data-cursor="Next" aria-label="Show next sheet">
+              <img src="../assets/projects/swifthome/miro-interview-1.webp" alt="Interview transcript with coded needs, Jeeshitha" data-label="Interview · Jeeshitha" width="1022" height="694" loading="lazy">
+              <img src="../assets/projects/swifthome/miro-interview-2.webp" alt="Interview transcript with coded needs, Kelly" data-label="Interview · Kelly" width="1022" height="694" loading="lazy">
+              <img src="../assets/projects/swifthome/miro-interview-3.webp" alt="Interview transcript with coded needs, Ichia" data-label="Interview · Ichia" width="1022" height="625" loading="lazy">
+              <img src="../assets/projects/swifthome/miro-interview-4.webp" alt="Interview transcript with coded needs, Jenny" data-label="Interview · Jenny" width="1022" height="703" loading="lazy">
+              <img src="../assets/projects/swifthome/miro-interview-5.webp" alt="Interview transcript with coded needs, Winnie" data-label="Interview · Winnie" width="1022" height="633" loading="lazy">
+              </button>
+              <div class="deck__bar"><span class="deck__count"><b>01</b> / 05</span><span class="deck__label">Interview · Jeeshitha</span><span class="deck__dots"></span></div>
+            </div>
+            <p>Five conversational interviews on daily life — work, food and life transitions — each coded into needs.</p></figure>
+          <figure class="switcher__panel" role="tabpanel">
+            <div class="deck" data-deck>
+              <button class="deck__stage" type="button" data-cursor="Next" aria-label="Show next sheet">
+              <img src="../assets/projects/swifthome/miro-empathy-1.webp" alt="Empathy map 1 of 5" data-label="Empathy map 1" width="1022" height="1073" loading="lazy">
+              <img src="../assets/projects/swifthome/miro-empathy-2.webp" alt="Empathy map 2 of 5" data-label="Empathy map 2" width="1022" height="1037" loading="lazy">
+              <img src="../assets/projects/swifthome/miro-empathy-3.webp" alt="Empathy map 3 of 5" data-label="Empathy map 3" width="1022" height="1052" loading="lazy">
+              <img src="../assets/projects/swifthome/miro-empathy-4.webp" alt="Empathy map 4 of 5" data-label="Empathy map 4" width="1022" height="1072" loading="lazy">
+              <img src="../assets/projects/swifthome/miro-empathy-5.webp" alt="Empathy map 5 of 5" data-label="Empathy map 5" width="1022" height="1066" loading="lazy">
+              </button>
+              <div class="deck__bar"><span class="deck__count"><b>01</b> / 05</span><span class="deck__label">Empathy map 1</span><span class="deck__dots"></span></div>
+            </div>
+            <p>Empathy maps surfaced motivations, environment and pain points.</p></figure>
           <figure class="switcher__panel" role="tabpanel"><img src="../assets/projects/swifthome/process-22.webp" alt="Second round of interviews" width="1206" height="901" loading="lazy"><p>A second round focused on short-term living and furniture rental.</p></figure>
-          <figure class="switcher__panel" role="tabpanel"><img src="../assets/projects/swifthome/miro-variables.webp" alt="Behavioural and demographic variables with annotated patterns" width="1022" height="1470" loading="lazy"><p>Behavioural and demographic variables, mapped per participant.</p></figure>
+          <figure class="switcher__panel" role="tabpanel">
+            <div class="deck" data-deck>
+              <button class="deck__stage" type="button" data-cursor="Next" aria-label="Show next sheet">
+              <img src="../assets/projects/swifthome/miro-patterns-1.webp" alt="Behavioural and demographic variables with annotated patterns" data-label="Behavioural variables" width="1022" height="1470" loading="lazy">
+              <img src="../assets/projects/swifthome/miro-patterns-2.webp" alt="Patterns and design goals" data-label="Patterns → design goals" width="1022" height="700" loading="lazy">
+              </button>
+              <div class="deck__bar"><span class="deck__count"><b>01</b> / 02</span><span class="deck__label">Behavioural variables</span><span class="deck__dots"></span></div>
+            </div>
+            <p>Behavioural variables mapped per participant, then distilled into patterns and design goals.</p></figure>
           <figure class="switcher__panel" role="tabpanel"><img src="../assets/projects/swifthome/miro-persona.webp" alt="Persona of a newly arrived international student" width="1022" height="703" loading="lazy"><p>A newly arrived student, anxious about furnishing, relying on social media for help.</p></figure>
         </div>
       </div>
@@ -303,6 +333,6 @@
   </footer>
 
   <script src="../assets/js/lenis.min.js" defer></script>
-  <script src="../main.js?v=20261017a" defer></script>
+  <script src="../main.js?v=20261017c" defer></script>
 </body>
 </html>

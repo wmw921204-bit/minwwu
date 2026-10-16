@@ -381,6 +381,43 @@
 }
 
 /* Research sheets exported from Miro: show each at its own ratio, never upscaled past its pixels */
-.switcher--sheets .switcher__panel img { width: auto; max-width: min(100%, 1022px); max-height: 82vh; margin: 0 auto; object-fit: contain; background: #fff; }
-.switcher--sheets .switcher__panel p { text-align: center; }
+.switcher--sheets .switcher__panel > img { width: auto; max-width: min(100%, 1022px); max-height: 82vh; margin: 0 auto; object-fit: contain; background: #fff; }
+.switcher--sheets .switcher__panel > p { text-align: center; }
 .c-figure--sheet img { width: auto; max-width: min(100%, 1022px); display: block; margin: 0 auto; background: #000; }
+
+/* ---------- Deck: a stack of sheets, click to deal the next one ---------- */
+.deck { --gap: 16px; display: grid; justify-items: center; }
+.deck__stage { position: relative; display: block; width: min(100%, 1022px); aspect-ratio: 1022 / 694; padding: 0; border: 0; background: none; cursor: pointer; transition: width .7s var(--ease), height .7s var(--ease); -webkit-tap-highlight-color: transparent; }
+.deck__stage:focus-visible { outline: 2px solid var(--c-accent); outline-offset: 10px; border-radius: 20px; }
+.deck__stage img {
+  --k: 0;
+  position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: top center;
+  background: #fff; border-radius: 18px; box-shadow: 0 1px 0 rgba(60, 35, 20, .06), 0 18px 40px -18px rgba(60, 35, 20, .35);
+  z-index: calc(20 - var(--k));
+  transform: translate3d(calc(var(--k) * var(--gap)), calc(var(--k) * var(--gap) * -.8), 0) rotate(calc(var(--k) * 1.6deg)) scale(calc(1 - var(--k) * .035));
+  transform-origin: 50% 100%;
+  opacity: calc(1 - max(0, var(--k) - 2));
+  transition: transform .75s var(--ease), opacity .5s var(--ease), filter .5s;
+  filter: brightness(calc(1 - var(--k) * .04));
+}
+/* the hidden sheets peek out a little more on hover, inviting the click */
+.deck__stage:hover img { --gap: 22px; }
+.deck__stage img.is-out { transform: translate3d(-34%, 6%, 0) rotate(-9deg) scale(.92); opacity: 0; transition-duration: .5s, .4s, .5s; }
+.deck__stage img.no-anim { transition: none; }
+.deck__bar { display: flex; align-items: center; gap: 16px; margin-top: 22px; font-size: 14px; color: var(--c-muted); }
+.deck__count { font: 500 14px/1 var(--f-display); letter-spacing: .04em; }
+.deck__count b { color: var(--c-fg); font-weight: 600; }
+.deck__label { min-width: 11em; }
+.deck__dots { display: flex; gap: 6px; }
+.deck__dots button { width: 7px; height: 7px; padding: 0; border: 0; border-radius: 99px; background: var(--c-line); transition: width .5s var(--ease), background .4s; }
+.deck__dots button[aria-current="true"] { width: 22px; background: var(--c-accent); }
+@media (max-width: 700px) {
+  .deck { --gap: 8px; }
+  .deck__label { min-width: 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .deck__stage, .deck__stage img { transition: none; }
+}
+/* only the open tab sets the height, so short sheets don't leave a gap below */
+.switcher--sheets .switcher__stage { position: relative; align-items: start; }
+.switcher--sheets .switcher__panel:not(.is-active) { position: absolute; inset: 0 0 auto; }
