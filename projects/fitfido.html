@@ -1,0 +1,348 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <script>document.documentElement.classList.add("js")</script>
+  <title>Fitfido — Minwei Wu</title>
+  <meta name="description" content="Fitfido: a smart feeder and companion app that weighs dogs while they eat, turning routine feeding into long-term weight management. IDA Bronze 2025.">
+  <meta property="og:type" content="article">
+  <meta property="og:title" content="Fitfido — Minwei Wu">
+  <meta property="og:description" content="A smart feeder that weighs while it feeds. Product design case study, IDA Bronze 2025.">
+  <meta property="og:image" content="https://wmw921204-bit.github.io/minwwu/assets/projects/fitfido/hero.webp">
+  <meta name="theme-color" content="#000000">
+  <link rel="icon" href="../assets/img/logo.webp" type="image/webp">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&family=Poppins:wght@400;500;600&family=Sulphur+Point:wght@400&display=swap">
+  <link rel="preload" as="image" href="../assets/projects/fitfido/hero.webp">
+  <link rel="stylesheet" href="../styles.css">
+  <link rel="stylesheet" href="../case.css">
+</head>
+<body class="case">
+  <a class="skip" href="#main">Skip to content</a>
+
+  <header class="topbar" id="top">
+    <div class="topbar__inner">
+      <p class="topbar__loc"><span class="dot"></span>Savannah, GA</p>
+      <a class="brand" href="../index.html" aria-label="Minwei Wu — home">
+        <img src="../assets/img/logo.webp" alt="" width="31" height="16">
+        <span>Emma Wu</span>
+      </a>
+      <button class="menu-btn" aria-expanded="false" aria-controls="menu" aria-label="Open menu">
+        <span></span><span></span><span></span><span></span>
+      </button>
+    </div>
+    <nav class="menu" id="menu" hidden>
+      <p class="menu__title">Menu</p>
+      <ul class="menu__grid">
+        <li><a href="../index.html">Home</a></li>
+        <li><a href="../index.html#experience">Experience</a></li>
+        <li><a href="../index.html#services">Services</a></li>
+        <li><a href="../index.html#portfolio">Portfolio</a></li>
+        <li><a href="brilliant.html">Brilliant.org</a></li>
+        <li><a href="../index.html#contact">Contact</a></li>
+      </ul>
+      <p class="menu__title">Social Network</p>
+      <ul class="menu__social">
+        <li><a href="https://www.linkedin.com/in/minwei-wu-7470a3347/" target="_blank" rel="noopener">LinkedIn</a></li>
+        <li><a href="https://www.facebook.com/share/1GbCDhCWdE/" target="_blank" rel="noopener">Facebook</a></li>
+        <li><a href="mailto:wmw921204@gmail.com">Email</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <main id="main">
+    <section class="c-hero">
+      <img class="c-hero__media" src="../assets/projects/fitfido/hero.webp" alt="Fitfido feeder in a living room with a corgi and the companion app" width="2000" height="1500" fetchpriority="high" data-parallax="0.12">
+    </section>
+    <h1 class="c-hero__marquee" aria-label="Fitfido">
+        <span class="marquee__track" aria-hidden="true"><span>Fitfido</span><span>Fitfido</span><span>Fitfido</span><span>Fitfido</span><span>Fitfido</span><span>Fitfido</span></span>
+      </h1>
+
+    <section class="wrap c-intro">
+      <div class="c-facts reveal">
+        <p class="c-facts__date">January 2025</p>
+        <dl>
+          <div><dt>Category:</dt><dd>Product Design</dd></div>
+          <div><dt>Teammates:</dt><dd>Qiling Chen, Yiming Han, Yi He</dd></div>
+          <div><dt>Duration:</dt><dd>10 Weeks</dd></div>
+          <div><dt>Award:</dt><dd>IDA Bronze, 2025</dd></div>
+        </dl>
+        <a href="https://www.idesignawards.com/winners/zoom.php?eid=9-63628-25" target="_blank" rel="noopener">
+          <img class="c-facts__award" src="../assets/projects/fitfido/ida-logo.webp" alt="International Design Awards — Bronze" width="1000" height="962" loading="lazy">
+        </a>
+      </div>
+      <div class="c-covers">
+        <img class="reveal" src="../assets/projects/fitfido/cover-1.webp" alt="Fitfido feeder with a corgi eating" width="2000" height="1216" loading="lazy">
+        <img class="reveal" src="../assets/projects/fitfido/cover-2.webp" alt="Fitfido product render" width="2000" height="1500" loading="lazy">
+        <img class="reveal" src="../assets/projects/fitfido/cover-3.webp" alt="Fitfido feeder and app" width="2000" height="1500" loading="lazy">
+        <img class="reveal" src="../assets/projects/fitfido/cover-4.webp" alt="Fitfido poster: weighs while it feeds" width="2000" height="1963" loading="lazy">
+      </div>
+    </section>
+
+    <section class="wrap c-overview">
+      <div class="reveal">
+        <h2 class="c-kicker">Contents</h2>
+        <p class="c-head">Step by step development</p>
+        <nav class="c-toc" aria-label="Case study sections">
+          <a href="#problem">Define the Problem</a>
+          <a href="#research">Conduct Research</a>
+          <a href="#opportunity">Identify Opportunity</a>
+          <a href="#concept">Concept Development</a>
+          <a href="#prototyping">Prototyping</a>
+        </nav>
+      </div>
+      <div class="c-role reveal">
+        <h2 class="c-kicker">Role</h2>
+        <p class="c-head">Driving a System-Level Design Approach</p>
+        <p>I shifted the project from feature-based thinking to an integrated, research-driven system.</p>
+        <p>By translating user insights into a structured framework, I connected feeding, weighing, and calorie tracking into a unified feedback loop.</p>
+        <p>My contributions included:</p>
+        <ul>
+          <li>Research synthesis and strategy</li>
+          <li>Framework and interaction design</li>
+          <li>Low-fidelity and high-fidelity prototyping</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- Define the problem -->
+    <section class="wrap c-sec" id="problem">
+      <h2 class="c-kicker">Define the Problem: Market Research</h2>
+      <p class="c-head reveal-mask">Pet obesity has become a widespread and growing health issue</p>
+
+      <div class="c-stack" data-stack>
+        <div style="--n:0"><article class="mcard mcard--orange">
+          <div class="mcard__bar"><span>Define the problem</span><span>Market research</span></div>
+          <div class="mcard__body">
+            <div><h3>High Prevalence</h3><p>A majority of dogs are currently overweight or obese, indicating that weight issues are no longer isolated cases but a widespread health concern.</p></div>
+            <div class="mcard__visual">
+              <div class="donut" style="--p:59"><svg viewBox="0 0 120 120"><circle class="donut__track" cx="60" cy="60" r="50" pathLength="100"/><circle class="donut__val" cx="60" cy="60" r="50" pathLength="100" style="--donut:#111"/></svg><span class="donut__num" data-count="59" data-suffix="%">59%</span></div>
+              <p>of dogs are overweight or obese</p>
+            </div>
+          </div>
+        </article></div>
+        <div style="--n:1"><article class="mcard mcard--white">
+          <div class="mcard__bar"><span>Define the problem</span><span>Market research</span></div>
+          <div class="mcard__body">
+            <div><h3>Perception Gap</h3><p>There is a significant gap between actual weight conditions and owner awareness, suggesting that many cases go unrecognized.</p></div>
+            <div class="mcard__visual">
+              <div class="donut" style="--p:17"><svg viewBox="0 0 120 120"><circle class="donut__track" cx="60" cy="60" r="50" pathLength="100"/><circle class="donut__val" cx="60" cy="60" r="50" pathLength="100"/></svg><span class="donut__num" data-count="17" data-suffix="%">17%</span></div>
+              <p>of owners identify their pet as overweight</p>
+            </div>
+          </div>
+        </article></div>
+        <div style="--n:2"><article class="mcard mcard--green">
+          <div class="mcard__bar"><span>Define the problem</span><span>Market research</span></div>
+          <div class="mcard__body">
+            <div><h3>Unsuccessful Attempts</h3><p>Even when owners attempt weight management, results are often inconsistent or short-lived.</p></div>
+            <div class="mcard__visual">
+              <div class="bars">
+                <div class="bar" style="--h:73"><span data-count="73" data-suffix="%">73%</span><i></i><small>have tried to help<br>their dogs lose weight</small></div>
+                <div class="bar" style="--h:65"><span data-count="65" data-suffix="%">65%</span><i></i><small>report limited<br>success</small></div>
+              </div>
+            </div>
+          </div>
+        </article></div>
+        <div style="--n:3"><article class="mcard mcard--yellow">
+          <div class="mcard__bar"><span>Define the problem</span><span>Market research</span></div>
+          <div class="mcard__body">
+            <div><h3>Health Consequences</h3><p>Excess weight impacts more than appearance. It shortens lifespan and increases the risk of chronic health issues.</p></div>
+            <div class="mcard__visual mcard__icons">
+              <div><img src="../assets/projects/fitfido/icon-lifespan.webp" alt="" width="1182" height="1182" loading="lazy">Lifespan shortened by 2 years</div>
+              <div><img src="../assets/projects/fitfido/icon-disease.webp" alt="" width="1182" height="1170" loading="lazy">Causes many diseases</div>
+              <div><img src="../assets/projects/fitfido/icon-aggressive.webp" alt="" width="1182" height="1161" loading="lazy">Becoming more aggressive</div>
+            </div>
+          </div>
+        </article></div>
+        <div style="--n:4"><article class="mcard mcard--grey">
+          <div class="mcard__bar"><span>Define the problem</span><span>Market research</span></div>
+          <div class="mcard__body">
+            <div><h3>Growing Market</h3><p>Pet obesity management and pet tech are both expanding quickly, leaving room for an integrated solution.</p></div>
+            <div class="mcard__visual">
+              <div class="bars">
+                <div class="bar" style="--h:33"><span>$10B</span><i style="background:#de6536"></i><small>Pet obesity<br>management, 2024</small></div>
+                <div class="bar" style="--h:17"><span>$5B</span><i></i><small>Pet tech<br>2024</small></div>
+                <div class="bar" style="--h:100"><span>$30B</span><i></i><small>Pet tech<br>2033</small></div>
+              </div>
+            </div>
+          </div>
+        </article></div>
+      </div>
+    </section>
+
+    <section class="wrap c-sec">
+      <div class="c-panel reveal">
+        <h2 class="c-kicker">Define the Problem: Problem Statement</h2>
+        <p class="c-statement" style="margin-top:8px">Pet weight management lacks an integrated and sustainable system that supports consistent, long-term health tracking.</p>
+      </div>
+    </section>
+
+    <!-- Research -->
+    <section class="wrap c-sec" id="research">
+      <h2 class="c-kicker">Conduct Research: Primary Research</h2>
+      <p class="c-head reveal-mask">Weight control depends largely on manual effort and routine.</p>
+      <div class="c-split">
+        <div class="reveal">
+          <h3 class="c-kicker">User Interview</h3>
+          <p class="c-text">We interviewed 11 dog owners across different weight conditions, including owners of overweight, previously overweight, and healthy-weight dogs.</p>
+          <p class="c-text">The interviews focused on feeding habits, portion control, and health tracking behaviors.</p>
+        </div>
+        <img class="reveal" src="../assets/projects/fitfido/interview.webp" alt="Interview synthesis board" width="2000" height="1759" loading="lazy">
+      </div>
+      <p class="c-text" style="margin-top:64px">From our interviews, two dominant themes emerged that shaped the direction of the project.</p>
+      <div class="c-stats reveal-stagger">
+        <div class="c-stat"><span class="c-stat__num" data-count="20">20</span><span class="c-stat__label">supporting insights on</span><span class="c-stat__topic">Balanced Feeding Habits</span></div>
+        <div class="c-stat"><span class="c-stat__num" data-count="8">8</span><span class="c-stat__label">supporting insights on</span><span class="c-stat__topic">Accurate Measurement</span></div>
+      </div>
+    </section>
+
+    <section class="wrap c-sec">
+      <h2 class="c-kicker">Key Findings</h2>
+      <div class="c-cards reveal-stagger">
+        <article class="c-card"><span class="c-card__num">01</span><h3>Feeding portions are often estimated rather than accurately measured</h3></article>
+        <article class="c-card"><span class="c-card__num">02</span><h3>Weight tracking is inconsistent and rarely sustained</h3></article>
+        <article class="c-card"><span class="c-card__num">03</span><h3>Many owners feel uncertain about their food choices</h3></article>
+        <article class="c-card"><span class="c-card__num">04</span><h3>Health data is fragmented and difficult to interpret over time</h3></article>
+      </div>
+      <p class="c-statement reveal" style="margin-top:64px">These insights revealed that weight management depends heavily on manual effort and separate tools.</p>
+    </section>
+
+    <section class="wrap c-sec">
+      <h2 class="c-kicker">Conduct Research: Secondary Research</h2>
+      <p class="c-head reveal-mask">Research reveals a significant perception gap in pet obesity.</p>
+      <div class="c-split">
+        <div class="c-panel mcard__visual">
+          <div class="donut" style="--p:59;color:#de6536"><svg viewBox="0 0 120 120"><circle class="donut__track" cx="60" cy="60" r="50" pathLength="100"/><circle class="donut__val" cx="60" cy="60" r="50" pathLength="100"/></svg><span class="donut__num" data-count="59" data-suffix="%" style="color:#fff">59%</span></div>
+          <p>of dogs are overweight or obese</p>
+        </div>
+        <div class="c-panel mcard__visual">
+          <div class="donut" style="--p:17;color:#de6536"><svg viewBox="0 0 120 120"><circle class="donut__track" cx="60" cy="60" r="50" pathLength="100" style="opacity:.6"/><circle class="donut__val" cx="60" cy="60" r="50" pathLength="100" style="--donut:#fff"/></svg><span class="donut__num" style="color:#fff">17%</span></div>
+          <p>59% of dogs are overweight or have obesity, but only 17% of dog owners consider their pet overweight or having obesity.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Opportunity -->
+    <section class="wrap c-sec" id="opportunity">
+      <div class="c-panel">
+        <h2 class="c-kicker">Identify Opportunity</h2>
+        <p class="c-head reveal-mask">Integrating feeding and weighing into one system.</p>
+        <p class="c-text">By embedding weight measurement directly into the feeding routine, the system removes the need for separate tracking behaviors. This ensures consistent data collection and supports sustainable weight management.</p>
+        <div class="c-equation reveal-stagger">
+          <img src="../assets/projects/fitfido/icon-feeder.webp" alt="Feeder" width="600" height="609" loading="lazy">
+          <img src="../assets/projects/fitfido/icon-plus.webp" alt="plus" width="342" height="368" loading="lazy">
+          <img src="../assets/projects/fitfido/icon-scale.webp" alt="Scale" width="179" height="180" loading="lazy">
+        </div>
+      </div>
+    </section>
+
+    <section class="wrap c-sec">
+      <h2 class="c-kicker">Identify Opportunity: Competitor Research</h2>
+      <p class="c-head reveal-mask">Competitors offer fragmented solutions.</p>
+      <figure class="c-figure reveal"><img src="../assets/projects/fitfido/competitors.webp" alt="Competitor comparison: only Fitfido combines active weighing, AI feeding, health insights and calorie detection" width="2000" height="1015" loading="lazy"></figure>
+    </section>
+
+    <!-- Concept -->
+    <section class="wrap c-sec" id="concept">
+      <h2 class="c-kicker">Concept Development: Key Features</h2>
+      <p class="c-head reveal-mask">Turning routine feeding into a measurable health interaction.</p>
+      <p class="c-text">The product transforms routine feeding into a structured health process. Each meal generates measurable data that supports monitoring, analysis, and adaptive feeding decisions. By connecting behavior with data, the system enables consistent, long-term weight management without adding complexity to the user experience.</p>
+      <div class="c-cards reveal-stagger">
+        <article class="c-card c-card--icon"><span class="c-card__num" style="text-align:left">01</span><img src="../assets/projects/fitfido/feature-1.webp" alt="" width="169" height="170" loading="lazy"><h3>Active Weighing</h3></article>
+        <article class="c-card c-card--icon"><span class="c-card__num" style="text-align:left">02</span><img src="../assets/projects/fitfido/feature-2.webp" alt="" width="127" height="128" loading="lazy"><h3>Weight-Driven AI Feeding System</h3></article>
+        <article class="c-card c-card--icon"><span class="c-card__num" style="text-align:left">03</span><img src="../assets/projects/fitfido/feature-3.webp" alt="" width="474" height="396" loading="lazy"><h3>Health Insights</h3></article>
+        <article class="c-card c-card--icon"><span class="c-card__num" style="text-align:left">04</span><img src="../assets/projects/fitfido/feature-4.webp" alt="" width="520" height="610" loading="lazy"><h3>Smart Calorie Detection</h3></article>
+      </div>
+    </section>
+
+    <!-- Prototyping -->
+    <section class="wrap c-sec" id="prototyping">
+      <h2 class="c-kicker">Prototyping: First Iteration Prototype</h2>
+      <p class="c-head reveal-mask">The first-generation prototype validated the core system logic.</p>
+      <div class="c-tabs" data-tabs>
+        <div class="c-tabs__list" role="tablist" aria-label="Prototype features">
+          <button role="tab" aria-selected="true"><strong>Active Weighing</strong><span><span>The feeder includes a built-in scale that records the dog’s weight during feeding, eliminating the need for separate weighing.</span></span></button>
+          <button role="tab" aria-selected="false" tabindex="-1"><strong>Weight-Driven AI Feeding System</strong><span><span>Using collected data, the system adjusts feeding recommendations to support healthier weight management.</span></span></button>
+          <button role="tab" aria-selected="false" tabindex="-1"><strong>Health Insights</strong><span><span>Weight and feeding data are tracked over time and translated into clear health insights for monitoring progress.</span></span></button>
+          <button role="tab" aria-selected="false" tabindex="-1"><strong>Smart Calorie Detection</strong><span><span>The system calculates calorie intake by scanning or entering dog food information, helping ensure accurate portion control.</span></span></button>
+        </div>
+        <div class="c-tabs__media reveal">
+          <img src="../assets/projects/fitfido/prototype-1.webp" alt="First iteration prototype: feeder with the companion app" width="2000" height="1500" loading="lazy">
+        </div>
+      </div>
+    </section>
+
+    <section class="wrap c-sec">
+      <h2 class="c-kicker">Screens</h2>
+      <figure class="c-figure reveal"><img src="../assets/projects/fitfido/screens.webp" alt="Fitfido companion mobile UI screens" width="2000" height="926" loading="lazy"></figure>
+    </section>
+
+    <section class="wrap c-sec">
+      <h2 class="c-kicker">Prototyping: Second Iteration Prototype</h2>
+      <p class="c-head reveal-mask">The second-generation prototype enhanced the app experience.</p>
+      <figure class="c-figure reveal"><img src="../assets/projects/fitfido/prototype-2.webp" alt="Second iteration prototype" width="2000" height="1327" loading="lazy"></figure>
+    </section>
+
+    <section class="gallery" aria-label="Project images">
+      <div class="wrap"><h2 class="c-kicker" style="margin-bottom:32px">Project Images</h2></div>
+      <div class="gallery__track" tabindex="0">
+        <img src="../assets/projects/fitfido/gallery-1.webp" alt="Fitfido project image 1" width="2000" height="1500" loading="lazy" draggable="false">
+        <img src="../assets/projects/fitfido/gallery-2.webp" alt="Fitfido project image 2" width="2000" height="1500" loading="lazy" draggable="false">
+        <img src="../assets/projects/fitfido/gallery-3.webp" alt="Fitfido project image 3" width="2000" height="1500" loading="lazy" draggable="false">
+        <img src="../assets/projects/fitfido/hero.webp" alt="Fitfido in a living room" width="2000" height="1500" loading="lazy" draggable="false">
+        <img src="../assets/projects/fitfido/gallery-4.webp" alt="Fitfido project image 4" width="2000" height="1500" loading="lazy" draggable="false">
+        <img src="../assets/projects/fitfido/gallery-5.webp" alt="Fitfido project image 5" width="2000" height="1500" loading="lazy" draggable="false">
+        <img src="../assets/projects/fitfido/cover-2.webp" alt="Fitfido product render" width="2000" height="1500" loading="lazy" draggable="false">
+        <img src="../assets/projects/fitfido/prototype-2.webp" alt="Fitfido second prototype" width="2000" height="1327" loading="lazy" draggable="false">
+      </div>
+      <p class="gallery__hint">DRAG TO EXPLORE</p>
+    </section>
+
+    <a class="c-next wrap" href="brilliant.html">
+      <p class="eyebrow">Next project</p>
+      <p class="c-next__title">Brilliant.org</p>
+      <span class="pill pill--ghost">View case study <i class="pill__arrow" aria-hidden="true"></i></span>
+    </a>
+  </main>
+
+  <footer class="footer">
+    <div class="wrap">
+      <div class="footer__top">
+        <p class="footer__big">Let’s Connect</p>
+        <a class="footer__big footer__mail" href="mailto:wmw921204@gmail.com">wmw921204@gmail.com</a>
+      </div>
+      <div class="footer__cols">
+        <div>
+          <p class="footer__label">Menu</p>
+          <ul>
+            <li><a href="../index.html">Home</a></li>
+            <li><a href="../index.html#services">Services</a></li>
+            <li><a href="../index.html#portfolio">Works</a></li>
+            <li><a href="../index.html#contact">Contact</a></li>
+          </ul>
+        </div>
+        <div>
+          <p class="footer__label">Socials</p>
+          <ul>
+            <li><a href="https://www.linkedin.com/in/minwei-wu-7470a3347/" target="_blank" rel="noopener">LinkedIn</a></li>
+            <li><a href="https://www.facebook.com/share/1GbCDhCWdE/" target="_blank" rel="noopener">Facebook</a></li>
+          </ul>
+        </div>
+        <div>
+          <p class="footer__label">Local Time</p>
+          <p><time id="clock">--:--:--</time> <span id="tz"></span></p>
+        </div>
+      </div>
+      <div class="footer__bottom">
+        <p>© Minwei Wu <span id="year">2026</span></p>
+        <a href="#top">Back to top ↑</a>
+      </div>
+    </div>
+  </footer>
+
+  <script src="../assets/js/lenis.min.js" defer></script>
+  <script src="../main.js" defer></script>
+</body>
+</html>
