@@ -1,0 +1,346 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Minwei Wu — UX & Product Designer</title>
+  <meta name="description" content="I’m a designer focused on creating intuitive and meaningful digital experiences. Through research, concept development, and prototyping, I explore how design and technology can work together to solve problems and improve everyday interactions.">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Minwei Wu — UX & Product Designer">
+  <meta property="og:description" content="Research-driven UX, service and product design by Minwei Wu, based in Savannah, GA.">
+  <meta property="og:image" content="assets/og.png">
+  <meta name="theme-color" content="#000000">
+  <link rel="icon" href="assets/img/logo.webp" type="image/webp">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,600&family=Poppins:wght@400;500&family=Sulphur+Point:wght@400&display=swap">
+  <link rel="preload" as="image" href="assets/img/hero.webp">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <a class="skip" href="#main">Skip to content</a>
+
+  <!-- Header -->
+  <header class="topbar" id="top">
+    <div class="topbar__inner">
+      <p class="topbar__loc"><span class="dot"></span>Savannah, GA</p>
+      <a class="brand" href="#home" aria-label="Minwei Wu — home">
+        <img src="assets/img/logo.webp" alt="" width="31" height="16">
+        <span>Emma Wu</span>
+      </a>
+      <button class="menu-btn" aria-expanded="false" aria-controls="menu" aria-label="Open menu">
+        <span></span><span></span><span></span><span></span>
+      </button>
+    </div>
+    <nav class="menu" id="menu" hidden>
+      <p class="menu__title">Menu</p>
+      <ul class="menu__grid">
+        <li><a href="#home">Home</a></li>
+        <li><a href="#experience">Experience</a></li>
+        <li><a href="#services">Services</a></li>
+        <li><a href="#what-you-get">What you get</a></li>
+        <li><a href="#portfolio">Portfolio</a></li>
+        <li><a href="#awards">Awards</a></li>
+        <li><a href="#skills">Skills</a></li>
+        <li><a href="#contact">Contact form</a></li>
+      </ul>
+      <p class="menu__title">Social Network</p>
+      <ul class="menu__social">
+        <li><a href="https://www.linkedin.com/in/minwei-wu-7470a3347/" target="_blank" rel="noopener">LinkedIn</a></li>
+        <li><a href="https://www.facebook.com/share/1GbCDhCWdE/" target="_blank" rel="noopener">Facebook</a></li>
+        <li><a href="mailto:wmw921204@gmail.com">Email</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <main id="main">
+    <!-- Hero -->
+    <section class="hero" id="home">
+      <video class="hero__bg" autoplay muted loop playsinline preload="metadata" poster="assets/img/smoke-poster.webp" aria-hidden="true">
+        <source src="assets/video/smoke.mp4" type="video/mp4">
+      </video>
+      <div class="hero__grid wrap">
+        <div class="hero__name">
+          <p class="hero__hello reveal">Hello <span>My Name</span> Is</p>
+          <h1 class="display">
+            <span class="reveal accent">Minwei</span>
+            <span class="reveal">Wu</span>
+          </h1>
+        </div>
+        <figure class="hero__photo reveal">
+          <img src="assets/img/hero.webp" alt="Portrait of Minwei Wu" width="854" height="810" fetchpriority="high">
+          <ul class="hero__social">
+            <li><a href="https://www.linkedin.com/in/minwei-wu-7470a3347/" target="_blank" rel="noopener" aria-label="LinkedIn"><svg viewBox="0 0 24 24"><path d="M6.94 8.5H3.56V20h3.38V8.5ZM5.25 3A1.96 1.96 0 1 0 5.25 6.9 1.96 1.96 0 0 0 5.25 3ZM20.44 13.4c0-3.1-1.66-4.9-4.2-4.9-1.6 0-2.6.88-3.04 1.6V8.5H9.82V20h3.38v-6.1c0-1.6.6-2.62 2-2.62 1.36 0 1.86 1.04 1.86 2.62V20h3.38v-6.6Z"/></svg></a></li>
+            <li><a href="https://www.facebook.com/share/1GbCDhCWdE/" target="_blank" rel="noopener" aria-label="Facebook"><svg viewBox="0 0 24 24"><path d="M13.5 21v-7.5h2.5l.4-3h-2.9V8.6c0-.86.25-1.45 1.5-1.45H16.6V4.5c-.27-.04-1.2-.12-2.3-.12-2.26 0-3.8 1.38-3.8 3.9v2.22H8v3h2.5V21h3Z"/></svg></a></li>
+            <li><a href="mailto:wmw921204@gmail.com" aria-label="Email"><svg viewBox="0 0 24 24"><path d="M3 5h18v14H3V5Zm2 2v.4l7 4.6 7-4.6V7H5Zm14 2.8-7 4.6-7-4.6V17h14V9.8Z"/></svg></a></li>
+          </ul>
+        </figure>
+      </div>
+      <div class="hero__bar wrap">
+        <a class="scroll-down" href="#experience">Scroll <span>down</span> <span aria-hidden="true">↓</span></a>
+        <div class="hero__cta">
+          <a class="pill pill--ghost" href="#portfolio">View My Works <i class="pill__arrow" aria-hidden="true"></i></a>
+          <a class="pill pill--light" href="#contact">Contact Me <i class="pill__arrow" aria-hidden="true"></i></a>
+        </div>
+      </div>
+
+      <!-- Experience -->
+      <div class="experience wrap" id="experience">
+        <p class="eyebrow">Experience</p>
+        <div class="experience__intro">
+          <p class="lead reveal-words">Designing experiences that go beyond simple interactions. Creating intuitive, seamless journeys for users.</p>
+          <a class="pill pill--ghost" href="https://www.linkedin.com/in/minwei-wu-7470a3347/" target="_blank" rel="noopener">See my LinkedIn <i class="pill__arrow" aria-hidden="true"></i></a>
+        </div>
+        <ol class="xp" data-autoplay="5000">
+          <li class="xp__card is-active">
+            <p class="xp__date">2023 – Present</p>
+            <h3 class="xp__role">Senior UI/UX Designer</h3>
+            <ul class="tags"><li>UI/UX</li><li>Research</li></ul>
+            <span class="xp__num">01</span>
+          </li>
+          <li class="xp__card">
+            <p class="xp__date">2021 – 2023</p>
+            <h3 class="xp__role">UI Designer</h3>
+            <ul class="tags"><li>Mobile Design</li><li>Usability Testing</li></ul>
+            <span class="xp__num">02</span>
+          </li>
+          <li class="xp__card">
+            <p class="xp__date">2019 – 2021</p>
+            <h3 class="xp__role">Product Designer</h3>
+            <ul class="tags"><li>3D Modeling</li><li>Ergonomics</li></ul>
+            <span class="xp__num">03</span>
+          </li>
+        </ol>
+        <div class="xp__progress" aria-hidden="true"><span></span></div>
+      </div>
+    </section>
+
+    <!-- Marquee -->
+    <div class="marquee" aria-hidden="true">
+      <div class="marquee__track">
+        <span>UI/UX Design</span><img src="assets/img/logo.webp" alt=""><span>Interaction Design</span><img src="assets/img/logo.webp" alt=""><span>Product Thinking</span><img src="assets/img/logo.webp" alt=""><span>Digital Experience</span><img src="assets/img/logo.webp" alt="">
+        <span>UI/UX Design</span><img src="assets/img/logo.webp" alt=""><span>Interaction Design</span><img src="assets/img/logo.webp" alt=""><span>Product Thinking</span><img src="assets/img/logo.webp" alt=""><span>Digital Experience</span><img src="assets/img/logo.webp" alt="">
+      </div>
+    </div>
+
+    <!-- About + Services -->
+    <section class="light" id="services">
+      <div class="wrap about">
+        <p class="eyebrow">About me</p>
+        <p class="lead lead--dark reveal-words">I focus on UX-driven design, with strengths in research, visual design, product design, VR-related work, and web design.</p>
+      </div>
+
+      <div class="wrap services">
+        <article class="svc is-active">
+          <p class="svc__num">01.</p>
+          <h2 class="display svc__title">UI/UX Design</h2>
+          <div class="svc__body">
+            <div>
+              <ul class="tags tags--light"><li>User Interface</li><li>User Experience</li><li>Web Design</li></ul>
+              <p class="svc__desc">Crafting intuitive and visually appealing digital experiences that prioritize user needs and business goals.</p>
+            </div>
+            <div class="svc__imgs">
+              <img src="assets/img/service-uiux-1.webp" alt="Brilliant.org screens on a laptop" loading="lazy" width="640" height="427">
+              <img src="assets/img/service-uiux-2.webp" alt="Mobile app screens" loading="lazy" width="640" height="480">
+            </div>
+          </div>
+        </article>
+        <article class="svc">
+          <p class="svc__num">02.</p>
+          <h2 class="display svc__title">Service Design</h2>
+          <div class="svc__body">
+            <div>
+              <ul class="tags tags--light"><li>User Journey</li><li>Service Ecosystem</li><li>Data Visualization</li></ul>
+              <p class="svc__desc">Analyzing complex services holistically, identifying gaps across touchpoints and processes to create more coherent and user-centered experiences.</p>
+            </div>
+            <div class="svc__imgs">
+              <img src="assets/img/service-sd-1.webp" alt="Service blueprint" loading="lazy" width="640" height="404">
+              <img src="assets/img/service-sd-2.webp" alt="Journey map" loading="lazy" width="640" height="404">
+            </div>
+          </div>
+        </article>
+        <article class="svc">
+          <p class="svc__num">03.</p>
+          <h2 class="display svc__title">Product Design</h2>
+          <div class="svc__body">
+            <div>
+              <ul class="tags tags--light"><li>Prototyping</li><li>Concept Development</li><li>Form &amp; Function</li></ul>
+              <p class="svc__desc">Translating abstract ideas into practical designs, considering usability, aesthetics, and feasibility throughout the design process.</p>
+            </div>
+            <div class="svc__imgs">
+              <img src="assets/img/service-pd-1.webp" alt="Product sketches" loading="lazy" width="640" height="480">
+              <img src="assets/img/service-pd-2.webp" alt="Product prototype" loading="lazy" width="640" height="480">
+            </div>
+          </div>
+        </article>
+        <div class="services__cta">
+          <a class="pill pill--dark" href="#portfolio">View my works <i class="pill__arrow" aria-hidden="true"></i></a>
+        </div>
+      </div>
+
+      <!-- Approach -->
+      <div class="wrap approach" id="what-you-get">
+        <div class="approach__head">
+          <p class="eyebrow">Design Approach</p>
+          <p class="lead lead--dark lead--center">Research-driven design that translates<br>insights into clear, thoughtful experiences.</p>
+        </div>
+        <div class="approach__grid">
+          <div class="circle circle--media">
+            <video autoplay muted loop playsinline preload="none" poster="assets/img/heart-poster.webp" aria-hidden="true" data-lazy-video>
+              <source data-src="assets/video/heart.mp4" type="video/mp4">
+            </video>
+          </div>
+          <div class="circle circle--outline">
+            <p class="chip"><span class="dot dot--dark"></span>You will get</p>
+            <p class="approach__big">user-<br>centered<br>solutions</p>
+            <p class="approach__small">shaped by insight and iteration.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Portfolio -->
+    <section class="portfolio" id="portfolio">
+      <a class="project" href="https://minweiwu.framer.website/projects/project1">
+        <p class="eyebrow">My Work</p>
+        <h2 class="project__title">Fitfido</h2>
+        <div class="project__row">
+          <span class="project__meta">Date: 3/2025</span>
+          <img src="assets/img/fitfido.webp" alt="Fitfido smart feeder with a corgi" loading="lazy" width="1600" height="972">
+          <span class="project__meta">School Project</span>
+        </div>
+        <ul class="tags"><li>UX Design</li><li>Product Design</li><li>Health Tech</li></ul>
+      </a>
+      <a class="project" href="https://minweiwu.framer.website/projects/project2">
+        <p class="eyebrow">My Work</p>
+        <h2 class="project__title">Brilliant.org</h2>
+        <div class="project__row">
+          <span class="project__meta">Date: 3/2025</span>
+          <img src="assets/img/brilliant.webp" alt="Brilliant.org redesign on a laptop" loading="lazy" width="1600" height="1067">
+          <span class="project__meta">Brilliant</span>
+        </div>
+        <ul class="tags"><li>UX Design</li><li>User Research</li><li>EdTech</li></ul>
+      </a>
+    </section>
+
+    <!-- Awards -->
+    <section class="awards" id="awards">
+      <div class="wrap">
+        <div class="awards__head">
+          <p class="eyebrow">Awards</p>
+          <h2 class="display awards__title"><span>Awards</span><span class="dim">Winning</span></h2>
+          <a class="pill pill--ghost" href="#portfolio">View My Works <i class="pill__arrow" aria-hidden="true"></i></a>
+        </div>
+        <div class="table" role="table">
+          <div class="table__row table__row--head" role="row">
+            <span role="columnheader">Prize Brand</span><span role="columnheader">Prize Name</span><span role="columnheader">Date</span>
+          </div>
+          <a class="table__row" role="row" href="https://www.idesignawards.com/winners/zoom.php?eid=9-63628-25" target="_blank" rel="noopener">
+            <span role="cell">IDA</span><span role="cell" class="table__name">IDA 2025, Bronze</span><span role="cell">2025</span>
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <!-- Skills -->
+    <section class="skills" id="skills">
+      <div class="wrap">
+        <div class="skills__box">
+          <p class="eyebrow">Mastered Skill</p>
+          <ul class="skills__list">
+            <li>Figma<sup>98%</sup></li>
+            <li>Rhino<sup>86%</sup></li>
+            <li>Framer<sup>90%</sup></li>
+            <li>Unity<sup>80%</sup></li>
+            <li>PS<sup>75%</sup></li>
+          </ul>
+          <p class="skills__more"><span class="dot dot--light"></span>With <b>10+ Other Skills</b> related to <b>Design, Development</b></p>
+        </div>
+      </div>
+    </section>
+
+    <div class="marquee marquee--reverse" aria-hidden="true">
+      <div class="marquee__track">
+        <span>UI/UX Design</span><img src="assets/img/logo.webp" alt=""><span>Interaction Design</span><img src="assets/img/logo.webp" alt=""><span>Product Thinking</span><img src="assets/img/logo.webp" alt=""><span>Digital Experience</span><img src="assets/img/logo.webp" alt="">
+        <span>UI/UX Design</span><img src="assets/img/logo.webp" alt=""><span>Interaction Design</span><img src="assets/img/logo.webp" alt=""><span>Product Thinking</span><img src="assets/img/logo.webp" alt=""><span>Digital Experience</span><img src="assets/img/logo.webp" alt="">
+      </div>
+    </div>
+
+    <!-- Contact -->
+    <section class="light contact" id="contact">
+      <div class="wrap">
+        <div class="contact__head">
+          <div>
+            <p class="eyebrow">Contact me</p>
+            <h2 class="contact__title">Get In Touch</h2>
+          </div>
+          <a class="chip chip--line" href="mailto:wmw921204@gmail.com">Mail me at: <span>wmw921204@gmail.com</span></a>
+        </div>
+        <form class="form" id="contact-form">
+          <label class="field">
+            <span>Your Email</span>
+            <input type="email" name="email" placeholder="janesmith@email.com" required autocomplete="email">
+          </label>
+          <label class="field">
+            <span>Your Phone</span>
+            <input type="tel" name="phone" placeholder="01 234 5678" autocomplete="tel">
+          </label>
+          <label class="field field--full">
+            <span>Message</span>
+            <textarea name="message" rows="3" placeholder="Tell me about your project…" required></textarea>
+          </label>
+          <button class="pill pill--dark" type="submit">Send Message</button>
+          <p class="form__note" role="status" aria-live="polite"></p>
+        </form>
+      </div>
+      <div class="connect wrap" aria-hidden="true">
+        <p class="connect__word">Connect</p>
+        <div class="connect__media">
+          <video autoplay muted loop playsinline preload="none" poster="assets/img/heart-poster.webp" data-lazy-video>
+            <source data-src="assets/video/heart.mp4" type="video/mp4">
+          </video>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="wrap">
+      <div class="footer__top">
+        <p class="footer__big">Let’s Connect</p>
+        <a class="footer__big footer__mail" href="mailto:wmw921204@gmail.com">wmw921204@gmail.com</a>
+      </div>
+      <div class="footer__cols">
+        <div>
+          <p class="footer__label">Menu</p>
+          <ul>
+            <li><a href="#home">Home</a></li>
+            <li><a href="#services">Services</a></li>
+            <li><a href="#portfolio">Works</a></li>
+            <li><a href="#what-you-get">Approach</a></li>
+            <li><a href="#contact">Contact</a></li>
+          </ul>
+        </div>
+        <div>
+          <p class="footer__label">Socials</p>
+          <ul>
+            <li><a href="https://www.linkedin.com/in/minwei-wu-7470a3347/" target="_blank" rel="noopener">LinkedIn</a></li>
+            <li><a href="https://www.facebook.com/share/1GbCDhCWdE/" target="_blank" rel="noopener">Facebook</a></li>
+          </ul>
+        </div>
+        <div>
+          <p class="footer__label">Local Time</p>
+          <p><time id="clock">--:--:--</time> <span id="tz"></span></p>
+        </div>
+      </div>
+      <div class="footer__bottom">
+        <p>© Minwei Wu <span id="year">2026</span></p>
+        <a href="#top">Back to top ↑</a>
+      </div>
+    </div>
+  </footer>
+
+  <script src="main.js" defer></script>
+</body>
+</html>
