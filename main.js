@@ -484,7 +484,13 @@ if (!reduceMotion && matchMedia("(hover: hover) and (pointer: fine)").matches &&
     tx = e.clientX; ty = e.clientY;
     const host = e.target.closest("[data-cursor]");
     cursor.classList.toggle("is-on", !!host);
-    if (host) cursor.textContent = host.dataset.cursor;
+    if (host) {
+      cursor.textContent = host.dataset.cursor;
+      // links can tint the cursor (e.g. "Next" takes the next project's colour)
+      const cs = getComputedStyle(host);
+      cursor.style.setProperty("--cursor-bg", cs.getPropertyValue("--next-bg").trim() || "");
+      cursor.style.setProperty("--cursor-fg", cs.getPropertyValue("--next-fg").trim() || "");
+    }
   });
   document.addEventListener("pointerleave", () => cursor.classList.remove("is-on"));
   const follow = () => {

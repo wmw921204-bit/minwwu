@@ -427,7 +427,7 @@ a.table__row:hover span:last-child::after { opacity: 1; transform: none; }
 }
 
 /* Custom cursor label (desktop) */
-.cursor { position: fixed; left: 0; top: 0; z-index: 90; pointer-events: none; display: grid; place-items: center; width: 92px; height: 92px; border-radius: 50%; background: var(--accent); color: #fff; font: 500 14px/1 var(--f-body); letter-spacing: .02em; opacity: 0; scale: .3; transition: opacity .3s var(--ease), scale .5s var(--ease); }
+.cursor { position: fixed; left: 0; top: 0; z-index: 90; pointer-events: none; display: grid; place-items: center; width: 92px; height: 92px; border-radius: 50%; background: var(--cursor-bg, var(--accent)); color: var(--cursor-fg, #fff); font: 500 14px/1 var(--f-body); letter-spacing: .02em; opacity: 0; scale: .3; transition: opacity .3s var(--ease), scale .5s var(--ease), background-color .3s; }
 .cursor.is-on { opacity: 1; scale: 1; }
 [data-cursor] { cursor: none; }
 @media (hover: none) { [data-cursor] { cursor: auto; } }

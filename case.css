@@ -257,7 +257,9 @@
 .c-next { display: block; border-top: 1px solid var(--c-line); padding: 80px 0 100px; text-align: center; }
 .c-next .eyebrow { margin-bottom: 20px; }
 .c-next__title { font: 600 clamp(56px, 9vw, 140px)/1 var(--f-display); letter-spacing: -0.045em; transition: color .5s var(--ease), letter-spacing .8s var(--ease); }
-.c-next:hover .c-next__title { color: var(--c-accent-ink); letter-spacing: -0.02em; }
+.c-next:hover .c-next__title { color: var(--next, var(--c-accent-ink)); letter-spacing: -0.02em; }
+.c-next .pill__arrow { transition: transform .3s var(--ease), background-color .4s var(--ease); }
+.case .c-next:hover .pill__arrow { background-color: var(--next-bg, var(--c-accent)); }
 .c-next .pill { margin-top: 32px; }
 .case--light .c-next .pill--ghost { background: transparent; color: var(--c-fg); border-color: var(--c-line); }
 .case--light .c-next .pill__arrow { background-color: #111; }
