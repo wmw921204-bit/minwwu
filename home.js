@@ -11,7 +11,6 @@
   const root = document.documentElement;
   const loader = $(".loader");
   if (loader && root.classList.contains("intro")) {
-    const count = $(".loader__count span", loader);
     const name = $(".loader__name", loader);
     const finalName = name.textContent;
     const glyphs = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789#%&*+=/<>";
@@ -33,7 +32,6 @@
       const target = Math.min(done / tasks.length, elapsed / minTime);
       shown += (target - shown) * 0.12;
       if (target === 1 && 1 - shown < 0.004) shown = 1;
-      count.textContent = String(Math.round(shown * 100)).padStart(3, "0");
       loader.style.setProperty("--lp", shown.toFixed(3));
       // name resolves left to right as progress grows
       const solved = Math.floor(shown * finalName.length * 1.15);
@@ -51,6 +49,61 @@
       }, 250);
     };
     requestAnimationFrame(frame);
+
+    // interactive dot field: dots glow near the cursor and ripples roll out from where it moves or clicks
+    const cv = $(".loader__field", loader);
+    const ctx = cv.getContext("2d");
+    const gap = 26;
+    let W = 0, H = 0, dpr = 1, dots = [];
+    const size = () => {
+      dpr = Math.min(2, devicePixelRatio || 1);
+      W = innerWidth; H = innerHeight;
+      cv.width = W * dpr; cv.height = H * dpr;
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      dots = [];
+      for (let y = gap / 2; y < H; y += gap) for (let x = gap / 2; x < W; x += gap) dots.push(x, y);
+    };
+    size();
+    addEventListener("resize", size);
+    const ripples = [];
+    const addRipple = (x, y, power = 1) => { ripples.push({ x, y, t: performance.now(), power }); if (ripples.length > 14) ripples.shift(); };
+    let mx = -999, my = -999, lx = 0, ly = 0;
+    loader.addEventListener("pointermove", (e) => {
+      mx = e.clientX; my = e.clientY;
+      if (Math.hypot(mx - lx, my - ly) > 70) { addRipple(mx, my, 0.6); lx = mx; ly = my; }
+    });
+    loader.addEventListener("pointerdown", (e) => addRipple(e.clientX, e.clientY, 1.6));
+    loader.addEventListener("pointerleave", () => { mx = my = -999; });
+    // ambient ripples from the centre so it feels alive without a mouse
+    addRipple(W / 2, H * 0.46, 1.2);
+    const ambient = setInterval(() => addRipple(W / 2, H * 0.46, 0.9), 1400);
+    const speed = 0.55, band = 70, life = 2600;
+    const draw = (now) => {
+      if (!root.classList.contains("intro")) { clearInterval(ambient); return; }
+      ctx.clearRect(0, 0, W, H);
+      for (let i = ripples.length - 1; i >= 0; i--) if (now - ripples[i].t > life) ripples.splice(i, 1);
+      for (let i = 0; i < dots.length; i += 2) {
+        let x = dots[i], y = dots[i + 1], glow = 0, dx = 0, dy = 0;
+        for (const r of ripples) {
+          const age = now - r.t, rad = age * speed;
+          const ddx = x - r.x, ddy = y - r.y, d = Math.hypot(ddx, ddy) || 1;
+          const off = d - rad;
+          if (off > -band && off < band) {
+            const k = Math.cos((off / band) * Math.PI * 0.5) * (1 - age / life) * r.power;
+            dx += (ddx / d) * k * 7; dy += (ddy / d) * k * 7; glow = Math.max(glow, k);
+          }
+        }
+        const md = Math.hypot(x - mx, y - my);
+        const near = md < 150 ? 1 - md / 150 : 0;
+        const a = 0.13 + glow * 0.55 + near * 0.6;
+        const rad = 1 + glow * 1.4 + near * 1.8;
+        const hot = Math.max(glow, near);
+        ctx.fillStyle = hot > 0.15 ? `rgba(222,101,54,${Math.min(1, a).toFixed(3)})` : `rgba(255,255,255,${a.toFixed(3)})`;
+        ctx.beginPath(); ctx.arc(x + dx, y + dy, rad, 0, 6.283); ctx.fill();
+      }
+      requestAnimationFrame(draw);
+    };
+    requestAnimationFrame(draw);
   } else {
     root.classList.remove("is-loading", "intro");
   }
