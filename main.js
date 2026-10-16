@@ -398,6 +398,9 @@ $$("[data-scene]").forEach((scene) => {
     const exact = p * beats;
     const i = Math.min(beats - 1, Math.floor(exact));
     scene.style.setProperty("--p", p.toFixed(4));
+    // "rise": 0 while the scene scrolls in, 1 once ~35vh of the pinned scene has been scrolled (eased)
+    const rise = clamp((innerHeight * 0.15 - r.top) / (innerHeight * 0.5));
+    scene.style.setProperty("--rise", (1 - Math.pow(1 - rise, 3)).toFixed(4));
     if (scene.classList.contains("vn")) scene.classList.toggle("is-pinned", r.top <= 1 && r.bottom >= innerHeight - 1);
     document.body.classList.toggle("in-scene", $$(".vn.is-pinned").length > 0);
     scene.style.setProperty("--bp", clamp(exact - i).toFixed(4));
