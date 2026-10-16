@@ -52,10 +52,17 @@
   </header>
 
   <main id="main">
-    <section class="c-hero" style="background:#fff">
-      <video class="c-hero__media" autoplay muted loop playsinline preload="auto" poster="../assets/projects/brilliant/hero-poster.webp" aria-hidden="true" data-parallax="0.12">
-        <source src="../assets/projects/brilliant/hero.mp4" type="video/mp4">
-      </video>
+    <section class="c-hero" data-scene style="--beats:1;background:#fff">
+      <div class="c-hero__pin">
+        <video class="c-hero__media" autoplay muted loop playsinline preload="auto" poster="../assets/projects/brilliant/hero-poster.webp" aria-hidden="true">
+          <source src="../assets/projects/brilliant/hero.mp4" type="video/mp4">
+        </video>
+        <div class="c-hero__intro">
+          <small>UX DESIGN · 10 WEEKS</small>
+          <p>Redesigning Brilliant.org so learners keep coming back.</p>
+        </div>
+        <p class="c-hero__cue">SCROLL</p>
+      </div>
     </section>
     <h1 class="c-hero__marquee" aria-label="Brilliant.org redesign">
       <span class="marquee__track" aria-hidden="true"><span>Brilliant</span><span>Brilliant</span><span>Brilliant</span><span>Brilliant</span><span>Brilliant</span><span>Brilliant</span></span>
@@ -72,10 +79,10 @@
         </dl>
       </div>
       <div class="c-covers">
-        <img class="reveal" src="../assets/projects/brilliant/cover-1.webp" alt="Brilliant.org redesign on a laptop" width="2000" height="1334" loading="lazy">
-        <img class="reveal" src="../assets/projects/brilliant/cover-2.webp" alt="Redesigned lesson screens" width="1600" height="1200" loading="lazy">
-        <img class="reveal" src="../assets/projects/brilliant/cover-3.webp" alt="Redesigned practice screens" width="1600" height="1200" loading="lazy">
-        <img class="reveal" src="../assets/projects/brilliant/cover-4.webp" alt="Redesigned progress screens" width="2000" height="1375" loading="lazy">
+        <img class="wipe" src="../assets/projects/brilliant/cover-1.webp" alt="Brilliant.org redesign on a laptop" width="2000" height="1334" loading="lazy">
+        <img class="wipe" src="../assets/projects/brilliant/cover-2.webp" alt="Redesigned lesson screens" width="1600" height="1200" loading="lazy">
+        <img class="wipe" src="../assets/projects/brilliant/cover-3.webp" alt="Redesigned practice screens" width="1600" height="1200" loading="lazy">
+        <img class="wipe" src="../assets/projects/brilliant/cover-4.webp" alt="Redesigned progress screens" width="2000" height="1375" loading="lazy">
       </div>
     </section>
 
@@ -165,7 +172,30 @@
           <p class="c-text">Retention was both frequent and feasible, so it became the focus of the redesign.</p>
         </div>
       </div>
-      <figure class="c-figure reveal"><img src="../assets/projects/brilliant/affinity.webp" alt="They say, they mean, they want: synthesis of interview quotes into needs" width="2000" height="1133" loading="lazy"></figure>
+    </section>
+
+    <section class="vn" data-scene style="--beats:4" aria-label="Learners in their own words">
+      <div class="vn__stage">
+        <div class="vn__bg vn__bg--blur">
+          <img data-beat="0,1,2,3" src="../assets/projects/brilliant/affinity.webp" alt="" loading="lazy">
+        </div>
+        <div class="vn__shade"></div>
+        <p class="vn__chapter"><b>03</b> In their own words</p>
+        <h3 class="vn__title"><span data-beat="0,1,2,3">What learners told us they want.</span></h3>
+        <p class="vn__big vn__big--word" aria-hidden="true"><span data-beat="0">Retention</span><span data-beat="1">Guidance</span><span data-beat="2">Clarity</span><span data-beat="3">Validation</span></p>
+        <div class="vn__box">
+          <p class="vn__name"><span data-beat="0">Learner · Retention</span><span data-beat="1">Learner · Guidance</span><span data-beat="2">Learner · Clarity</span><span data-beat="3">Learner · Validation</span></p>
+          <div class="vn__lines">
+              <p data-beat="0" data-type>“I need to have a routine to make me come back to learn.”</p>
+              <p data-beat="1" data-type>“I want to ask questions to receive feedback because the details help my understanding of meaning.”</p>
+              <p data-beat="2" data-type>“I want the course structure to be clear because it will help me better understand the coherence of the course content.”</p>
+              <p data-beat="3" data-type>“I want to check something off my goal list because it helps me be productive.”</p>
+          </div>
+          <span class="vn__next" aria-hidden="true"></span>
+        </div>
+        <div class="vn__dots"><button data-goto="0" aria-label="Retention"></button><button data-goto="1" aria-label="Guidance"></button><button data-goto="2" aria-label="Clarity"></button><button data-goto="3" aria-label="Validation"></button></div>
+        <div class="vn__progress"></div>
+      </div>
     </section>
 
     <!-- 04 Ideation & iteration -->

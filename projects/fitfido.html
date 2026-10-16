@@ -53,8 +53,15 @@
   </header>
 
   <main id="main">
-    <section class="c-hero">
-      <img class="c-hero__media" src="../assets/projects/fitfido/hero.webp" alt="Fitfido feeder in a living room with a corgi and the companion app" width="2000" height="1500" fetchpriority="high" data-parallax="0.12">
+    <section class="c-hero" data-scene style="--beats:1">
+      <div class="c-hero__pin">
+        <img class="c-hero__media" src="../assets/projects/fitfido/hero.webp" alt="Fitfido feeder in a living room with a corgi and the companion app" width="2000" height="1500" fetchpriority="high">
+        <div class="c-hero__intro">
+          <small>PRODUCT DESIGN · IDA BRONZE 2025</small>
+          <p>A smart feeder that weighs your dog at every meal.</p>
+        </div>
+        <p class="c-hero__cue">SCROLL</p>
+      </div>
     </section>
     <h1 class="c-hero__marquee" aria-label="Fitfido">
       <span class="marquee__track" aria-hidden="true"><span>Fitfido</span><span>Fitfido</span><span>Fitfido</span><span>Fitfido</span><span>Fitfido</span><span>Fitfido</span></span>
@@ -75,10 +82,10 @@
         </a>
       </div>
       <div class="c-covers">
-        <img class="reveal" src="../assets/projects/fitfido/cover-1.webp" alt="Fitfido feeder with a corgi eating" width="2000" height="1216" loading="lazy">
-        <img class="reveal" src="../assets/projects/fitfido/cover-2.webp" alt="Fitfido product render" width="2000" height="1500" loading="lazy">
-        <img class="reveal" src="../assets/projects/fitfido/cover-3.webp" alt="Fitfido feeder and app" width="2000" height="1500" loading="lazy">
-        <img class="reveal" src="../assets/projects/fitfido/cover-4.webp" alt="Fitfido poster: weighs while it feeds" width="2000" height="1963" loading="lazy">
+        <img class="wipe" src="../assets/projects/fitfido/cover-1.webp" alt="Fitfido feeder with a corgi eating" width="2000" height="1216" loading="lazy">
+        <img class="wipe" src="../assets/projects/fitfido/cover-2.webp" alt="Fitfido product render" width="2000" height="1500" loading="lazy">
+        <img class="wipe" src="../assets/projects/fitfido/cover-3.webp" alt="Fitfido feeder and app" width="2000" height="1500" loading="lazy">
+        <img class="wipe" src="../assets/projects/fitfido/cover-4.webp" alt="Fitfido poster: weighs while it feeds" width="2000" height="1963" loading="lazy">
       </div>
     </section>
 
@@ -160,12 +167,25 @@
         </div>
         <img class="reveal" src="../assets/projects/fitfido/interview.webp" alt="Interview synthesis board" width="2000" height="1759" loading="lazy">
       </div>
-      <ol class="c-list reveal-stagger">
-        <li data-glow><span class="c-list__num">01</span><span class="c-list__text">Portions are estimated, not measured.</span></li>
-        <li data-glow><span class="c-list__num">02</span><span class="c-list__text">Weight tracking is inconsistent and rarely sustained.</span></li>
-        <li data-glow><span class="c-list__num">03</span><span class="c-list__text">Owners feel unsure about their food choices.</span></li>
-        <li data-glow><span class="c-list__num">04</span><span class="c-list__text">Health data is fragmented and hard to read over time.</span></li>
-      </ol>
+    </section>
+
+    <section class="vn" data-scene style="--beats:4" aria-label="Key findings">
+      <div class="vn__stage">
+        <div class="vn__bg vn__bg--blur">
+          <img data-beat="0,1,2,3" src="../assets/projects/fitfido/interview.webp" alt="" loading="lazy">
+        </div>
+        <div class="vn__shade"></div>
+        <p class="vn__chapter"><b>02</b> What owners told us</p>
+        <h3 class="vn__title"><span data-beat="0,1,2,3">Weight control depends on manual effort and routine.</span></h3>
+        <p class="vn__big" aria-hidden="true"><span data-beat="0">01</span><span data-beat="1">02</span><span data-beat="2">03</span><span data-beat="3">04</span></p>
+        <div class="vn__box">
+          <p class="vn__name"><span data-beat="0">Finding 01 / 04</span><span data-beat="1">Finding 02 / 04</span><span data-beat="2">Finding 03 / 04</span><span data-beat="3">Finding 04 / 04</span></p>
+          <div class="vn__lines"><p data-beat="0" data-type>Portions are estimated, not measured.</p><p data-beat="1" data-type>Weight tracking is inconsistent and rarely sustained.</p><p data-beat="2" data-type>Owners feel unsure about their food choices.</p><p data-beat="3" data-type>Health data is fragmented and hard to read over time.</p></div>
+          <span class="vn__next" aria-hidden="true"></span>
+        </div>
+        <div class="vn__dots"><button data-goto="0" aria-label="Finding 1"></button><button data-goto="1" aria-label="Finding 2"></button><button data-goto="2" aria-label="Finding 3"></button><button data-goto="3" aria-label="Finding 4"></button></div>
+        <div class="vn__progress"></div>
+      </div>
     </section>
 
     <!-- 03 Opportunity -->
@@ -184,49 +204,43 @@
       <figure class="c-figure reveal"><img src="../assets/projects/fitfido/competitors.webp" alt="Competitor comparison: only Fitfido combines active weighing, AI feeding, health insights and calorie detection" width="2000" height="1015" loading="lazy"></figure>
     </section>
 
-    <!-- 04 Features: scrollytelling over the prototype -->
-    <section class="wrap c-sec" id="features" data-chapter="Key features">
-      <div class="c-chapter"><span class="c-chapter__num">04</span><h2 class="c-kicker">Key features · First prototype</h2></div>
-      <p class="c-head reveal-mask">Every meal becomes a health check.</p>
-      <div class="scrolly" data-scrolly>
-        <div class="scrolly__steps">
-          <article class="scrolly__step" data-step data-x="56" data-y="74" data-s="1.7">
-            <img src="../assets/projects/fitfido/feature-1.webp" alt="" width="169" height="170" loading="lazy">
-            <p class="num">01</p>
-            <h3>Active weighing</h3>
-            <p>A built-in scale records the dog’s weight during every meal — no separate weigh-ins.</p>
-          </article>
-          <article class="scrolly__step" data-step data-x="42" data-y="52" data-s="1.8">
-            <img src="../assets/projects/fitfido/feature-2.webp" alt="" width="127" height="128" loading="lazy">
-            <p class="num">02</p>
-            <h3>Weight-driven AI feeding</h3>
-            <p>Portions adjust automatically based on weight trends.</p>
-          </article>
-          <article class="scrolly__step" data-step data-x="22" data-y="70" data-s="1.55">
-            <img src="../assets/projects/fitfido/feature-3.webp" alt="" width="474" height="396" loading="lazy">
-            <p class="num">03</p>
-            <h3>Health insights</h3>
-            <p>Weight and feeding data turn into clear progress in the companion app.</p>
-          </article>
-          <article class="scrolly__step" data-step data-x="42" data-y="27" data-s="2">
-            <img src="../assets/projects/fitfido/feature-4.webp" alt="" width="520" height="610" loading="lazy">
-            <p class="num">04</p>
-            <h3>Smart calorie detection</h3>
-            <p>Scan or enter the food to calculate calorie intake and keep portions accurate.</p>
-          </article>
-        </div>
-        <div class="scrolly__stage-wrap">
-          <div class="stage" data-stage>
-            <div class="stage__cam">
-              <img src="../assets/projects/fitfido/prototype-1.webp" alt="Fitfido first prototype" width="2000" height="1500" loading="lazy">
-              <img class="stage__phone" src="../assets/projects/fitfido/phone-hand.webp" alt="Fitfido companion app, My Device screen" width="800" height="975" loading="lazy">
-              <button class="spot" data-spot="0" style="--sx:56%;--sy:76%" aria-label="Active weighing"></button>
-              <button class="spot" data-spot="1" style="--sx:42%;--sy:53%" aria-label="Weight-driven AI feeding"></button>
-              <button class="spot" data-spot="2" style="--sx:20%;--sy:62%" aria-label="Health insights"></button>
-              <button class="spot" data-spot="3" style="--sx:40%;--sy:26%" aria-label="Smart calorie detection"></button>
-            </div>
-            <p class="stage__hud"><b data-scrolly-count>01</b>of 04 features</p>
+    <!-- 04 Features: visual-novel scene -->
+    <section id="features" data-chapter="Key features">
+      <div class="wrap c-sec" style="padding-bottom:40px">
+        <div class="c-chapter"><span class="c-chapter__num">04</span><h2 class="c-kicker">Key features</h2></div>
+        <p class="c-head reveal-mask">Every meal becomes a health check.</p>
+      </div>
+      <div class="vn" data-scene style="--beats:4">
+        <div class="vn__stage">
+          <div class="vn__bg">
+            <img data-beat="0" src="../assets/projects/fitfido/cover-2.webp" alt="" loading="lazy">
+            <img data-beat="1" src="../assets/projects/fitfido/cover-1.webp" alt="" loading="lazy">
+            <img data-beat="2" src="../assets/projects/fitfido/hero.webp" alt="" loading="lazy">
+            <img data-beat="3" class="is-dim" src="../assets/projects/fitfido/cover-4.webp" alt="" loading="lazy">
           </div>
+          <div class="vn__shade"></div>
+          <p class="vn__chapter"><b>04</b> Key features</p>
+          <h3 class="vn__title"><span data-beat="0">Active weighing</span><span data-beat="1">Weight-driven AI feeding</span><span data-beat="2">Health insights</span><span data-beat="3">Smart calorie detection</span></h3>
+          <div class="vn__sprite" aria-hidden="true">
+            <div class="vn__screen">
+                <img data-beat="0" src="../assets/projects/fitfido/screen-scale.webp" alt="Smart Scale screen" width="266" height="470" loading="lazy">
+                <img data-beat="1" src="../assets/projects/fitfido/screen-ai.webp" alt="AI Diet Impact screen" width="266" height="470" loading="lazy">
+                <img data-beat="2" src="../assets/projects/fitfido/screen-health.webp" alt="Weight Goal screen" width="266" height="470" loading="lazy">
+                <img data-beat="3" src="../assets/projects/fitfido/screen-scan.webp" alt="Food Scan screen" width="266" height="470" loading="lazy">
+            </div>
+          </div>
+          <div class="vn__box">
+            <p class="vn__name"><span data-beat="0">01 · Smart Scale</span><span data-beat="1">02 · AI Diet Impact</span><span data-beat="2">03 · Weight Goal</span><span data-beat="3">04 · Food Scan</span></p>
+            <div class="vn__lines">
+              <p data-beat="0" data-type>A built-in scale weighs your dog at every meal. No separate weigh-ins, no guesswork.</p>
+              <p data-beat="1" data-type>Portions adjust to weight trends. To keep Mercy on track, the app trims tonight’s dinner from 150 g to 135 g.</p>
+              <p data-beat="2" data-type>Every meal becomes a data point. Weight, calories and goals turn into clear progress in the app.</p>
+              <p data-beat="3" data-type>Scan a treat or a bag of food and Fitfido counts the calories, so portions stay accurate.</p>
+            </div>
+            <span class="vn__next" aria-hidden="true"></span>
+          </div>
+          <div class="vn__dots"><button data-goto="0" aria-label="Active weighing"></button><button data-goto="1" aria-label="Weight-driven AI feeding"></button><button data-goto="2" aria-label="Health insights"></button><button data-goto="3" aria-label="Smart calorie detection"></button></div>
+          <div class="vn__progress"></div>
         </div>
       </div>
     </section>

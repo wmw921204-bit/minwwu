@@ -79,7 +79,7 @@ if (menuBtn && menu) {
 }
 
 /* ---------- Reveal on enter ---------- */
-const revealEls = $$(".reveal, .reveal-mask, .reveal-stagger, .reveal-lines");
+const revealEls = $$(".reveal, .reveal-mask, .reveal-stagger, .reveal-lines, .wipe");
 if (reduceMotion || !("IntersectionObserver" in window)) {
   revealEls.forEach((el) => el.classList.add("is-in"));
 } else {
@@ -355,32 +355,62 @@ if (clock) {
 const year = $("#year");
 if (year) year.textContent = new Date().getFullYear();
 
-/* ---------- Scrollytelling: steps drive a sticky stage (camera zoom + hotspots) ---------- */
-$$("[data-scrolly]").forEach((scrolly) => {
-  const steps = $$("[data-step]", scrolly);
-  const stage = $("[data-stage]", scrolly);
-  const spots = $$("[data-spot]", scrolly);
-  const count = $("[data-scrolly-count]", scrolly);
-  const show = (i) => {
-    const step = steps[i];
-    steps.forEach((s, j) => s.classList.toggle("is-active", j === i));
-    spots.forEach((s) => s.classList.toggle("is-active", Number(s.dataset.spot) === i));
-    stage.style.setProperty("--x", `${step.dataset.x}%`);
-    stage.style.setProperty("--y", `${step.dataset.y}%`);
-    stage.style.setProperty("--s", step.dataset.s);
-    stage.dataset.active = i;
-    if (count) count.textContent = String(i + 1).padStart(2, "0");
+/* ---------- Scenes: a pinned stage whose "beats" advance as you scroll ----------
+   <section data-scene style="--beats:N"> … elements with data-beat="i" become .is-active in turn.
+   The scene also exposes --p (0→1 over the whole scene) and --bp (0→1 within the current beat). */
+function typeLine(el) {
+  const text = el.dataset.text ?? el.textContent;
+  el.dataset.text = text;
+  cancelAnimationFrame(el._raf);
+  if (reduceMotion) { el.textContent = text; return; }
+  el.textContent = "";
+  el.classList.add("is-typing");
+  const start = performance.now();
+  const speed = 22; // ms per character
+  const step = (now) => {
+    const n = Math.min(text.length, Math.floor((now - start) / speed));
+    el.textContent = text.slice(0, n);
+    if (n < text.length) el._raf = requestAnimationFrame(step);
+    else el.classList.remove("is-typing");
   };
-  const io = new IntersectionObserver((entries) => {
-    for (const entry of entries) if (entry.isIntersecting) show(steps.indexOf(entry.target));
-  }, {
-    // On narrow screens the sticky stage covers the top half, so watch the lower part of the viewport
-    rootMargin: matchMedia("(max-width: 1024px)").matches ? "-72% 0px -24% 0px" : "-48% 0px -48% 0px",
-  });
-  steps.forEach((s) => io.observe(s));
-  // Hotspots and steps are also clickable
-  spots.forEach((spot) => spot.addEventListener("click", () => scrollToTarget(steps[Number(spot.dataset.spot)])));
-  show(0);
+  el._raf = requestAnimationFrame(step);
+}
+$$("[data-scene]").forEach((scene) => {
+  const beats = Number(getComputedStyle(scene).getPropertyValue("--beats")) || 1;
+  const items = $$("[data-beat]", scene);
+  const dots = $$("[data-goto]", scene);
+  let current = -1;
+  const activate = (i) => {
+    if (i === current) return;
+    current = i;
+    scene.dataset.beat = i;
+    items.forEach((el) => {
+      const on = el.dataset.beat.split(",").map(Number).includes(i);
+      if (on && !el.classList.contains("is-active") && el.hasAttribute("data-type")) typeLine(el);
+      el.classList.toggle("is-active", on);
+    });
+    dots.forEach((d) => d.classList.toggle("is-active", Number(d.dataset.goto) === i));
+  };
+  const update = () => {
+    const r = scene.getBoundingClientRect();
+    const total = Math.max(1, r.height - innerHeight);
+    const p = clamp(-r.top / total);
+    const exact = p * beats;
+    const i = Math.min(beats - 1, Math.floor(exact));
+    scene.style.setProperty("--p", p.toFixed(4));
+    if (scene.classList.contains("vn")) scene.classList.toggle("is-pinned", r.top <= 1 && r.bottom >= innerHeight - 1);
+    document.body.classList.toggle("in-scene", $$(".vn.is-pinned").length > 0);
+    scene.style.setProperty("--bp", clamp(exact - i).toFixed(4));
+    activate(i);
+  };
+  dots.forEach((d) => d.addEventListener("click", () => {
+    const top = scene.getBoundingClientRect().top + scrollY;
+    const total = scene.offsetHeight - innerHeight;
+    const y = top + total * ((Number(d.dataset.goto) + 0.15) / beats);
+    if (lenis) lenis.scrollTo(y, { duration: 1.2 }); else scrollTo({ top: y, behavior: "smooth" });
+  }));
+  onScrollFns.push(update);
+  update();
 });
 
 /* ---------- Zoom-out reveal tied to scroll ---------- */
