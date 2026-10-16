@@ -18,7 +18,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,600&family=Poppins:wght@400;500&family=Sulphur+Point:wght@400&display=swap">
   <link rel="preload" as="image" href="assets/img/hero.webp">
-  <link rel="stylesheet" href="styles.css?v=20261016d">
+  <link rel="stylesheet" href="styles.css?v=20261016f">
 </head>
 <body>
   <a class="skip" href="#main">Skip to content</a>
@@ -64,19 +64,22 @@
       </video>
       <div class="hero__grid wrap">
         <div class="hero__name">
-          <p class="hero__hello reveal">Hello <span>My Name</span> Is</p>
-          <h1 class="display hero__title">
+          <p class="hero__hello reveal"><span class="hello" data-words="Hello,你好,Hola,Bonjour,Ciao,こんにちは">Hello</span>, <span>my name</span> is</p>
+          <h1 class="display hero__title" data-play aria-label="Minwei Wu">
             <span class="line"><span class="line__in accent">Minwei</span></span>
             <span class="line"><span class="line__in" style="--i:1">Wu</span></span>
           </h1>
         </div>
-        <figure class="hero__photo reveal">
+        <figure class="hero__photo reveal" data-tilt>
+          <div class="hero__tilt">
           <img src="assets/img/hero.webp" alt="Portrait of Minwei Wu" width="854" height="810" fetchpriority="high" data-parallax="-0.08">
           <ul class="hero__social">
             <li><a href="https://www.linkedin.com/in/minwei-wu-7470a3347/" target="_blank" rel="noopener" aria-label="LinkedIn"><svg viewBox="0 0 24 24"><path d="M6.94 8.5H3.56V20h3.38V8.5ZM5.25 3A1.96 1.96 0 1 0 5.25 6.9 1.96 1.96 0 0 0 5.25 3ZM20.44 13.4c0-3.1-1.66-4.9-4.2-4.9-1.6 0-2.6.88-3.04 1.6V8.5H9.82V20h3.38v-6.1c0-1.6.6-2.62 2-2.62 1.36 0 1.86 1.04 1.86 2.62V20h3.38v-6.6Z"/></svg></a></li>
             <li><a href="https://www.facebook.com/share/1GbCDhCWdE/" target="_blank" rel="noopener" aria-label="Facebook"><svg viewBox="0 0 24 24"><path d="M13.5 21v-7.5h2.5l.4-3h-2.9V8.6c0-.86.25-1.45 1.5-1.45H16.6V4.5c-.27-.04-1.2-.12-2.3-.12-2.26 0-3.8 1.38-3.8 3.9v2.22H8v3h2.5V21h3Z"/></svg></a></li>
             <li><a href="mailto:wmw921204@gmail.com" aria-label="Email"><svg viewBox="0 0 24 24"><path d="M3 5h18v14H3V5Zm2 2v.4l7 4.6 7-4.6V7H5Zm14 2.8-7 4.6-7-4.6V17h14V9.8Z"/></svg></a></li>
           </ul>
+          <span class="hero__glare" aria-hidden="true"></span>
+          </div>
         </figure>
       </div>
       <div class="hero__bar wrap">
@@ -130,10 +133,28 @@
     <section class="light" id="services">
       <div class="wrap about">
         <p class="eyebrow">About me</p>
-        <p class="lead lead--dark reveal-words">I focus on UX-driven design, with strengths in research, visual design, product design, VR-related work, and web design.</p>
+        <div class="talk reveal" data-talk>
+          <div class="talk__avatar" aria-hidden="true"><img src="assets/img/hero.webp" alt="" width="854" height="810" loading="lazy"></div>
+          <div class="talk__box" role="group" aria-label="About Minwei">
+            <p class="talk__name">Minwei</p>
+            <p class="talk__line" aria-live="polite"></p>
+            <ul class="talk__lines" hidden>
+              <li>Hi! I’m Minwei, a designer based in Savannah, GA.</li>
+              <li>I focus on UX-driven design, with strengths in research, visual design, product design, VR-related work, and web design.</li>
+              <li>I love turning research insights into clear, thoughtful experiences.</li>
+              <li>So, where would you like to go next?</li>
+            </ul>
+            <div class="talk__choices">
+              <a href="#portfolio">See my work</a>
+              <a href="#services-list">What do you do?</a>
+              <a href="#contact">Say hi</a>
+            </div>
+            <button class="talk__next" type="button" aria-label="Next line"></button>
+          </div>
+        </div>
       </div>
 
-      <div class="wrap services">
+      <div class="wrap services" id="services-list">
         <article class="svc is-active">
           <p class="svc__num">01.</p>
           <h2 class="display svc__title">UI/UX Design</h2>
@@ -194,6 +215,7 @@
             </video>
           </div>
           <div class="circle circle--outline">
+            <svg class="ring" viewBox="0 0 200 200" aria-hidden="true"><defs><path id="ring-path" d="M100,100 m-88,0 a88,88 0 1,1 176,0 a88,88 0 1,1 -176,0"/></defs><text><textPath href="#ring-path">RESEARCH-DRIVEN ✦ USER-CENTERED ✦ INSIGHT ✦ ITERATION ✦ </textPath></text></svg>
             <p class="chip"><span class="dot dot--dark"></span>You will get</p>
             <p class="approach__big">user-<br>centered<br>solutions</p>
             <p class="approach__small">shaped by insight and iteration.</p>
@@ -259,7 +281,13 @@
             <li style="--i:3;--p:80%">Unity<sup>80%</sup></li>
             <li style="--i:4;--p:75%">Photoshop<sup>75%</sup></li>
           </ul>
-          <p class="skills__more"><span class="dot dot--light"></span>With <b>10+ Other Skills</b> related to <b>Design, Development</b></p>
+          <p class="skills__more"><span class="dot dot--light"></span>With <b>10+ other skills</b> — go ahead, drag and toss them</p>
+          <div class="play" data-play-skills>
+            <ul class="play__chips">
+              <li class="hot">UI/UX</li><li>Research</li><li class="hot">Prototyping</li><li>Usability Testing</li><li>3D Modeling</li><li>Ergonomics</li><li>Mobile Design</li><li>Data Visualization</li><li class="hot">User Journey</li><li>Web Design</li><li>Service Ecosystem</li><li>Concept Development</li>
+            </ul>
+            <button class="play__shake" type="button">Shake it ✦</button>
+          </div>
         </div>
       </div>
     </section>
@@ -299,7 +327,7 @@
         </form>
       </div>
       <div class="connect wrap" aria-hidden="true">
-        <p class="connect__word">Connect</p>
+        <p class="connect__word" data-scatter>Connect</p>
         <div class="connect__media">
           <video autoplay muted loop playsinline preload="none" poster="assets/img/heart-poster.webp" data-lazy-video>
             <source data-src="assets/video/heart.mp4" type="video/mp4">
@@ -347,6 +375,8 @@
   </footer>
 
   <script src="assets/js/lenis.min.js" defer></script>
-  <script src="main.js?v=20261016d" defer></script>
+  <script src="assets/js/matter.min.js" defer></script>
+  <script src="home.js?v=20261016f" defer></script>
+  <script src="main.js?v=20261016f" defer></script>
 </body>
 </html>
