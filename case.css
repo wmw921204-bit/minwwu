@@ -161,9 +161,9 @@
 .case--light .c-hero__intro small { color: #5f6f00; }
 
 /* the "character": a phone that swaps screens */
-.vn__sprite { position: absolute; right: clamp(24px, 9vw, 160px); bottom: -28px; width: clamp(240px, 24vw, 360px); aspect-ratio: 700 / 1068; filter: drop-shadow(0 40px 60px rgba(0,0,0,.5)); animation: idle 6s ease-in-out infinite; }
-.vn__screen { position: relative; height: 100%; }
-.vn__screen img { position: absolute; inset: 0; width: 100%; height: 100%; border-radius: 15% 15% 0 0 / 9.8% 9.8% 0 0; opacity: 0; transform: translateY(10%); transition: opacity .7s var(--ease), transform 1s var(--ease); }
+.vn__sprite { position: absolute; right: clamp(24px, 9vw, 160px); bottom: 5vh; width: clamp(220px, min(20vw, calc((100vh - 120px) * .46)), 320px); padding: clamp(7px, .7vw, 10px); border-radius: clamp(34px, 3.4vw, 50px); background: #0d0d0d; box-shadow: 0 40px 80px rgba(0,0,0,.55), inset 0 0 0 1.5px rgba(255,255,255,.14); animation: idle 6s ease-in-out infinite; }
+.vn__screen { position: relative; aspect-ratio: 393 / 852; border-radius: clamp(27px, 2.7vw, 41px); overflow: hidden; background: #f2f2f2; }
+.vn__screen img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0; transform: translateY(6%) scale(1.02); transition: opacity .7s var(--ease), transform 1s var(--ease); }
 .vn__screen img.is-active { opacity: 1; transform: none; }
 @keyframes idle { 0%, 100% { translate: 0 0; rotate: -2deg; } 50% { translate: 0 -14px; rotate: 1deg; } }
 
@@ -286,9 +286,9 @@
   .c-facts { position: static; }
   .mcard { grid-template-columns: 1fr; min-height: 0; }
   .mcard__copy { padding-left: 0; }
-  /* phone sits between the title and the dialogue box, sized to the space left; its cut-off bottom fades out */
-  .vn__sprite { --sw: min(58vw, calc((100svh - 420px) * .655)); right: auto; left: 50%; width: var(--sw); margin-left: calc(var(--sw) / -2); bottom: calc(clamp(24px, 6vh, 64px) + 196px);
-    -webkit-mask-image: linear-gradient(#000 78%, transparent 98%); mask-image: linear-gradient(#000 78%, transparent 98%); }
+  /* phone sits between the title and the dialogue box, sized to the space left */
+  .vn__sprite { --sw: min(46vw, calc((100svh - 440px) * .46)); right: auto; left: 50%; width: var(--sw); margin-left: calc(var(--sw) / -2); bottom: calc(clamp(24px, 6vh, 64px) + 200px); padding: 6px; border-radius: 30px; }
+  .vn__screen { border-radius: 24px; }
   .vn__box { width: auto; right: var(--gutter); }
   .vn__title { width: 55vw; }
   .vn__dots { right: auto; left: var(--gutter); top: auto; bottom: calc(clamp(24px, 6vh, 64px) + 190px); translate: 0 0; display: flex; }
