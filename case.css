@@ -355,3 +355,15 @@
 /* Screen strip gallery (phone screens) */
 .gallery__track.is-phones img { width: min(300px, 62vw); aspect-ratio: 402 / 874; object-fit: cover; border-radius: 28px; box-shadow: 0 20px 40px rgba(80,40,15,.14); }
 .c-hero--title .c-hero__intro, .c-hero--title .c-hero__pin::after { display: none; }
+
+/* Cinematic opener: a video card that grows to full bleed as you scroll */
+.cine { position: relative; height: 230vh; }
+.cine__pin { position: sticky; top: 0; height: 100vh; overflow: hidden; display: grid; place-items: center; }
+.cine__frame { position: absolute; inset: 0; clip-path: inset(calc((1 - var(--p, 0) * 1.6) * 16%) calc((1 - var(--p, 0) * 1.6) * 22%) round calc((1 - var(--p, 0) * 1.6) * 32px)); }
+.cine__frame video { width: 100%; height: 100%; object-fit: cover; transform: scale(calc(1.15 - var(--p, 0) * .15)); }
+.cine__frame::after { content: ""; position: absolute; inset: 0; background: linear-gradient(0deg, rgba(0,0,0,.82), rgba(0,0,0,.35) 45%, rgba(0,0,0,0) 70%); opacity: clamp(0, calc(var(--p, 0) * 2.5 - .9), 1); }
+.cine__text { position: absolute; left: var(--gutter); right: var(--gutter); bottom: 12vh; color: #fff; opacity: clamp(0, calc(var(--p, 0) * 3 - 1.4), 1); transform: translateY(calc((1 - min(1, var(--p, 0) * 1.7)) * 40px)); }
+.cine__text small { display: block; margin-bottom: 16px; font: 600 14px/1 var(--f-display); letter-spacing: .08em; color: var(--accent); }
+.cine__text p { max-width: 15em; font: 600 clamp(36px, 5vw, 72px)/1.05 var(--f-display); letter-spacing: -0.035em; }
+.cine__text p span { color: rgba(255,255,255,.55); }
+@media (max-width: 640px) { .cine { height: 190vh; } .cine__frame { clip-path: inset(calc((1 - var(--p, 0) * 1.6) * 20%) calc((1 - var(--p, 0) * 1.6) * 8%) round calc((1 - var(--p, 0) * 1.6) * 24px)); } }
