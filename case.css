@@ -379,3 +379,8 @@
   .c-hero--fill .c-hero__media { top: 76px; height: 56.25vw; object-fit: cover; }
   .c-hero--fill .c-hero__cue { display: none; }
 }
+
+/* Research sheets exported from Miro: show each at its own ratio, never upscaled past its pixels */
+.switcher--sheets .switcher__panel img { width: auto; max-width: min(100%, 1022px); max-height: 82vh; margin: 0 auto; object-fit: contain; background: #fff; }
+.switcher--sheets .switcher__panel p { text-align: center; }
+.c-figure--sheet img { width: auto; max-width: min(100%, 1022px); display: block; margin: 0 auto; background: #000; }
