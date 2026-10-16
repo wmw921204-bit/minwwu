@@ -12,6 +12,8 @@ if (!reduceMotion && window.Lenis) {
   lenis = new Lenis({ lerp: 0.1, wheelMultiplier: 1, touchMultiplier: 1.4 });
   const raf = (t) => { lenis.raf(t); requestAnimationFrame(raf); };
   requestAnimationFrame(raf);
+  window.__lenis = lenis;
+  if (document.documentElement.classList.contains("is-loading")) lenis.stop();
 }
 function scrollToTarget(target) {
   if (lenis) lenis.scrollTo(target, { offset: target === 0 ? 0 : -88, duration: 1.4 });

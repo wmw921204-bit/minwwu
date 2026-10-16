@@ -7,6 +7,54 @@
   const lerp = (a, b, t) => a + (b - a) * t;
   const onScreen = (el, cb) => new IntersectionObserver(([e]) => cb(e.isIntersecting)).observe(el);
 
+  /* ---------- Intro loader: counts real loading progress, scrambles the name, then the columns lift away ---------- */
+  const root = document.documentElement;
+  const loader = $(".loader");
+  if (loader && root.classList.contains("intro")) {
+    const count = $(".loader__count span", loader);
+    const name = $(".loader__name", loader);
+    const finalName = name.textContent;
+    const glyphs = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789#%&*+=/<>";
+    const t0 = performance.now();
+    const minTime = 1700;
+    // things worth waiting for, each with a time limit so the intro never hangs
+    const heroImg = $(".hero__photo img");
+    const tasks = [
+      document.fonts ? document.fonts.ready : Promise.resolve(),
+      heroImg ? (heroImg.decode ? heroImg.decode().catch(() => {}) : Promise.resolve()) : Promise.resolve(),
+      new Promise((r) => (document.readyState === "complete" ? r() : addEventListener("load", r, { once: true }))),
+    ];
+    let done = 0;
+    tasks.forEach((t) => Promise.race([t, new Promise((r) => setTimeout(r, 3500))]).then(() => done++));
+    let shown = 0;
+    const frame = (now) => {
+      const elapsed = now - t0;
+      // never run ahead of real loading, never finish before the minimum time
+      const target = Math.min(done / tasks.length, elapsed / minTime);
+      shown += (target - shown) * 0.12;
+      if (target === 1 && 1 - shown < 0.004) shown = 1;
+      count.textContent = String(Math.round(shown * 100)).padStart(3, "0");
+      loader.style.setProperty("--lp", shown.toFixed(3));
+      // name resolves left to right as progress grows
+      const solved = Math.floor(shown * finalName.length * 1.15);
+      name.textContent = [...finalName].map((c, i) => (c === " " || i < solved ? c : glyphs[(Math.random() * glyphs.length) | 0])).join("");
+      if (shown < 1) return requestAnimationFrame(frame);
+      name.textContent = finalName;
+      setTimeout(() => {
+        loader.classList.add("is-out");
+        setTimeout(() => {
+          root.classList.remove("is-loading");
+          window.__lenis?.start();
+          try { sessionStorage.setItem("introSeen", "1"); } catch (e) {}
+        }, 350);
+        setTimeout(() => root.classList.remove("intro"), 1500);
+      }, 250);
+    };
+    requestAnimationFrame(frame);
+  } else {
+    root.classList.remove("is-loading", "intro");
+  }
+
   /* ---------- Greeting that types through languages ---------- */
   const hello = $(".hello");
   if (hello && !reduce) {
