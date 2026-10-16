@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" role="img" aria-label="SwiftHome">
+  <rect width="120" height="120" rx="30" fill="#885835"/>
+  <!-- three arches stepping forward: moving in, quickly -->
+  <g transform="translate(3 -2)">
+    <path d="M22 94V60a16 16 0 0 1 32 0v34Z" fill="#FFF6EF" opacity=".28"/>
+    <path d="M36 94V58a18 18 0 0 1 36 0v36Z" fill="#FFF6EF" opacity=".55"/>
+    <path d="M52 94V56a20 20 0 0 1 40 0v38Z" fill="#FFF6EF"/>
+  </g>
+</svg>

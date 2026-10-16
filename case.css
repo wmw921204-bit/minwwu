@@ -317,3 +317,41 @@
   .chapter__toggle { min-width: 0; width: calc(100vw - 32px); }
   .zoom-reveal__frame { aspect-ratio: 4 / 3; }
 }
+
+/* Title-card video heroes (Brilliant, SwiftHome): show the whole frame below the header, no zoom */
+.c-hero--title .c-hero__pin { background: var(--hero-bg, #fff); }
+.c-hero--title .c-hero__media { top: 76px; height: calc(100% - 76px); object-fit: contain; object-position: 50% 40%; transform: none; filter: none; }
+.c-hero--title .c-hero__pin::after { background: linear-gradient(0deg, var(--hero-bg, #fff) 0%, color-mix(in srgb, var(--hero-bg, #fff) 60%, transparent) 30%, transparent 55%); }
+.c-hero--title .c-hero__intro, .c-hero--title .c-hero__cue { color: #111; }
+@media (max-width: 640px) { .c-hero--title { height: 120vh; } }
+
+/* Warm theme (SwiftHome) */
+.case--warm {
+  --c-bg: #fff6ef;
+  --c-fg: #2b1a10;
+  --c-muted: #8a6a55;
+  --c-accent: #885835;
+  --c-accent-ink: #885835;
+  --c-soft: #f5e6d8;
+  --c-line: rgba(80, 40, 15, .12);
+  --accent: #885835;
+}
+.case--warm .topbar__inner { background: rgba(255,246,239,.8); border-color: rgba(80,40,15,.1); color: #2b1a10; }
+.case--warm .topbar__loc { color: rgba(43,26,16,.55); }
+.case--warm .c-next .pill--ghost { background: transparent; color: var(--c-fg); border-color: var(--c-line); }
+.case--warm .c-next .pill__arrow { background-color: #2b1a10; }
+.case--warm .chapter { --chapter-accent: #d9a57a; }
+
+/* SCAMPER letters */
+.scamper .switcher__tabs { gap: 10px; }
+.scamper .switcher__tabs button { width: clamp(52px, 8vw, 96px); aspect-ratio: 1; padding: 0; border-radius: 24px; font: 600 clamp(26px, 3.4vw, 44px)/1 var(--f-display); color: var(--c-accent-ink); border-color: var(--c-line); }
+.scamper .switcher__tabs button[aria-selected="true"] { background: var(--c-accent); color: #fff6ef; border-color: var(--c-accent); transform: translateY(-4px); }
+.scamper .switcher__panel { padding: 28px 0 0; }
+.scamper .switcher__panel h3 { font: 600 clamp(24px, 2.4vw, 34px)/1.2 var(--f-display); letter-spacing: -0.02em; }
+.scamper .switcher__panel ul { margin-top: 16px; display: grid; gap: 10px; max-width: 46em; }
+.scamper .switcher__panel li { position: relative; padding-left: 22px; font-size: 18px; line-height: 1.55; color: var(--c-muted); }
+.scamper .switcher__panel li::before { content: ""; position: absolute; left: 2px; top: .65em; width: 8px; height: 8px; border-radius: 50%; background: var(--c-accent); }
+
+/* Screen strip gallery (phone screens) */
+.gallery__track.is-phones img { width: min(300px, 62vw); aspect-ratio: 402 / 874; object-fit: cover; border-radius: 28px; box-shadow: 0 20px 40px rgba(80,40,15,.14); }
+.c-hero--title .c-hero__intro, .c-hero--title .c-hero__pin::after { display: none; }
