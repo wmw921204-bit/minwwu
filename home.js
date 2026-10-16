@@ -95,10 +95,10 @@
         }
         const md = Math.hypot(x - mx, y - my);
         const near = md < 150 ? 1 - md / 150 : 0;
-        const a = 0.13 + glow * 0.55 + near * 0.6;
+        const a = 0.08 + glow * 0.38 + near * 0.42;
         const rad = 1 + glow * 1.4 + near * 1.8;
         const hot = Math.max(glow, near);
-        ctx.fillStyle = hot > 0.15 ? `rgba(222,101,54,${Math.min(1, a).toFixed(3)})` : `rgba(255,255,255,${a.toFixed(3)})`;
+        ctx.fillStyle = hot > 0.15 ? `rgba(222,101,54,${Math.min(0.7, a).toFixed(3)})` : `rgba(255,255,255,${a.toFixed(3)})`;
         ctx.beginPath(); ctx.arc(x + dx, y + dy, rad, 0, 6.283); ctx.fill();
       }
       requestAnimationFrame(draw);
