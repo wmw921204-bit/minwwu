@@ -286,7 +286,9 @@
   .c-facts { position: static; }
   .mcard { grid-template-columns: 1fr; min-height: 0; }
   .mcard__copy { padding-left: 0; }
-  .vn__sprite { right: 12px; width: clamp(170px, 44vw, 260px); bottom: 150px; }
+  /* phone sits between the title and the dialogue box, sized to the space left; its cut-off bottom fades out */
+  .vn__sprite { --sw: min(58vw, calc((100svh - 420px) * .655)); right: auto; left: 50%; width: var(--sw); margin-left: calc(var(--sw) / -2); bottom: calc(clamp(24px, 6vh, 64px) + 196px);
+    -webkit-mask-image: linear-gradient(#000 78%, transparent 98%); mask-image: linear-gradient(#000 78%, transparent 98%); }
   .vn__box { width: auto; right: var(--gutter); }
   .vn__title { width: 55vw; }
   .vn__dots { right: auto; left: var(--gutter); top: auto; bottom: calc(clamp(24px, 6vh, 64px) + 190px); translate: 0 0; display: flex; }
