@@ -370,3 +370,12 @@
 .cine__text p span { color: rgba(255,255,255,.55); }
 @media (max-width: 640px) { .cine { height: 190vh; } .cine__frame { clip-path: inset(calc((1 - var(--p, 0) * 1.6) * 20%) calc((1 - var(--p, 0) * 1.6) * 8%) round calc((1 - var(--p, 0) * 1.6) * 24px)); } }
 .case--light .gallery__track img { box-shadow: 0 0 0 1px rgba(0,0,0,.08), 0 18px 40px rgba(0,0,0,.07); }
+/* Fill variant: the video covers the whole hero (its content is framed to survive cropping) */
+.c-hero--fill .c-hero__media { top: 0; height: 100%; object-fit: cover; object-position: 50% 50%; }
+@media (max-width: 640px) {
+  /* portrait phones: show the whole 16:9 video under the header instead of a narrow crop */
+  .c-hero--fill { height: calc(56.25vw + 84px); }
+  .c-hero--fill .c-hero__pin { position: relative; height: 100%; }
+  .c-hero--fill .c-hero__media { top: 76px; height: 56.25vw; object-fit: cover; }
+  .c-hero--fill .c-hero__cue { display: none; }
+}
