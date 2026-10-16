@@ -298,12 +298,10 @@
 @media (max-width: 640px) {
   .c-hero { height: 140vh; }
   .vn__box { padding: 26px 20px 28px; min-height: 0; background: rgba(12,12,12,.9); }
-  /* on phones the app screen itself fills the screen, like using the app */
-  .vn__sprite { inset: 0; translate: none; padding: 0; border-radius: 0; background: none; box-shadow: none; transform: translate3d(0, calc((1 - var(--rise, 1)) * 100%), 0); }
-  .vn__sprite::after { display: none; }
-  .vn__screen { height: 100%; aspect-ratio: auto; border-radius: 0; }
-  .vn__screen img { object-fit: cover; object-position: 50% 0; }
-  .vn__sprite + .vn__box { bottom: 16px; }
+  /* on phones: the whole phone, as tall as the space above a compact dialogue box allows */
+  .vn__sprite { --pad: 7px; --screen-h: calc(100svh - 64px - 178px - 2 * var(--pad)); left: 0; right: 0; top: 60px; width: fit-content; margin-inline: auto; translate: none; }
+  .vn__sprite + .vn__box { bottom: 16px; padding: 22px 18px 22px; }
+  .vn__sprite + .vn__box .vn__lines > * { font-size: 15px; line-height: 1.5; }
   .vn:has(.vn__sprite) .vn__dots { display: none; }
   .vn__chapter { top: 84px; }
   .vn__title { font-size: 28px; top: 112px; width: 52vw; }
