@@ -161,10 +161,9 @@
 .case--light .c-hero__intro small { color: #5f6f00; }
 
 /* the "character": a phone that swaps screens */
-.vn__sprite { position: absolute; right: clamp(24px, 9vw, 160px); bottom: -4vh; width: clamp(200px, 21vw, 320px); aspect-ratio: 266 / 520; border-radius: clamp(30px, 3vw, 46px); background: #0d0d0d; padding: clamp(8px, .8vw, 12px); box-shadow: 0 40px 80px rgba(0,0,0,.55), inset 0 0 0 1.5px rgba(255,255,255,.12); animation: idle 6s ease-in-out infinite; }
-.vn__sprite::before { content: ""; position: absolute; left: 50%; top: clamp(14px, 1.4vw, 20px); width: 30%; height: 4%; translate: -50% 0; border-radius: 99px; background: #0d0d0d; z-index: 2; }
-.vn__screen { position: relative; height: 100%; border-radius: clamp(22px, 2.3vw, 36px); overflow: hidden; background: #eee; }
-.vn__screen img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 0; opacity: 0; transform: translateY(8%) scale(1.04); transition: opacity .7s var(--ease), transform 1s var(--ease); }
+.vn__sprite { position: absolute; right: clamp(24px, 9vw, 160px); bottom: -28px; width: clamp(240px, 24vw, 360px); aspect-ratio: 700 / 1068; filter: drop-shadow(0 40px 60px rgba(0,0,0,.5)); animation: idle 6s ease-in-out infinite; }
+.vn__screen { position: relative; height: 100%; }
+.vn__screen img { position: absolute; inset: 0; width: 100%; height: 100%; border-radius: 15% 15% 0 0 / 9.8% 9.8% 0 0; opacity: 0; transform: translateY(10%); transition: opacity .7s var(--ease), transform 1s var(--ease); }
 .vn__screen img.is-active { opacity: 1; transform: none; }
 @keyframes idle { 0%, 100% { translate: 0 0; rotate: -2deg; } 50% { translate: 0 -14px; rotate: 1deg; } }
 
@@ -287,7 +286,7 @@
   .c-facts { position: static; }
   .mcard { grid-template-columns: 1fr; min-height: 0; }
   .mcard__copy { padding-left: 0; }
-  .vn__sprite { right: 16px; bottom: auto; top: 22vh; width: clamp(150px, 34vw, 240px); }
+  .vn__sprite { right: 12px; width: clamp(170px, 44vw, 260px); bottom: 150px; }
   .vn__box { width: auto; right: var(--gutter); }
   .vn__title { width: 55vw; }
   .vn__dots { right: auto; left: var(--gutter); top: auto; bottom: calc(clamp(24px, 6vh, 64px) + 190px); translate: 0 0; display: flex; }
@@ -295,7 +294,7 @@
 }
 @media (max-width: 640px) {
   .c-hero { height: 140vh; }
-  .vn__box { padding: 26px 20px 28px; min-height: 160px; }
+  .vn__box { padding: 26px 20px 28px; min-height: 160px; background: rgba(12,12,12,.88); }
   .vn__chapter { top: 84px; }
   .vn__title { font-size: 28px; top: 112px; width: 52vw; }
   .c-intro { padding-top: 64px; padding-bottom: 80px; }
