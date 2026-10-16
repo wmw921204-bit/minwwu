@@ -249,7 +249,7 @@
 .gallery__track { display: flex; gap: 16px; overflow-x: auto; padding: 0 var(--gutter) 24px; scroll-snap-type: x proximity; scrollbar-width: none; cursor: grab; overscroll-behavior-x: contain; }
 .gallery__track::-webkit-scrollbar { display: none; }
 .gallery__track.is-dragging { cursor: grabbing; scroll-snap-type: none; }
-.gallery__track img { flex: none; width: min(1000px, 80vw); aspect-ratio: 4 / 3; object-fit: cover; border-radius: 20px; scroll-snap-align: center; user-select: none; background: var(--c-soft); transition: transform .8s var(--ease); }
+.gallery__track img { flex: none; height: min(600px, 62vh); width: auto; max-width: 88vw; object-fit: contain; border-radius: 20px; scroll-snap-align: center; user-select: none; background: var(--c-soft); transition: transform .8s var(--ease); }
 .gallery__track.is-dragging img { transform: scale(.97); }
 .gallery__hint { text-align: center; font: 500 14px/1 var(--f-body); letter-spacing: .08em; color: var(--c-muted); }
 
@@ -311,7 +311,7 @@
   .c-list li { grid-template-columns: 44px 1fr; gap: 12px; padding: 22px 4px; }
   .mcard__icons { font-size: 13px; }
   .c-stack > * { top: calc(80px + var(--n, 0) * 10px); }
-  .gallery__track img { width: 86vw; }
+  .gallery__track img { height: auto; width: 86vw; max-width: none; }
   .c-bars li { grid-template-columns: 90px 1fr 32px; }
   .chapter { bottom: 12px; }
   .chapter__toggle { min-width: 0; width: calc(100vw - 32px); }
@@ -353,7 +353,7 @@
 .scamper .switcher__panel li::before { content: ""; position: absolute; left: 2px; top: .65em; width: 8px; height: 8px; border-radius: 50%; background: var(--c-accent); }
 
 /* Screen strip gallery (phone screens) */
-.gallery__track.is-phones img { width: min(300px, 62vw); aspect-ratio: 402 / 874; object-fit: cover; border-radius: 28px; box-shadow: 0 20px 40px rgba(80,40,15,.14); }
+.gallery__track.is-phones img { height: auto; width: min(300px, 62vw); max-width: none; aspect-ratio: 402 / 874; object-fit: cover; border-radius: 28px; box-shadow: 0 20px 40px rgba(80,40,15,.14); }
 .c-hero--title .c-hero__intro, .c-hero--title .c-hero__pin::after { display: none; }
 
 /* Cinematic opener: a video card that grows to full bleed as you scroll */
@@ -367,3 +367,4 @@
 .cine__text p { max-width: 15em; font: 600 clamp(36px, 5vw, 72px)/1.05 var(--f-display); letter-spacing: -0.035em; }
 .cine__text p span { color: rgba(255,255,255,.55); }
 @media (max-width: 640px) { .cine { height: 190vh; } .cine__frame { clip-path: inset(calc((1 - var(--p, 0) * 1.6) * 20%) calc((1 - var(--p, 0) * 1.6) * 8%) round calc((1 - var(--p, 0) * 1.6) * 24px)); } }
+.case--light .gallery__track img { box-shadow: 0 0 0 1px rgba(0,0,0,.08), 0 18px 40px rgba(0,0,0,.07); }
