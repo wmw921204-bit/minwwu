@@ -58,16 +58,17 @@
       </video>
     </section>
     <h1 class="c-hero__marquee" aria-label="Brilliant.org redesign">
-        <span class="marquee__track" aria-hidden="true"><span>Brilliant</span><span>Brilliant</span><span>Brilliant</span><span>Brilliant</span><span>Brilliant</span><span>Brilliant</span></span>
-      </h1>
+      <span class="marquee__track" aria-hidden="true"><span>Brilliant</span><span>Brilliant</span><span>Brilliant</span><span>Brilliant</span><span>Brilliant</span><span>Brilliant</span></span>
+    </h1>
 
     <section class="wrap c-intro">
       <div class="c-facts reveal">
-        <p class="c-facts__date">January 2025</p>
+        <p class="c-summary">Redesigning Brilliant.org so higher-education learners keep coming back to practise STEM.</p>
         <dl>
-          <div><dt>Category:</dt><dd>User Experience Design</dd></div>
-          <div><dt>Teammates:</dt><dd>Qiling Chen, Noa Heilveil, Heer Patel</dd></div>
-          <div><dt>Duration:</dt><dd>10 Weeks</dd></div>
+          <div><dt>Date</dt><dd>January 2025</dd></div>
+          <div><dt>Category</dt><dd>User Experience Design</dd></div>
+          <div><dt>Team</dt><dd>Qiling Chen, Noa Heilveil, Heer Patel</dd></div>
+          <div><dt>Duration</dt><dd>10 weeks</dd></div>
         </dl>
       </div>
       <div class="c-covers">
@@ -78,39 +79,22 @@
       </div>
     </section>
 
-    <section class="wrap c-overview">
+    <section class="wrap c-role">
+      <h2 class="c-kicker">My role</h2>
       <div class="reveal">
-        <h2 class="c-kicker">Contents</h2>
-        <p class="c-head">Iterative Redesign</p>
-        <nav class="c-toc" aria-label="Case study sections">
-          <a href="#vision">Project Vision</a>
-          <a href="#research">User Research</a>
-          <a href="#brainstorm">Brainstorming</a>
-          <a href="#iteration">Design Iteration</a>
-          <a href="#outcome">Final Outcome</a>
-        </nav>
-      </div>
-      <div class="c-role reveal">
-        <h2 class="c-kicker">Role</h2>
-        <p class="c-head">Leading a User-Centered Redesign</p>
-        <p>I guided the team from research to a tested redesign, turning interview insights into priorities that shaped every iteration.</p>
-        <p>My contributions included:</p>
-        <ul>
-          <li>Research synthesis and strategy</li>
-          <li>Framework and interaction design</li>
-          <li>Low-fidelity and high-fidelity prototyping</li>
+        <p class="c-role__lead">I guided the team from research to a tested redesign, turning interview insights into the priorities that shaped every iteration.</p>
+        <ul class="c-role__list">
+          <li>Research synthesis &amp; strategy</li>
+          <li>Framework &amp; interaction design</li>
+          <li>Low- to high-fidelity prototyping</li>
         </ul>
       </div>
     </section>
 
-    <!-- Vision -->
-    <section class="wrap c-sec" id="vision">
-      <h2 class="c-kicker">Project Vision: Vision Video</h2>
-      <p class="c-head reveal-mask">To reimagine a more engaging learning experience.</p>
-      <div class="c-panel reveal" style="margin-top:40px">
-        <h3 class="c-kicker">Story pitch</h3>
-        <p class="c-statement" style="margin-top:8px">What if a Brilliant.org student could increase consistency in engagement?</p>
-      </div>
+    <!-- 01 Vision -->
+    <section class="wrap c-sec" id="vision" data-chapter="Vision">
+      <div class="c-chapter"><span class="c-chapter__num">01</span><h2 class="c-kicker">Vision</h2></div>
+      <p class="c-head reveal-mask">What if a Brilliant.org student could stay consistently engaged?</p>
       <figure class="c-figure reveal">
         <video controls playsinline preload="none" poster="../assets/projects/brilliant/vision-poster.webp">
           <source data-src="../assets/projects/brilliant/vision.mp4" type="video/mp4">
@@ -118,112 +102,99 @@
       </figure>
     </section>
 
-    <!-- Research -->
-    <section class="wrap c-sec" id="research">
-      <h2 class="c-kicker">User Research: Target Audience</h2>
-      <p class="c-head reveal-mask">Learners seeking engaging ways to develop STEM skills.</p>
+    <!-- 02 Research -->
+    <section class="wrap c-sec" id="research" data-chapter="Research">
+      <div class="c-chapter"><span class="c-chapter__num">02</span><h2 class="c-kicker">Research</h2></div>
+      <p class="c-head reveal-mask">Learners want engaging ways to close their STEM gaps.</p>
       <div class="c-split">
-        <div class="c-panel reveal">
-          <h3 class="c-kicker">Target Audience</h3>
-          <p class="c-statement" style="margin-top:8px">Students in higher education who are actively seeking to improve accumulated knowledge gaps.</p>
-          <div style="margin-top:40px">
-            <span class="c-stat__num" data-count="35" data-suffix="%">35%</span>
-            <p style="margin-top:8px;font-weight:600">Dropout Risk Post-Pandemic</p>
-            <p class="c-stat__label" style="margin-top:4px">among learners with a Bachelor’s degree or higher</p>
+        <div>
+          <p class="c-text reveal">Our audience: <strong>students in higher education</strong> actively trying to fill accumulated knowledge gaps.</p>
+          <div class="c-stats reveal-stagger" style="margin-top:32px">
+            <div class="c-stat"><span class="c-stat__num" data-count="35" data-suffix="%">35%</span><span class="c-stat__label"><b>dropout risk post-pandemic</b> among learners with a bachelor’s degree or higher</span></div>
           </div>
         </div>
-        <img class="reveal" src="../assets/projects/brilliant/audience.webp" alt="Target audience persona" width="784" height="626" loading="lazy">
+        <img class="reveal" src="../assets/projects/brilliant/audience.webp" alt="Unemployment and dropout trend chart" width="784" height="626" loading="lazy">
+      </div>
+
+      <div class="switcher" data-tabs>
+        <div class="switcher__tabs" role="tablist" aria-label="Research methods">
+          <button role="tab" aria-selected="true">Journey map</button>
+          <button role="tab" aria-selected="false" tabindex="-1">Secondary research</button>
+          <button role="tab" aria-selected="false" tabindex="-1">Direct competitors</button>
+          <button role="tab" aria-selected="false" tabindex="-1">Indirect competitors</button>
+        </div>
+        <div class="switcher__stage">
+          <figure class="switcher__panel is-active" role="tabpanel"><img src="../assets/projects/brilliant/journey-map.webp" alt="Product journey map" width="1234" height="633" loading="lazy"><p>Stakeholders and touchpoints across the product journey.</p></figure>
+          <figure class="switcher__panel" role="tabpanel"><img src="../assets/projects/brilliant/secondary-research.webp" alt="Secondary research on puzzle-based learning" width="2000" height="1130" loading="lazy"><p>Learning puzzles need a balance between clarity and solvability.</p></figure>
+          <figure class="switcher__panel" role="tabpanel"><img src="../assets/projects/brilliant/competitors-1.webp" alt="Direct competitor feature comparison" width="2000" height="1130" loading="lazy"><p>Coursera, Udacity, Khan Academy and MasterClass compared on six learning features.</p></figure>
+          <figure class="switcher__panel" role="tabpanel"><img src="../assets/projects/brilliant/competitors-2.webp" alt="Indirect competitor feature comparison" width="2000" height="1130" loading="lazy"><p>Duolingo, LinkedIn Learning and Udemy compared on the same features.</p></figure>
+        </div>
+      </div>
+    </section>
+
+    <!-- 03 Interviews -->
+    <section class="wrap c-sec" id="interviews" data-chapter="Interviews">
+      <div class="c-chapter"><span class="c-chapter__num">03</span><h2 class="c-kicker">Interviews</h2></div>
+      <p class="c-head reveal-mask">Engagement and retention came up most.</p>
+      <div class="c-stats reveal-stagger">
+        <div class="c-stat"><span class="c-stat__num" data-count="11">11</span><span class="c-stat__label">interviewees</span></div>
+        <div class="c-stat"><span class="c-stat__num" data-count="218">218</span><span class="c-stat__label">data points</span></div>
+        <div class="c-stat"><span class="c-stat__num" data-count="7">7</span><span class="c-stat__label">recurring themes</span></div>
+      </div>
+      <div class="c-split" style="align-items:start">
+        <div>
+          <h3 class="c-kicker" style="margin-bottom:12px">Mentions per theme</h3>
+          <ul class="c-bars reveal-stagger">
+            <li><span>Engaging</span><i style="--w:100"></i><span>33</span></li>
+            <li><span>Retention</span><i style="--w:85"></i><span>28</span></li>
+            <li><span>Flexibility</span><i style="--w:73"></i><span>24</span></li>
+            <li><span>Motivation</span><i style="--w:64"></i><span>21</span></li>
+            <li><span>Clarity</span><i style="--w:61"></i><span>20</span></li>
+            <li><span>Guidance</span><i style="--w:52"></i><span>17</span></li>
+            <li><span>Validation</span><i style="--w:42"></i><span>14</span></li>
+          </ul>
+        </div>
+        <div>
+          <h3 class="c-kicker">Feasibility priority</h3>
+          <ol class="c-rank reveal-stagger">
+            <li><b>A</b>Retention</li>
+            <li><b>B</b>Guidance</li>
+            <li><b>C</b>Clarity</li>
+            <li><b>D</b>Validation</li>
+          </ol>
+          <p class="c-text">Retention was both frequent and feasible, so it became the focus of the redesign.</p>
+        </div>
+      </div>
+      <figure class="c-figure reveal"><img src="../assets/projects/brilliant/affinity.webp" alt="They say, they mean, they want: synthesis of interview quotes into needs" width="2000" height="1133" loading="lazy"></figure>
+    </section>
+
+    <!-- 04 Ideation & iteration -->
+    <section class="wrap c-sec" id="iteration" data-chapter="Iteration">
+      <div class="c-chapter"><span class="c-chapter__num">04</span><h2 class="c-kicker">Ideation &amp; iteration</h2></div>
+      <p class="c-head reveal-mask">From ideas to a tested flow, step by step.</p>
+      <div class="switcher stepper" data-tabs>
+        <div class="switcher__tabs" role="tablist" aria-label="Design process">
+          <button role="tab" aria-selected="true"><span>01</span>Brainstorm</button>
+          <button role="tab" aria-selected="false" tabindex="-1"><span>02</span>Prioritise</button>
+          <button role="tab" aria-selected="false" tabindex="-1"><span>03</span>Sketch</button>
+          <button role="tab" aria-selected="false" tabindex="-1"><span>04</span>Low-fi</button>
+          <button role="tab" aria-selected="false" tabindex="-1"><span>05</span>Mid-fi</button>
+        </div>
+        <div class="switcher__stage">
+          <figure class="switcher__panel is-active" role="tabpanel"><img src="../assets/projects/brilliant/brainstorm-1.webp" alt="Ideas for consistency and feedback" width="2000" height="1130" loading="lazy"><p>Ideas for building consistency and giving feedback.</p></figure>
+          <figure class="switcher__panel" role="tabpanel"><img src="../assets/projects/brilliant/brainstorm-2.webp" alt="Ideas for structure and goals" width="2000" height="1130" loading="lazy"><p>Ideas for clearer structure and goal-oriented learning.</p></figure>
+          <figure class="switcher__panel" role="tabpanel"><img src="../assets/projects/brilliant/sketch.webp" alt="Interface sketches" width="2000" height="1130" loading="lazy"><p>Early sketches of the interface and learning flow.</p></figure>
+          <figure class="switcher__panel" role="tabpanel"><img src="../assets/projects/brilliant/low-fi.webp" alt="Low-fidelity prototype" width="2000" height="1130" loading="lazy"><p>Low-fi prototypes tested the basic structure and flow.</p></figure>
+          <figure class="switcher__panel" role="tabpanel"><img src="../assets/projects/brilliant/mid-fi.webp" alt="Mid-fidelity prototype" width="2000" height="1130" loading="lazy"><p>Mid-fi prototypes refined layout and interaction.</p></figure>
+        </div>
       </div>
     </section>
 
-    <section class="wrap c-sec">
-      <h2 class="c-kicker">User Research: Product Journey Map</h2>
-      <p class="c-head reveal-mask">Overview of stakeholders and touchpoints in the product journey.</p>
-      <figure class="c-figure c-figure--narrow reveal"><img src="../assets/projects/brilliant/journey-map.webp" alt="Product journey map" width="1234" height="633" loading="lazy"></figure>
-    </section>
-
-    <section class="wrap c-sec">
-      <h2 class="c-kicker">User Research: Secondary Research</h2>
-      <p class="c-head reveal-mask">Learning puzzles require balance between clarity and solvability.</p>
-      <figure class="c-figure c-figure--narrow reveal"><img src="../assets/projects/brilliant/secondary-research.webp" alt="Secondary research summary" width="2000" height="1130" loading="lazy"></figure>
-    </section>
-
-    <section class="wrap c-sec">
-      <h2 class="c-kicker">User Research: Competitor Research</h2>
-      <p class="c-head reveal-mask">Comparing direct and indirect learning platforms.</p>
-      <figure class="c-figure c-figure--narrow reveal"><img src="../assets/projects/brilliant/competitors-1.webp" alt="Direct competitor comparison" width="2000" height="1130" loading="lazy"></figure>
-      <figure class="c-figure c-figure--narrow reveal"><img src="../assets/projects/brilliant/competitors-2.webp" alt="Indirect competitor comparison" width="2000" height="1130" loading="lazy"></figure>
-    </section>
-
-    <section class="wrap c-sec">
-      <h2 class="c-kicker">User Research: User Interview</h2>
-      <p class="c-head reveal-mask">User interviews revealed learners’ motivations and challenges.</p>
-      <div class="c-split">
-        <div class="c-stats reveal-stagger" style="margin-top:0;grid-template-columns:1fr">
-          <div class="c-stat"><span class="c-stat__num" data-count="11">11</span><span class="c-stat__topic">Interviewees</span></div>
-          <div class="c-stat"><span class="c-stat__num" data-count="218">218</span><span class="c-stat__topic">Data Points</span></div>
-        </div>
-        <img class="reveal" src="../assets/projects/brilliant/interview.webp" alt="Interview notes" width="906" height="847" loading="lazy">
-      </div>
-      <div class="c-tables">
-        <img class="reveal" src="../assets/projects/brilliant/tag-cleaning.webp" alt="Tag cleaning of interview notes" width="815" height="846" loading="lazy" style="width:100%;border-radius:20px">
-        <div class="c-panel reveal">
-          <table class="c-table">
-            <thead><tr><th>Tags</th><th>Total</th></tr></thead>
-            <tbody>
-              <tr><td>Engaging<span class="c-table__bar" style="--w:100"></span></td><td>33</td></tr>
-              <tr><td>Retention<span class="c-table__bar" style="--w:85"></span></td><td>28</td></tr>
-              <tr><td>Flexibility<span class="c-table__bar" style="--w:73"></span></td><td>24</td></tr>
-              <tr><td>Motivation<span class="c-table__bar" style="--w:64"></span></td><td>21</td></tr>
-              <tr><td>Clarity<span class="c-table__bar" style="--w:61"></span></td><td>20</td></tr>
-              <tr><td>Guidance<span class="c-table__bar" style="--w:52"></span></td><td>17</td></tr>
-              <tr><td>Validation<span class="c-table__bar" style="--w:42"></span></td><td>14</td></tr>
-            </tbody>
-          </table>
-        </div>
-        <div class="c-panel reveal">
-          <table class="c-table">
-            <thead><tr><th>Feasibility priority</th><th>Rank</th></tr></thead>
-            <tbody>
-              <tr><td>Retention</td><td>A</td></tr>
-              <tr><td>Guidance</td><td>B</td></tr>
-              <tr><td>Clarity</td><td>C</td></tr>
-              <tr><td>Validation</td><td>D</td></tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-      <figure class="c-figure reveal"><img src="../assets/projects/brilliant/affinity.webp" alt="Affinity mapping of interview insights" width="2000" height="1133" loading="lazy"></figure>
-    </section>
-
-    <!-- Brainstorm -->
-    <section class="wrap c-sec" id="brainstorm">
-      <h2 class="c-kicker">Brainstorming</h2>
-      <p class="c-head reveal-mask">Brainstorming explored learning experience ideas.</p>
-      <figure class="c-figure c-figure--narrow reveal"><img src="../assets/projects/brilliant/brainstorm-1.webp" alt="Brainstorming board" width="2000" height="1130" loading="lazy"></figure>
-      <figure class="c-figure c-figure--narrow reveal"><img src="../assets/projects/brilliant/brainstorm-2.webp" alt="Idea prioritisation" width="2000" height="1130" loading="lazy"></figure>
-    </section>
-
-    <!-- Iteration -->
-    <section class="wrap c-sec" id="iteration">
-      <h2 class="c-kicker">Design Iteration: Sketch</h2>
-      <p class="c-head reveal-mask">Sketches explored early ideas for the interface and learning flow.</p>
-      <figure class="c-figure c-figure--narrow reveal"><img src="../assets/projects/brilliant/sketch.webp" alt="Interface sketches" width="2000" height="1130" loading="lazy"></figure>
-    </section>
-    <section class="wrap c-sec">
-      <h2 class="c-kicker">Design Iteration: Low-Fidelity</h2>
-      <p class="c-head reveal-mask">Low-fi prototypes tested the basic structure and user flow.</p>
-      <figure class="c-figure c-figure--narrow reveal"><img src="../assets/projects/brilliant/low-fi.webp" alt="Low-fidelity prototype" width="2000" height="1130" loading="lazy"></figure>
-    </section>
-    <section class="wrap c-sec">
-      <h2 class="c-kicker">Design Iteration: Mid-Fidelity</h2>
-      <p class="c-head reveal-mask">Mid-fi prototypes refined the layout and interaction flow.</p>
-      <figure class="c-figure c-figure--narrow reveal"><img src="../assets/projects/brilliant/mid-fi.webp" alt="Mid-fidelity prototype" width="2000" height="1130" loading="lazy"></figure>
-    </section>
-    <section class="wrap c-sec">
-      <h2 class="c-kicker">Design Iteration: Usability Test</h2>
-      <p class="c-head reveal-mask">Usability testing evaluated task completion and navigation.</p>
-      <div class="c-stack c-figure--narrow" data-stack>
+    <!-- 05 Usability -->
+    <section class="wrap c-sec" id="testing" data-chapter="Usability tests">
+      <div class="c-chapter"><span class="c-chapter__num">05</span><h2 class="c-kicker">Usability tests</h2></div>
+      <p class="c-head reveal-mask">Testing task completion and navigation.</p>
+      <div class="c-stack" data-stack style="max-width:1000px;margin-inline:auto">
         <div style="--n:0"><img src="../assets/projects/brilliant/usability-1.webp" alt="Usability test 1" width="2000" height="1130" loading="lazy" style="width:100%;border-radius:20px"></div>
         <div style="--n:1"><img src="../assets/projects/brilliant/usability-2.webp" alt="Usability test 2" width="2000" height="1130" loading="lazy" style="width:100%;border-radius:20px"></div>
         <div style="--n:2"><img src="../assets/projects/brilliant/usability-3.webp" alt="Usability test 3" width="2000" height="1130" loading="lazy" style="width:100%;border-radius:20px"></div>
@@ -232,41 +203,45 @@
       </div>
     </section>
 
-    <!-- Outcome -->
-    <section class="wrap c-sec" id="outcome">
-      <h2 class="c-kicker">Final Outcome</h2>
-      <p class="c-head reveal-mask">Outcome presented the final design solution.</p>
-      <figure class="c-figure c-figure--narrow reveal"><img src="../assets/projects/brilliant/final-1.webp" alt="Final design 1" width="1498" height="848" loading="lazy"></figure>
-      <figure class="c-figure c-figure--narrow reveal"><img src="../assets/projects/brilliant/final-2.webp" alt="Final design 2" width="1498" height="848" loading="lazy"></figure>
-      <figure class="c-figure c-figure--narrow reveal"><img src="../assets/projects/brilliant/final-3.webp" alt="Final design 3" width="1498" height="848" loading="lazy"></figure>
+    <!-- 06 Outcome -->
+    <section class="wrap c-sec" id="outcome" data-chapter="Outcome">
+      <div class="c-chapter"><span class="c-chapter__num">06</span><h2 class="c-kicker">Outcome</h2></div>
+      <p class="c-head reveal-mask">The final design.</p>
+      <figure class="c-figure reveal"><img src="../assets/projects/brilliant/final-1.webp" alt="Final design 1" width="1498" height="848" loading="lazy"></figure>
+      <figure class="c-figure reveal"><img src="../assets/projects/brilliant/final-2.webp" alt="Final design 2" width="1498" height="848" loading="lazy"></figure>
+      <figure class="c-figure reveal"><img src="../assets/projects/brilliant/final-3.webp" alt="Final design 3" width="1498" height="848" loading="lazy"></figure>
     </section>
 
     <section class="gallery" aria-label="Project images">
-      <div class="wrap"><h2 class="c-kicker" style="margin-bottom:32px">Project Images</h2></div>
-      <div class="gallery__track" tabindex="0">
-        <img src="../assets/projects/brilliant/cover-1.webp" alt="Brilliant redesign image" width="2000" height="1334" loading="lazy" draggable="false">
-        <img src="../assets/projects/brilliant/cover-4.webp" alt="Brilliant redesign image" width="2000" height="1375" loading="lazy" draggable="false">
-        <img src="../assets/projects/brilliant/cover-3.webp" alt="Brilliant redesign image" width="1600" height="1200" loading="lazy" draggable="false">
-        <img src="../assets/projects/brilliant/cover-2.webp" alt="Brilliant redesign image" width="1600" height="1200" loading="lazy" draggable="false">
-        <img src="../assets/projects/brilliant/gallery-1.webp" alt="Brilliant redesign image" width="1920" height="1080" loading="lazy" draggable="false">
-        <img src="../assets/projects/brilliant/gallery-2.webp" alt="Brilliant redesign image" width="1920" height="1080" loading="lazy" draggable="false">
-        <img src="../assets/projects/brilliant/gallery-3.webp" alt="Brilliant redesign image" width="1920" height="1080" loading="lazy" draggable="false">
-        <img src="../assets/projects/brilliant/gallery-4.webp" alt="Brilliant redesign image" width="1920" height="1080" loading="lazy" draggable="false">
-        <img src="../assets/projects/brilliant/gallery-5.webp" alt="Brilliant redesign image" width="1920" height="1080" loading="lazy" draggable="false">
-        <img src="../assets/projects/brilliant/gallery-6.webp" alt="Brilliant redesign image" width="1920" height="1080" loading="lazy" draggable="false">
-        <img src="../assets/projects/brilliant/gallery-7.webp" alt="Brilliant redesign image" width="1920" height="1080" loading="lazy" draggable="false">
-        <img src="../assets/projects/brilliant/gallery-8.webp" alt="Brilliant redesign image" width="1920" height="1080" loading="lazy" draggable="false">
-        <img src="../assets/projects/brilliant/gallery-9.webp" alt="Brilliant redesign image" width="1920" height="1080" loading="lazy" draggable="false">
+      <div class="wrap"><h2 class="c-kicker" style="margin-bottom:32px">More images</h2></div>
+      <div class="gallery__track" tabindex="0" data-cursor="Drag">
+        <img src="../assets/projects/brilliant/gallery-1.webp" alt="Brilliant redesign screen" width="1920" height="1080" loading="lazy" draggable="false">
+        <img src="../assets/projects/brilliant/gallery-2.webp" alt="Brilliant redesign screen" width="1920" height="1080" loading="lazy" draggable="false">
+        <img src="../assets/projects/brilliant/gallery-3.webp" alt="Brilliant redesign screen" width="1920" height="1080" loading="lazy" draggable="false">
+        <img src="../assets/projects/brilliant/gallery-4.webp" alt="Brilliant redesign screen" width="1920" height="1080" loading="lazy" draggable="false">
+        <img src="../assets/projects/brilliant/gallery-5.webp" alt="Brilliant redesign screen" width="1920" height="1080" loading="lazy" draggable="false">
+        <img src="../assets/projects/brilliant/gallery-6.webp" alt="Brilliant redesign screen" width="1920" height="1080" loading="lazy" draggable="false">
+        <img src="../assets/projects/brilliant/gallery-7.webp" alt="Brilliant redesign screen" width="1920" height="1080" loading="lazy" draggable="false">
+        <img src="../assets/projects/brilliant/gallery-8.webp" alt="Brilliant redesign screen" width="1920" height="1080" loading="lazy" draggable="false">
+        <img src="../assets/projects/brilliant/gallery-9.webp" alt="Brilliant redesign screen" width="1920" height="1080" loading="lazy" draggable="false">
       </div>
       <p class="gallery__hint">DRAG TO EXPLORE</p>
     </section>
 
-    <a class="c-next wrap" href="fitfido.html">
+    <a class="c-next wrap" href="fitfido.html" data-cursor="Next">
       <p class="eyebrow">Next project</p>
       <p class="c-next__title">Fitfido</p>
       <span class="pill pill--ghost">View case study <i class="pill__arrow" aria-hidden="true"></i></span>
     </a>
   </main>
+
+  <nav class="chapter" aria-label="Chapters">
+    <ol class="chapter__list"></ol>
+    <button class="chapter__toggle" aria-expanded="false">
+      <span class="chapter__num">01 / 06</span><span class="chapter__label">Vision</span>
+      <span class="chapter__bar"><span></span></span>
+    </button>
+  </nav>
 
   <footer class="footer">
     <div class="wrap">

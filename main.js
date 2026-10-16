@@ -355,5 +355,124 @@ if (clock) {
 const year = $("#year");
 if (year) year.textContent = new Date().getFullYear();
 
+/* ---------- Scrollytelling: steps drive a sticky stage (camera zoom + hotspots) ---------- */
+$$("[data-scrolly]").forEach((scrolly) => {
+  const steps = $$("[data-step]", scrolly);
+  const stage = $("[data-stage]", scrolly);
+  const spots = $$("[data-spot]", scrolly);
+  const count = $("[data-scrolly-count]", scrolly);
+  const show = (i) => {
+    const step = steps[i];
+    steps.forEach((s, j) => s.classList.toggle("is-active", j === i));
+    spots.forEach((s) => s.classList.toggle("is-active", Number(s.dataset.spot) === i));
+    stage.style.setProperty("--x", `${step.dataset.x}%`);
+    stage.style.setProperty("--y", `${step.dataset.y}%`);
+    stage.style.setProperty("--s", step.dataset.s);
+    stage.dataset.active = i;
+    if (count) count.textContent = String(i + 1).padStart(2, "0");
+  };
+  const io = new IntersectionObserver((entries) => {
+    for (const entry of entries) if (entry.isIntersecting) show(steps.indexOf(entry.target));
+  }, {
+    // On narrow screens the sticky stage covers the top half, so watch the lower part of the viewport
+    rootMargin: matchMedia("(max-width: 1024px)").matches ? "-72% 0px -24% 0px" : "-48% 0px -48% 0px",
+  });
+  steps.forEach((s) => io.observe(s));
+  // Hotspots and steps are also clickable
+  spots.forEach((spot) => spot.addEventListener("click", () => scrollToTarget(steps[Number(spot.dataset.spot)])));
+  show(0);
+});
+
+/* ---------- Zoom-out reveal tied to scroll ---------- */
+$$("[data-zoom-reveal]").forEach((section) => {
+  const img = $("img", section);
+  if (reduceMotion) return;
+  onScrollFns.push(() => {
+    const r = section.getBoundingClientRect();
+    if (r.bottom < 0 || r.top > innerHeight) return;
+    const p = clamp(-r.top / Math.max(1, r.height - innerHeight));
+    const eased = 1 - Math.pow(1 - p, 3);
+    img.style.transform = `scale(${(1.9 - 0.9 * eased).toFixed(4)})`;
+    section.style.setProperty("--p", eased.toFixed(3));
+  });
+});
+
+/* ---------- Chapter indicator for long case studies ---------- */
+const chapterNav = $(".chapter");
+if (chapterNav) {
+  const chapters = $$("[data-chapter]");
+  const label = $(".chapter__label", chapterNav);
+  const num = $(".chapter__num", chapterNav);
+  const bar = $(".chapter__bar span", chapterNav);
+  const list = $(".chapter__list", chapterNav);
+  const toggle = $(".chapter__toggle", chapterNav);
+  list.innerHTML = chapters.map((c, i) => `<li><a href="#${c.id}"><span>${String(i + 1).padStart(2, "0")}</span>${c.dataset.chapter}</a></li>`).join("");
+  const links = $$("a", list);
+  let current = -1;
+  onScrollFns.push((y) => {
+    const doc = document.documentElement.scrollHeight - innerHeight;
+    bar.style.transform = `scaleX(${clamp(y / doc).toFixed(4)})`;
+    let idx = -1;
+    chapters.forEach((c, i) => { if (c.getBoundingClientRect().top < innerHeight * 0.5) idx = i; });
+    chapterNav.classList.toggle("is-visible", idx >= 0 && $(".footer").getBoundingClientRect().top > innerHeight * 0.7);
+    if (idx === current || idx < 0) return;
+    current = idx;
+    label.textContent = chapters[idx].dataset.chapter;
+    num.textContent = `${String(idx + 1).padStart(2, "0")} / ${String(chapters.length).padStart(2, "0")}`;
+    links.forEach((l, i) => l.classList.toggle("is-current", i === idx));
+  });
+  toggle.addEventListener("click", () => {
+    const open = chapterNav.classList.toggle("is-open");
+    toggle.setAttribute("aria-expanded", String(open));
+  });
+  list.addEventListener("click", (e) => { if (e.target.closest("a")) { chapterNav.classList.remove("is-open"); toggle.setAttribute("aria-expanded", "false"); } });
+  document.addEventListener("click", (e) => { if (!e.target.closest(".chapter")) { chapterNav.classList.remove("is-open"); toggle.setAttribute("aria-expanded", "false"); } });
+}
+
+/* ---------- Pointer-follow glow on interactive rows ---------- */
+$$("[data-glow]").forEach((el) => {
+  el.addEventListener("pointermove", (e) => {
+    const r = el.getBoundingClientRect();
+    el.style.setProperty("--mx", `${e.clientX - r.left}px`);
+    el.style.setProperty("--my", `${e.clientY - r.top}px`);
+  });
+});
+
+/* ---------- Custom cursor label over projects and galleries ---------- */
+if (!reduceMotion && matchMedia("(hover: hover) and (pointer: fine)").matches && $("[data-cursor]")) {
+  const cursor = document.createElement("div");
+  cursor.className = "cursor";
+  cursor.setAttribute("aria-hidden", "true");
+  document.body.append(cursor);
+  let tx = 0, ty = 0, cx = 0, cy = 0;
+  addEventListener("pointermove", (e) => {
+    tx = e.clientX; ty = e.clientY;
+    const host = e.target.closest("[data-cursor]");
+    cursor.classList.toggle("is-on", !!host);
+    if (host) cursor.textContent = host.dataset.cursor;
+  });
+  document.addEventListener("pointerleave", () => cursor.classList.remove("is-on"));
+  const follow = () => {
+    cx += (tx - cx) * 0.18;
+    cy += (ty - cy) * 0.18;
+    cursor.style.transform = `translate3d(${cx.toFixed(1)}px, ${cy.toFixed(1)}px, 0) translate(-50%, -50%)`;
+    requestAnimationFrame(follow);
+  };
+  requestAnimationFrame(follow);
+}
+
+/* ---------- Magnetic buttons ---------- */
+if (!reduceMotion && matchMedia("(hover: hover) and (pointer: fine)").matches) {
+  $$(".pill, .menu-btn").forEach((el) => {
+    el.addEventListener("pointermove", (e) => {
+      const r = el.getBoundingClientRect();
+      const dx = (e.clientX - r.left - r.width / 2) * 0.18;
+      const dy = (e.clientY - r.top - r.height / 2) * 0.28;
+      el.style.translate = `${dx.toFixed(1)}px ${dy.toFixed(1)}px`;
+    });
+    el.addEventListener("pointerleave", () => { el.style.translate = ""; });
+  });
+}
+
 document.documentElement.classList.add("js-ready");
 requestScrollFrame();
