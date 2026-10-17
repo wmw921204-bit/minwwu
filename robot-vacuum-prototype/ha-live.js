@@ -104,12 +104,14 @@
     const fail=()=>{S.cmd={label:opts.label,state:'failed',retry:opts.retry||(()=>liveCommand(action,opts,fn))};opts.onFail&&opts.onFail();commit()};
     S.cmd={label:opts.label,state:'sending'};commit();
     try{await api('command',{action,...(opts.body||{})})}catch(e){HA.error=e.message;fail();return false}
-    HA.pending={expect:opts.expect,at:Date.now(),done:opts.done,fn,fail};
+    HA.pending={expect:opts.expect,detail:opts.expectDetail||null,from:S.device.status,at:Date.now(),done:opts.done,fn,fail};
     refresh();return true;
   }
   function checkPending(){
     const p=HA.pending;if(!p)return;
-    if(p.expect.includes(S.device.status)){
+    // a spot sent mid-cleaning is confirmed by the robot reporting zoned cleaning, not just "cleaning"
+    const ok=p.detail&&p.from==='cleaning'?p.detail.includes(HA.dev?.detail):p.expect.includes(S.device.status);
+    if(ok){
       HA.pending=null;p.fn&&p.fn();S.cmd={label:p.done,state:'confirmed'};
       setTimeout(()=>{if(S.cmd&&S.cmd.state==='confirmed'){S.cmd=null;commit()}},1700);
     }else if(Date.now()-p.at>30000){HA.pending=null;p.fail()}
@@ -298,14 +300,24 @@
       if(HA.spotError){ev.status='needsReview';ev.attempts=(ev.attempts||0)+1;ev.retryFailed=true;evLog(ev,'robot','Retry didn’t work: the robot reported a problem');notice(ev)}
       else{ev.status='resolved';ev.retryFailed=false;ev.outcome=ev.pendingOutcome||'Area cleaned successfully.';evLog(ev,'result',ev.outcome.replace(/\.$/,''))}
     }
+    const cancelled=HA.spotCancelled;
     HA.spotError=false;HA.spotCancelled=false;if(S.task)S.task.spot=false;
     restoreMode();
+    const t=S.task;
+    if(t&&!t.done&&t.resumeAfterSpot&&!cancelled&&!t.endedEarly){
+      t.resumeAfterSpot=false;
+      if(HA.retryQueue.length)return; // another retry is waiting; it goes first
+      const zones=t.kind!=='home'&&t.parts?t.parts.map(b=>M().robotBox(HA.align?.al,b)):null;
+      HA.resuming=true;
+      liveCommand(zones?'zones':'start',{label:'Continue cleaning',done:'Back to the rest of the cleaning',expect:['cleaning'],body:zones?{zones}:null,force:true,
+        onFail:()=>{HA.resuming=false}},()=>{HA.resuming=false;tl('robot','Back to the rest of the cleaning. Roborock starts the route again, so some areas get a second pass')});
+    }
     if(S.task&&S.task.done){S.task.result=computeResult();S.task.pct=taskPct(S.task)}
   }
   function lifecycle(status){
     const prev=HA.prevStatus;HA.prevStatus=status;
+    if(HA.resuming){if(status==='cleaning')HA.resuming=false;else return} // continuing the cleaning after a spot
     if(HA.spotEv){
-      if(status==='cleaning')HA.spotStarted=true;
       if(status==='error')HA.spotError=true;
       if(HA.spotStarted&&status==='docked')finishSpot();
       return;
@@ -334,7 +346,7 @@
   }
   function fireDue(){
     const t=S.task;
-    if(!t||t.done||HA.spotEv||S.conn!=='connected'||S.device.status!=='cleaning'||!S.sim.pending.length||HA.pending)return;
+    if(!t||t.done||HA.spotEv||HA.resuming||S.conn!=='connected'||S.device.status!=='cleaning'||!S.sim.pending.length||HA.pending)return;
     const n=Object.keys(S.sim.fired).length;
     const due=n<FIRE_AFTER.length?FIRE_AFTER[n]:FIRE_AFTER[FIRE_AFTER.length-1]+90*(n-FIRE_AFTER.length+1);
     if(Date.now()-t.startedAt>=due*1000){fireStudy(S.sim.pending[0]);commit()}
@@ -356,7 +368,8 @@
         tl('robot',ev.cleanMode==='vacuum'?'Switched to vacuum only for this spot':'Switched to vacuum and mop for this spot',ev.id)}
       catch(e){fail('Couldn’t switch the cleaning mode: '+e.message);commit();return}
     }
-    liveCommand('zone',{label:extra?'Extra pass':'Retry '+z.name.toLowerCase(),done:'Robot is going back to the spot',expect:['cleaning'],
+    const t=S.task;if(t&&!t.done)t.resumeAfterSpot=true; // Roborock drops a running cleaning for a spot; the app restarts it after
+    liveCommand('zone',{label:extra?'Extra pass':'Retry '+z.name.toLowerCase(),done:'Robot is going to the spot now',expect:['cleaning'],expectDetail:['zoned_cleaning','spot_cleaning'],force:true,
       body:{box:M().robotBox(HA.align?.al,spotCells(z.mm).box)},retry:()=>sendSpot(ev),onFail:()=>fail(extra?'The extra pass didn’t reach the robot':'The retry didn’t reach the robot')},
       ()=>{HA.spotStarted=true;if(S.task)S.task.spot=true;tl('robot',(extra?'Extra pass started: ':'Spot clean started: ')+z.name,ev.id)});
   }
@@ -365,7 +378,7 @@
     HA.retryQueue.forEach(id=>{const ev=findEvent(id);if(!ev)return;
       if(ev.extraQueued){ev.extraQueued=false;ev.outcome='Extra pass cancelled: you ended the cleaning.';evLog(ev,'you','Extra pass cancelled')}
       else if(ev.status==='inProgress'){ev.status='deferred';ev.queued=false;ev.outcome='Not retried: you ended the cleaning.';evLog(ev,'you','Retry cancelled: you ended the cleaning')}});
-    HA.retryQueue=[];S.sim.queue=[];S.sim.pending=[];
+    HA.retryQueue=[];S.sim.queue=[];S.sim.pending=[];HA.resuming=false;if(S.task)S.task.resumeAfterSpot=false;
     HA.pending=null; // a command still being confirmed, such as a retry, is dropped
     if(HA.spotEv){
       if(HA.spotStarted)HA.spotCancelled=true;
@@ -375,8 +388,8 @@
     }
   }
   function processRetries(){
-    if(HA.pending||HA.spotEv||S.conn!=='connected'||!HA.retryQueue.length)return;
-    if(S.device.status!=='docked'||(S.task&&!S.task.done))return;
+    if(HA.pending||HA.spotEv||HA.resuming||S.conn!=='connected'||!HA.retryQueue.length)return;
+    if(S.device.status==='error')return; // retries go straight away, except while the robot needs help
     const ev=findEvent(HA.retryQueue.shift());
     if(ev&&(ev.status==='inProgress'||ev.extraQueued)&&ZONES[ev.zone]?.mm)sendSpot(ev);
   }
@@ -877,9 +890,9 @@
       ev.cleanMode=/rug/i.test(outcomeText||'')?'vacuum':/hard floor/i.test(outcomeText||'')?'vac_and_mop':null;
       const z=ZONES[ev.zone];
       if(!z||!z.mm){ev.status='needsReview';evLog(ev,'robot','This spot has no map position, so the robot can’t be sent there');return}
-      ev.status='inProgress';ev.queued=!!(S.task&&!S.task.done);
+      ev.status='inProgress';ev.queued=false;
       if(!HA.retryQueue.includes(ev.id))HA.retryQueue.push(ev.id);
-      if(ev.queued)tl('robot','Will go back to '+z.name.toLowerCase()+' after this cleaning',ev.id);
+
     };
     window.doAction=(ev,act,saveRule)=>{
       if(ev.problem){
@@ -898,7 +911,8 @@
       if(!ev.archived){S.ui.stack=[];S.ui.tab='map';S.ui.scrollTop=0;forceTop=true}
       const run=()=>{applyAction(ev,act,false);if(saveRule){const r=DEFS[ev.key].remember[act];S.rules.push({id:'r'+(++seq),key:ev.key,act,text:r.text,scope:r.scope})}};
       if(act==='pauseCheck')return liveCommand('pause',{label:'Pause',done:'Paused',expect:['paused','idle']},run);
-      if(S.waitEv===ev.id&&dev().status==='paused')return liveCommand('start',{label:'Continue cleaning',done:'Cleaning continues',expect:['cleaning']},run);
+      const goesNow=['retry','retryCleared','asRug','asHard','allow'].includes(act);
+      if(S.waitEv===ev.id&&dev().status==='paused'&&!goesNow)return liveCommand('start',{label:'Continue cleaning',done:'Cleaning continues',expect:['cleaning']},run);
       run();
       if(act==='skipOnce'){ev.extraQueued=false;HA.retryQueue=HA.retryQueue.filter(x=>x!==ev.id)}
       if(act==='nogo'){commit();return saveNogo('Save no-go zone on the robot','No-go zone saved on the robot')}
