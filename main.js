@@ -547,6 +547,173 @@ $$("[data-deck]").forEach((deck) => {
   paint();
 });
 
+/* ---------- Lightbox: every showcase image opens full-screen and zooms ---------- */
+(() => {
+  const main = $(".case main") || $(".case");
+  if (!main) return;
+  // backgrounds, icons and the hero stay decorative
+  const skip = ".c-hero, .vn__bg, .cine, .site-header, header, footer, .c-next, [aria-hidden='true']";
+  const zoomable = (img) => !img.closest(skip) && !/icon-|logo/.test(img.src) && (+img.getAttribute("width") || 999) >= 300;
+  const imgs = $$("img", main).filter(zoomable);
+  if (!imgs.length) return;
+
+  const groupOf = (img) => {
+    const box = img.closest("[data-deck], .gallery__track") || img.closest("section") || main;
+    return $$("img", box).filter(zoomable).filter((i) => box.matches("[data-deck], .gallery__track") || !i.closest("[data-deck], .gallery__track"));
+  };
+
+  const lb = document.createElement("div");
+  lb.className = "lb";
+  lb.setAttribute("role", "dialog");
+  lb.setAttribute("aria-modal", "true");
+  lb.setAttribute("aria-label", "Image viewer");
+  lb.innerHTML = `
+    <div class="lb__stage"><img class="lb__img" alt=""></div>
+    <button class="lb__btn lb__close" type="button" aria-label="Close">✕</button>
+    <button class="lb__btn lb__prev" type="button" aria-label="Previous image">←</button>
+    <button class="lb__btn lb__next" type="button" aria-label="Next image">→</button>
+    <div class="lb__bar"><span class="lb__count"></span><span class="lb__cap"></span><span class="lb__hint">Click or scroll to zoom</span></div>`;
+  document.body.append(lb);
+  const stage = $(".lb__stage", lb), view = $(".lb__img", lb);
+  let group = [], idx = 0, scale = 1, tx = 0, ty = 0, lastFocus = null;
+
+  const apply = (anim = true) => {
+    view.style.transition = anim ? "" : "none";
+    view.style.transform = `translate3d(${tx}px, ${ty}px, 0) scale(${scale})`;
+    lb.classList.toggle("is-zoomed", scale > 1.01);
+  };
+  // keep the zoomed image covering the screen instead of drifting off it
+  const clampPan = () => {
+    const w = view.offsetWidth * scale, h = view.offsetHeight * scale;
+    const mx = Math.max(0, (w - innerWidth) / 2), my = Math.max(0, (h - innerHeight) / 2);
+    tx = Math.min(mx, Math.max(-mx, tx));
+    ty = Math.min(my, Math.max(-my, ty));
+  };
+  const maxScale = () => Math.max(2.5, (view.naturalWidth || 0) / Math.max(1, view.offsetWidth));
+  const zoomAt = (next, cx, cy) => {
+    next = Math.min(maxScale(), Math.max(1, next));
+    // zoom around the pointer: keep the point under it fixed
+    const ox = cx - innerWidth / 2, oy = cy - innerHeight / 2;
+    tx = ox - (ox - tx) * (next / scale);
+    ty = oy - (oy - ty) * (next / scale);
+    scale = next;
+    if (scale === 1) { tx = 0; ty = 0; }
+    clampPan();
+  };
+
+  const show = (i) => {
+    idx = (i + group.length) % group.length;
+    const src = group[idx];
+    scale = 1; tx = 0; ty = 0; apply(false);
+    view.src = src.currentSrc || src.src;
+    view.alt = src.alt || "";
+    $(".lb__cap", lb).textContent = src.dataset.label || src.alt || "";
+    $(".lb__count", lb).textContent = group.length > 1 ? `${String(idx + 1).padStart(2, "0")} / ${String(group.length).padStart(2, "0")}` : "";
+    lb.classList.toggle("is-single", group.length < 2);
+  };
+  const open = (img) => {
+    group = groupOf(img);
+    lastFocus = document.activeElement;
+    show(Math.max(0, group.indexOf(img)));
+    lb.classList.add("is-open");
+    document.documentElement.classList.add("lb-open");
+    window.__lenis?.stop();
+    $(".lb__close", lb).focus({ preventScroll: true });
+  };
+  const close = () => {
+    lb.classList.remove("is-open");
+    document.documentElement.classList.remove("lb-open");
+    window.__lenis?.start();
+    lastFocus?.focus?.({ preventScroll: true });
+  };
+  window.__lightbox = { open };
+
+  $(".lb__close", lb).addEventListener("click", close);
+  $(".lb__prev", lb).addEventListener("click", () => show(idx - 1));
+  $(".lb__next", lb).addEventListener("click", () => show(idx + 1));
+  addEventListener("keydown", (e) => {
+    if (!lb.classList.contains("is-open")) return;
+    if (e.key === "Escape") close();
+    else if (e.key === "ArrowRight") show(idx + 1);
+    else if (e.key === "ArrowLeft") show(idx - 1);
+    else if (e.key === "+" || e.key === "=") { zoomAt(scale * 1.5, innerWidth / 2, innerHeight / 2); apply(); }
+    else if (e.key === "-") { zoomAt(scale / 1.5, innerWidth / 2, innerHeight / 2); apply(); }
+    else return;
+    e.preventDefault();
+  });
+  stage.addEventListener("wheel", (e) => {
+    e.preventDefault();
+    zoomAt(scale * Math.exp(-e.deltaY * 0.0025), e.clientX, e.clientY);
+    apply(false);
+  }, { passive: false });
+
+  // pointers: tap toggles zoom, drag pans, two fingers pinch; tapping the dark backdrop closes
+  const pts = new Map();
+  let start = null, pinch = null, moved = false;
+  stage.addEventListener("pointerdown", (e) => {
+    stage.setPointerCapture(e.pointerId);
+    pts.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    moved = false;
+    start = { x: e.clientX, y: e.clientY, tx, ty, onImg: e.target === view };
+    if (pts.size === 2) {
+      const [a, b] = [...pts.values()];
+      pinch = { d: Math.hypot(a.x - b.x, a.y - b.y), s: scale };
+    }
+  });
+  stage.addEventListener("pointermove", (e) => {
+    if (!pts.has(e.pointerId)) return;
+    pts.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    if (pinch && pts.size === 2) {
+      const [a, b] = [...pts.values()];
+      zoomAt(pinch.s * Math.hypot(a.x - b.x, a.y - b.y) / pinch.d, (a.x + b.x) / 2, (a.y + b.y) / 2);
+      moved = true; apply(false); return;
+    }
+    const dx = e.clientX - start.x, dy = e.clientY - start.y;
+    if (Math.abs(dx) + Math.abs(dy) > 6) moved = true;
+    if (scale > 1 && moved) { tx = start.tx + dx; ty = start.ty + dy; clampPan(); apply(false); }
+  });
+  const up = (e) => {
+    if (!pts.has(e.pointerId)) return;
+    pts.delete(e.pointerId);
+    if (pts.size < 2) pinch = null;
+    if (pts.size || moved) return;
+    if (!start.onImg) { close(); return; }
+    if (scale > 1.01) { scale = 1; tx = 0; ty = 0; }
+    else zoomAt(Math.min(maxScale(), 2.5), e.clientX, e.clientY);
+    apply();
+  };
+  stage.addEventListener("pointerup", up);
+  stage.addEventListener("pointercancel", (e) => { pts.delete(e.pointerId); pinch = null; });
+  addEventListener("resize", () => { if (lb.classList.contains("is-open")) { clampPan(); apply(false); } });
+
+  // hook the page images up
+  imgs.forEach((img) => {
+    if (img.closest("[data-deck]")) return; // decks open from their own button
+    img.classList.add("is-zoomable");
+    const inDrag = img.closest(".gallery__track");
+    if (!inDrag && !img.closest("[data-cursor]")) img.dataset.cursor = "View";
+    let sx = 0;
+    img.addEventListener("pointerdown", (e) => { sx = e.clientX; });
+    img.addEventListener("click", (e) => {
+      if (inDrag && Math.abs(e.clientX - sx) > 6) return; // that was a drag, not a click
+      e.preventDefault();
+      open(img);
+    });
+  });
+  $$("[data-deck]").forEach((deck) => {
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "deck__zoom";
+    btn.setAttribute("aria-label", "Enlarge this sheet");
+    btn.innerHTML = `<svg viewBox="0 0 20 20" aria-hidden="true"><path d="M12 3h5v5M8 17H3v-5M17 3l-6 6M3 17l6-6" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Enlarge</span>`;
+    btn.addEventListener("click", () => {
+      const front = $$("img", deck).find((i) => i.style.getPropertyValue("--k").trim() === "0") || $("img", deck);
+      open(front);
+    });
+    $(".deck__bar", deck).append(btn);
+  });
+})();
+
 /* ---------- Custom cursor label over projects and galleries ---------- */
 if (!reduceMotion && matchMedia("(hover: hover) and (pointer: fine)").matches && $("[data-cursor]")) {
   const cursor = document.createElement("div");
