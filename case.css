@@ -545,3 +545,12 @@ img.is-zoomable { cursor: zoom-in; }
 .c-figure--map { margin-top: 56px; }
 .c-figure--map img { background: #fff; padding: clamp(8px, 2vw, 28px); }
 .c-figure--map figcaption { margin-top: 14px; font-size: 15px; color: var(--c-muted); }
+
+/* Sound toggle on a hero film */
+.c-hero__sound { position: absolute; right: clamp(16px, 3vw, 40px); bottom: clamp(20px, 4vh, 40px); z-index: 3; display: inline-flex; align-items: center; gap: 10px; padding: 12px 18px 12px 14px; border: 0; border-radius: 99px; background: rgba(20, 24, 18, .55); color: #faf7f0; font: 500 14px/1 var(--f-body); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); opacity: calc(1 - var(--p, 0) * 3); transition: background .3s; }
+.c-hero__sound:hover { background: rgba(20, 24, 18, .8); }
+.c-hero__sound-icon { position: relative; width: 18px; height: 14px; }
+.c-hero__sound-icon::before { content: ""; position: absolute; left: 0; top: 3px; width: 6px; height: 8px; background: currentColor; clip-path: polygon(0 25%, 45% 25%, 100% -40%, 100% 140%, 45% 75%, 0 75%); }
+.c-hero__sound-icon::after { content: ""; position: absolute; right: 0; top: 1px; width: 7px; height: 12px; border: 2px solid currentColor; border-left: 0; border-radius: 0 12px 12px 0; opacity: .35; }
+.c-hero__sound.is-on .c-hero__sound-icon::after { opacity: 1; }
+.c-hero__sound.is-on { background: #f2b84b; color: #262c22; }

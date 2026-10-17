@@ -548,6 +548,32 @@ $$("[data-deck]").forEach((deck) => {
   paint();
 });
 
+/* ---------- Hero film: muted loop by default, one tap to watch it with sound ---------- */
+$$("[data-sound]").forEach((btn) => {
+  const video = btn.closest(".c-hero__pin")?.querySelector("video");
+  if (!video) return;
+  const label = $(".c-hero__sound-label", btn);
+  let started = false;
+  const sync = () => {
+    btn.setAttribute("aria-pressed", String(!video.muted));
+    btn.classList.toggle("is-on", !video.muted);
+    label.textContent = video.muted ? (started ? "Sound off" : "Watch with sound") : "Sound on";
+  };
+  btn.addEventListener("click", () => {
+    if (!started) {
+      // the first tap plays the film from the start, with sound and without looping
+      started = true;
+      video.currentTime = 0;
+      video.loop = false;
+      video.muted = false;
+    } else video.muted = !video.muted;
+    video.play().catch(() => {});
+    sync();
+  });
+  video.addEventListener("ended", () => { video.loop = true; video.muted = true; started = false; video.play().catch(() => {}); sync(); });
+  sync();
+});
+
 /* ---------- Flipbook: a printed document you page through like a book ---------- */
 $$("[data-flip]").forEach((flip) => {
   const book = $(".flip__book", flip);
