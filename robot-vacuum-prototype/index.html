@@ -390,6 +390,8 @@ button.tile{font:inherit;width:100%}
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="ha-model.js"></script>
+<script src="ha-live.js"></script>
 <script>
 /* ============ geometry ============ */
 const CELL=20;
@@ -1584,6 +1586,7 @@ window.addEventListener('resize',fitPhone);fitPhone();
 /* ============ loop ============ */
 let acc=0,last=performance.now();
 setInterval(()=>{
+  if(window.HA_LIVE){HA_TICK();return}
   const now=performance.now();acc+=now-last;last=now;
   const stepMs=340/S.ctl.speed;
   while(acc>=stepMs){acc-=stepMs;
@@ -1595,6 +1598,7 @@ setInterval(()=>{
   }
   updateLive();
 },80);
+if(window.HA_LIVE)HA_INIT();
 commit();
 </script>
 </body>
