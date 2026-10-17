@@ -3,11 +3,24 @@
    obstacles, and start / pause / return / spot-retry commands with state confirmation.
    Study layer: the four supervision events and the automation levels still run as in the demo,
    placed where the real robot is, and labelled as study scenarios on screen.
-   Open with ?demo=1 (or from the file system) for the original fully simulated demo. */
+   Settings switches between this and the original fully simulated demo (also ?demo=1, or opening the file). */
 (()=>{
-  const LIVE_ON=location.protocol!=='file:'&&!new URLSearchParams(location.search).has('demo');
+  const params=new URLSearchParams(location.search),served=location.protocol!=='file:';
+  let pref=null;try{pref=localStorage.getItem('robot-app-mode')}catch(e){}
+  const LIVE_ON=served&&!params.has('demo')&&(params.has('live')||pref!=='demo');
   window.HA_LIVE=LIVE_ON;
-  if(!LIVE_ON)return;
+  const switchTo=mode=>{try{localStorage.setItem('robot-app-mode',mode)}catch(e){}location.href=location.pathname};
+  const modeRows=live=>`<div class="sec-h">Robot data</div><div class="group" style="margin-bottom:14px">
+    <button class="row" data-a="haMode" data-v="live">Real robot (Home Assistant)<span class="v">${live?ic('check',18):''}</span></button>
+    <button class="row" data-a="haMode" data-v="demo">Simulation<span class="v">${live?'':ic('check',18)}</span></button></div>`;
+  if(!LIVE_ON){
+    // The demo, served by the bridge, can switch back to the real robot.
+    if(served)window.HA_DEMO_INIT=()=>{
+      const set0=window.scrSettings;window.scrSettings=()=>set0().replace('</div>','</div>'+modeRows(false));
+      A.haMode=v=>{if(v==='live')switchTo('live')};
+    };
+    return;
+  }
 
   const STORE='robot-live-v1';
   const SPOT_CELLS=2;          // a study event's spot, and a retry zone, is 2 x 2 cells (1 x 1 m)
@@ -15,7 +28,7 @@
   const FIRE_AFTER=[90,180,270,360]; // seconds into a real cleaning when study events appear
   const HA={snap:null,dev:null,map:null,tf:null,ppm:null,foot:null,error:'',pending:null,expectStart:null,
     retryQueue:[],spotEv:null,spotStarted:false,spotError:false,notes:{},refArea:null,prevStatus:null,
-    fetching:false,lastMap:0,editing:false,sig:'',prompted:false};
+    fetching:false,lastMap:0,editing:false,sig:'',prompted:false,restoreMode:null,removedZones:[],notified:{},schedLoaded:false,schedError:''};
   window.HA=HA;
   const M=()=>window.HAModel;
   const now=()=>{const d=new Date();return d.getHours()*3600+d.getMinutes()*60+d.getSeconds()};
@@ -35,16 +48,17 @@
     clearTimeout(saveT);saveT=setTimeout(()=>{
       const zones=Object.fromEntries(Object.entries(ZONES).filter(([k])=>k.startsWith('z')));
       try{localStorage.setItem(STORE,JSON.stringify({v:1,onboarded:!S.onboarding,autonomy:S.autonomy,rules:S.rules,nogo:S.nogo,notif:S.notif,
-        schedules:S.schedules,history:S.history,task:S.task,events:S.events,timeline:S.timeline,pending:S.sim.pending,zones,seq,
+        history:S.history,task:S.task,events:S.events,timeline:S.timeline,pending:S.sim.pending,zones,seq,
         notes:HA.notes,refArea:HA.refArea,scenario:S.ctl.scenario,retryQueue:HA.retryQueue,spotEv:HA.spotEv,spotStarted:HA.spotStarted,
-        prevStatus:HA.prevStatus,customObj:Object.fromEntries(Object.entries(OBJ).filter(([,o])=>o.custom))}))}catch(e){/* storage full or blocked: the app still works */}
+        prevStatus:HA.prevStatus,restoreMode:HA.restoreMode,removedZones:HA.removedZones,customObj:Object.fromEntries(Object.entries(OBJ).filter(([,o])=>o.custom))}))}catch(e){/* storage full or blocked: the app still works */}
     },400);
   }
   function restore(){
     const s=read();
     S.onboarding=s.onboarded?null:'intro';
     if(s.autonomy)S.autonomy=s.autonomy;
-    S.rules=s.rules||[];S.nogo=s.nogo||[];if(s.notif)S.notif=s.notif;if(s.schedules)S.schedules=s.schedules;
+    S.rules=s.rules||[];S.nogo=s.nogo||[];if(s.notif)S.notif=s.notif;S.schedules=[];
+    HA.restoreMode=s.restoreMode||null;HA.removedZones=s.removedZones||[];
     Object.assign(ZONES,s.zones||{});Object.assign(OBJ,s.customObj||{});
     S.history=(s.history||[]).map(h=>({...h,day:dayLabel(h.endedAt||h.startedAt)}));
     S.task=s.task||null;if(S.task&&S.task.startedAt&&new Date(S.task.startedAt).toDateString()!==new Date().toDateString())S.task.day=dayLabel(S.task.startedAt);
@@ -74,7 +88,8 @@
       const bmp=await createImageBitmap(await r.blob());
       const cv=document.createElement('canvas');cv.width=bmp.width;cv.height=bmp.height;
       const g=cv.getContext('2d');g.drawImage(bmp,0,0);
-      HA.foot=M().footprint(g.getImageData(0,0,bmp.width,bmp.height).data,bmp.width,bmp.height,6)||HA.foot;
+      const px=g.getImageData(0,0,bmp.width,bmp.height).data;
+      HA.foot=M().footprint(px,bmp.width,bmp.height,6)||HA.foot;HA.foot3=M().footprint(px,bmp.width,bmp.height,12)||HA.foot3; // 3D walls on a coarser 0.3 m outline
       HA.sig='';commitIfChanged();
     }catch(e){/* status stays useful without the map image */}
   }
@@ -97,16 +112,31 @@
     }else if(Date.now()-p.at>30000){HA.pending=null;p.fail()}
   }
 
+  /* ---------- notifications: Home Assistant, and the phone if its app is installed ---------- */
+  function push(kind,key,title,message){
+    if(!S.notif[kind]||HA.notified[key])return;HA.notified[key]=1;
+    api('notify',{title,message}).catch(()=>{delete HA.notified[key]});
+  }
+  function notifyEvent(ev){
+    const d=DEFS[ev.key],sh=SHORT[ev.key];
+    if(ev.retryFailed)return push('review',ev.id+':retry'+(ev.attempts||0),'Retry didn’t work',d.title+'. The spot is still blocked.');
+    if(ev.autonomous&&!ev.changed)return push('decisions',ev.id+':auto','Robot handled it',sh.q+' Robot chose: '+(ev.autoChoice?sh.labels[ev.autoChoice]:'your saved preference')+'. (Study scenario)');
+    if(S.waitEv===ev.id)return push('review',ev.id+':wait','Robot is waiting for you',sh.q+' It won’t continue until you choose. (Study scenario)');
+    if(ev.status==='needsReview')return push('review',ev.id+':review',ev.suggestion?'Robot suggests something':d.kind,d.title+'. (Study scenario)');
+  }
+
   /* ---------- tasks follow the real robot ---------- */
   function startLiveTask(){
     if(S.task)archiveTask();
     const fromApp=HA.expectStart&&Date.now()-HA.expectStart.at<90000;
-    const label=fromApp?HA.expectStart.label:'Started outside the app';
+    const d=new Date(),day=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][d.getDay()],m=d.getHours()*60+d.getMinutes();
+    const sch=!fromApp&&S.schedules.find(x=>x.on&&x.days.includes(day)&&Math.abs(m-(+x.time.slice(0,2)*60+ +x.time.slice(3,5)))<=3);
+    const label=fromApp?HA.expectStart.label:sch?'Scheduled: Entire home':'Started outside the app';
     HA.expectStart=null;
     S.cells=blankCells('out');S.events=[];S.timeline=[];S.ui.remember={};
     S.sim.pending=(SCEN[S.ctl.scenario]||SCEN.none).keys.slice();S.sim.fired={};S.sim.queue=[];S.waitEv=null;S.checkEv=null;
     S.task={id:'t'+Date.now(),day:'Today',startedAt:Date.now(),start:S.clock,end:null,scopeLabel:label,result:null,done:false,endedEarly:false,real:true};
-    tl(fromApp?'you':'robot',fromApp?'You started cleaning: '+label:'Cleaning was started from the Roborock app, a schedule or the robot');
+    tl(fromApp||sch?'you':'robot',fromApp?'You started cleaning: '+label:sch?'Your schedule started the cleaning ('+sch.time+')':'Cleaning was started from the Roborock app or the robot');
     tl('robot','Cleaning started');
   }
   function finishLiveTask(){
@@ -119,14 +149,20 @@
     const nc=S.events.filter(e=>e.status!=='resolved'&&e.status!=='info'&&DEFS[e.key].type!=='decision').length;
     tl('result',t.result==='completed'?'Task completed':t.result==='ended'?'Task ended early':`Task partially completed: ${nc} area${nc===1?'':'s'} not cleaned`);
     if(pendingObjs().length&&S.autonomy!=='fullAuto'){S.ui.notice='objs';clearTimeout(notice.t);notice.t=setTimeout(()=>{S.ui.notice=null;commit()},7000)}
+    const po=pendingObjs().length;
+    push('finished',t.id+':done','Cleaning finished',RESULTLABEL[t.result]+(t.area!=null?' · '+Math.round(t.area)+' m²':'')+(nc?' · '+nc+' area'+(nc>1?'s':'')+' not cleaned':'')+(po?' · '+po+' object'+(po>1?'s':'')+' to check':''));
   }
   function finishSpot(){
     const ev=findEvent(HA.spotEv);HA.spotEv=null;HA.spotStarted=false;
-    if(ev){
+    if(ev&&ev.key==='extra'){
+      ev.extraQueued=false;ev.outcome=HA.spotError?'The extra pass didn’t finish: the robot reported a problem.':'Extra pass done on this spot.';
+      evLog(ev,'result',ev.outcome.replace(/\.$/,''));
+    }else if(ev){
       if(HA.spotError){ev.status='needsReview';ev.attempts=(ev.attempts||0)+1;ev.retryFailed=true;evLog(ev,'robot','Retry didn’t work: the robot reported a problem');notice(ev)}
       else{ev.status='resolved';ev.retryFailed=false;ev.outcome=ev.pendingOutcome||'Area cleaned successfully.';evLog(ev,'result',ev.outcome.replace(/\.$/,''))}
     }
     HA.spotError=false;if(S.task)S.task.spot=false;
+    restoreMode();
     if(S.task&&S.task.done){S.task.result=computeResult();S.task.pct=taskPct(S.task)}
   }
   function lifecycle(status){
@@ -141,6 +177,7 @@
     else if(S.task&&!S.task.done&&status==='docked')finishLiveTask();
     if(status==='error'&&prev!=='error'&&S.task&&!S.task.done){
       tl('robot','Stuck: '+(S.device.error||'needs help'));S.ui.notice='stuck';clearTimeout(notice.t);
+      push('review',S.task.id+':stuck'+S.timeline.length,'Robot needs help',S.device.error||'The robot is stuck.');
     }
   }
 
@@ -169,19 +206,52 @@
     const due=n<FIRE_AFTER.length?FIRE_AFTER[n]:FIRE_AFTER[FIRE_AFTER.length-1]+90*(n-FIRE_AFTER.length+1);
     if(Date.now()-t.startedAt>=due*1000){fireStudy(S.sim.pending[0]);commit()}
   }
-  function sendSpot(ev){
-    const z=ZONES[ev.zone];
-    HA.spotEv=ev.id;HA.spotStarted=false;HA.spotError=false;ev.status='inProgress';ev.queued=false;
-    liveCommand('zone',{label:'Retry '+z.name.toLowerCase(),done:'Robot is going back to the spot',expect:['cleaning'],
-      body:{box:spotCells(z.mm).box},retry:()=>sendSpot(ev),
-      onFail:()=>{HA.spotEv=null;ev.status='needsReview';ev.retryFailed=true;evLog(ev,'robot','The retry didn’t reach the robot')}},
-      ()=>{HA.spotStarted=true;if(S.task)S.task.spot=true;tl('robot','Spot clean started: '+z.name,ev.id)});
+  function restoreMode(){
+    const m=HA.restoreMode;if(!m)return;HA.restoreMode=null;
+    api('command',{action:'mode',mode:m}).then(()=>tl('robot','Cleaning mode set back to '+(m==='vacuum'?'vacuum only':'vacuum and mop'))).catch(()=>{});
+  }
+  async function sendSpot(ev){
+    const z=ZONES[ev.zone],extra=ev.key==='extra';
+    HA.spotEv=ev.id;HA.spotStarted=false;HA.spotError=false;if(!extra)ev.status='inProgress';ev.queued=false;
+    const fail=why=>{HA.spotEv=null;restoreMode();
+      if(extra){ev.extraQueued=false;ev.outcome='The extra pass didn’t reach the robot.';evLog(ev,'robot',why)}
+      else{ev.status='needsReview';ev.retryFailed=true;evLog(ev,'robot',why)}};
+    // Rug and hard floor switch the robot's cleaning mode for this spot, then set it back.
+    const now0=M().value(HA.snap,'cleaning_mode');
+    if(ev.cleanMode&&now0&&now0!==ev.cleanMode){
+      try{await api('command',{action:'mode',mode:ev.cleanMode});HA.restoreMode=HA.restoreMode||now0;
+        tl('robot',ev.cleanMode==='vacuum'?'Switched to vacuum only for this spot':'Switched to vacuum and mop for this spot',ev.id)}
+      catch(e){fail('Couldn’t switch the cleaning mode: '+e.message);commit();return}
+    }
+    liveCommand('zone',{label:extra?'Extra pass':'Retry '+z.name.toLowerCase(),done:'Robot is going back to the spot',expect:['cleaning'],
+      body:{box:spotCells(z.mm).box},retry:()=>sendSpot(ev),onFail:()=>fail(extra?'The extra pass didn’t reach the robot':'The retry didn’t reach the robot')},
+      ()=>{HA.spotStarted=true;if(S.task)S.task.spot=true;tl('robot',(extra?'Extra pass started: ':'Spot clean started: ')+z.name,ev.id)});
   }
   function processRetries(){
     if(HA.pending||HA.spotEv||S.conn!=='connected'||!HA.retryQueue.length)return;
     if(S.device.status!=='docked'||(S.task&&!S.task.done))return;
     const ev=findEvent(HA.retryQueue.shift());
-    if(ev&&ev.status==='inProgress'&&ZONES[ev.zone]?.mm)sendSpot(ev);
+    if(ev&&(ev.status==='inProgress'||ev.extraQueued)&&ZONES[ev.zone]?.mm)sendSpot(ev);
+  }
+
+  /* ---------- no-go zones: written to the robot, which replaces its whole list on each save ---------- */
+  const bbox=a=>{const xs=[a[0],a[2],a[4],a[6]],ys=[a[1],a[3],a[5],a[7]];return [Math.min(...xs),Math.min(...ys),Math.max(...xs),Math.max(...ys)]};
+  const sameZone=(a,b)=>{const p=bbox(a),q=bbox(b);return p.every((v,i)=>Math.abs(v-q[i])<80)};
+  const zoneRect=z=>{const [x1,y1,x2,y2]=spotCells(ZONES[z].mm).box;return [x1,y1,x2,y1,x2,y2,x1,y2]};
+  const robotZones=()=>(HA.map?.no_go_areas||[]).map(a=>a.map(Math.round));
+  const onRobot=z=>ZONES[z]?.mm&&robotZones().some(a=>sameZone(a,zoneRect(z)));
+  function nogoList(){
+    const mine=S.nogo.filter(z=>ZONES[z]?.mm).map(zoneRect);
+    const keep=robotZones().filter(a=>!HA.removedZones.some(b=>sameZone(a,b))&&!mine.some(b=>sameZone(a,b)));
+    return keep.concat(mine);
+  }
+  async function saveNogo(label,done){
+    const zones=nogoList();
+    S.cmd={label,state:'sending'};commit();
+    try{await api('command',{action:'nogo',zones});S.cmd={label:done,state:'confirmed'};
+      setTimeout(()=>{if(S.cmd&&S.cmd.state==='confirmed'){S.cmd=null;commit()}},1700)}
+    catch(e){HA.error=e.message;S.cmd={label,state:'failed',retry:()=>saveNogo(label,done)}}
+    commit();
   }
 
   /* ---------- Home Assistant snapshot → app state ---------- */
@@ -203,6 +273,21 @@
     seedRobotRecord(snap,status);
     lifecycle(status);
     S.objects=M().objects(snap.vacuum.entity_id,HA.map,HA.notes).map(o=>({...o,at:secOf(o.source)}));
+    HA.removedZones=HA.removedZones.filter(b=>robotZones().some(a=>sameZone(a,b))); // until the robot's map drops them
+    const rp=to3D(HA.map?.robot);
+    if(rp){S.sim.pos={c:rp.x-.5,r:rp.z-.5};S.sim.heading=Number.isFinite(HA.map.robot.angle)?90-HA.map.robot.angle:0}
+  }
+  async function loadSchedules(){
+    try{const r=await api('schedules');S.schedules=r.schedules;HA.schedLoaded=true;HA.schedError=''}
+    catch(e){HA.schedError=e.message}
+    HA.sig='';commitIfChanged();
+  }
+  async function schedCall(path,body,label){
+    S.ui.modal=null;S.cmd={label,state:'sending'};commit();
+    try{await api(path,body);await loadSchedules();S.cmd={label:'Saved in Home Assistant',state:'confirmed'};
+      setTimeout(()=>{if(S.cmd&&S.cmd.state==='confirmed'){S.cmd=null;commit()}},1700)}
+    catch(e){HA.error=e.message;S.cmd={label,state:'failed',retry:()=>schedCall(path,body,label)}}
+    commit();
   }
   /* The robot's own record of its last cleaning, shown once so Activity starts with real history. */
   function seedRobotRecord(snap,status){
@@ -219,7 +304,7 @@
   function signature(){
     const p=HA.map?.robot;
     return JSON.stringify([S.conn,S.device,HA.dev?.area,HA.dev?.minutes,HA.dev?.room,p&&[p.x,p.y,p.angle],HA.map?.path?.[0]?.length,HA.map?.source_updated_at,
-      S.objects.map(o=>o.status+o.label),S.task&&[S.task.id,S.task.done,S.task.result],S.events.map(e=>e.status),S.cmd&&S.cmd.state,S.ui.notice,!!HA.foot,HA.error]);
+      S.objects.map(o=>o.status+o.label),robotZones().length,S.schedules.map(x=>x.id+x.on+x.time),S.task&&[S.task.id,S.task.done,S.task.result],S.events.map(e=>e.status),S.cmd&&S.cmd.state,S.ui.notice,!!HA.foot,HA.error]);
   }
   function commitIfChanged(){
     if(HA.editing||S.ui.modal)return;
@@ -281,24 +366,12 @@
     for(let i=i0;i<i0+SPOT_CELLS;i++)for(let j=j0;j<j0+SPOT_CELLS;j++)keys.push(i+','+j);
     return {keys,box:[i0*CELL_MM,j0*CELL_MM,(i0+SPOT_CELLS)*CELL_MM,(j0+SPOT_CELLS)*CELL_MM]};
   }
-  function liveMap(o={}){
-    if(!HA.foot||!HA.tf)return `<div class="calm">${ic('map',20)}<span>${esc(HA.error||'Waiting for the robot’s map from Home Assistant…')}</span></div>`;
-    const v=mapView();
-    const P=mm=>{const p=mm&&HA.tf(mm);return p?{x:v.x(p),y:v.y(p)}:null};
-    const rect=(x0,y0,x1,y1)=>{const a=P({x:x0,y:y0}),b=P({x:x1,y:y1});return a&&b?{x:Math.min(a.x,b.x),y:Math.min(a.y,b.y),w:Math.abs(b.x-a.x),h:Math.abs(b.y-a.y)}:null};
-    const spot=mm=>{const b=spotCells(mm).box;return rect(b[0],b[1],b[2],b[3])};
+  /* Cell states for a map: cleaned where the real path passed; event spots and no-go zones take their state. */
+  function cellStates(o){
     const hist=o.cells&&o.cells.__task?S.history.find(h=>h.id===o.cells.__task):null;
-    const showLive=!o.cells;
-    const tilted=S.ui.map3d&&!o.mini&&showLive&&o.robot!==false&&cur().name==='map';
-    let s=`<svg class="map ${o.dim?'dim':''} ${tilted?'tilted':''}" viewBox="-8 -8 ${v.w+16} ${v.h+16}" role="img" aria-label="${esc(o.label||'Robot map of the home')}">`;
-    // 1 mapped floor (the robot's own map; no invented rooms or furniture)
-    const fx=`translate(${v.x({x:0,y:0})} ${v.y({x:0,y:0})}) scale(${v.s})`;
-    s+=`<g filter="url(#soft)"><path class="room ha-floor ${o.sel?(o.sel.length?'sel':'dull'):''}" transform="${fx}" d="${HA.foot.d}"/></g>`;
-    const wall=`<path class="ha-wall" transform="${fx}" d="${HA.foot.edge}"/>`;
-    // 2 cells, as in the demo: cleaned where the real path passed, event spots take their state
     let path=[];
     if(hist)path=hist.snap.path||[];
-    else if(showLive&&S.task)path=!S.task.done||S.task.spot?M().simplifyPath(HA.map?.path):(S.task.path||[]);
+    else if(!o.cells&&S.task)path=!S.task.done||S.task.spot?M().simplifyPath(HA.map?.path):(S.task.path||[]);
     const cells=new Map();
     pathCells(path).forEach(c=>cells.set(c,'cleaned'));
     if(path.length&&!o.noEvents)(o.events||visibleEvents()).forEach(ev=>{
@@ -307,6 +380,22 @@
       if(st)spotCells(ZONES[ev.zone].mm).keys.forEach(c=>cells.set(c,st));
     });
     S.nogo.forEach(z=>{if(ZONES[z]?.mm)spotCells(ZONES[z].mm).keys.forEach(c=>cells.set(c,'nogo'))});
+    return cells;
+  }
+  function liveMap(o={}){
+    if(!HA.foot||!HA.tf)return `<div class="calm">${ic('map',20)}<span>${esc(HA.error||'Waiting for the robot’s map from Home Assistant…')}</span></div>`;
+    const v=mapView();
+    const P=mm=>{const p=mm&&HA.tf(mm);return p?{x:v.x(p),y:v.y(p)}:null};
+    const rect=(x0,y0,x1,y1)=>{const a=P({x:x0,y:y0}),b=P({x:x1,y:y1});return a&&b?{x:Math.min(a.x,b.x),y:Math.min(a.y,b.y),w:Math.abs(b.x-a.x),h:Math.abs(b.y-a.y)}:null};
+    const spot=mm=>{const b=spotCells(mm).box;return rect(b[0],b[1],b[2],b[3])};
+    const showLive=!o.cells;
+    let s=`<svg class="map ${o.dim?'dim':''}" viewBox="-8 -8 ${v.w+16} ${v.h+16}" role="img" aria-label="${esc(o.label||'Robot map of the home')}">`;
+    // 1 mapped floor (the robot's own map; no invented rooms or furniture)
+    const fx=`translate(${v.x({x:0,y:0})} ${v.y({x:0,y:0})}) scale(${v.s})`;
+    s+=`<g filter="url(#soft)"><path class="room ha-floor ${o.sel?(o.sel.length?'sel':'dull'):''}" transform="${fx}" d="${HA.foot.d}"/></g>`;
+    const wall=`<path class="ha-wall" transform="${fx}" d="${HA.foot.edge}"/>`;
+    // 2 cells, as in the demo
+    const cells=cellStates(o);
     cells.forEach((st,c)=>{const [i,j]=c.split(',').map(Number),r=rect(i*CELL_MM,j*CELL_MM,(i+1)*CELL_MM,(j+1)*CELL_MM);
       if(r)s+=`<rect class="cell ${st}" x="${(r.x+.4).toFixed(1)}" y="${(r.y+.4).toFixed(1)}" width="${(r.w-.8).toFixed(1)}" height="${(r.h-.8).toFixed(1)}" rx="1.5"/>`});
     // 3 no-go zones set on the robot
@@ -341,6 +430,83 @@
     }
     return s+'</svg>';
   }
+  /* ---------- 3D: the demo's three.js scene, built from the real map ---------- */
+  function to3D(mm){
+    const f=HA.foot,p=mm&&HA.tf&&HA.ppm?HA.tf(mm):null;if(!f||!p)return null;
+    const U=1/(CELL_MM*HA.ppm); // one 3D unit = one 0.5 m cell, as in the demo
+    return {x:(p.x-(f.bbox.x0+f.bbox.x1)/2)*U,z:(p.y-(f.bbox.y0+f.bbox.y1)/2)*U};
+  }
+  function live3D(){
+    const f=HA.foot3,key=f?f.runs.length+':'+f.segs.length+':'+f.bbox.x0+':'+f.bbox.y0:'';
+    if(T3.built&&T3.key===key)return true;
+    if(typeof THREE==='undefined'||!f||!HA.foot||!HA.tf||!HA.ppm)return false;
+    if(T3.built){T3.R.dispose();T3.R.domElement.remove();T3.built=false}
+    const U=1/(CELL_MM*HA.ppm),cx=(HA.foot.bbox.x0+HA.foot.bbox.x1)/2,cz=(HA.foot.bbox.y0+HA.foot.bbox.y1)/2; // same centre as to3D()
+    const W=(f.bbox.x1-f.bbox.x0)*U,D=(f.bbox.y1-f.bbox.y0)*U,size=Math.max(W,D),half=size/2+2;
+    const R3=new THREE.WebGLRenderer({antialias:true,alpha:true});R3.setPixelRatio(Math.min(2,window.devicePixelRatio||1));
+    R3.shadowMap.enabled=true;R3.shadowMap.type=THREE.PCFSoftShadowMap;
+    const sc=new THREE.Scene(),cam=new THREE.PerspectiveCamera(34,1,.1,500);
+    sc.add(new THREE.HemisphereLight(0xffffff,0xb9c3dd,.75));
+    const sun=new THREE.DirectionalLight(0xffffff,.75);sun.position.set(-size*.4,size,-size*.12);sun.castShadow=true;sun.shadow.mapSize.set(2048,2048);
+    Object.assign(sun.shadow.camera,{left:-half,right:half,top:half,bottom:-half,near:1,far:size*3});sun.shadow.bias=-.0015;sc.add(sun);
+    const root=new THREE.Group();sc.add(root);
+    const mat=(c,o={})=>new THREE.MeshStandardMaterial(Object.assign({color:new THREE.Color(c),roughness:.85,metalness:0},o));
+    const box=(w,h,d,x,y,z,m)=>{const b=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),m);b.position.set(x,y,z);b.castShadow=true;b.receiveShadow=true;root.add(b);return b};
+    const base=box(W+1.5,.25,D+1.5,0,-.13,0,mat(cssv('--plan')));base.castShadow=false;
+    // floor: the mapped area, one mesh
+    const fp=[],fn=[],fi=[];
+    f.runs.forEach(([x,y,w])=>{const x0=(x-cx)*U,x1=(x+w-cx)*U,z0=(y-cz)*U,z1=(y+f.step-cz)*U,n=fp.length/3;
+      fp.push(x0,0,z0,x1,0,z0,x1,0,z1,x0,0,z1);fn.push(0,1,0,0,1,0,0,1,0,0,1,0);fi.push(n,n+2,n+1,n,n+3,n+2)});
+    const fg=new THREE.BufferGeometry();fg.setAttribute('position',new THREE.Float32BufferAttribute(fp,3));fg.setAttribute('normal',new THREE.Float32BufferAttribute(fn,3));fg.setIndex(fi);
+    const floor=new THREE.Mesh(fg,mat(cssv('--r-hall'),{side:THREE.DoubleSide}));floor.receiveShadow=true;root.add(floor);
+    // walls along the edge of the mapped area, same height and thickness as the demo, merged into one mesh
+    const WH=.8,WT=.14,wp=[],wn=[];
+    f.segs.forEach(([x1,y1,x2,y2])=>{const h=y1===y2,len=(h?x2-x1:y2-y1)*U;
+      const g=new THREE.BoxGeometry(h?len+WT:WT,WH,h?WT:len+WT).toNonIndexed();g.translate(((x1+x2)/2-cx)*U,WH/2,((y1+y2)/2-cz)*U);
+      const P=g.attributes.position.array,N=g.attributes.normal.array;for(let i=0;i<P.length;i++){wp.push(P[i]);wn.push(N[i])}g.dispose()});
+    const wg=new THREE.BufferGeometry();wg.setAttribute('position',new THREE.Float32BufferAttribute(wp,3));wg.setAttribute('normal',new THREE.Float32BufferAttribute(wn,3));
+    const walls=new THREE.Mesh(wg,mat('#ffffff',{roughness:.6}));walls.castShadow=true;walls.receiveShadow=true;root.add(walls);
+    // robot no-go zones
+    robotZones().forEach(a=>{const b=bbox(a),p=to3D({x:b[0],y:b[3]}),q=to3D({x:b[2],y:b[1]});if(!p||!q)return;
+      const m=new THREE.Mesh(new THREE.PlaneGeometry(Math.abs(q.x-p.x),Math.abs(q.z-p.z)),new THREE.MeshBasicMaterial({color:0xD2433A,transparent:true,opacity:.35,depthWrite:false}));
+      m.rotation.x=-Math.PI/2;m.position.set((p.x+q.x)/2,.01,(p.z+q.z)/2);root.add(m)});
+    const dock=to3D(HA.map?.charger);
+    if(dock){box(.35,.5,.9,dock.x,.25,dock.z,mat('#ffffff'))}
+    // robot: the demo's model
+    const rb=new THREE.Group();
+    const body=new THREE.Mesh(new THREE.CylinderGeometry(.42,.42,.15,40),mat('#FAFBFD',{roughness:.35}));body.position.y=.09;body.castShadow=true;rb.add(body);
+    const ring=new THREE.Mesh(new THREE.TorusGeometry(.42,.02,8,40),mat('#AAB3C6'));ring.rotation.x=Math.PI/2;ring.position.y=.09;rb.add(ring);
+    const lid=new THREE.Mesh(new THREE.CylinderGeometry(.13,.13,.08,24),mat('#E8EBF2',{roughness:.3}));lid.position.set(0,.2,.1);lid.castShadow=true;rb.add(lid);
+    const eye=new THREE.Mesh(new THREE.BoxGeometry(.3,.05,.04),mat(cssv('--primary'),{emissive:new THREE.Color(cssv('--primary')),emissiveIntensity:.5}));eye.position.set(0,.12,-.41);rb.add(eye);
+    rb.visible=!!HA.map?.robot;root.add(rb);
+    Object.assign(T3,{robot:rb,root,R:R3,sc,cam,built:true,key,cellGeo:new THREE.PlaneGeometry(.94,.94),cells:[],markers:[],
+      dist:Math.max(16,size*2.1),maxDist:Math.max(40,size*3.5)});
+    // controls, as in the demo
+    const el=R3.domElement;let drag=null,pinch=null;
+    el.addEventListener('pointerdown',e=>{drag={x:e.clientX,y:e.clientY,az:T3.az,el:T3.el,moved:0};el.setPointerCapture(e.pointerId)});
+    el.addEventListener('pointermove',e=>{if(!drag||pinch)return;const dx=e.clientX-drag.x,dy=e.clientY-drag.y;drag.moved=Math.max(drag.moved,Math.abs(dx)+Math.abs(dy));T3.az=drag.az-dx*.008;T3.el=Math.max(.32,Math.min(1.38,drag.el+dy*.006))});
+    el.addEventListener('pointerup',e=>{if(drag&&drag.moved<6)pick3D(e);drag=null});
+    el.addEventListener('wheel',e=>{e.preventDefault();T3.dist=Math.max(8,Math.min(T3.maxDist,T3.dist+e.deltaY*.03))},{passive:false});
+    el.addEventListener('touchstart',e=>{if(e.touches.length===2){pinch={d:Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY),dist:T3.dist};drag=null}},{passive:true});
+    el.addEventListener('touchmove',e=>{if(pinch&&e.touches.length===2){const d=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY);T3.dist=Math.max(8,Math.min(T3.maxDist,pinch.dist*pinch.d/d))}},{passive:true});
+    el.addEventListener('touchend',()=>{pinch=null},{passive:true});
+    return true;
+  }
+  function liveSync3D(full){
+    if(!T3.built||!full)return;
+    T3.markers.concat(T3.cells).forEach(m=>{T3.root.remove(m);if(m.material.map)m.material.map.dispose();m.material.dispose()});
+    T3.markers=[];T3.cells=[];T3.robot.visible=!!HA.map?.robot;
+    const col={cleaned:[cssv('--primary'),.28],review:['#F2A93B',.55],skipped:['#9AA1B2',.5],nogo:['#D2433A',.45]};
+    cellStates({}).forEach((st,c)=>{const [i,j]=c.split(',').map(Number),p=to3D({x:(i+.5)*CELL_MM,y:(j+.5)*CELL_MM}),v=col[st];if(!p||!v)return;
+      const m=new THREE.Mesh(T3.cellGeo,new THREE.MeshBasicMaterial({transparent:true,opacity:v[1],depthWrite:false,color:new THREE.Color(v[0])}));
+      m.rotation.x=-Math.PI/2;m.position.set(p.x,.012,p.z);m.renderOrder=1;T3.root.add(m);T3.cells.push(m)});
+    S.objects.forEach(o=>{const p=to3D(o.mm);if(!p)return;
+      const sp=emojiSprite(OBJ[o.label].e,o.status==='pending'?'#F2A93B':o.status==='auto'?cssv('--primary'):'#17855A',o.status==='pending'?'?':o.status==='auto'?null:'ok');
+      sp.scale.set(.85,.85,1);sp.position.set(p.x,.75,p.z);sp.userData={obj:o.id};T3.root.add(sp);T3.markers.push(sp)});
+    visibleEvents().forEach(ev=>{if(DEFS[ev.key].type==='decision'||!ZONES[ev.zone]?.mm)return;const b=spotCells(ZONES[ev.zone].mm).box,p=to3D({x:(b[0]+b[2])/2,y:(b[1]+b[3])/2});if(!p)return;
+      const sp=emojiSprite(ev.status==='resolved'?'✓':ev.status==='skipped'?'–':'!',ev.status==='resolved'?'#17855A':ev.status==='skipped'?'#9AA1B2':'#F2A93B',null);
+      sp.scale.set(.8,.8,1);sp.position.set(p.x,1.25,p.z);sp.userData={ev:ev.id};T3.root.add(sp);T3.markers.push(sp)});
+  }
   function liveLegend(){
     const when=HA.map?.source_updated_at?' · updated '+hhmm(secOf(HA.map.source_updated_at)):'';
     return `<div class="legend"><span><i style="background:var(--surface);box-shadow:inset 0 0 0 1.5px var(--primary);border-radius:50%"></i>Robot’s label</span><span><i style="background:var(--surface);box-shadow:inset 0 0 0 1.5px var(--warn-line);border-radius:50%"></i>Not sure</span><span><i style="background:var(--clean)"></i>Cleaned</span><span><i style="background:repeating-linear-gradient(45deg,var(--warn-line) 0 2px,var(--warn-soft) 2px 5px)"></i>Needs review</span><span><i style="background:repeating-linear-gradient(45deg,var(--skip) 0 1.5px,var(--skip-soft) 1.5px 5px)"></i>Skipped</span><span><i style="background:repeating-linear-gradient(-45deg,var(--stop) 0 2px,var(--stop-soft) 2px 5px)"></i>No-go</span><span><i style="background:var(--warn-line);border-radius:50%"></i>Study event</span></div><p class="small muted" style="margin:4px 6px 0">Robot map from Home Assistant${when}.</p>`;
@@ -365,7 +531,10 @@
     window.stepClean=()=>{};window.stepReturn=()=>{};window.maybeFault=()=>{};window.renderPanel=()=>{};
     window.curRoom=()=>({name:HA.dev?.room||'Robot map',the:HA.dev?.room||'your home'});
     window.statusLine=statusText;
-    window.mapSVG=liveMap;window.legend=liveLegend;
+    window.mapSVG=liveMap;window.legend=liveLegend;window.build3D=live3D;window.sync3D=liveSync3D;
+    // Extra pass: a real second pass over the spot once the cleaning ends
+    window.queueExtra=ev=>{ev.extraQueued=true;S.sim.queue.unshift({kind:'extra',ev:ev.id});if(!HA.retryQueue.includes(ev.id))HA.retryQueue.push(ev.id)};
+    const notice0=window.notice;window.notice=ev=>{notice0(ev);notifyEvent(ev)};
     window.visibleObjs=()=>S.objects||[];
     window.updateLive=()=>document.querySelectorAll('[data-live]').forEach(el=>{const n=el.dataset.live;if(n==='bar')el.style.width=LIVE.bar();else el.textContent=LIVE[n]()});
     window.pct=cells=>{const v=cells&&cells.__task?S.history.find(h=>h.id===cells.__task)?.snap.pct:taskPct(S.task);return v??0};
@@ -406,7 +575,9 @@
       return h;
     };
     window.startRetry=(ev,outcomeText)=>{
+      if(!ev.zone)ev.zone=DEFS[ev.key].zone; // automatic choices run inside fire(), before fireStudy() stores the spot
       ev.pendingOutcome=outcomeText||null;ev.retryTries=(ev.retryTries||0)+1;
+      ev.cleanMode=/rug/i.test(outcomeText||'')?'vacuum':/hard floor/i.test(outcomeText||'')?'vac_and_mop':null;
       const z=ZONES[ev.zone];
       if(!z||!z.mm){ev.status='needsReview';evLog(ev,'robot','This spot has no map position, so the robot can’t be sent there');return}
       ev.status='inProgress';ev.queued=!!(S.task&&!S.task.done);
@@ -418,8 +589,25 @@
       const run=()=>{applyAction(ev,act,false);if(saveRule){const r=DEFS[ev.key].remember[act];S.rules.push({id:'r'+(++seq),key:ev.key,act,text:r.text,scope:r.scope})}};
       if(act==='pauseCheck')return liveCommand('pause',{label:'Pause',done:'Paused',expect:['paused','idle']},run);
       if(S.waitEv===ev.id&&dev().status==='paused')return liveCommand('start',{label:'Continue cleaning',done:'Cleaning continues',expect:['cleaning']},run);
-      run();commit();processRetries();
+      run();
+      if(act==='skipOnce'){ev.extraQueued=false;HA.retryQueue=HA.retryQueue.filter(x=>x!==ev.id)}
+      if(act==='nogo'){commit();return saveNogo('Save no-go zone on the robot','No-go zone saved on the robot')}
+      commit();processRetries();
     };
+    const delNogo0=A.delNogo;A.delNogo=v=>{if(ZONES[v]?.mm)HA.removedZones.push(zoneRect(v));delNogo0(v);saveNogo('Remove no-go zone from the robot','No-go zone removed from the robot')};
+    const evAct0=A.evAct;A.evAct=v=>{evAct0(v);if(v.endsWith('|nogo')&&S.ui.modal){
+      S.ui.modal.body+='<p class="small muted">This is saved on the robot. Its other no-go zones are kept. Virtual walls and no-mop zones set in the Roborock app may be reset.</p>';commit()}};
+
+    // Schedules live in Home Assistant as automations that start the robot
+    A.toggleSched=v=>{const x=S.schedules.find(y=>y.id===v);if(x)schedCall('schedules/switch',{id:v,on:!x.on},x.on?'Turn schedule off':'Turn schedule on')};
+    A.schedSave=()=>{const f=S.ui.sched,t=document.getElementById('sch-time')?.value||f.time;if(!f.days.length)return;
+      schedCall('schedules',{id:f.id==='new'?null:f.id,time:t,days:f.days,on:f.id==='new'?true:f.on!==false},'Save schedule')};
+    A.schedDelete=()=>schedCall('schedules/delete',{id:S.ui.sched.id},'Delete schedule');
+    const schedModal0=window.schedModal;window.schedModal=()=>{schedModal0();if(!S.ui.modal)return;
+      S.ui.modal.body=S.ui.modal.body.replace(/<select id="sch-scope">[\s\S]*?<\/select>/,'<select id="sch-scope"><option selected>Entire home</option></select>')
+        +'<p class="small muted" style="margin-top:8px">Saved in Home Assistant. It starts the robot at this time even when this app is closed.</p>';commit()};
+    wrap('scrSchedule',h=>h.replace('</div>',`</div><p class="small muted" style="margin:0 4px 12px">${HA.schedError?esc(HA.schedError):HA.schedLoaded?'Saved in Home Assistant. These start the robot even when this app is closed.':'Loading schedules from Home Assistant…'}</p>`));
+    A.haMode=v=>{if(v==='demo')switchTo('demo')};
 
     // Objects: the robot's labels, corrections kept in this app
     window.objStatus=o=>o.status==='pending'?'Robot couldn’t tell what it is':o.status==='auto'?'Robot’s label':o.status==='corrected'?`You corrected it (robot said ${OBJ[o.orig].n.toLowerCase()})`:'You confirmed it';
@@ -452,12 +640,13 @@
     };
     wrap('scrMap',h=>h.replace(/(<div class="sec-h">Objects found<small>\d+<\/small><\/div>)/,'$1<p class="small muted" style="margin:-4px 4px 10px">From the robot’s saved map. Labels you fix are kept in this app.</p>'));
     wrap('scrReport',h=>h.replace('<span>Of the plan</span>','<span>Of a full clean (est.)</span>'));
-    wrap('scrRules',h=>h.replace(/\. Every cleaning\.<\/span>/g,'. Saved in this app; set robot no-go zones in the Roborock app.</span>'));
+    wrap('scrRules',h=>{let i=0;return h.replace(/\. Every cleaning\.<\/span>/g,()=>{const z=S.nogo[i++];return '. Every cleaning. '+(onRobot(z)?'Saved on the robot.':'Sent to the robot; waiting for its map to show it.')+'</span>'})});
     wrap('scrActivity',h=>S.task||S.history.length?h:h+`<div class="calm">${ic('robot',20)}<span>No cleanings recorded yet. Cleanings appear here once the robot runs with this app open.</span></div>`);
     wrap('scrSettings',h=>{
       const map=HA.map?.source_updated_at?'Updated '+hhmm(secOf(HA.map.source_updated_at)):'—';
       const running=S.task&&!S.task.done;
-      return h+`<div class="sec-h">Home Assistant</div><div class="group">
+      h=h.replace('<div class="sec-h">Notifications</div>','<div class="sec-h">Notifications</div><p class="small muted" style="margin:-4px 4px 8px">Sent to Home Assistant, and to your phone if the Home Assistant app is installed, while this app is open.</p>');
+      return h.replace('</div>','</div>'+modeRows(true))+`<div class="sec-h">Home Assistant</div><div class="group">
         <button class="row" data-a="haConnect">Connection<span class="v">${S.conn==='connected'?'Connected':'Not connected'}</span>${ic('chev',18)}</button>
         <div class="row">Robot map<span class="v">${map}</span></div></div>
         <div class="sec-h">Study scenario</div><p class="small muted" style="margin:-4px 4px 8px">Simulated events shown during real cleanings, at the robot’s position. For facilitators.</p>
@@ -499,6 +688,6 @@
     document.head.appendChild(st);
   }
 
-  window.HA_INIT=()=>{window.THREE=undefined;restore();patch();refresh();setInterval(refresh,4000)};
+  window.HA_INIT=()=>{restore();patch();refresh();loadSchedules();setInterval(refresh,4000);setInterval(loadSchedules,60000)};
   window.HA_TICK=()=>{S.clock=now();fireDue();updateLive()};
 })();

@@ -5,6 +5,8 @@ selected robot's entities and only forwards an allowlist of robot commands.
 """
 import json
 import os
+import re
+import secrets
 import time
 from pathlib import Path
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
@@ -20,6 +22,10 @@ ORIGINS = tuple('http://' + h for h in HOSTS)
 FILES = {'/': 'index.html', '/index.html': 'index.html', '/ha-model.js': 'ha-model.js', '/ha-live.js': 'ha-live.js'}
 SIMPLE = {'start', 'pause', 'return_to_base'}
 ZONE_LIMIT = 4000  # mm; a spot retry never covers more than 4 x 4 m
+MODES = {'vacuum', 'vac_and_mop'}
+MAX_NOGO = 10
+DAYS = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun']
+SCHEDULE_PREFIX = 'robot_app_'
 
 
 class BridgeError(Exception):
@@ -33,13 +39,13 @@ def config():
         return {}
 
 
-def ha(path, data=None):
+def ha(path, data=None, method=None):
     token = os.environ.get('HA_TOKEN') or config().get('token')
     if not token:
         raise BridgeError('Add a Home Assistant access token in the connection settings.')
     req = Request(HA_URL + '/api/' + path,
                   data=None if data is None else json.dumps(data).encode(),
-                  headers={'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json'})
+                  headers={'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json'}, method=method)
     try:
         with urlopen(req, timeout=12) as response:
             body = response.read()
@@ -94,15 +100,113 @@ def zone_box(data):
     return x1, y1, x2, y2
 
 
-def command(action, data, vacuum):
+def nogo_zones(data):
+    zones = data.get('zones')
+    if not isinstance(zones, list) or len(zones) > MAX_NOGO:
+        raise ValueError('zones')
+    out = []
+    for zone in zones:
+        if not isinstance(zone, list) or len(zone) != 8 or not all(isinstance(v, (int, float)) for v in zone):
+            raise ValueError('zones')
+        zone = [int(round(v)) for v in zone]
+        if not all(0 <= v <= 100000 for v in zone):
+            raise ValueError('zones')
+        out.append([0] + zone)  # 0 = no-go zone in Roborock's save_map
+    return out
+
+
+def text(data, key, limit):
+    value = data.get(key)
+    if not isinstance(value, str) or not value.strip():
+        raise ValueError(key)
+    return value.strip()[:limit]
+
+
+def command(action, data, vacuum, states=None):
     entity = {'entity_id': vacuum['entity_id']}
+    prefix = vacuum['entity_id'].split('.', 1)[1]
     if action in SIMPLE:
         return ha('services/vacuum/' + action, entity)
     if action == 'zone':
         x1, y1, x2, y2 = zone_box(data)
         return ha('services/roborock/set_vacuum_zoned_cleaning',
                   dict(entity, x1=x1, y1=y1, x2=x2, y2=y2, repeats=1))
+    if action == 'mode':
+        if data.get('mode') not in MODES:
+            raise ValueError('mode')
+        return ha('services/select/select_option', {'entity_id': 'select.%s_cleaning_mode' % prefix, 'option': data['mode']})
+    if action == 'nogo':
+        # save_map replaces every no-go zone on the robot, so the page always sends the full list.
+        return ha('services/vacuum/send_command', dict(entity, command='save_map', params=nogo_zones(data)))
     raise ValueError('action')
+
+
+def notify(data):
+    title, message = text(data, 'title', 80), text(data, 'message', 300)
+    ha('services/persistent_notification/create', {'title': title, 'message': message, 'notification_id': 'robot_app'})
+    sent = ['home_assistant']
+    for domain in ha('services'):
+        if domain.get('domain') != 'notify':
+            continue
+        for name in domain.get('services', {}):
+            if name.startswith('mobile_app_'):
+                ha('services/notify/' + name, {'title': title, 'message': message})
+                sent.append(name)
+    return sent
+
+
+def schedule_list():
+    out = []
+    for state in ha('states'):
+        sid = state.get('attributes', {}).get('id', '')
+        if not state['entity_id'].startswith('automation.') or not str(sid).startswith(SCHEDULE_PREFIX):
+            continue
+        conf = ha('config/automation/config/' + sid)
+        trigger = (conf.get('triggers') or conf.get('trigger') or [{}])[0]
+        cond = (conf.get('conditions') or conf.get('condition') or [{}])[0]
+        days = [d.capitalize() for d in DAYS if d in cond.get('weekday', DAYS)]
+        out.append({'id': sid, 'time': str(trigger.get('at', ''))[:5], 'days': days,
+                    'scope': 'Entire home', 'on': state['state'] == 'on', 'entity_id': state['entity_id']})
+    return sorted(out, key=lambda s: s['time'])
+
+
+def schedule_save(data, vacuum):
+    sid = data.get('id') or SCHEDULE_PREFIX + secrets.token_hex(4)
+    if not re.fullmatch(SCHEDULE_PREFIX + r'[a-z0-9]{1,24}', str(sid)):
+        raise ValueError('id')
+    at = str(data.get('time', ''))
+    if not re.fullmatch(r'([01]\d|2[0-3]):[0-5]\d', at):
+        raise ValueError('time')
+    days = [d for d in DAYS if d in [str(x).lower() for x in data.get('days') or []]]
+    if not days:
+        raise ValueError('days')
+    names = ', '.join(d.capitalize() for d in days)
+    ha('config/automation/config/' + sid, {
+        'id': sid, 'alias': 'Robot app: clean at %s (%s)' % (at, names),
+        'description': 'Created by the robot vacuum app. Edit it in the app.',
+        'triggers': [{'trigger': 'time', 'at': at + ':00'}],
+        'conditions': [{'condition': 'time', 'weekday': days}],
+        'actions': [{'action': 'vacuum.start', 'target': {'entity_id': vacuum['entity_id']}}],
+        'mode': 'single'})
+    schedule_switch(sid, bool(data.get('on', True)))
+    return sid
+
+
+def schedule_switch(sid, on):
+    for _ in range(10):  # Home Assistant reloads automations after a config write
+        entity = next((s['entity_id'] for s in ha('states') if s['entity_id'].startswith('automation.')
+                       and s.get('attributes', {}).get('id') == sid), None)
+        if entity:
+            return ha('services/automation/' + ('turn_on' if on else 'turn_off'), {'entity_id': entity})
+        time.sleep(0.5)
+    raise BridgeError('Home Assistant didn’t load the schedule.')
+
+
+def schedule_delete(data):
+    sid = str(data.get('id', ''))
+    if not re.fullmatch(SCHEDULE_PREFIX + r'[a-z0-9]{1,24}', sid):
+        raise ValueError('id')
+    ha('config/automation/config/' + sid, method='DELETE')
 
 
 class Handler(BaseHTTPRequestHandler):
@@ -132,6 +236,8 @@ class Handler(BaseHTTPRequestHandler):
             if path == '/api/config':
                 return self.send(200, {'configured': bool(os.environ.get('HA_TOKEN') or config().get('token')),
                                        'vacuum': config().get('vacuum', '')})
+            if path == '/api/schedules':
+                return self.send(200, {'schedules': schedule_list()})
             if path == '/api/map':
                 data = snapshot(ha('states'))
                 image = next((s for s in data['entities'] if s['entity_id'].startswith('image.')), None)
@@ -167,12 +273,34 @@ class Handler(BaseHTTPRequestHandler):
                     json.dump(saved, stream)
                 os.chmod(CONFIG, 0o600)
                 return self.send(200, {'saved': True})
+            if self.path == '/api/notify':
+                text(data, 'title', 80), text(data, 'message', 300)
+                return self.send(200, {'sent': notify(data)})
+            if self.path == '/api/schedules/delete':
+                schedule_delete(data)
+                return self.send(200, {'deleted': True})
+            if self.path in ('/api/schedules', '/api/schedules/switch'):
+                vacuum = snapshot(ha('states'))['vacuum']
+                if not vacuum:
+                    raise BridgeError('No robot selected.')
+                if self.path == '/api/schedules':
+                    return self.send(200, {'id': schedule_save(data, vacuum)})
+                sid = str(data.get('id', ''))
+                if not re.fullmatch(SCHEDULE_PREFIX + r'[a-z0-9]{1,24}', sid):
+                    raise ValueError('id')
+                schedule_switch(sid, bool(data.get('on')))
+                return self.send(200, {'on': bool(data.get('on'))})
             if self.path == '/api/command':
                 action = data.get('action')
-                if action not in SIMPLE and action != 'zone':
+                if action not in SIMPLE and action not in ('zone', 'mode', 'nogo'):
                     return self.send(400, {'error': 'Unsupported action'})
+                # Reject bad input before touching Home Assistant.
                 if action == 'zone':
-                    zone_box(data)  # Reject a bad box before touching Home Assistant.
+                    zone_box(data)
+                if action == 'mode' and data.get('mode') not in MODES:
+                    raise ValueError('mode')
+                if action == 'nogo':
+                    nogo_zones(data)
                 vacuum = snapshot(ha('states'))['vacuum']
                 if not vacuum or vacuum['state'] in ('unavailable', 'unknown'):
                     raise BridgeError('The robot is offline or not selected.')

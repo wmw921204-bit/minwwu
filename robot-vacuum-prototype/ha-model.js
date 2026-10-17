@@ -111,20 +111,20 @@
       mask[cy*cols+cx]=n>=t/2?1:0;
     }
     const on=(cx,cy)=>cx>=0&&cy>=0&&cx<cols&&cy<rows&&mask[cy*cols+cx]===1;
-    let d='',edge='',x0=Infinity,y0=Infinity,x1=-Infinity,y1=-Infinity;
+    const runs=[],segs=[];let d='',edge='',x0=Infinity,y0=Infinity,x1=-Infinity,y1=-Infinity;
     for(let cy=0;cy<rows;cy++){
       let cx=0;
       while(cx<cols){
         if(!on(cx,cy)){cx++;continue}
         const b=cx;while(on(cx,cy))cx++;
-        d+=`M${b*step} ${cy*step}h${(cx-b)*step}v${step}h${-(cx-b)*step}Z`;
+        d+=`M${b*step} ${cy*step}h${(cx-b)*step}v${step}h${-(cx-b)*step}Z`;runs.push([b*step,cy*step,(cx-b)*step]);
         x0=Math.min(x0,b*step);x1=Math.max(x1,cx*step);y0=Math.min(y0,cy*step);y1=Math.max(y1,cy*step+step);
       }
     }
     // Boundary between mapped and unmapped cells, merged into straight runs.
-    for(let cy=0;cy<=rows;cy++){let run=-1;for(let cx=0;cx<=cols;cx++){const e=cx<cols&&on(cx,cy)!==on(cx,cy-1);if(e&&run<0)run=cx;if(!e&&run>=0){edge+=`M${run*step} ${cy*step}H${cx*step}`;run=-1}}}
-    for(let cx=0;cx<=cols;cx++){let run=-1;for(let cy=0;cy<=rows;cy++){const e=cy<rows&&on(cx,cy)!==on(cx-1,cy);if(e&&run<0)run=cy;if(!e&&run>=0){edge+=`M${cx*step} ${run*step}V${cy*step}`;run=-1}}}
-    return d?{d,edge,bbox:{x0,y0,x1,y1},width,height}:null;
+    for(let cy=0;cy<=rows;cy++){let run=-1;for(let cx=0;cx<=cols;cx++){const e=cx<cols&&on(cx,cy)!==on(cx,cy-1);if(e&&run<0)run=cx;if(!e&&run>=0){edge+=`M${run*step} ${cy*step}H${cx*step}`;segs.push([run*step,cy*step,cx*step,cy*step]);run=-1}}}
+    for(let cx=0;cx<=cols;cx++){let run=-1;for(let cy=0;cy<=rows;cy++){const e=cy<rows&&on(cx,cy)!==on(cx-1,cy);if(e&&run<0)run=cy;if(!e&&run>=0){edge+=`M${cx*step} ${run*step}V${cy*step}`;segs.push([cx*step,run*step,cx*step,cy*step]);run=-1}}}
+    return d?{d,edge,runs,segs,step,bbox:{x0,y0,x1,y1},width,height}:null;
   }
   /* Fit a pixel box into the original map's 320-unit frame so the app's marker sizes still apply. */
   function view(bbox,width=320){

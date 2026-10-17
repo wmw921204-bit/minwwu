@@ -75,6 +75,8 @@ test('footprint traces only the mapped pixels', () => {
   assert.deepEqual(f.bbox, { x0: 6, y0: 0, x1: 18, y1: 6 });
   assert.equal(f.d, 'M6 0h12v6h-12Z');
   assert.match(f.edge, /M6 0H18/);
+  assert.deepEqual(f.runs, [[6, 0, 12]]);
+  assert.equal(f.segs.length, 4);
   assert.equal(M.footprint(new Uint8ClampedArray(w * h * 4), w, h, 6), null);
   const v = M.view(f.bbox);
   assert.equal(v.x({ x: 18, y: 0 }), 320);

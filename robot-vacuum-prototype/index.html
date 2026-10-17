@@ -1598,7 +1598,7 @@ setInterval(()=>{
   }
   updateLive();
 },80);
-if(window.HA_LIVE)HA_INIT();
+if(window.HA_LIVE)HA_INIT();else if(window.HA_DEMO_INIT)HA_DEMO_INIT();
 commit();
 </script>
 </body>

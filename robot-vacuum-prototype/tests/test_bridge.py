@@ -84,6 +84,64 @@ class BridgeTests(unittest.TestCase):
                 self.assertEqual(self.request('/api/command', {'action': 'zone', 'box': box})[0], 400)
                 ha.assert_not_called()
 
+    def test_cleaning_mode_is_limited_to_the_robot_options(self):
+        with patch.object(server, 'ha', side_effect=[STATES, []]) as ha:
+            self.assertEqual(self.request('/api/command', {'action': 'mode', 'mode': 'vacuum'})[0], 200)
+            ha.assert_called_with('services/select/select_option', {'entity_id': 'select.s6_maxv_cleaning_mode', 'option': 'vacuum'})
+        with patch.object(server, 'ha') as ha:
+            self.assertEqual(self.request('/api/command', {'action': 'mode', 'mode': 'turbo'})[0], 400)
+            ha.assert_not_called()
+
+    def test_nogo_sends_every_zone_in_one_save_map(self):
+        zones = [[30268, 24226, 34152, 24226, 34152, 23162, 30268, 23162], [30000, 30500, 31000, 30500, 31000, 31500, 30000, 31500]]
+        with patch.object(server, 'ha', side_effect=[STATES, []]) as ha:
+            self.assertEqual(self.request('/api/command', {'action': 'nogo', 'zones': zones})[0], 200)
+            ha.assert_called_with('services/vacuum/send_command', {'entity_id': 'vacuum.s6_maxv', 'command': 'save_map',
+                                                                  'params': [[0] + z for z in zones]})
+        for bad in ([[1, 2, 3]], [[-1] * 8], [[0] * 8] * 11, 'x'):
+            with patch.object(server, 'ha') as ha:
+                self.assertEqual(self.request('/api/command', {'action': 'nogo', 'zones': bad})[0], 400)
+                ha.assert_not_called()
+
+    def test_notify_reaches_home_assistant_and_paired_phones(self):
+        services = [{'domain': 'notify', 'services': {'mobile_app_phone': {}, 'send_message': {}}}]
+        with patch.object(server, 'ha', side_effect=[{}, services, {}]) as ha:
+            status, result = self.request('/api/notify', {'title': 'Robot', 'message': 'Done'})
+        self.assertEqual((status, result), (200, {'sent': ['home_assistant', 'mobile_app_phone']}))
+        ha.assert_called_with('services/notify/mobile_app_phone', {'title': 'Robot', 'message': 'Done'})
+        with patch.object(server, 'ha') as ha:
+            self.assertEqual(self.request('/api/notify', {'title': '', 'message': 'x'})[0], 400)
+            ha.assert_not_called()
+
+    def test_schedule_is_saved_as_an_automation_that_starts_the_robot(self):
+        loaded = [{'entity_id': 'automation.robot_app', 'state': 'on', 'attributes': {'id': 'robot_app_ab12'}}]
+        with patch.object(server, 'ha', side_effect=[STATES, {}, loaded, {}]) as ha:
+            status, result = self.request('/api/schedules', {'id': 'robot_app_ab12', 'time': '09:30', 'days': ['Mon', 'Wed'], 'on': False})
+        self.assertEqual((status, result), (200, {'id': 'robot_app_ab12'}))
+        path, conf = ha.call_args_list[1][0]
+        self.assertEqual(path, 'config/automation/config/robot_app_ab12')
+        self.assertEqual(conf['triggers'], [{'trigger': 'time', 'at': '09:30:00'}])
+        self.assertEqual(conf['conditions'][0]['weekday'], ['mon', 'wed'])
+        self.assertEqual(conf['actions'][0]['target'], {'entity_id': 'vacuum.s6_maxv'})
+        ha.assert_called_with('services/automation/turn_off', {'entity_id': 'automation.robot_app'})
+        for bad in ({'time': '25:00', 'days': ['Mon']}, {'time': '09:30', 'days': []}, {'id': 'other_auto', 'time': '09:30', 'days': ['Mon']}):
+            with patch.object(server, 'ha', return_value=STATES) as ha:
+                self.assertEqual(self.request('/api/schedules', bad)[0], 400)
+
+    def test_schedule_list_and_delete_touch_only_app_automations(self):
+        states = [{'entity_id': 'automation.robot_app', 'state': 'off', 'attributes': {'id': 'robot_app_ab12'}},
+                  {'entity_id': 'automation.lights', 'state': 'on', 'attributes': {'id': 'lights'}}]
+        conf = {'triggers': [{'trigger': 'time', 'at': '09:30:00'}], 'conditions': [{'condition': 'time', 'weekday': ['mon', 'fri']}]}
+        with patch.object(server, 'ha', side_effect=[states, conf]):
+            self.assertEqual(self.request('/api/schedules'), (200, {'schedules': [
+                {'id': 'robot_app_ab12', 'time': '09:30', 'days': ['Mon', 'Fri'], 'scope': 'Entire home', 'on': False, 'entity_id': 'automation.robot_app'}]}))
+        with patch.object(server, 'ha') as ha:
+            self.assertEqual(self.request('/api/schedules/delete', {'id': 'lights'})[0], 400)
+            ha.assert_not_called()
+        with patch.object(server, 'ha', return_value={}) as ha:
+            self.assertEqual(self.request('/api/schedules/delete', {'id': 'robot_app_ab12'})[0], 200)
+            ha.assert_called_with('config/automation/config/robot_app_ab12', method='DELETE')
+
     def test_offline_robot_cannot_receive_commands(self):
         offline = [dict(STATES[0], state='unavailable')]
         with patch.object(server, 'ha', return_value=offline) as ha:

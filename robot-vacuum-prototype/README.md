@@ -27,6 +27,7 @@ Home Assistant, see [Live mode](#live-mode-with-home-assistant).
 
 ## Live mode with Home Assistant
 
+Settings → Robot data switches between the real robot and the fully simulated demo; the choice is remembered.
 Live mode keeps every screen and user flow of the demo. Real robot data replaces the simulator wherever
 Home Assistant has it; the supervision events still run as a labelled study layer on top.
 
@@ -41,7 +42,8 @@ Home Assistant has it; the supervision events still run as a labelled study laye
 
 The bridge binds to loopback only, keeps the token in the git-ignored `.ha-local.json` (owner-only), never returns
 it to the page, serves only the app files, accepts writes only from its own origin, and forwards only these
-commands: start/resume, pause, return to dock, and a spot clean of at most 4 × 4 m.
+commands: start/resume, pause, return to dock, a spot clean of at most 4 × 4 m, the robot's cleaning mode
+(vacuum / vacuum and mop), its no-go zones, notifications, and schedule automations it created itself (ids starting `robot_app_`).
 
 ### What is real and what is simulated
 
@@ -50,13 +52,15 @@ commands: start/resume, pause, return to dock, and a spot clean of at most 4 × 
 | Status, battery, errors, stuck notice, offline banner | Real, from the robot's entities. Offline keeps the last snapshot. |
 | Start, Pause, Resume, End and return | Real commands. Success is shown only after the robot's state changes (30 s limit), otherwise the original failure card with Try again. |
 | Cleaning tasks, Activity, reports, timeline | A task starts when the robot starts cleaning (from the app or anywhere else) and ends when it docks. Kept in this browser. The robot's own last cleaning is shown as a "Robot record". |
-| Map | The robot's map: mapped floor, outline, no-go zones, robot position and heading. "Cleaned" uses the demo's 0.5 m grid: a cell turns blue when the robot's real path passes through it. Study-event spots are 2 × 2 cells and show Needs review, Skipped or No-go as in the demo. Progress is cleaned area against the largest full-home cleaning (an estimate, marked as one). 3D tilts the same map. |
+| Map | The robot's map: mapped floor, outline, no-go zones, robot position and heading. "Cleaned" uses the demo's 0.5 m grid: a cell turns blue when the robot's real path passes through it. Study-event spots are 2 × 2 cells and show Needs review, Skipped or No-go as in the demo. Progress is cleaned area against the largest full-home cleaning (an estimate, marked as one). 3D is the demo's three.js scene built from the real map: floor, walls along the mapped edge, cells, objects, events and the robot. |
 | Objects | The robot's obstacles at their real positions. Known types keep the robot's label, unknown types ask "What is this?". Corrections and "Nothing there" are stored in this app; they don't change the robot. |
 | Rooms and zones | Not available: Home Assistant gives no room data for this map, so only Entire home can be started. |
 | Supervision events (floor type, cable, tight spot, extra pass) | **Study scenario.** Simulated at the robot's real position during real cleanings and labelled on the event page. Choose the scenario or show the next event from Settings → Study scenario. |
 | Automation levels | Apply to the study events as in the demo. In Manual the real robot is paused until you choose. |
-| Event choices | Retry, "I've cleared it", Rug and Hard floor send the real robot back to that spot (its 2 × 2 cells) after the cleaning ends; success comes from the robot docking without an error. Pause is real. Avoid, later, skip, no-go and saved preferences are recorded in the app. |
-| Schedules, notification switches | App only, as in the demo. |
+| Event choices | Retry and "I've cleared it" send the real robot back to that spot (its 2 × 2 cells) after the cleaning ends; success comes from the robot docking without an error. Rug and Hard floor first switch the robot to vacuum only or vacuum and mop, then set it back. "Keep the extra pass" sends the robot over the spot again. Pause is real. Avoid, later and skip need no command: the robot isn't going there. |
+| No-go zones | "Never clean here" writes the zone to the robot (Roborock `save_map`) together with the zones already on it; removing it in Saved preferences writes the list again. Saved preferences shows when the robot's map confirms it. Virtual walls and no-mop zones set in the Roborock app may be reset by a save. |
+| Schedules | Saved in Home Assistant as automations that start the robot at that time, even when the app is closed. Entire home only. |
+| Notifications | The three switches now apply. Sent to Home Assistant, and to phones paired with the Home Assistant app, while the app is open. |
 
 ### Tests
 
