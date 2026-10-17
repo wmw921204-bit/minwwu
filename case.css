@@ -684,3 +684,11 @@ img.is-zoomable { cursor: zoom-in; }
 }
 @media (prefers-reduced-motion: reduce) { .relay__flow { animation: none; } }
 @media (max-width: 980px) { .relay__link { display: none; } .relay__list > li::after { left: 2px; } }
+
+/* Wide stats sit low on the right, beside the dialogue box, like the other projects */
+.vn__big--stat { top: auto; bottom: clamp(24px, 6vh, 64px); right: calc(var(--gutter) + 36px); translate: none; height: 1em; line-height: 1; font-size: clamp(90px, 11.5vw, 230px); }
+@media (max-width: 1024px) { .vn__big--stat { bottom: auto; top: 26vh; height: 1em; font-size: 19vw; right: var(--gutter); } }
+
+/* Relay diagram centred as one composition */
+@media (min-width: 981px) { .relay { grid-template-columns: 470px minmax(0, 480px); justify-content: center; column-gap: 48px; } .relay__list > li::before { left: -48px; width: 92px; } }
+#ecosystem .relay-head { text-align: center; }
