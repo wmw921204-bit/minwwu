@@ -28,7 +28,7 @@
   const FIRE_AFTER=[90,180,270,360]; // seconds into a real cleaning when study events appear
   const HA={snap:null,dev:null,map:null,tf:null,ppm:null,foot:null,error:'',pending:null,expectStart:null,
     retryQueue:[],spotEv:null,spotStarted:false,spotError:false,notes:{},refArea:null,prevStatus:null,
-    fetching:false,lastMap:0,editing:false,sig:'',prompted:false,restoreMode:null,removedZones:[],notified:{},rooms:[],savedZones:[],view:null,objs:[],objSnap:'',align:null,alignDraft:null,poseRaw:null,footKey:'',lastErr:null,lastStatusProblem:null,schedLoaded:false,schedError:''};
+    fetching:false,lastMap:0,editing:false,sig:'',prompted:false,restoreMode:null,removedZones:[],notified:{},rooms:[],savedZones:[],view:null,objs:[],objSnap:'',align:null,retryWhen:'now',alignDraft:null,poseRaw:null,footKey:'',lastErr:null,lastStatusProblem:null,schedLoaded:false,schedError:''};
   window.HA=HA;
   const M=()=>window.HAModel;
   const now=()=>{const d=new Date();return d.getHours()*3600+d.getMinutes()*60+d.getSeconds()};
@@ -49,7 +49,7 @@
       const zones=Object.fromEntries(Object.entries(ZONES).filter(([k])=>k.startsWith('z')));
       try{localStorage.setItem(STORE,JSON.stringify({v:1,onboarded:!S.onboarding,autonomy:S.autonomy,rules:S.rules,nogo:S.nogo,notif:S.notif,
         history:S.history,task:S.task,events:S.events,timeline:S.timeline,pending:S.sim.pending,zones,seq,
-        objs:HA.objs,objSnap:HA.objSnap,align:HA.align,lastErr:HA.lastErr,lastStatusProblem:HA.lastStatusProblem,refArea:HA.refArea,rooms:HA.rooms,savedZones:HA.savedZones,scenario:S.ctl.scenario,retryQueue:HA.retryQueue,spotEv:HA.spotEv,spotStarted:HA.spotStarted,
+        objs:HA.objs,objSnap:HA.objSnap,align:HA.align,retryWhen:HA.retryWhen,lastErr:HA.lastErr,lastStatusProblem:HA.lastStatusProblem,refArea:HA.refArea,rooms:HA.rooms,savedZones:HA.savedZones,scenario:S.ctl.scenario,retryQueue:HA.retryQueue,spotEv:HA.spotEv,spotStarted:HA.spotStarted,
         prevStatus:HA.prevStatus,restoreMode:HA.restoreMode,removedZones:HA.removedZones,customObj:Object.fromEntries(Object.entries(OBJ).filter(([,o])=>o.custom))}))}catch(e){/* storage full or blocked: the app still works */}
     },400);
   }
@@ -65,7 +65,7 @@
     S.events=s.events||[];S.timeline=s.timeline||[];S.objects=[];
     S.sim.pending=s.pending||[];S.sim.queue=[];
     seq=Math.max(seq,s.seq||0);
-    HA.rooms=s.rooms||[];HA.savedZones=s.savedZones||[];HA.objs=s.objs||[];HA.objSnap=s.objSnap||'';HA.align=s.align||null;HA.lastErr=s.lastErr||null;HA.lastStatusProblem=s.lastStatusProblem||null;
+    HA.rooms=s.rooms||[];HA.savedZones=s.savedZones||[];HA.objs=s.objs||[];HA.objSnap=s.objSnap||'';HA.align=s.align||null;HA.retryWhen=s.retryWhen||'now';HA.lastErr=s.lastErr||null;HA.lastStatusProblem=s.lastStatusProblem||null;
     HA.notes=s.notes||{};HA.refArea=s.refArea||null;HA.retryQueue=s.retryQueue||[];HA.spotEv=s.spotEv||null;HA.spotStarted=!!s.spotStarted;HA.prevStatus=s.prevStatus||null;
     SCEN.none={label:'No study events',keys:[]};
     S.ctl.scenario=s.scenario&&SCEN[s.scenario]?s.scenario:'all';
@@ -306,7 +306,7 @@
     const t=S.task;
     if(t&&!t.done&&t.resumeAfterSpot&&!cancelled&&!t.endedEarly){
       t.resumeAfterSpot=false;
-      if(HA.retryQueue.length)return; // another retry is waiting; it goes first
+      if(HA.retryQueue.some(i=>findEvent(i)&&!findEvent(i).queued))return; // another go-now retry is waiting; it goes first
       const zones=t.kind!=='home'&&t.parts?t.parts.map(b=>M().robotBox(HA.align?.al,b)):null;
       HA.resuming=true;
       liveCommand(zones?'zones':'start',{label:'Continue cleaning',done:'Back to the rest of the cleaning',expect:['cleaning'],body:zones?{zones}:null,force:true,
@@ -387,11 +387,17 @@
         else if(ev){ev.status='deferred';ev.outcome='Not retried: you ended the cleaning.';evLog(ev,'you','Retry cancelled: you ended the cleaning')}}
     }
   }
+  /* "now" or "after" for a retry: what the user picked for this one, else the Settings default. */
+  const retryTiming=ev=>{const w=ev.retryWhen||HA.retryWhen;delete ev.retryWhen;return w};
   function processRetries(){
     if(HA.pending||HA.spotEv||HA.resuming||S.conn!=='connected'||!HA.retryQueue.length)return;
-    if(S.device.status==='error')return; // retries go straight away, except while the robot needs help
-    const ev=findEvent(HA.retryQueue.shift());
-    if(ev&&(ev.status==='inProgress'||ev.extraQueued)&&ZONES[ev.zone]?.mm)sendSpot(ev);
+    if(S.device.status==='error')return; // never while the robot needs help
+    HA.retryQueue=HA.retryQueue.filter(id=>{const e=findEvent(id);return e&&(e.status==='inProgress'||e.extraQueued)&&ZONES[e.zone]?.mm});
+    const running=S.task&&!S.task.done;
+    // "go now" retries leave straight away; "after" ones wait for the cleaning to end and the robot to dock
+    const id=HA.retryQueue.find(i=>!findEvent(i).queued)||(!running&&S.device.status==='docked'?HA.retryQueue[0]:null);
+    if(!id)return;
+    HA.retryQueue=HA.retryQueue.filter(x=>x!==id);sendSpot(findEvent(id));
   }
 
   /* ---------- no-go zones: written to the robot, which replaces its whole list on each save ---------- */
@@ -829,7 +835,7 @@
     window.statusLine=statusText;
     window.mapSVG=liveMap;window.legend=liveLegend;window.build3D=live3D;window.sync3D=liveSync3D;
     // Extra pass: a real second pass over the spot once the cleaning ends
-    window.queueExtra=ev=>{ev.extraQueued=true;S.sim.queue.unshift({kind:'extra',ev:ev.id});if(!HA.retryQueue.includes(ev.id))HA.retryQueue.push(ev.id)};
+    window.queueExtra=ev=>{ev.extraQueued=true;ev.queued=retryTiming(ev)==='after'&&!!(S.task&&!S.task.done);S.sim.queue.unshift({kind:'extra',ev:ev.id});if(!HA.retryQueue.includes(ev.id))HA.retryQueue.push(ev.id)};
     const notice0=window.notice;window.notice=ev=>{notice0(ev);if(ev.problem)clearTimeout(notice.t);notifyEvent(ev)}; // problem banners stay until opened
     window.visibleObjs=()=>S.objects||[];
     window.updateLive=()=>document.querySelectorAll('[data-live]').forEach(el=>{const n=el.dataset.live;if(n==='bar')el.style.width=LIVE.bar();else el.textContent=LIVE[n]()});
@@ -890,8 +896,9 @@
       ev.cleanMode=/rug/i.test(outcomeText||'')?'vacuum':/hard floor/i.test(outcomeText||'')?'vac_and_mop':null;
       const z=ZONES[ev.zone];
       if(!z||!z.mm){ev.status='needsReview';evLog(ev,'robot','This spot has no map position, so the robot can’t be sent there');return}
-      ev.status='inProgress';ev.queued=false;
+      ev.status='inProgress';ev.queued=retryTiming(ev)==='after'&&!!(S.task&&!S.task.done);
       if(!HA.retryQueue.includes(ev.id))HA.retryQueue.push(ev.id);
+      if(ev.queued)tl('robot','Will go back to '+z.name.toLowerCase()+' after this cleaning',ev.id);
 
     };
     window.doAction=(ev,act,saveRule)=>{
@@ -911,7 +918,8 @@
       if(!ev.archived){S.ui.stack=[];S.ui.tab='map';S.ui.scrollTop=0;forceTop=true}
       const run=()=>{applyAction(ev,act,false);if(saveRule){const r=DEFS[ev.key].remember[act];S.rules.push({id:'r'+(++seq),key:ev.key,act,text:r.text,scope:r.scope})}};
       if(act==='pauseCheck')return liveCommand('pause',{label:'Pause',done:'Paused',expect:['paused','idle']},run);
-      const goesNow=['retry','retryCleared','asRug','asHard','allow'].includes(act);
+      if(S.ui.retryOnce)ev.retryWhen=S.ui.retryOnce;
+      const goesNow=['retry','retryCleared','asRug','asHard','allow'].includes(act)&&(ev.retryWhen||HA.retryWhen)==='now';
       if(S.waitEv===ev.id&&dev().status==='paused'&&!goesNow)return liveCommand('start',{label:'Continue cleaning',done:'Cleaning continues',expect:['cleaning']},run);
       run();
       if(act==='skipOnce'){ev.extraQueued=false;HA.retryQueue=HA.retryQueue.filter(x=>x!==ev.id)}
@@ -919,7 +927,20 @@
       commit();processRetries();
     };
     const delNogo0=A.delNogo;A.delNogo=v=>{if(hasZone(v))HA.removedZones.push(zoneRect(v));delNogo0(v);saveNogo('Remove no-go zone from the robot','No-go zone removed from the robot')};
-    const evAct0=A.evAct;A.evAct=v=>{evAct0(v);if(v.endsWith('|nogo')&&S.ui.modal){
+    const RETRY_ACTS=['retry','retryCleared','asRug','asHard','allow'];
+    A.haRetryWhen=v=>{const [id,act,when]=v.split('|');S.ui.modal=null;S.ui.retryOnce=when;try{evAct0(id+'|'+act)}finally{S.ui.retryOnce=null}};
+    A.haRetryDefault=v=>{HA.retryWhen=v;persist();commit()};
+    const evAct0=A.evAct;A.evAct=v=>{
+      const [id,act]=v.split('|'),ev=findEvent(id);
+      const asks=RETRY_ACTS.includes(act)&&ev&&!ev.archived&&S.task&&!S.task.done&&(act!=='allow'||(ev.suggest&&ev.status==='needsReview'));
+      if(asks){
+        const now={label:'Go now',a:'haRetryWhen',v:id+'|'+act+'|now'},after={label:'After this cleaning',a:'haRetryWhen',v:id+'|'+act+'|after'};
+        const first=HA.retryWhen==='after'?after:now,second=first===now?after:now;
+        S.ui.modal={title:'When should the robot go?',body:'<p><b style="color:var(--ink)">Go now:</b> it leaves the cleaning, does this spot, then starts the cleaning again from the beginning.</p><p><b style="color:var(--ink)">After this cleaning:</b> it finishes first, then comes back to this spot.</p>',
+          buttons:[{...first,cls:'primary'},{...second},{label:'Cancel',a:'closeModal'}]};
+        return commit();
+      }
+      evAct0(v);if(v.endsWith('|nogo')&&S.ui.modal){
       S.ui.modal.body+='<p class="small muted">This is saved on the robot. Its other no-go zones are kept. Virtual walls and no-mop zones set in the Roborock app may be reset.</p>';commit()}};
 
     // Schedules live in Home Assistant as automations that start the robot
@@ -992,6 +1013,9 @@
         <button class="row" data-a="go" data-v="rooms">Rooms and zones<span class="v">${HA.rooms.length+HA.savedZones.length}</span>${ic('chev',18)}</button>
         <button class="row" data-a="haConnect">Connection<span class="v">${S.conn==='connected'?'Connected':'Not connected'}</span>${ic('chev',18)}</button>
         <div class="row">Robot map<span class="v">${map}</span></div></div>
+        <div class="sec-h">Retries</div><p class="small muted" style="margin:-4px 4px 8px">When the robot goes back to a spot during a cleaning. Used when it decides by itself; you’re asked each time you choose.</p>
+        <div class="group"><button class="row" data-a="haRetryDefault" data-v="now">Go right away<span class="v">${HA.retryWhen==='now'?ic('check',18):''}</span></button>
+        <button class="row" data-a="haRetryDefault" data-v="after">After the cleaning ends<span class="v">${HA.retryWhen==='after'?ic('check',18):''}</span></button></div>
         <div class="sec-h">Study scenario</div><p class="small muted" style="margin:-4px 4px 8px">Simulated events shown during real cleanings, at the robot’s position. For facilitators.</p>
         <div class="group">${Object.entries(SCEN).map(([k,x])=>`<button class="row" data-a="haScenario" data-v="${k}">${esc(x.label)}<span class="v">${S.ctl.scenario===k?ic('check',18):''}</span></button>`).join('')}</div>
         <button class="btn soft block" style="margin-top:12px" data-a="haFire" ${running&&S.sim.pending.length&&dev().status==='cleaning'?'':'disabled'}>Show next study event now${running?` (${S.sim.pending.length} left)`:''}</button>`;
