@@ -147,7 +147,7 @@
     return {s,w:width,h:bh*s,x:p=>(p.x-bbox.x0)*s,y:p=>(p.y-bbox.y0)*s};
   }
 
-  const api={transform,inverse,snapBox,boxCells,roomAt,pxPerMm,errorText,entity,value,number,device,objectId,selectedMap,objects,simplifyPath,footprint,view,LABELS};
+  const api={transform,inverse,snapBox,boxCells,roomAt,inBox,pxPerMm,errorText,entity,value,number,device,objectId,selectedMap,objects,simplifyPath,footprint,view,LABELS};
   root.HAModel=api;
   if(typeof module!=='undefined')module.exports=api;
 })(typeof window!=='undefined'?window:globalThis);

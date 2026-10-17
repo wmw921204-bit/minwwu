@@ -28,7 +28,7 @@
   const FIRE_AFTER=[90,180,270,360]; // seconds into a real cleaning when study events appear
   const HA={snap:null,dev:null,map:null,tf:null,ppm:null,foot:null,error:'',pending:null,expectStart:null,
     retryQueue:[],spotEv:null,spotStarted:false,spotError:false,notes:{},refArea:null,prevStatus:null,
-    fetching:false,lastMap:0,editing:false,sig:'',prompted:false,restoreMode:null,removedZones:[],notified:{},rooms:[],savedZones:[],view:null,schedLoaded:false,schedError:''};
+    fetching:false,lastMap:0,editing:false,sig:'',prompted:false,restoreMode:null,removedZones:[],notified:{},rooms:[],savedZones:[],view:null,objs:[],objSnap:'',lastErr:null,lastStatusProblem:null,schedLoaded:false,schedError:''};
   window.HA=HA;
   const M=()=>window.HAModel;
   const now=()=>{const d=new Date();return d.getHours()*3600+d.getMinutes()*60+d.getSeconds()};
@@ -49,7 +49,7 @@
       const zones=Object.fromEntries(Object.entries(ZONES).filter(([k])=>k.startsWith('z')));
       try{localStorage.setItem(STORE,JSON.stringify({v:1,onboarded:!S.onboarding,autonomy:S.autonomy,rules:S.rules,nogo:S.nogo,notif:S.notif,
         history:S.history,task:S.task,events:S.events,timeline:S.timeline,pending:S.sim.pending,zones,seq,
-        notes:HA.notes,refArea:HA.refArea,rooms:HA.rooms,savedZones:HA.savedZones,scenario:S.ctl.scenario,retryQueue:HA.retryQueue,spotEv:HA.spotEv,spotStarted:HA.spotStarted,
+        objs:HA.objs,objSnap:HA.objSnap,lastErr:HA.lastErr,lastStatusProblem:HA.lastStatusProblem,refArea:HA.refArea,rooms:HA.rooms,savedZones:HA.savedZones,scenario:S.ctl.scenario,retryQueue:HA.retryQueue,spotEv:HA.spotEv,spotStarted:HA.spotStarted,
         prevStatus:HA.prevStatus,restoreMode:HA.restoreMode,removedZones:HA.removedZones,customObj:Object.fromEntries(Object.entries(OBJ).filter(([,o])=>o.custom))}))}catch(e){/* storage full or blocked: the app still works */}
     },400);
   }
@@ -65,7 +65,7 @@
     S.events=s.events||[];S.timeline=s.timeline||[];S.objects=[];
     S.sim.pending=s.pending||[];S.sim.queue=[];
     seq=Math.max(seq,s.seq||0);
-    HA.rooms=s.rooms||[];HA.savedZones=s.savedZones||[];
+    HA.rooms=s.rooms||[];HA.savedZones=s.savedZones||[];HA.objs=s.objs||[];HA.objSnap=s.objSnap||'';HA.lastErr=s.lastErr||null;HA.lastStatusProblem=s.lastStatusProblem||null;
     HA.notes=s.notes||{};HA.refArea=s.refArea||null;HA.retryQueue=s.retryQueue||[];HA.spotEv=s.spotEv||null;HA.spotStarted=!!s.spotStarted;HA.prevStatus=s.prevStatus||null;
     SCEN.none={label:'No study events',keys:[]};
     S.ctl.scenario=s.scenario&&SCEN[s.scenario]?s.scenario:'all';
@@ -120,6 +120,7 @@
   }
   function notifyEvent(ev){
     const d=DEFS[ev.key],sh=SHORT[ev.key];
+    if(ev.problem)return ev.status==='needsReview'&&push('review',ev.id+':problem',d.title,d.what+' '+sh.line);
     if(ev.retryFailed)return push('review',ev.id+':retry'+(ev.attempts||0),'Retry didn’t work',d.title+'. The spot is still blocked.');
     if(ev.autonomous&&!ev.changed)return push('decisions',ev.id+':auto','Robot handled it',sh.q+' Robot chose: '+(ev.autoChoice?sh.labels[ev.autoChoice]:'your saved preference')+'. (Study scenario)');
     if(S.waitEv===ev.id)return push('review',ev.id+':wait','Robot is waiting for you',sh.q+' It won’t continue until you choose. (Study scenario)');
@@ -136,6 +137,112 @@
   const roomKey=mm=>{const rm=M().roomAt(HA.rooms,mm);return rm?'lr_'+rm.id:'live'};
   const boxArea=parts=>Math.round(parts.reduce((a,b)=>a+(b[2]-b[0])*(b[3]-b[1]),0)/1e5)/10;
 
+  /* ---------- robot problems: every error the robot reports gets a banner and an event page ---------- */
+  const PROBLEMS={
+    lidar_blocked:['Laser sensor blocked','Something is covering the laser sensor on top of the robot.'],
+    bumper_stuck:['Bumper stuck','The front bumper is pressed in and won’t spring back.'],
+    wheels_suspended:['Wheel off the floor','A wheel lost contact with the floor, for example on a ledge or a thick rug edge.'],
+    cliff_sensor_error:['Floor sensor problem','A floor (cliff) sensor underneath is dirty or blocked.'],
+    main_brush_jammed:['Main brush jammed','Something is wrapped around the main brush.'],
+    side_brush_jammed:['Side brush jammed','Something is wrapped around the side brush.'],
+    wheels_jammed:['Wheel jammed','A wheel can’t turn, usually because of hair or a cable.'],
+    robot_trapped:['Robot trapped','The robot can’t find a way out of where it is.'],
+    no_dustbin:['Dustbin missing','The robot can’t detect its dustbin.'],
+    strainer_error:['Filter problem','The filter or strainer is missing or not seated.'],
+    compass_error:['Strong magnetic field','Something magnetic near the robot is confusing its sensors.'],
+    low_battery:['Battery too low','The battery is too low to keep cleaning.'],
+    charging_error:['Charging problem','The robot can’t charge on the dock.'],
+    battery_error:['Battery problem','The robot reports a battery fault.'],
+    wall_sensor_dirty:['Wall sensor dirty','The side wall sensor is dirty.'],
+    robot_tilted:['Robot tilted','The robot is on an uneven or sloped surface.'],
+    side_brush_error:['Side brush problem','The side brush isn’t working.'],
+    fan_error:['Fan problem','The suction fan isn’t working.'],
+    dock:['Dock problem','The robot reports a problem with its dock.'],
+    optical_flow_sensor_dirt:['Floor tracking sensor dirty','The sensor that tracks movement over the floor is dirty.'],
+    vertical_bumper_pressed:['Top bumper pressed','Something is pressing on the top of the robot, such as low furniture.'],
+    dock_locator_error:['Can’t find the dock','The robot can’t locate its dock.'],
+    return_to_dock_fail:['Couldn’t get back to the dock','The robot tried to return to its dock and failed.'],
+    nogo_zone_detected:['Inside a no-go zone','The robot ended up inside a no-go zone or virtual wall.'],
+    visual_sensor:['Camera blocked','The front camera is dirty or blocked.'],
+    vibrarise_jammed:['Mop lift jammed','The mop lifting mechanism is stuck.'],
+    robot_on_carpet:['Stuck on carpet','The robot is stuck on a carpet.'],
+    filter_blocked:['Filter blocked','The filter is clogged.'],
+    invisible_wall_detected:['Inside a virtual wall','The robot ran into a virtual wall.'],
+    cannot_cross_carpet:['Can’t cross the carpet','The robot can’t get over a carpet edge.'],
+    internal_error:['Internal error','The robot reports an internal error.'],
+  };
+  const FIXES={
+    lidar_blocked:'Clear anything around the laser sensor on top, then resume.',bumper_stuck:'Tap the bumper a few times until it moves freely, then resume.',
+    wheels_suspended:'Put the robot back on flat floor, then resume.',cliff_sensor_error:'Wipe the sensors underneath with a dry cloth, then resume.',
+    main_brush_jammed:'Remove the main brush, clear hair or threads, put it back, then resume.',side_brush_jammed:'Remove the side brush and clear it, then resume.',
+    wheels_jammed:'Check the wheels for hair or debris, then resume.',robot_trapped:'Move the robot to open floor, then resume.',
+    no_dustbin:'Put the dustbin back in, then resume.',low_battery:'Put the robot on the dock to charge.',charging_error:'Check the dock is plugged in and the contacts are clean.',
+    return_to_dock_fail:'Clear the area around the dock, or carry the robot back to it.',dock_locator_error:'Make sure the dock is plugged in and nothing blocks it.',
+    robot_tilted:'Put the robot back on flat floor, then resume.',vertical_bumper_pressed:'Move the robot out from under the furniture, then resume.',
+    nogo_zone_detected:'Carry the robot out of the no-go zone, then resume.',robot_on_carpet:'Move the robot off the carpet, then resume.',
+    filter_blocked:'Clean or replace the filter, then resume.',visual_sensor:'Wipe the front camera, then resume.',
+  };
+  const PLABELS={pResume:'I fixed it, resume',pDock:'Send it to the dock',pLater:'Leave it for now',pRetry:'Try again',pOk:'Got it'};
+  function problemInfo(code){
+    const [title,what]=PROBLEMS[code]||['Robot problem: '+code.replace(/_/g,' '),'The robot reports “'+code.replace(/_/g,' ')+'”.'];
+    return {title,what,fix:FIXES[code]||M().errorText(code)||'Check the robot, then resume.',why:'Reported by the robot ('+code+').',options:['pResume','pDock','pLater']};
+  }
+  const STATUS_PROBLEMS={
+    charging_problem:{title:'Not charging',what:'The robot is on the dock but not charging.',fix:'Check the dock is plugged in and the charging contacts are clean.',why:'Reported by the robot (charging problem).',options:['pOk']},
+    locked:{title:'Robot locked',what:'The robot is locked and won’t take commands.',fix:'Unlock it in the Roborock app or on the robot.',why:'Reported by the robot (locked).',options:['pOk']},
+    updating:{title:'Updating',what:'The robot is updating its firmware and can’t clean right now.',fix:'Wait until the update finishes.',why:'Reported by the robot (updating).',options:['pOk']},
+  };
+  function defineProblem(key,info,zone){
+    DEFS[key]={type:'problem',zone,kind:'Robot problem',title:info.title,chip:info.title,what:info.what,why:info.why,unsure:null,next:'',dflt:'',options:info.options,retryControlled:false};
+    SHORT[key]={q:info.title,line:info.fix,primary:info.options[0],labels:PLABELS};
+  }
+  function raiseProblem(key,info,noSpot){
+    if(S.events.some(e=>e.key===key&&['needsReview','deferred'].includes(e.status)))return null;
+    const pos=noSpot?null:HA.map?.robot,zid='z'+(++seq);
+    ZONES[zid]={name:pos?'Where the robot was at '+hhmm(S.clock):'Robot map',room:pos?roomKey(pos):'live',cells:[],keys:[],mm:pos?{x:pos.x,y:pos.y}:null};
+    defineProblem(key,info,zid);
+    const ev={id:'e'+(++seq),key,at:S.clock,status:'needsReview',autonomous:false,log:[],outcome:null,zone:zid,problem:true,info,attempts:0};
+    S.events.push(ev);evLog(ev,'robot',info.what);notice(ev);
+    return ev;
+  }
+  function resolveProblem(key,text){
+    S.events.filter(e=>e.key===key&&['needsReview','deferred'].includes(e.status)).forEach(e=>{e.status='resolved';e.outcome=text;evLog(e,'result',text.replace(/\.$/,''))});
+  }
+  function checkProblems(snap,d){
+    const code=M().value(snap,'vacuum_error'),err=code&&code!=='none'?code:null;
+    if(err!==HA.lastErr){if(HA.lastErr)resolveProblem('p_'+HA.lastErr,'Fixed. The robot reports no problem now.');if(err)raiseProblem('p_'+err,problemInfo(err));HA.lastErr=err}
+    const st=STATUS_PROBLEMS[d.detail]?d.detail:null;
+    if(st!==HA.lastStatusProblem){if(HA.lastStatusProblem)resolveProblem('p_s_'+HA.lastStatusProblem,'Back to normal.');if(st)raiseProblem('p_s_'+st,STATUS_PROBLEMS[st],true);HA.lastStatusProblem=st}
+    // the map Home Assistant sends is from before this cleaning
+    const t=S.task;
+    if(t&&!t.done&&!mapFresh(t)&&Date.now()-t.startedAt>120000&&!t.mapWarned){t.mapWarned=true;
+      raiseProblem('p_map',{title:'Map not updating',what:'Home Assistant hasn’t sent a new map since '+(HA.map?.source_updated_at?hhmm(secOf(HA.map.source_updated_at)):'—')+', so cleaned cells, the robot’s position and objects can’t update.',fix:'Cleaning continues. In Home Assistant, reload the Roborock integration if this keeps happening.',why:'The map from Home Assistant is older than this cleaning.',options:['pOk']},true)}
+    if(t&&mapFresh(t))resolveProblem('p_map','The map is updating again.');
+  }
+  const mapFresh=t=>!!(t&&HA.map&&Date.parse(HA.map.source_updated_at)>=t.startedAt-5000);
+
+  /* ---------- objects across cleanings: sure ones stay, unsure ones go, gone ones are removed ---------- */
+  function syncObjects(snap){
+    const map=HA.map;if(!map)return;
+    const key=map.source_updated_at||'';
+    if(key!==HA.objSnap){
+      HA.objSnap=key;const used=new Set();
+      M().objects(snap.vacuum.entity_id,map,{}).forEach(raw=>{
+        const m=HA.objs.find(o=>!used.has(o.id)&&o.typeCode===raw.typeCode&&Math.hypot(o.mm.x-raw.mm.x,o.mm.y-raw.mm.y)<400);
+        if(m){used.add(m.id);Object.assign(m,{mm:raw.mm,lastSeen:key,source:raw.source});if(m.dismissed&&m.dismissedSnap!==key)m.dismissed=false}
+        else{const o={...raw,id:'o'+(++seq),firstSeen:key,lastSeen:key};HA.objs.push(o);used.add(o.id)}
+      });
+    }
+    if(S.task&&S.task.done&&!S.task.objChecked)checkGone(S.task);
+  }
+  function checkGone(t){
+    if(!mapFresh(t))return; // wait for a map from this cleaning
+    t.objChecked=true;
+    const gone=HA.objs.filter(o=>o.lastSeen!==HA.objSnap&&(t.kind==='home'||(t.parts||[]).some(b=>M().inBox(o.mm,b))));
+    gone.forEach(o=>{if(!o.dismissed)tl('robot','Not found in this cleaning: '+OBJ[o.label].n.toLowerCase()+' in '+(ROOM[roomKey(o.mm)]?.the||'your home')+'. Removed from the map')});
+    HA.objs=HA.objs.filter(o=>!gone.includes(o));
+  }
+
   /* ---------- tasks follow the real robot ---------- */
   function startLiveTask(){
     if(S.task)archiveTask();
@@ -143,24 +250,29 @@
     const d=new Date(),day=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][d.getDay()],m=d.getHours()*60+d.getMinutes();
     const sch=!fromApp&&S.schedules.find(x=>x.on&&x.days.includes(day)&&Math.abs(m-(+x.time.slice(0,2)*60+ +x.time.slice(3,5)))<=3);
     const label=fromApp?HA.expectStart.label:sch?'Scheduled: Entire home':'Started outside the app';
-    const kind=fromApp?HA.expectStart.kind||'home':'home';
+    const kind=fromApp?HA.expectStart.kind||'home':'home',parts=fromApp?HA.expectStart.parts||null:null;
     HA.expectStart=null;
     S.cells=blankCells('out');S.events=[];S.timeline=[];S.ui.remember={};
     S.sim.pending=(SCEN[S.ctl.scenario]||SCEN.none).keys.slice();S.sim.fired={};S.sim.queue=[];S.waitEv=null;S.checkEv=null;
-    S.task={id:'t'+Date.now(),day:'Today',startedAt:Date.now(),start:S.clock,end:null,scopeLabel:label,result:null,done:false,endedEarly:false,real:true,kind};
+    S.task={id:'t'+Date.now(),day:'Today',startedAt:Date.now(),start:S.clock,end:null,scopeLabel:label,result:null,done:false,endedEarly:false,real:true,kind,parts};
     tl(fromApp||sch?'you':'robot',fromApp?'You started cleaning: '+label:sch?'Your schedule started the cleaning ('+sch.time+')':'Cleaning was started from the Roborock app or the robot');
     tl('robot','Cleaning started');
+    const unsure=HA.objs.filter(o=>o.status==='pending');
+    if(unsure.length){HA.objs=HA.objs.filter(o=>o.status!=='pending');tl('robot','Cleared '+unsure.length+' unsure object'+(unsure.length>1?'s':'')+' from the last cleaning')}
   }
   function finishLiveTask(){
     const t=S.task;
     t.done=true;t.end=S.clock;t.endedAt=Date.now();t.area=HA.dev?.area??null;t.minutes=HA.dev?.minutes??Math.round((t.endedAt-t.startedAt)/60000);
-    t.path=M().simplifyPath(HA.map?.path);
+    t.path=mapFresh(t)?M().simplifyPath(HA.map?.path):[];
     S.sim.pending=[];S.sim.queue=[];S.waitEv=null;S.checkEv=null;
     t.result=computeResult();t.pct=taskPct(t);
     if(t.result==='completed'&&t.area>0&&t.scopeLabel==='Entire home')HA.refArea=Math.max(HA.refArea||0,t.area);
     const nc=S.events.filter(e=>e.status!=='resolved'&&e.status!=='info'&&DEFS[e.key].type!=='decision').length;
     tl('result',t.result==='completed'?'Task completed':t.result==='ended'?'Task ended early':`Task partially completed: ${nc} area${nc===1?'':'s'} not cleaned`);
     if(pendingObjs().length&&S.autonomy!=='fullAuto'){S.ui.notice='objs';clearTimeout(notice.t);notice.t=setTimeout(()=>{S.ui.notice=null;commit()},7000)}
+    checkGone(t);
+    if(!t.endedEarly&&t.endedAt-t.startedAt<120000)raiseProblem('p_short',{title:'Cleaning stopped early',what:'The cleaning ended after '+Math.max(1,Math.round((t.endedAt-t.startedAt)/1000))+' seconds without you stopping it.',
+      fix:'The robot may have failed to find its position on the map. Make sure it starts from the dock with the room lights on, then try again.',why:'The robot went back to the dock much sooner than a normal cleaning.',options:['pRetry','pLater']},true);
     const po=pendingObjs().length;
     push('finished',t.id+':done','Cleaning finished',RESULTLABEL[t.result]+(t.area!=null?' · '+Math.round(t.area)+' m²':'')+(nc?' · '+nc+' area'+(nc>1?'s':'')+' not cleaned':'')+(po?' · '+po+' object'+(po>1?'s':'')+' to check':''));
   }
@@ -187,10 +299,6 @@
     }
     if(status==='cleaning'&&(!S.task||S.task.done))startLiveTask();
     else if(S.task&&!S.task.done&&status==='docked')finishLiveTask();
-    if(status==='error'&&prev!=='error'&&S.task&&!S.task.done){
-      tl('robot','Stuck: '+(S.device.error||'needs help'));S.ui.notice='stuck';clearTimeout(notice.t);
-      push('review',S.task.id+':stuck'+S.timeline.length,'Robot needs help',S.device.error||'The robot is stuck.');
-    }
   }
 
   /* ---------- study events at the real robot's position ---------- */
@@ -286,7 +394,9 @@
     if(!HA.refArea&&status==='docked'&&d.area>0)HA.refArea=d.area;
     seedRobotRecord(snap,status);
     lifecycle(status);
-    S.objects=M().objects(snap.vacuum.entity_id,HA.map,HA.notes).map(o=>({...o,k:roomKey(o.mm),at:secOf(o.source)}));
+    checkProblems(snap,d);
+    syncObjects(snap);
+    S.objects=HA.objs.filter(o=>!o.dismissed).map(o=>({...o,k:roomKey(o.mm),at:secOf(o.source)}));
     HA.removedZones=HA.removedZones.filter(b=>robotZones().some(a=>sameZone(a,b))); // until the robot's map drops them
     const rp=to3D(HA.map?.robot);
     if(rp){S.sim.pos={c:rp.x-.5,r:rp.z-.5};S.sim.heading=Number.isFinite(HA.map.robot.angle)?90-HA.map.robot.angle:0}
@@ -392,7 +502,7 @@
     const hist=o.cells&&o.cells.__task?S.history.find(h=>h.id===o.cells.__task):null;
     let path=[];
     if(hist)path=hist.snap.path||[];
-    else if(!o.cells&&S.task)path=!S.task.done||S.task.spot?M().simplifyPath(HA.map?.path):(S.task.path||[]);
+    else if(!o.cells&&S.task)path=!S.task.done||S.task.spot?(mapFresh(S.task)?M().simplifyPath(HA.map?.path):[]):(S.task.path||[]);
     const cells=new Map();
     pathCells(path).forEach(c=>cells.set(c,'cleaned'));
     if(path.length&&!o.noEvents)(o.events||visibleEvents()).forEach(ev=>{
@@ -446,7 +556,7 @@
       const tap=o.mini||ev.archived?'':`data-a="openEvent" data-v="${ev.id}"`;
       s+=`<rect class="zone ${ev.status} ${o.highlight===ev.id?'hl':''}" x="${r.x}" y="${r.y}" width="${r.w}" height="${r.h}" rx="5" ${tap}><title>${esc(d.title)}</title></rect>`;
       if(!o.mini){
-        const col=ev.status==='resolved'?'var(--ok)':ev.status==='skipped'?'var(--skip)':ev.status==='inProgress'?'var(--primary)':'var(--warn-line)';
+        const col=ev.status==='resolved'?'var(--ok)':ev.status==='skipped'?'var(--skip)':ev.status==='inProgress'?'var(--primary)':ev.problem?'var(--stop)':'var(--warn-line)';
         const glyph=ev.status==='resolved'?'<path d="M-3.5 0l2.3 2.3L3.8-2.8" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round"/>':ev.status==='skipped'?'<path d="M-3.5 0h7" stroke="#fff" stroke-width="2" stroke-linecap="round"/>':'<path d="M0-4v4.5M0 3.3v.2" stroke="#fff" stroke-width="2" stroke-linecap="round"/>';
         s+=`<g class="marker" ${tap} transform="translate(${r.x+r.w},${r.y})"><circle r="9.5" fill="${col}" stroke="var(--surface)" stroke-width="2.5" filter="url(#soft)"/>${glyph}</g>`;
       }
@@ -597,13 +707,14 @@
   }
   function liveLegend(){
     const when=HA.map?.source_updated_at?' · updated '+hhmm(secOf(HA.map.source_updated_at)):'';
-    return `<div class="legend"><span><i style="background:var(--surface);box-shadow:inset 0 0 0 1.5px var(--primary);border-radius:50%"></i>Robot’s label</span><span><i style="background:var(--surface);box-shadow:inset 0 0 0 1.5px var(--warn-line);border-radius:50%"></i>Not sure</span><span><i style="background:var(--clean)"></i>Cleaned</span><span><i style="background:repeating-linear-gradient(45deg,var(--warn-line) 0 2px,var(--warn-soft) 2px 5px)"></i>Needs review</span><span><i style="background:repeating-linear-gradient(45deg,var(--skip) 0 1.5px,var(--skip-soft) 1.5px 5px)"></i>Skipped</span><span><i style="background:repeating-linear-gradient(-45deg,var(--stop) 0 2px,var(--stop-soft) 2px 5px)"></i>No-go</span><span><i style="background:var(--warn-line);border-radius:50%"></i>Study event</span></div><p class="small muted" style="margin:4px 6px 0">Robot map from Home Assistant${when}.</p>`;
+    return `<div class="legend"><span><i style="background:var(--surface);box-shadow:inset 0 0 0 1.5px var(--primary);border-radius:50%"></i>Robot’s label</span><span><i style="background:var(--surface);box-shadow:inset 0 0 0 1.5px var(--warn-line);border-radius:50%"></i>Not sure</span><span><i style="background:var(--clean)"></i>Cleaned</span><span><i style="background:repeating-linear-gradient(45deg,var(--warn-line) 0 2px,var(--warn-soft) 2px 5px)"></i>Needs review</span><span><i style="background:repeating-linear-gradient(45deg,var(--skip) 0 1.5px,var(--skip-soft) 1.5px 5px)"></i>Skipped</span><span><i style="background:repeating-linear-gradient(-45deg,var(--stop) 0 2px,var(--stop-soft) 2px 5px)"></i>No-go</span><span><i style="background:var(--warn-line);border-radius:50%"></i>Study event</span><span><i style="background:var(--stop);border-radius:50%"></i>Robot problem</span></div><p class="small muted" style="margin:4px 6px 0">Robot map from Home Assistant${when}.</p>`;
   }
 
   /* ---------- patch the original app ---------- */
   function wrap(name,after){const orig=window[name];window[name]=function(...a){return after(orig.apply(this,a),...a)}}
   function patch(){
     RESULTLABEL.recorded='Robot record';
+    Object.assign(OPTICON,{pResume:'retry',pDock:'home',pLater:'clock',pRetry:'retry',pOk:'check'});
     ROOM.live={id:'live',name:'Robot map',the:'your home'};CELLROOM.live='live';
     Object.assign(OBJ,{unknown:{n:'Unknown object',e:'❔'},waste:{n:'Pet waste',e:'💩'},scale:{n:'Scale',e:'⚖️'}});
     // Event texts without the demo's fictional rooms
@@ -622,7 +733,7 @@
     window.mapSVG=liveMap;window.legend=liveLegend;window.build3D=live3D;window.sync3D=liveSync3D;
     // Extra pass: a real second pass over the spot once the cleaning ends
     window.queueExtra=ev=>{ev.extraQueued=true;S.sim.queue.unshift({kind:'extra',ev:ev.id});if(!HA.retryQueue.includes(ev.id))HA.retryQueue.push(ev.id)};
-    const notice0=window.notice;window.notice=ev=>{notice0(ev);notifyEvent(ev)};
+    const notice0=window.notice;window.notice=ev=>{notice0(ev);if(ev.problem)clearTimeout(notice.t);notifyEvent(ev)}; // problem banners stay until opened
     window.visibleObjs=()=>S.objects||[];
     window.updateLive=()=>document.querySelectorAll('[data-live]').forEach(el=>{const n=el.dataset.live;if(n==='bar')el.style.width=LIVE.bar();else el.textContent=LIVE[n]()});
     window.pct=cells=>{const v=cells&&cells.__task?S.history.find(h=>h.id===cells.__task)?.snap.pct:taskPct(S.task);return v??0};
@@ -654,10 +765,23 @@
     const zoneOf=ev=>{if(ev&&ev.zone&&DEFS[ev.key])DEFS[ev.key].zone=ev.zone};
     window.EXTRA_SCREENS={rooms:scrRooms,roomEdit:scrRoomEdit};
     const render0=window.render;window.render=function(){S.events.forEach(zoneOf);const out=render0.apply(this,arguments);if(cur().name==='roomEdit')attachDrawing();return out};
+    const art0=window.eventArt;window.eventArt=key=>{
+      if(!key.startsWith('p_'))return art0(key);
+      const L='fill="none" stroke="var(--ink)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"';
+      return `<svg viewBox="0 0 320 170" class="art" role="img" aria-label="${esc(DEFS[key].title)}"><path d="M10 150H310" ${L} opacity=".35"/>
+        <g transform="translate(150,132)"><ellipse cx="0" cy="12" rx="34" ry="9" fill="var(--surface)" ${L}/><path d="M-34 0v12M34 0v12" ${L}/><ellipse cx="0" cy="0" rx="34" ry="9" fill="var(--surface)" ${L}/><ellipse cx="8" cy="-5" rx="9" ry="3.4" fill="var(--surface)" ${L}/></g>
+        <g transform="translate(196,88)"><circle r="17" fill="var(--stop)"/><path d="M0-8v9M0 6v.5" stroke="#fff" stroke-width="3" stroke-linecap="round"/></g></svg>`;
+    };
     const evItem0=window.evItem;window.evItem=ev=>{zoneOf(ev);return evItem0(ev)};
     const scrEvent0=window.scrEvent;
     window.scrEvent=id=>{
-      const ev=findEvent(id);zoneOf(ev);let h=scrEvent0(id);if(!ev||!ev.study)return h;
+      const ev=findEvent(id);zoneOf(ev);let h=scrEvent0(id);
+      if(ev&&ev.problem){
+        h=h.replace(/<p class="small muted" style="margin:12px 4px 0">No rush\.[^<]*<\/p>/,'');
+        if(h.includes('class="choices"'))h=h.replace('<details class="why">','<p class="small muted" style="margin:12px 4px 0">Resume, Try again and Send to dock control the real robot.</p><details class="why">');
+        return h;
+      }
+      if(!ev||!ev.study)return h;
       h=h.replace('<div class="h-screen"',`<div class="mode-note" style="margin-top:12px">${ic('bulb',18)}<span><b>Study scenario.</b> Simulated for this study at the robot’s real position. Not reported by the robot.</span></div><div class="h-screen"`);
       if(ev.queued)h=h.replace('The robot is heading there now.','The robot goes back to this spot when the current cleaning ends.');
       if(h.includes('class="choices"'))h=h.replace('<details class="why">','<p class="small muted" style="margin:12px 4px 0">Retry and pause move the real robot. Other choices are recorded in this app.</p><details class="why">');
@@ -674,6 +798,19 @@
       if(ev.queued)tl('robot','Will go back to '+z.name.toLowerCase()+' after this cleaning',ev.id);
     };
     window.doAction=(ev,act,saveRule)=>{
+      if(ev.problem){
+        if(!ev.archived){S.ui.stack=[];S.ui.scrollTop=0;forceTop=true}
+        const done=(st,text)=>{ev.status=st;ev.outcome=text;evLog(ev,'you',text.replace(/\.$/,''))};
+        if(act==='pResume'){
+          if(S.conn==='connected'&&['error','paused','idle'].includes(dev().status))return liveCommand('start',{label:'Resume',done:'Cleaning resumed',expect:['cleaning']},()=>done('resolved','You fixed it and the robot carried on.'));
+          done('resolved','Marked as fixed.');return commit();
+        }
+        if(act==='pDock')return liveCommand('return_to_base',{label:'Send to dock',done:'Returning to dock',expect:['returning','docked']},()=>done('resolved','Sent back to the dock.'));
+        if(act==='pRetry'){HA.expectStart={label:'Entire home',at:Date.now(),kind:'home'};
+          return liveCommand('start',{label:'Start cleaning',done:'Cleaning started',expect:['cleaning'],onFail:()=>{HA.expectStart=null}},()=>done('resolved','You started the cleaning again.'))}
+        if(act==='pLater'){done('deferred','Left for later.');return commit()}
+        done('resolved','Seen.');return commit();
+      }
       if(!ev.archived){S.ui.stack=[];S.ui.tab='map';S.ui.scrollTop=0;forceTop=true}
       const run=()=>{applyAction(ev,act,false);if(saveRule){const r=DEFS[ev.key].remember[act];S.rules.push({id:'r'+(++seq),key:ev.key,act,text:r.text,scope:r.scope})}};
       if(act==='pauseCheck')return liveCommand('pause',{label:'Pause',done:'Paused',expect:['paused','idle']},run);
@@ -712,8 +849,9 @@
       return m;
     });
     const objSave0=A.objSave,objNone0=A.objNone;
-    A.objSave=()=>{const id=S.ui.objId,o0=S.objects.find(x=>x.id===id);if(o0&&o0.label==='unknown'&&(!S.ui.objSel||S.ui.objSel==='unknown'))return;objSave0();const o=S.objects.find(x=>x.id===id);if(o&&o.status!=='auto'&&o.status!=='pending')HA.notes[id]={label:o.label,name:OBJ[o.label].n};persist()};
-    A.objNone=()=>{HA.notes[S.ui.objId]={dismissed:true};objNone0();persist()};
+    A.objSave=()=>{const id=S.ui.objId,o0=S.objects.find(x=>x.id===id);if(o0&&o0.label==='unknown'&&(!S.ui.objSel||S.ui.objSel==='unknown'))return;objSave0();
+      const m=HA.objs.find(x=>x.id===id),o=S.objects.find(x=>x.id===id);if(m&&o)Object.assign(m,{label:o.label,status:o.status});persist()};
+    A.objNone=()=>{const m=HA.objs.find(x=>x.id===S.ui.objId);if(m)Object.assign(m,{dismissed:true,dismissedSnap:HA.objSnap});objNone0();persist()};
 
     // Screens
     wrap('statusCard',h=>{
@@ -764,7 +902,7 @@
     A.startTask=()=>{
       const kind=S.ui.setup.kind,parts=setupParts(),label=setupLabel();
       if(kind!=='home'&&(!parts.length||parts.length>5))return;
-      HA.expectStart={label,at:Date.now(),kind};
+      HA.expectStart={label,at:Date.now(),kind,parts};
       liveCommand(kind==='home'?'start':'zones',{label:'Start cleaning',done:'Cleaning started',expect:['cleaning'],body:kind==='home'?null:{zones:parts},onFail:()=>{HA.expectStart=null}},
         ()=>{S.ui.stack=[];S.ui.tab='map';forceTop=true});
     };
@@ -823,6 +961,8 @@
     document.head.appendChild(st);
   }
 
-  window.HA_INIT=()=>{restore();patch();registerRooms();refresh();loadSchedules();setInterval(refresh,4000);setInterval(loadSchedules,60000)};
+  window.HA_INIT=()=>{restore();patch();registerRooms();
+    S.events.concat(...S.history.map(h=>h.snap.events||[])).forEach(e=>{if(e.problem&&e.info&&!DEFS[e.key])defineProblem(e.key,e.info,e.zone)});
+   refresh();loadSchedules();setInterval(refresh,4000);setInterval(loadSchedules,60000)};
   window.HA_TICK=()=>{S.clock=now();fireDue();updateLive()};
 })();
