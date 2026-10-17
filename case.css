@@ -451,3 +451,6 @@ img.is-zoomable { cursor: zoom-in; }
   .lb__bar { bottom: 24px; }
   .deck__zoom span { display: none; }
 }
+
+/* The footer stays dark on every theme, so its text stays white like the homepage */
+.case .footer { color: #fff; --c-fg: #fff; }
