@@ -100,7 +100,7 @@
   /* ---------- commands: sent for real, confirmed by the robot's next state ---------- */
   async function liveCommand(action,opts,fn){
     if(S.conn!=='connected'){flash('You’re offline. Reconnect to send commands.');return false}
-    if(HA.pending||(S.cmd&&S.cmd.state==='sending')){flash('Still waiting for the robot to answer.');return false}
+    if(!opts.force&&(HA.pending||(S.cmd&&S.cmd.state==='sending'))){flash('Still waiting for the robot to answer.');return false}
     const fail=()=>{S.cmd={label:opts.label,state:'failed',retry:opts.retry||(()=>liveCommand(action,opts,fn))};opts.onFail&&opts.onFail();commit()};
     S.cmd={label:opts.label,state:'sending'};commit();
     try{await api('command',{action,...(opts.body||{})})}catch(e){HA.error=e.message;fail();return false}
@@ -287,14 +287,18 @@
   }
   function finishSpot(){
     const ev=findEvent(HA.spotEv);HA.spotEv=null;HA.spotStarted=false;
-    if(ev&&ev.key==='extra'){
+    if(HA.spotCancelled&&ev){
+      if(ev.key==='extra'){ev.extraQueued=false;ev.outcome='Extra pass stopped: you sent the robot back.'}
+      else{ev.status='deferred';ev.outcome='Stopped: you sent the robot back before it finished.'}
+      evLog(ev,'you',ev.outcome.replace(/\.$/,''));
+    }else if(ev&&ev.key==='extra'){
       ev.extraQueued=false;ev.outcome=HA.spotError?'The extra pass didn’t finish: the robot reported a problem.':'Extra pass done on this spot.';
       evLog(ev,'result',ev.outcome.replace(/\.$/,''));
     }else if(ev){
       if(HA.spotError){ev.status='needsReview';ev.attempts=(ev.attempts||0)+1;ev.retryFailed=true;evLog(ev,'robot','Retry didn’t work: the robot reported a problem');notice(ev)}
       else{ev.status='resolved';ev.retryFailed=false;ev.outcome=ev.pendingOutcome||'Area cleaned successfully.';evLog(ev,'result',ev.outcome.replace(/\.$/,''))}
     }
-    HA.spotError=false;if(S.task)S.task.spot=false;
+    HA.spotError=false;HA.spotCancelled=false;if(S.task)S.task.spot=false;
     restoreMode();
     if(S.task&&S.task.done){S.task.result=computeResult();S.task.pct=taskPct(S.task)}
   }
@@ -355,6 +359,20 @@
     liveCommand('zone',{label:extra?'Extra pass':'Retry '+z.name.toLowerCase(),done:'Robot is going back to the spot',expect:['cleaning'],
       body:{box:M().robotBox(HA.align?.al,spotCells(z.mm).box)},retry:()=>sendSpot(ev),onFail:()=>fail(extra?'The extra pass didn’t reach the robot':'The retry didn’t reach the robot')},
       ()=>{HA.spotStarted=true;if(S.task)S.task.spot=true;tl('robot',(extra?'Extra pass started: ':'Spot clean started: ')+z.name,ev.id)});
+  }
+  /* Ending means ending: nothing queued runs afterwards, and a running spot clean counts as stopped. */
+  function stopAll(){
+    HA.retryQueue.forEach(id=>{const ev=findEvent(id);if(!ev)return;
+      if(ev.extraQueued){ev.extraQueued=false;ev.outcome='Extra pass cancelled: you ended the cleaning.';evLog(ev,'you','Extra pass cancelled')}
+      else if(ev.status==='inProgress'){ev.status='deferred';ev.queued=false;ev.outcome='Not retried: you ended the cleaning.';evLog(ev,'you','Retry cancelled: you ended the cleaning')}});
+    HA.retryQueue=[];S.sim.queue=[];S.sim.pending=[];
+    HA.pending=null; // a command still being confirmed, such as a retry, is dropped
+    if(HA.spotEv){
+      if(HA.spotStarted)HA.spotCancelled=true;
+      else{const ev=findEvent(HA.spotEv);HA.spotEv=null;restoreMode();
+        if(ev&&ev.extraQueued){ev.extraQueued=false;ev.outcome='Extra pass cancelled: you ended the cleaning.'}
+        else if(ev){ev.status='deferred';ev.outcome='Not retried: you ended the cleaning.';evLog(ev,'you','Retry cancelled: you ended the cleaning')}}
+    }
   }
   function processRetries(){
     if(HA.pending||HA.spotEv||S.conn!=='connected'||!HA.retryQueue.length)return;
@@ -871,7 +889,7 @@
           if(S.conn==='connected'&&['error','paused','idle'].includes(dev().status))return liveCommand('start',{label:'Resume',done:'Cleaning resumed',expect:['cleaning']},()=>done('resolved','You fixed it and the robot carried on.'));
           done('resolved','Marked as fixed.');return commit();
         }
-        if(act==='pDock')return liveCommand('return_to_base',{label:'Send to dock',done:'Returning to dock',expect:['returning','docked']},()=>done('resolved','Sent back to the dock.'));
+        if(act==='pDock'){stopAll();return liveCommand('return_to_base',{label:'Send to dock',done:'Returning to dock',expect:['returning','docked'],force:true},()=>done('resolved','Sent back to the dock.'))}
         if(act==='pRetry'){HA.expectStart={label:'Entire home',at:Date.now(),kind:'home'};
           return liveCommand('start',{label:'Start cleaning',done:'Cleaning started',expect:['cleaning'],onFail:()=>{HA.expectStart=null}},()=>done('resolved','You started the cleaning again.'))}
         if(act==='pLater'){done('deferred','Left for later.');return commit()}
@@ -1006,8 +1024,8 @@
     A.pause=()=>liveCommand('pause',{label:'Pause',done:'Paused',expect:['paused','idle']},()=>tl('you','You paused cleaning'));
     A.resume=()=>liveCommand('start',{label:'Resume',done:'Cleaning resumed',expect:['cleaning']},()=>{S.checkEv=null;S.waitEv=null;tl('you','You resumed cleaning')});
     A.endReturn=()=>{S.ui.modal={title:'End cleaning and return?',body:'<p>The robot stops and goes back to its dock. Places it hasn’t reached yet stay uncleaned this time.</p>',buttons:[{label:'End and return to dock',a:'confirmEnd',cls:'danger'},{label:'Keep cleaning',a:'closeModal'}]};commit()};
-    A.confirmEnd=()=>{S.ui.modal=null;liveCommand('return_to_base',{label:'End and return',done:'Returning to dock',expect:['returning','docked']},()=>{if(S.task&&!S.task.done){S.task.endedEarly=true;tl('you','You ended cleaning early')}S.sim.pending=[]})};
-    A.haDock=()=>liveCommand('return_to_base',{label:'Send to dock',done:'Returning to dock',expect:['returning','docked']});
+    A.confirmEnd=()=>{S.ui.modal=null;stopAll();liveCommand('return_to_base',{label:'End and return',done:'Returning to dock',expect:['returning','docked'],force:true},()=>{if(S.task&&!S.task.done){S.task.endedEarly=true;tl('you','You ended cleaning early')}S.sim.pending=[]})};
+    A.haDock=()=>{stopAll();liveCommand('return_to_base',{label:'Send to dock',done:'Returning to dock',expect:['returning','docked'],force:true})};
     A.reconnect=()=>{S.conn='connecting';commit();refresh()};
     A.cmdRefresh=()=>{S.cmd=null;HA.sig='';refresh()};
     A.haScenario=v=>{if(SCEN[v]){S.ctl.scenario=v;if(S.task&&!S.task.done&&!Object.keys(S.sim.fired).length)S.sim.pending=SCEN[v].keys.slice();persist();commit()}};
