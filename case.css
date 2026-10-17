@@ -540,3 +540,8 @@ img.is-zoomable { cursor: zoom-in; }
 .flip.is-start .flip__book::after { left: 53%; }
 .flip.is-end .flip__book::after { right: 53%; }
 .flip__book::after { transition: left .9s var(--ease), right .9s var(--ease); }
+/* Tall and square maps: keep them readable without filling the whole screen */
+.c-figure--tall { max-width: 980px; margin-left: auto; margin-right: auto; }
+.c-figure--map { margin-top: 56px; }
+.c-figure--map img { background: #fff; padding: clamp(8px, 2vw, 28px); }
+.c-figure--map figcaption { margin-top: 14px; font-size: 15px; color: var(--c-muted); }
