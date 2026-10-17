@@ -219,12 +219,19 @@
       raiseProblem('p_map',{title:'Map not updating',what:'Home Assistant hasn’t sent a new map since '+(HA.map?.source_updated_at?hhmm(secOf(HA.map.source_updated_at)):'—')+', and the robot’s live position isn’t coming through either, so cleaned cells and the robot can’t move on the map.',fix:'Cleaning continues. In Home Assistant, reload the Roborock integration if this keeps happening.',why:'The map from Home Assistant is older than this cleaning.',options:['pOk']},true)}
     if(t&&(mapFresh(t)||trailOf(t).length))resolveProblem('p_map',mapFresh(t)?'The map is updating again.':'The robot’s live position is coming through.');
   }
-  const mapFresh=t=>!!(t&&HA.map&&Date.parse(HA.map.source_updated_at)>=t.startedAt-5000);
+  // Home Assistant can renew the map's timestamp while still sending the old path, so a map only
+  // counts as this cleaning's once its path differs from the one seen when the cleaning started.
+  const pathSig=path=>{const pts=(path||[]).flat();const last=pts[pts.length-1];return pts.length+':'+(last?last.x+','+last.y:'')};
+  const mapFresh=t=>!!(t&&t.baseSig!==undefined&&HA.map&&pathSig(HA.map.path)!==t.baseSig&&Date.parse(HA.map.source_updated_at)>=t.startedAt-5000);
 
   /* ---------- objects across cleanings: sure ones stay, unsure ones go, gone ones are removed ---------- */
   function syncObjects(snap){
     const map=HA.map;if(!map)return;
-    const key=map.source_updated_at||'';
+    // keyed by the obstacle list itself: Home Assistant re-sends old lists with new timestamps
+    const key=(map.obstacles||[]).map(o=>o.x+','+o.y+','+o.type_code).join(';');
+    if(/^\d{4}-\d\d-\d\dT/.test(HA.objSnap)){ // saved by the earlier timestamp-keyed version
+      HA.objSnap=key;if(S.task&&!S.task.done)HA.objs=HA.objs.filter(o=>o.status!=='pending');
+    }
     if(key!==HA.objSnap){
       HA.objSnap=key;const used=new Set();
       M().objects(snap.vacuum.entity_id,map,{}).forEach(raw=>{
@@ -254,7 +261,7 @@
     HA.expectStart=null;
     S.cells=blankCells('out');S.events=[];S.timeline=[];S.ui.remember={};
     S.sim.pending=(SCEN[S.ctl.scenario]||SCEN.none).keys.slice();S.sim.fired={};S.sim.queue=[];S.waitEv=null;S.checkEv=null;
-    S.task={id:'t'+Date.now(),day:'Today',startedAt:Date.now(),start:S.clock,end:null,scopeLabel:label,result:null,done:false,endedEarly:false,real:true,kind,parts};
+    S.task={id:'t'+Date.now(),day:'Today',startedAt:Date.now(),start:S.clock,end:null,scopeLabel:label,result:null,done:false,endedEarly:false,real:true,kind,parts,baseSig:pathSig(HA.map?.path)};
     tl(fromApp||sch?'you':'robot',fromApp?'You started cleaning: '+label:sch?'Your schedule started the cleaning ('+sch.time+')':'Cleaning was started from the Roborock app or the robot');
     tl('robot','Cleaning started');
     const unsure=HA.objs.filter(o=>o.status==='pending');
