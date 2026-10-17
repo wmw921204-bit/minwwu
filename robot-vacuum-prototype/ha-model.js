@@ -14,6 +14,21 @@
       return {x:a.map.x+u*(b.map.x-a.map.x)+v*(c.map.x-a.map.x),y:a.map.y+u*(b.map.y-a.map.y)+v*(c.map.y-a.map.y)};
     };
   }
+  /* The reverse: map-image pixels back to robot millimetres, for drawing rooms and zones on the map. */
+  function inverse(calibration){
+    if(!Array.isArray(calibration))return null;
+    return transform(calibration.map(p=>p&&p.vacuum&&p.map?{vacuum:p.map,map:p.vacuum}:p));
+  }
+  /* Two dragged points → a rectangle snapped outward to the cell grid, [x1,y1,x2,y2] in mm. */
+  function snapBox(a,b,cell=500){
+    const x1=Math.floor(Math.min(a.x,b.x)/cell)*cell,y1=Math.floor(Math.min(a.y,b.y)/cell)*cell;
+    return [x1,y1,Math.max(x1+cell,Math.ceil(Math.max(a.x,b.x)/cell)*cell),Math.max(y1+cell,Math.ceil(Math.max(a.y,b.y)/cell)*cell)];
+  }
+  function boxCells(box,cell=500){
+    const out=[];for(let i=box[0]/cell;i<box[2]/cell;i++)for(let j=box[1]/cell;j<box[3]/cell;j++)out.push(i+','+j);return out;
+  }
+  const inBox=(p,b)=>p&&p.x>=b[0]&&p.x<b[2]&&p.y>=b[1]&&p.y<b[3];
+  function roomAt(rooms,p){return (rooms||[]).find(r=>r.parts.some(b=>inBox(p,b)))||null}
   /* Pixels per mm along x, used to size the robot, its swept path and spot zones. */
   function pxPerMm(calibration){
     const t=transform(calibration);if(!t)return null;
@@ -132,7 +147,7 @@
     return {s,w:width,h:bh*s,x:p=>(p.x-bbox.x0)*s,y:p=>(p.y-bbox.y0)*s};
   }
 
-  const api={transform,pxPerMm,errorText,entity,value,number,device,objectId,selectedMap,objects,simplifyPath,footprint,view,LABELS};
+  const api={transform,inverse,snapBox,boxCells,roomAt,pxPerMm,errorText,entity,value,number,device,objectId,selectedMap,objects,simplifyPath,footprint,view,LABELS};
   root.HAModel=api;
   if(typeof module!=='undefined')module.exports=api;
 })(typeof window!=='undefined'?window:globalThis);

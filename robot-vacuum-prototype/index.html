@@ -1440,7 +1440,7 @@ function render(){
   if(S.conn==='disconnected')h+=`<div class="banner"><span><b>Disconnected</b>Last update ${hhmm(S.snap.clock)}. Current status can’t be confirmed.</span><button class="btn primary" style="height:38px;font-size:13px;padding:0 12px" data-a="reconnect">Reconnect</button></div>`;
   if(S.conn==='connecting')h+=`<div class="banner connecting"><span class="spin"></span><span style="flex:1"><b>Reconnecting…</b>Getting the latest status</span></div>`;
   const c=cur();
-  const map={home:scrHome,map:scrMap,activity:scrActivity,settings:scrSettings,setup:scrSetup,event:scrEvent,report:scrReport,timeline:scrTimeline,autonomy:scrAutonomy,rules:scrRules,schedule:scrSchedule,help:scrHelp};
+  const map={home:scrHome,map:scrMap,activity:scrActivity,settings:scrSettings,setup:scrSetup,event:scrEvent,report:scrReport,timeline:scrTimeline,autonomy:scrAutonomy,rules:scrRules,schedule:scrSchedule,help:scrHelp,...(window.EXTRA_SCREENS||{})};
   h+=`<div class="scroll">${map[c.name](c.id)}</div>`;
   const badge=needsYou().length;
   h+=`<nav class="tabbar">${[['home','Home'],['map','Map'],['activity','Activity'],['settings','Settings']].map(([k,l])=>`<button class="tab ${S.ui.tab===k?'on':''}" data-a="tab" data-v="${k}" aria-label="${l}">${k==='home'&&badge?'<span class="dot"></span>':''}${ic(k)}${l}</button>`).join('')}</nav>`;

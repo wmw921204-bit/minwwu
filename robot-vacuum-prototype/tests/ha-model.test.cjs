@@ -82,3 +82,15 @@ test('footprint traces only the mapped pixels', () => {
   assert.equal(v.x({ x: 18, y: 0 }), 320);
   assert.equal(v.h, 160);
 });
+
+test('rooms: drawing converts back to millimetres and snaps to the grid', () => {
+  const t = M.transform(CAL), inv = M.inverse(CAL);
+  const back = inv(t({ x: 30696, y: 31168 }));
+  assert.ok(Math.abs(back.x - 30696) < 1e-6 && Math.abs(back.y - 31168) < 1e-6);
+  assert.deepEqual(M.snapBox({ x: 30120, y: 31900 }, { x: 29010, y: 30010 }), [29000, 30000, 30500, 32000]);
+  assert.deepEqual(M.snapBox({ x: 30000, y: 30000 }, { x: 30000, y: 30000 }), [30000, 30000, 30500, 30500]);
+  assert.deepEqual(M.boxCells([30000, 30000, 31000, 30500]), ['60,60', '61,60']);
+  const rooms = [{ id: 'a', parts: [[0, 0, 1000, 1000], [1000, 0, 2000, 500]] }];
+  assert.equal(M.roomAt(rooms, { x: 1500, y: 200 }).id, 'a');
+  assert.equal(M.roomAt(rooms, { x: 1500, y: 800 }), null);
+});

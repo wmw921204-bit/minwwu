@@ -22,6 +22,8 @@ ORIGINS = tuple('http://' + h for h in HOSTS)
 FILES = {'/': 'index.html', '/index.html': 'index.html', '/ha-model.js': 'ha-model.js', '/ha-live.js': 'ha-live.js'}
 SIMPLE = {'start', 'pause', 'return_to_base'}
 ZONE_LIMIT = 4000  # mm; a spot retry never covers more than 4 x 4 m
+ROOM_LIMIT = 15000  # mm; a room or saved zone part is at most 15 x 15 m
+MAX_ZONES = 5       # Roborock cleans at most five zones in one run
 MODES = {'vacuum', 'vac_and_mop'}
 MAX_NOGO = 10
 DAYS = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun']
@@ -100,6 +102,21 @@ def zone_box(data):
     return x1, y1, x2, y2
 
 
+def clean_zones(data):
+    zones = data.get('zones')
+    if not isinstance(zones, list) or not 0 < len(zones) <= MAX_ZONES:
+        raise ValueError('zones')
+    out = []
+    for zone in zones:
+        if not isinstance(zone, list) or len(zone) != 4 or not all(isinstance(v, (int, float)) for v in zone):
+            raise ValueError('zones')
+        x1, y1, x2, y2 = (int(round(v)) for v in zone)
+        if not (0 <= x1 < x2 <= 100000 and 0 <= y1 < y2 <= 100000) or x2 - x1 > ROOM_LIMIT or y2 - y1 > ROOM_LIMIT:
+            raise ValueError('zones')
+        out.append([x1, y1, x2, y2, 1])  # one pass each
+    return out
+
+
 def nogo_zones(data):
     zones = data.get('zones')
     if not isinstance(zones, list) or len(zones) > MAX_NOGO:
@@ -131,6 +148,8 @@ def command(action, data, vacuum, states=None):
         x1, y1, x2, y2 = zone_box(data)
         return ha('services/roborock/set_vacuum_zoned_cleaning',
                   dict(entity, x1=x1, y1=y1, x2=x2, y2=y2, repeats=1))
+    if action == 'zones':
+        return ha('services/vacuum/send_command', dict(entity, command='app_zoned_clean', params=clean_zones(data)))
     if action == 'mode':
         if data.get('mode') not in MODES:
             raise ValueError('mode')
@@ -292,7 +311,7 @@ class Handler(BaseHTTPRequestHandler):
                 return self.send(200, {'on': bool(data.get('on'))})
             if self.path == '/api/command':
                 action = data.get('action')
-                if action not in SIMPLE and action not in ('zone', 'mode', 'nogo'):
+                if action not in SIMPLE and action not in ('zone', 'zones', 'mode', 'nogo'):
                     return self.send(400, {'error': 'Unsupported action'})
                 # Reject bad input before touching Home Assistant.
                 if action == 'zone':
@@ -301,6 +320,8 @@ class Handler(BaseHTTPRequestHandler):
                     raise ValueError('mode')
                 if action == 'nogo':
                     nogo_zones(data)
+                if action == 'zones':
+                    clean_zones(data)
                 vacuum = snapshot(ha('states'))['vacuum']
                 if not vacuum or vacuum['state'] in ('unavailable', 'unknown'):
                     raise BridgeError('The robot is offline or not selected.')

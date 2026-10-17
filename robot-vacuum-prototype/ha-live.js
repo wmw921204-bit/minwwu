@@ -28,7 +28,7 @@
   const FIRE_AFTER=[90,180,270,360]; // seconds into a real cleaning when study events appear
   const HA={snap:null,dev:null,map:null,tf:null,ppm:null,foot:null,error:'',pending:null,expectStart:null,
     retryQueue:[],spotEv:null,spotStarted:false,spotError:false,notes:{},refArea:null,prevStatus:null,
-    fetching:false,lastMap:0,editing:false,sig:'',prompted:false,restoreMode:null,removedZones:[],notified:{},schedLoaded:false,schedError:''};
+    fetching:false,lastMap:0,editing:false,sig:'',prompted:false,restoreMode:null,removedZones:[],notified:{},rooms:[],savedZones:[],view:null,schedLoaded:false,schedError:''};
   window.HA=HA;
   const M=()=>window.HAModel;
   const now=()=>{const d=new Date();return d.getHours()*3600+d.getMinutes()*60+d.getSeconds()};
@@ -49,7 +49,7 @@
       const zones=Object.fromEntries(Object.entries(ZONES).filter(([k])=>k.startsWith('z')));
       try{localStorage.setItem(STORE,JSON.stringify({v:1,onboarded:!S.onboarding,autonomy:S.autonomy,rules:S.rules,nogo:S.nogo,notif:S.notif,
         history:S.history,task:S.task,events:S.events,timeline:S.timeline,pending:S.sim.pending,zones,seq,
-        notes:HA.notes,refArea:HA.refArea,scenario:S.ctl.scenario,retryQueue:HA.retryQueue,spotEv:HA.spotEv,spotStarted:HA.spotStarted,
+        notes:HA.notes,refArea:HA.refArea,rooms:HA.rooms,savedZones:HA.savedZones,scenario:S.ctl.scenario,retryQueue:HA.retryQueue,spotEv:HA.spotEv,spotStarted:HA.spotStarted,
         prevStatus:HA.prevStatus,restoreMode:HA.restoreMode,removedZones:HA.removedZones,customObj:Object.fromEntries(Object.entries(OBJ).filter(([,o])=>o.custom))}))}catch(e){/* storage full or blocked: the app still works */}
     },400);
   }
@@ -65,6 +65,7 @@
     S.events=s.events||[];S.timeline=s.timeline||[];S.objects=[];
     S.sim.pending=s.pending||[];S.sim.queue=[];
     seq=Math.max(seq,s.seq||0);
+    HA.rooms=s.rooms||[];HA.savedZones=s.savedZones||[];
     HA.notes=s.notes||{};HA.refArea=s.refArea||null;HA.retryQueue=s.retryQueue||[];HA.spotEv=s.spotEv||null;HA.spotStarted=!!s.spotStarted;HA.prevStatus=s.prevStatus||null;
     SCEN.none={label:'No study events',keys:[]};
     S.ctl.scenario=s.scenario&&SCEN[s.scenario]?s.scenario:'all';
@@ -125,6 +126,16 @@
     if(ev.status==='needsReview')return push('review',ev.id+':review',ev.suggestion?'Robot suggests something':d.kind,d.title+'. (Study scenario)');
   }
 
+  /* ---------- rooms and saved zones, drawn in this app on the 0.5 m grid ---------- */
+  const ROOM_COLORS=['living','kitchen','hall','bed','study'];
+  function registerRooms(){
+    HA.rooms.forEach(rm=>{const k='lr_'+rm.id;ROOM[k]={id:k,name:rm.name,the:'the '+rm.name.toLowerCase()};CELLROOM[k]=k});
+    // events and zones saved in a room that was deleted later
+    Object.values(ZONES).forEach(z=>{if(z.room&&!ROOM[z.room])ROOM[z.room]={id:z.room,name:'Robot map',the:'your home'}});
+  }
+  const roomKey=mm=>{const rm=M().roomAt(HA.rooms,mm);return rm?'lr_'+rm.id:'live'};
+  const boxArea=parts=>Math.round(parts.reduce((a,b)=>a+(b[2]-b[0])*(b[3]-b[1]),0)/1e5)/10;
+
   /* ---------- tasks follow the real robot ---------- */
   function startLiveTask(){
     if(S.task)archiveTask();
@@ -132,10 +143,11 @@
     const d=new Date(),day=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][d.getDay()],m=d.getHours()*60+d.getMinutes();
     const sch=!fromApp&&S.schedules.find(x=>x.on&&x.days.includes(day)&&Math.abs(m-(+x.time.slice(0,2)*60+ +x.time.slice(3,5)))<=3);
     const label=fromApp?HA.expectStart.label:sch?'Scheduled: Entire home':'Started outside the app';
+    const kind=fromApp?HA.expectStart.kind||'home':'home';
     HA.expectStart=null;
     S.cells=blankCells('out');S.events=[];S.timeline=[];S.ui.remember={};
     S.sim.pending=(SCEN[S.ctl.scenario]||SCEN.none).keys.slice();S.sim.fired={};S.sim.queue=[];S.waitEv=null;S.checkEv=null;
-    S.task={id:'t'+Date.now(),day:'Today',startedAt:Date.now(),start:S.clock,end:null,scopeLabel:label,result:null,done:false,endedEarly:false,real:true};
+    S.task={id:'t'+Date.now(),day:'Today',startedAt:Date.now(),start:S.clock,end:null,scopeLabel:label,result:null,done:false,endedEarly:false,real:true,kind};
     tl(fromApp||sch?'you':'robot',fromApp?'You started cleaning: '+label:sch?'Your schedule started the cleaning ('+sch.time+')':'Cleaning was started from the Roborock app or the robot');
     tl('robot','Cleaning started');
   }
@@ -185,7 +197,7 @@
   function fireStudy(key){
     const pos=HA.map?.robot;
     const zid='z'+(++seq);
-    ZONES[zid]={name:'Spot at '+hhmm(S.clock),room:'live',cells:[],keys:[],mm:pos?{x:pos.x,y:pos.y}:null};
+    ZONES[zid]={name:'Spot at '+hhmm(S.clock),room:pos?roomKey(pos):'live',cells:[],keys:[],mm:pos?{x:pos.x,y:pos.y}:null};
     DEFS[key].zone=zid;
     const waitBefore=S.waitEv,n=S.timeline.length;
     fire(key);
@@ -237,11 +249,13 @@
   /* ---------- no-go zones: written to the robot, which replaces its whole list on each save ---------- */
   const bbox=a=>{const xs=[a[0],a[2],a[4],a[6]],ys=[a[1],a[3],a[5],a[7]];return [Math.min(...xs),Math.min(...ys),Math.max(...xs),Math.max(...ys)]};
   const sameZone=(a,b)=>{const p=bbox(a),q=bbox(b);return p.every((v,i)=>Math.abs(v-q[i])<80)};
-  const zoneRect=z=>{const [x1,y1,x2,y2]=spotCells(ZONES[z].mm).box;return [x1,y1,x2,y1,x2,y2,x1,y2]};
+  const hasZone=z=>!!(ZONES[z]&&(ZONES[z].box||ZONES[z].mm));
+  const zoneBox=z=>ZONES[z].box||spotCells(ZONES[z].mm).box;
+  const zoneRect=z=>{const [x1,y1,x2,y2]=zoneBox(z);return [x1,y1,x2,y1,x2,y2,x1,y2]};
   const robotZones=()=>(HA.map?.no_go_areas||[]).map(a=>a.map(Math.round));
-  const onRobot=z=>ZONES[z]?.mm&&robotZones().some(a=>sameZone(a,zoneRect(z)));
+  const onRobot=z=>hasZone(z)&&robotZones().some(a=>sameZone(a,zoneRect(z)));
   function nogoList(){
-    const mine=S.nogo.filter(z=>ZONES[z]?.mm).map(zoneRect);
+    const mine=S.nogo.filter(hasZone).map(zoneRect);
     const keep=robotZones().filter(a=>!HA.removedZones.some(b=>sameZone(a,b))&&!mine.some(b=>sameZone(a,b)));
     return keep.concat(mine);
   }
@@ -272,7 +286,7 @@
     if(!HA.refArea&&status==='docked'&&d.area>0)HA.refArea=d.area;
     seedRobotRecord(snap,status);
     lifecycle(status);
-    S.objects=M().objects(snap.vacuum.entity_id,HA.map,HA.notes).map(o=>({...o,at:secOf(o.source)}));
+    S.objects=M().objects(snap.vacuum.entity_id,HA.map,HA.notes).map(o=>({...o,k:roomKey(o.mm),at:secOf(o.source)}));
     HA.removedZones=HA.removedZones.filter(b=>robotZones().some(a=>sameZone(a,b))); // until the robot's map drops them
     const rp=to3D(HA.map?.robot);
     if(rp){S.sim.pos={c:rp.x-.5,r:rp.z-.5};S.sim.heading=Number.isFinite(HA.map.robot.angle)?90-HA.map.robot.angle:0}
@@ -307,7 +321,7 @@
       S.objects.map(o=>o.status+o.label),robotZones().length,S.schedules.map(x=>x.id+x.on+x.time),S.task&&[S.task.id,S.task.done,S.task.result],S.events.map(e=>e.status),S.cmd&&S.cmd.state,S.ui.notice,!!HA.foot,HA.error]);
   }
   function commitIfChanged(){
-    if(HA.editing||S.ui.modal)return;
+    if(HA.editing||S.ui.modal||cur().name==='roomEdit')return; // never redraw under a drag or a typed name
     const s=signature();if(s!==HA.sig){HA.sig=s;commit()}
   }
   async function refresh(){
@@ -325,6 +339,7 @@
 
   /* ---------- derived values ---------- */
   function taskPct(t){
+    if(t&&t.kind&&t.kind!=='home')return null; // a full-home estimate means nothing for one room
     const area=t&&!t.done?HA.dev?.area:t?.area;
     return HA.refArea&&area!=null?Math.min(100,Math.round(area/HA.refArea*100)):null;
   }
@@ -334,7 +349,8 @@
     const d=dev(),room=HA.dev?.room;
     if(d.status==='cleaning'){
       if(HA.spotEv){const ev=findEvent(HA.spotEv);return 'Going back to '+(ZONES[ev?.zone]?.name||'the spot').toLowerCase()}
-      return room?'Cleaning '+room:'Cleaning';
+      const here=room||M().roomAt(HA.rooms,HA.map?.robot)?.name;
+      return here?'Cleaning the '+here.toLowerCase():'Cleaning';
     }
     if(d.status==='returning')return 'Returning to the dock';
     if(d.status==='paused')return S.waitEv?'Waiting for your choice':'Paused';
@@ -345,8 +361,13 @@
 
   /* ---------- map: the real map, drawn in the original layer order ---------- */
   function mapView(){
-    const f=HA.foot,pad=24;
-    return M().view({x0:f.bbox.x0-pad,y0:f.bbox.y0-pad,x1:f.bbox.x1+pad,y1:f.bbox.y1+pad});
+    const f=HA.foot,pad=24,bb={x0:f.bbox.x0-pad,y0:f.bbox.y0-pad,x1:f.bbox.x1+pad,y1:f.bbox.y1+pad};
+    return Object.assign(M().view(bb),{bb});
+  }
+  /* mm box → rectangle in map view units */
+  function viewRect(box,v){
+    const P=mm=>{const p=HA.tf(mm);return {x:v.x(p),y:v.y(p)}},a=P({x:box[0],y:box[1]}),b=P({x:box[2],y:box[3]});
+    return {x:Math.min(a.x,b.x),y:Math.min(a.y,b.y),w:Math.abs(b.x-a.x),h:Math.abs(b.y-a.y)};
   }
   /* Grid cells (i,j) of CELL_MM the robot's path passed through. */
   let cellCache={key:'',cells:new Set()};
@@ -379,21 +400,30 @@
       const st=['needsReview','deferred','inProgress'].includes(ev.status)?'review':ev.status==='skipped'?'skipped':ev.status==='resolved'?'cleaned':null;
       if(st)spotCells(ZONES[ev.zone].mm).keys.forEach(c=>cells.set(c,st));
     });
-    S.nogo.forEach(z=>{if(ZONES[z]?.mm)spotCells(ZONES[z].mm).keys.forEach(c=>cells.set(c,'nogo'))});
+    S.nogo.forEach(z=>{if(hasZone(z))M().boxCells(zoneBox(z),CELL_MM).forEach(c=>cells.set(c,'nogo'))});
     return cells;
   }
   function liveMap(o={}){
     if(!HA.foot||!HA.tf)return `<div class="calm">${ic('map',20)}<span>${esc(HA.error||'Waiting for the robot’s map from Home Assistant…')}</span></div>`;
-    const v=mapView();
+    const v=mapView();HA.view=v;
     const P=mm=>{const p=mm&&HA.tf(mm);return p?{x:v.x(p),y:v.y(p)}:null};
     const rect=(x0,y0,x1,y1)=>{const a=P({x:x0,y:y0}),b=P({x:x1,y:y1});return a&&b?{x:Math.min(a.x,b.x),y:Math.min(a.y,b.y),w:Math.abs(b.x-a.x),h:Math.abs(b.y-a.y)}:null};
     const spot=mm=>{const b=spotCells(mm).box;return rect(b[0],b[1],b[2],b[3])};
     const showLive=!o.cells;
-    let s=`<svg class="map ${o.dim?'dim':''}" viewBox="-8 -8 ${v.w+16} ${v.h+16}" role="img" aria-label="${esc(o.label||'Robot map of the home')}">`;
+    let s=`<svg class="map ${o.dim?'dim':''} ${o.edit?'ha-editing':''}" viewBox="-8 -8 ${v.w+16} ${v.h+16}" role="img" aria-label="${esc(o.label||'Robot map of the home')}">`;
     // 1 mapped floor (the robot's own map; no invented rooms or furniture)
     const fx=`translate(${v.x({x:0,y:0})} ${v.y({x:0,y:0})}) scale(${v.s})`;
     s+=`<g filter="url(#soft)"><path class="room ha-floor ${o.sel?(o.sel.length?'sel':'dull'):''}" transform="${fx}" d="${HA.foot.d}"/></g>`;
     const wall=`<path class="ha-wall" transform="${fx}" d="${HA.foot.edge}"/>`;
+    // 1b rooms drawn in this app, clipped to the mapped floor, coloured like the demo's rooms
+    const set=o.setup,edit=o.edit;
+    s+=`<clipPath id="ha-floor-clip"><path transform="${fx}" d="${HA.foot.d}"/></clipPath><g clip-path="url(#ha-floor-clip)">`;
+    if(set&&set.kind==='home')s+=`<path class="room sel" transform="${fx}" d="${HA.foot.d}"/>`;
+    HA.rooms.forEach((rm,i)=>{
+      const cls=set?(set.kind==='rooms'?(set.rooms.includes(rm.id)?'sel':'dull'):set.kind==='home'?'sel':'dull'):edit&&edit.id===rm.id?'dull':'';
+      rm.parts.forEach(b=>{const q=viewRect(b,v);s+=`<rect class="room r-${ROOM_COLORS[rm.color%ROOM_COLORS.length]} ${cls}" x="${q.x}" y="${q.y}" width="${q.w}" height="${q.h}"/>`});
+    });
+    s+='</g>';
     // 2 cells, as in the demo
     const cells=cellStates(o);
     cells.forEach((st,c)=>{const [i,j]=c.split(',').map(Number),r=rect(i*CELL_MM,j*CELL_MM,(i+1)*CELL_MM,(j+1)*CELL_MM);
@@ -401,6 +431,14 @@
     // 3 no-go zones set on the robot
     (HA.map?.no_go_areas||[]).forEach(a=>{const q=[0,2,4,6].map(i=>P({x:a[i],y:a[i+1]}));if(q.every(Boolean))s+=`<polygon class="cell nogo" points="${q.map(p=>p.x+','+p.y).join(' ')}"><title>No-go zone set on the robot</title></polygon>`});
     s+=wall;
+    if(!o.mini)HA.rooms.forEach(rm=>{if(edit&&edit.id===rm.id)return;const b=rm.parts.reduce((m,x)=>(x[2]-x[0])*(x[3]-x[1])>(m[2]-m[0])*(m[3]-m[1])?x:m),q=viewRect(b,v);
+      s+=`<text class="lbl" x="${(q.x+q.w/2).toFixed(1)}" y="${(q.y+q.h/2+3).toFixed(1)}" text-anchor="middle">${esc(rm.name)}</text>`});
+    if(o.roomTap)HA.rooms.forEach(rm=>rm.parts.forEach(b=>{const q=viewRect(b,v);s+=`<rect class="roomtap" data-a="toggleRoom" data-v="${rm.id}" x="${q.x}" y="${q.y}" width="${q.w}" height="${q.h}"><title>${esc(rm.name)}</title></rect>`}));
+    if(set&&set.kind==='zone'&&set.zone)set.zone.forEach(b=>{const q=viewRect(b,v);s+=`<rect class="zone hl" x="${q.x-2}" y="${q.y-2}" width="${q.w+4}" height="${q.h+4}" rx="6" style="stroke:var(--primary);fill:var(--clean)"/>`});
+    if(edit){
+      edit.parts.forEach((b,i)=>{const q=viewRect(b,v);s+=`<rect class="${edit.type==='nogo'?'cell nogo':'ha-part'}" x="${q.x}" y="${q.y}" width="${q.w}" height="${q.h}" rx="2"/><text class="lbl" x="${q.x+4}" y="${q.y+11}">${i+1}</text>`});
+      s+=`<rect id="ha-draft" class="ha-draft" x="0" y="0" width="0" height="0" rx="2" style="display:none"/>`;
+    }
     // 4 study events: spot outline and status marker, as in the demo
     if(!o.noEvents)(o.events||visibleEvents()).forEach(ev=>{
       const d=DEFS[ev.key];if(d.type==='decision')return;
@@ -445,7 +483,7 @@
     const W=(f.bbox.x1-f.bbox.x0)*U,D=(f.bbox.y1-f.bbox.y0)*U,size=Math.max(W,D),half=size/2+2;
     const R3=new THREE.WebGLRenderer({antialias:true,alpha:true});R3.setPixelRatio(Math.min(2,window.devicePixelRatio||1));
     R3.shadowMap.enabled=true;R3.shadowMap.type=THREE.PCFSoftShadowMap;
-    const sc=new THREE.Scene(),cam=new THREE.PerspectiveCamera(34,1,.1,500);
+    const sc=new THREE.Scene(),cam=new THREE.PerspectiveCamera(34,1,1,500);
     sc.add(new THREE.HemisphereLight(0xffffff,0xb9c3dd,.75));
     const sun=new THREE.DirectionalLight(0xffffff,.75);sun.position.set(-size*.4,size,-size*.12);sun.castShadow=true;sun.shadow.mapSize.set(2048,2048);
     Object.assign(sun.shadow.camera,{left:-half,right:half,top:half,bottom:-half,near:1,far:size*3});sun.shadow.bias=-.0015;sc.add(sun);
@@ -494,8 +532,15 @@
   }
   function liveSync3D(full){
     if(!T3.built||!full)return;
-    T3.markers.concat(T3.cells).forEach(m=>{T3.root.remove(m);if(m.material.map)m.material.map.dispose();m.material.dispose()});
+    T3.markers.concat(T3.cells).forEach(m=>{T3.root.remove(m);if(m.material.map)m.material.map.dispose();m.material.dispose();if(m.geometry&&m.geometry!==T3.cellGeo&&!m.isSprite)m.geometry.dispose()});
     T3.markers=[];T3.cells=[];T3.robot.visible=!!HA.map?.robot;
+    HA.rooms.forEach(rm=>{
+      rm.parts.forEach(b=>{const p=to3D({x:b[0],y:b[3]}),q=to3D({x:b[2],y:b[1]});if(!p||!q)return;
+        const m=new THREE.Mesh(new THREE.PlaneGeometry(Math.abs(q.x-p.x),Math.abs(q.z-p.z)),new THREE.MeshStandardMaterial({color:new THREE.Color(cssv('--r-'+ROOM_COLORS[rm.color%ROOM_COLORS.length])).offsetHSL(0,.3,-.08).multiplyScalar(.72),roughness:.85,polygonOffset:true,polygonOffsetFactor:-2,polygonOffsetUnits:-2}));
+        m.rotation.x=-Math.PI/2;m.position.set((p.x+q.x)/2,.006,(p.z+q.z)/2);m.receiveShadow=true;T3.root.add(m);T3.cells.push(m)});
+      const b=rm.parts[0],c=to3D({x:(b[0]+b[2])/2,y:(b[1]+b[3])/2});if(!c)return;
+      const t=textSprite(rm.name);t.scale.set(3.6,.9,1);t.position.set(c.x,1.25,c.z);T3.root.add(t);T3.cells.push(t);
+    });
     const col={cleaned:[cssv('--primary'),.28],review:['#F2A93B',.55],skipped:['#9AA1B2',.5],nogo:['#D2433A',.45]};
     cellStates({}).forEach((st,c)=>{const [i,j]=c.split(',').map(Number),p=to3D({x:(i+.5)*CELL_MM,y:(j+.5)*CELL_MM}),v=col[st];if(!p||!v)return;
       const m=new THREE.Mesh(T3.cellGeo,new THREE.MeshBasicMaterial({transparent:true,opacity:v[1],depthWrite:false,color:new THREE.Color(v[0])}));
@@ -506,6 +551,49 @@
     visibleEvents().forEach(ev=>{if(DEFS[ev.key].type==='decision'||!ZONES[ev.zone]?.mm)return;const b=spotCells(ZONES[ev.zone].mm).box,p=to3D({x:(b[0]+b[2])/2,y:(b[1]+b[3])/2});if(!p)return;
       const sp=emojiSprite(ev.status==='resolved'?'✓':ev.status==='skipped'?'–':'!',ev.status==='resolved'?'#17855A':ev.status==='skipped'?'#9AA1B2':'#F2A93B',null);
       sp.scale.set(.8,.8,1);sp.position.set(p.x,1.25,p.z);sp.userData={ev:ev.id};T3.root.add(sp);T3.markers.push(sp)});
+  }
+  /* ---------- screens: rooms and zones ---------- */
+  function scrRooms(){
+    const sw=rm=>`<span class="ico" style="background:var(--r-${ROOM_COLORS[rm.color%ROOM_COLORS.length]})">${ic('home',20)}</span>`;
+    let h=topbar('Rooms and zones')+`<p class="small muted" style="margin:0 4px 12px">Draw on the robot’s map. Rooms let you clean one part of the home and show where the robot is. Kept in this app; the robot’s own map isn’t changed.</p>`;
+    h+=`<div class="map-wrap">${liveMap({robot:false,noEvents:true})}</div>`;
+    h+=`<div class="sec-h">Rooms<small>${HA.rooms.length}</small></div>`;
+    h+=HA.rooms.map(rm=>`<button class="item" data-a="haEditArea" data-v="room|${rm.id}">${sw(rm)}<span class="body"><span class="t">${esc(rm.name)}</span><span class="s">${boxArea(rm.parts)} m² · ${rm.parts.length} part${rm.parts.length>1?'s':''}</span></span>${ic('chev',18)}</button>`).join('');
+    h+=`<button class="btn soft block" style="margin-top:8px" data-a="haEditArea" data-v="room|">Add a room</button>`;
+    h+=`<div class="sec-h">Saved zones<small>${HA.savedZones.length}</small></div>`;
+    h+=HA.savedZones.map(z=>`<button class="item" data-a="haEditArea" data-v="zone|${z.id}"><span class="ico blue">${ic('map',20)}</span><span class="body"><span class="t">${esc(z.name)}</span><span class="s">${boxArea(z.parts)} m²</span></span>${ic('chev',18)}</button>`).join('');
+    h+=`<button class="btn soft block" style="margin-top:8px" data-a="haEditArea" data-v="zone|">Add a zone</button>`;
+    h+=`<div class="sec-h">No-go zones<small>${S.nogo.length}</small></div><p class="small muted" style="margin:-4px 4px 8px">Saved on the robot. Remove them in Saved preferences.</p>`;
+    h+=`<button class="btn soft block" data-a="haEditArea" data-v="nogo|">Draw a no-go zone</button>`;
+    return h;
+  }
+  function scrRoomEdit(){
+    const e=S.ui.edit;if(!e)return topbar('');
+    const what={room:'room',zone:'zone',nogo:'no-go zone'}[e.type],max=e.type==='zone'?1:5;
+    let h=topbar((e.id?'Edit ':'New ')+what);
+    h+=`<p class="small muted" style="margin:0 4px 10px">Drag on the map to mark the ${what}. It snaps to the 0.5 m grid.${max>1?' Add up to 5 rectangles for an L-shaped area.':''}</p>`;
+    h+=`<div class="map-wrap">${liveMap({robot:false,noEvents:true,edit:e})}</div>`;
+    h+=`<div class="btn-row" style="margin-top:10px"><span class="small muted" style="flex:1;align-self:center">${e.parts.length?boxArea(e.parts)+' m² · '+e.parts.length+' part'+(e.parts.length>1?'s':''):'Nothing drawn yet'}</span><button class="btn plain" data-a="haUndoPart" ${e.parts.length?'':'disabled'}>Undo</button></div>`;
+    if(e.type!=='nogo')h+=`<label class="field" style="margin-top:12px"><span>Name</span><input id="ha-area-name" data-ha-name maxlength="24" placeholder="${e.type==='room'?'e.g. Kitchen':'e.g. Around the sofa'}" value="${esc(e.name||'')}" autocomplete="off"></label>`;
+    else h+=`<p class="small muted" style="margin:12px 4px 0">Saved on the robot together with its other no-go zones. Virtual walls and no-mop zones set in the Roborock app may be reset.</p>`;
+    h+=`<button class="btn primary block" style="margin-top:16px" data-a="haSaveArea">${e.type==='nogo'?'Save on the robot':'Save'}</button>`;
+    if(e.id)h+=`<button class="btn danger block" style="margin-top:8px" data-a="haDeleteArea">Delete ${what}</button>`;
+    return h;
+  }
+  /* Drag on the editor's map: screen → view units → map pixels → robot mm, snapped to the grid. */
+  function attachDrawing(){
+    const svg=document.querySelector('.scroll svg.map.ha-editing'),e=S.ui.edit;if(!svg||!e||svg.dataset.bound)return;
+    svg.dataset.bound='1';
+    const inv=M().inverse(HA.map?.calibration),draft=svg.querySelector('#ha-draft');if(!inv)return;
+    const toMm=ev=>{const pt=svg.createSVGPoint();pt.x=ev.clientX;pt.y=ev.clientY;const p=pt.matrixTransform(svg.getScreenCTM().inverse()),v=HA.view;
+      return inv({x:p.x/v.s+v.bb.x0,y:p.y/v.s+v.bb.y0})};
+    let start=null;
+    svg.addEventListener('pointerdown',ev=>{if(e.parts.length>=(e.type==='zone'?1:5)&&e.type!=='zone')return;ev.preventDefault();start=toMm(ev);svg.setPointerCapture(ev.pointerId)});
+    svg.addEventListener('pointermove',ev=>{if(!start)return;const q=viewRect(M().snapBox(start,toMm(ev),CELL_MM),HA.view);
+      Object.assign(draft.style,{display:''});draft.setAttribute('x',q.x);draft.setAttribute('y',q.y);draft.setAttribute('width',q.w);draft.setAttribute('height',q.h)});
+    svg.addEventListener('pointerup',ev=>{if(!start)return;const b=M().snapBox(start,toMm(ev),CELL_MM);start=null;
+      if(b[2]-b[0]>15000||b[3]-b[1]>15000){flash('Keep each part under 15 m on a side.');return}
+      if(e.type==='zone')e.parts=[b];else e.parts.push(b);commit()});
   }
   function liveLegend(){
     const when=HA.map?.source_updated_at?' · updated '+hhmm(secOf(HA.map.source_updated_at)):'';
@@ -564,7 +652,8 @@
 
     // Study events take the zone of the event being drawn
     const zoneOf=ev=>{if(ev&&ev.zone&&DEFS[ev.key])DEFS[ev.key].zone=ev.zone};
-    const render0=window.render;window.render=function(){S.events.forEach(zoneOf);return render0.apply(this,arguments)};
+    window.EXTRA_SCREENS={rooms:scrRooms,roomEdit:scrRoomEdit};
+    const render0=window.render;window.render=function(){S.events.forEach(zoneOf);const out=render0.apply(this,arguments);if(cur().name==='roomEdit')attachDrawing();return out};
     const evItem0=window.evItem;window.evItem=ev=>{zoneOf(ev);return evItem0(ev)};
     const scrEvent0=window.scrEvent;
     window.scrEvent=id=>{
@@ -594,7 +683,7 @@
       if(act==='nogo'){commit();return saveNogo('Save no-go zone on the robot','No-go zone saved on the robot')}
       commit();processRetries();
     };
-    const delNogo0=A.delNogo;A.delNogo=v=>{if(ZONES[v]?.mm)HA.removedZones.push(zoneRect(v));delNogo0(v);saveNogo('Remove no-go zone from the robot','No-go zone removed from the robot')};
+    const delNogo0=A.delNogo;A.delNogo=v=>{if(hasZone(v))HA.removedZones.push(zoneRect(v));delNogo0(v);saveNogo('Remove no-go zone from the robot','No-go zone removed from the robot')};
     const evAct0=A.evAct;A.evAct=v=>{evAct0(v);if(v.endsWith('|nogo')&&S.ui.modal){
       S.ui.modal.body+='<p class="small muted">This is saved on the robot. Its other no-go zones are kept. Virtual walls and no-mop zones set in the Roborock app may be reset.</p>';commit()}};
 
@@ -632,12 +721,28 @@
       return h.replace('></span>undefined<','></span>Stopped<').replace('On the dock and ready for the next cleaning.','Off the dock and not cleaning.')
         .replace('<button class="btn primary block" data-a="setup">Start cleaning</button>','<button class="btn primary" data-a="setup">Start cleaning</button><button class="btn plain" data-a="haDock">Send to dock</button>');
     });
-    const scrSetup0=window.scrSetup;
     window.scrSetup=()=>{
-      S.ui.setup.kind='home';
-      return scrSetup0().replace(/data-a="setupKind" data-v="(rooms|zone)"/g,'data-a="setupKind" data-v="$1" disabled')
-        .replace('</b>.',`</b>.</p><p class="small muted" style="margin-top:6px">Rooms and saved zones need room data in the robot’s map, which Home Assistant doesn’t provide yet.`);
+      const st=S.ui.setup,rooms=HA.rooms,zones=HA.savedZones;
+      st.rooms=st.rooms.filter(id=>rooms.some(x=>x.id===id));
+      if(st.kind==='rooms'&&!rooms.length||st.kind==='zone'&&!zones.length)st.kind='home';
+      if(st.kind==='zone'&&!zones.some(z=>z.id===st.zone))st.zone=zones[0].id;
+      const zone=zones.find(z=>z.id===st.zone),parts=setupParts();
+      let h=topbar('Start cleaning');
+      h+=`<div class="seg" role="tablist">${[['home','Entire home',1],['rooms','Rooms',rooms.length],['zone','Zone',zones.length]].map(([k,l,n])=>`<button class="${st.kind===k?'on':''}" data-a="setupKind" data-v="${k}" ${n?'':'disabled'}>${l}</button>`).join('')}</div>`;
+      h+=`<div class="map-wrap" style="margin-top:12px">${liveMap({robot:false,noEvents:true,roomTap:st.kind==='rooms',setup:{kind:st.kind,rooms:st.rooms,zone:st.kind==='zone'&&zone?zone.parts:null}})}</div>`;
+      if(!rooms.length&&!zones.length)h+=`<p class="small muted" style="margin:10px 4px">Draw rooms or zones to clean just part of the home. <button class="link" data-a="go" data-v="rooms">Set up rooms</button></p>`;
+      if(st.kind==='rooms')h+=`<p class="small muted" style="margin:10px 4px">Tap rooms on the map or below.</p><div class="chips">${rooms.map(x=>`<button class="chip ${st.rooms.includes(x.id)?'on':''}" data-a="toggleRoom" data-v="${x.id}">${esc(x.name)}</button>`).join('')}</div>`;
+      if(st.kind==='zone')h+=`<p class="small muted" style="margin:10px 4px">Choose a saved zone.</p><div class="chips">${zones.map(z=>`<button class="chip ${st.zone===z.id?'on':''}" data-a="setupZone" data-v="${z.id}">${esc(z.name)}</button>`).join('')}</div>`;
+      const label=setupLabel();
+      const nog=S.nogo.length?` No-go zones stay out.`:'';
+      h+=`<div class="card" style="margin-top:16px"><p style="font-size:15px;line-height:1.5">The robot will clean <b>${esc(label.toLowerCase()==='entire home'?'the entire home':label||'no rooms yet')}</b>.${nog}</p>`;
+      if(parts.length>5)h+=`<p class="small" style="color:var(--stop)">The robot can clean at most 5 rectangles at once. Choose fewer rooms.</p>`;
+      const sending=!!(S.cmd&&S.cmd.state==='sending')||!!HA.pending;
+      h+=`<button class="btn primary block" style="margin-top:14px" data-a="startTask" ${(st.kind==='rooms'&&!st.rooms.length)||parts.length>5||sending?'disabled':''}>${sending?'Sending…':'Start'}</button></div>`;
+      return h;
     };
+    const setupParts=()=>{const st=S.ui.setup;return st.kind==='rooms'?HA.rooms.filter(x=>st.rooms.includes(x.id)).flatMap(x=>x.parts):st.kind==='zone'?(HA.savedZones.find(z=>z.id===st.zone)?.parts||[]):[]};
+    const setupLabel=()=>{const st=S.ui.setup;return st.kind==='rooms'?HA.rooms.filter(x=>st.rooms.includes(x.id)).map(x=>x.name).join(', '):st.kind==='zone'?(HA.savedZones.find(z=>z.id===st.zone)?.name||''):'Entire home'};
     wrap('scrMap',h=>h.replace(/(<div class="sec-h">Objects found<small>\d+<\/small><\/div>)/,'$1<p class="small muted" style="margin:-4px 4px 10px">From the robot’s saved map. Labels you fix are kept in this app.</p>'));
     wrap('scrReport',h=>h.replace('<span>Of the plan</span>','<span>Of a full clean (est.)</span>'));
     wrap('scrRules',h=>{let i=0;return h.replace(/\. Every cleaning\.<\/span>/g,()=>{const z=S.nogo[i++];return '. Every cleaning. '+(onRobot(z)?'Saved on the robot.':'Sent to the robot; waiting for its map to show it.')+'</span>'})});
@@ -647,6 +752,7 @@
       const running=S.task&&!S.task.done;
       h=h.replace('<div class="sec-h">Notifications</div>','<div class="sec-h">Notifications</div><p class="small muted" style="margin:-4px 4px 8px">Sent to Home Assistant, and to your phone if the Home Assistant app is installed, while this app is open.</p>');
       return h.replace('</div>','</div>'+modeRows(true))+`<div class="sec-h">Home Assistant</div><div class="group">
+        <button class="row" data-a="go" data-v="rooms">Rooms and zones<span class="v">${HA.rooms.length+HA.savedZones.length}</span>${ic('chev',18)}</button>
         <button class="row" data-a="haConnect">Connection<span class="v">${S.conn==='connected'?'Connected':'Not connected'}</span>${ic('chev',18)}</button>
         <div class="row">Robot map<span class="v">${map}</span></div></div>
         <div class="sec-h">Study scenario</div><p class="small muted" style="margin:-4px 4px 8px">Simulated events shown during real cleanings, at the robot’s position. For facilitators.</p>
@@ -656,10 +762,39 @@
 
     // Robot commands
     A.startTask=()=>{
-      HA.expectStart={label:'Entire home',at:Date.now()};
-      liveCommand('start',{label:'Start cleaning',done:'Cleaning started',expect:['cleaning'],onFail:()=>{HA.expectStart=null}},
+      const kind=S.ui.setup.kind,parts=setupParts(),label=setupLabel();
+      if(kind!=='home'&&(!parts.length||parts.length>5))return;
+      HA.expectStart={label,at:Date.now(),kind};
+      liveCommand(kind==='home'?'start':'zones',{label:'Start cleaning',done:'Cleaning started',expect:['cleaning'],body:kind==='home'?null:{zones:parts},onFail:()=>{HA.expectStart=null}},
         ()=>{S.ui.stack=[];S.ui.tab='map';forceTop=true});
     };
+    // Drawing rooms, zones and no-go zones
+    A.haEditArea=v=>{
+      const [type,id]=v.split('|'),src=type==='room'?HA.rooms.find(x=>x.id===id):type==='zone'?HA.savedZones.find(x=>x.id===id):null;
+      S.ui.edit={type,id:src?src.id:null,name:src?src.name:'',parts:src?src.parts.map(b=>[...b]):[]};go('roomEdit');
+    };
+    A.haUndoPart=()=>{S.ui.edit.parts.pop();commit()};
+    A.haSaveArea=()=>{
+      const e=S.ui.edit,name=(document.getElementById('ha-area-name')?.value??e.name).trim();
+      if(!e.parts.length){flash('Drag on the map first.');return}
+      if(e.type!=='nogo'&&!name){const i=document.getElementById('ha-area-name');if(i){i.focus();i.placeholder='Type a name first'}return}
+      if(e.type==='nogo'){
+        e.parts.forEach((b,i)=>{const zid='z'+(++seq);const c={x:(b[0]+b[2])/2,y:(b[1]+b[3])/2};
+          ZONES[zid]={name:'No-go zone '+(S.nogo.length+1),room:roomKey(c),cells:[],keys:[],box:b};S.nogo.push(zid)});
+        S.ui.edit=null;back();saveNogo('Save no-go zone on the robot','No-go zone saved on the robot');return;
+      }
+      const list=e.type==='room'?HA.rooms:HA.savedZones,old=list.find(x=>x.id===e.id);
+      if(old)Object.assign(old,{name,parts:e.parts});
+      else list.push({id:Date.now().toString(36),name,parts:e.parts,color:e.type==='room'?HA.rooms.length:0});
+      registerRooms();S.ui.edit=null;persist();back();flash((e.type==='room'?'Room':'Zone')+' saved');
+    };
+    A.haDeleteArea=()=>{
+      const e=S.ui.edit;S.ui.modal={title:'Delete '+(e.name||'this')+'?',body:'<p>It is removed from this app. The robot’s own map isn’t changed.</p>',
+        buttons:[{label:'Delete',a:'haDeleteGo',cls:'danger'},{label:'Cancel',a:'closeModal'}]};commit();
+    };
+    A.haDeleteGo=()=>{const e=S.ui.edit;if(e.type==='room')HA.rooms=HA.rooms.filter(x=>x.id!==e.id);else HA.savedZones=HA.savedZones.filter(x=>x.id!==e.id);
+      S.ui.edit=null;S.ui.modal=null;persist();back()};
+    document.addEventListener('input',ev=>{if(ev.target.dataset&&ev.target.dataset.haName!==undefined&&S.ui.edit)S.ui.edit.name=ev.target.value});
     A.pause=()=>liveCommand('pause',{label:'Pause',done:'Paused',expect:['paused','idle']},()=>tl('you','You paused cleaning'));
     A.resume=()=>liveCommand('start',{label:'Resume',done:'Cleaning resumed',expect:['cleaning']},()=>{S.checkEv=null;S.waitEv=null;tl('you','You resumed cleaning')});
     A.endReturn=()=>{S.ui.modal={title:'End cleaning and return?',body:'<p>The robot stops and goes back to its dock. Places it hasn’t reached yet stay uncleaned this time.</p>',buttons:[{label:'End and return to dock',a:'confirmEnd',cls:'danger'},{label:'Keep cleaning',a:'closeModal'}]};commit()};
@@ -684,10 +819,10 @@
 
     const commit0=window.commit;window.commit=function(){persist();return commit0.apply(this,arguments)};
     const st=document.createElement('style');
-    st.textContent='.map.tilted{transform:perspective(900px) rotateX(52deg) rotateZ(-32deg) scale(.84) translateY(-10px)}.pill.recorded{background:var(--primary-soft);color:var(--primary)}.map .ha-floor{fill:var(--surface)}.map .ha-floor.sel{fill:var(--primary-soft)}.map .ha-wall{fill:none;stroke:var(--wall);stroke-width:2.2;stroke-linecap:square;vector-effect:non-scaling-stroke;pointer-events:none}.map .ha-swept{fill:none;stroke:var(--clean);stroke-linecap:round;stroke-linejoin:round;pointer-events:none}';
+    st.textContent='.map.tilted{transform:perspective(900px) rotateX(52deg) rotateZ(-32deg) scale(.84) translateY(-10px)}.map.ha-editing{touch-action:none;cursor:crosshair}.map .ha-part{fill:var(--primary-soft);stroke:var(--primary);stroke-width:1.5}.map .ha-draft{fill:var(--primary-soft);stroke:var(--primary);stroke-width:1.5;stroke-dasharray:4 3;pointer-events:none}.pill.recorded{background:var(--primary-soft);color:var(--primary)}.map .ha-floor{fill:var(--surface)}.map .ha-floor.sel{fill:var(--primary-soft)}.map .ha-wall{fill:none;stroke:var(--wall);stroke-width:2.2;stroke-linecap:square;vector-effect:non-scaling-stroke;pointer-events:none}.map .ha-swept{fill:none;stroke:var(--clean);stroke-linecap:round;stroke-linejoin:round;pointer-events:none}';
     document.head.appendChild(st);
   }
 
-  window.HA_INIT=()=>{restore();patch();refresh();loadSchedules();setInterval(refresh,4000);setInterval(loadSchedules,60000)};
+  window.HA_INIT=()=>{restore();patch();registerRooms();refresh();loadSchedules();setInterval(refresh,4000);setInterval(loadSchedules,60000)};
   window.HA_TICK=()=>{S.clock=now();fireDue();updateLive()};
 })();

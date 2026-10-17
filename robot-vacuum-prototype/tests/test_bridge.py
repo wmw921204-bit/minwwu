@@ -84,6 +84,17 @@ class BridgeTests(unittest.TestCase):
                 self.assertEqual(self.request('/api/command', {'action': 'zone', 'box': box})[0], 400)
                 ha.assert_not_called()
 
+    def test_rooms_clean_as_up_to_five_zones_in_one_run(self):
+        zones = [[25000, 26000, 30000, 31000], [30000, 26000, 32000.4, 28000]]
+        with patch.object(server, 'ha', side_effect=[STATES, []]) as ha:
+            self.assertEqual(self.request('/api/command', {'action': 'zones', 'zones': zones})[0], 200)
+            ha.assert_called_with('services/vacuum/send_command', {'entity_id': 'vacuum.s6_maxv', 'command': 'app_zoned_clean',
+                                                                  'params': [[25000, 26000, 30000, 31000, 1], [30000, 26000, 32000, 28000, 1]]})
+        for bad in ([], [[0, 0, 1, 1]] * 6, [[0, 0, 20000, 1000]], [[5, 5, 1, 1]], [[1, 2, 3]]):
+            with patch.object(server, 'ha') as ha:
+                self.assertEqual(self.request('/api/command', {'action': 'zones', 'zones': bad})[0], 400)
+                ha.assert_not_called()
+
     def test_cleaning_mode_is_limited_to_the_robot_options(self):
         with patch.object(server, 'ha', side_effect=[STATES, []]) as ha:
             self.assertEqual(self.request('/api/command', {'action': 'mode', 'mode': 'vacuum'})[0], 200)
