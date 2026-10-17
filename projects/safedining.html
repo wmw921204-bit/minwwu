@@ -16,7 +16,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&family=Poppins:wght@400;500;600&family=Sulphur+Point:wght@400&display=swap">
   <link rel="stylesheet" href="../styles.css?v=20261017a">
-  <link rel="stylesheet" href="../case.css?v=20261018f">
+  <link rel="stylesheet" href="../case.css?v=20261018k">
 </head>
 <body class="case case--olive">
   <a class="skip" href="#main">Skip to content</a>
@@ -250,11 +250,21 @@
         </div>
         <figure class="c-figure c-figure--map reveal"><img src="../assets/projects/safedining/system-map.webp" alt="Allergy-friendly dining ecosystem map: the restaurant at the centre, surrounded by suppliers, certification bodies, review and delivery platforms, regulators, advocacy groups, the medical system and tourism" width="3000" height="2680" loading="lazy"><figcaption>Six kinds of flow (service, money, physical goods, information, intangible value and regulation) between everyone who touches the meal.</figcaption></figure>
         <h3 class="c-kicker" style="margin-top:96px">How trust travels: a relay race from regulation to plate</h3>
-        <ol class="layers reveal-stagger">
-          <li style="--c:#a7ad86"><span class="layers__ring"><b>Micro</b></span><div><h4>Trust begins with people</h4><p>Diners, friends and family, chefs, servers and managers decide, in the moment, whether the meal is safe.</p><p class="layers__who">Diner · friends &amp; family · restaurant</p></div></li>
-          <li style="--c:#e3b7b4"><span class="layers__ring"><b>Meso</b></span><div><h4>The support network</h4><p>Suppliers, training providers, review platforms and certifiers make sure information is conveyed, applied and tracked.</p><p class="layers__who">Supplier · certification body · IT &amp; digital services</p></div></li>
-          <li style="--c:#b9cfdc"><span class="layers__ring"><b>Macro</b></span><div><h4>The system conditions</h4><p>Regulators, legal frameworks and advocacy groups set the rules everyone else works within.</p><p class="layers__who">Regulators · legal environment · NGOs · delivery platforms · tourism · medical system</p></div></li>
-        </ol>
+        <div class="relay">
+          <svg class="relay__cone reveal" viewBox="0 0 440 430" role="img" aria-label="Three stacked layers: micro on top, meso in the middle, macro at the base">
+            <defs><marker id="relay-arrow" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0 10 5 0 10z" fill="#f2b84b"/></marker></defs>
+            <path class="relay__edge" d="M120 74 L30 352 M320 74 L410 352"/>
+            <path class="relay__flow" d="M220 300 L220 256 M220 170 L220 112" marker-end="url(#relay-arrow)"/>
+            <g class="relay__ring" data-layer="2"><ellipse cx="220" cy="352" rx="190" ry="48"/><text x="220" y="358">Macro</text></g>
+            <g class="relay__ring" data-layer="1"><ellipse cx="220" cy="212" rx="146" ry="38"/><text x="220" y="218">Meso</text></g>
+            <g class="relay__ring" data-layer="0"><ellipse cx="220" cy="74" rx="100" ry="28"/><text x="220" y="80">Micro</text></g>
+          </svg>
+          <ol class="relay__list reveal-stagger">
+            <li data-layer="0" tabindex="0"><span class="relay__dot"></span><div><h4>Micro · trust begins with people</h4><p>Diners, friends and family, chefs, servers and managers decide, in the moment, whether the meal is safe.</p><ul class="relay__who"><li>Diner</li><li>Friends &amp; family</li><li>Restaurant</li></ul></div></li>
+            <li data-layer="1" tabindex="0"><span class="relay__dot"></span><div><h4>Meso · the support network</h4><p>Suppliers, training providers, review platforms and certifiers make sure information is conveyed, applied and tracked.</p><ul class="relay__who"><li>Supplier</li><li>Certification body</li><li>IT &amp; digital services</li></ul></div></li>
+            <li data-layer="2" tabindex="0"><span class="relay__dot"></span><div><h4>Macro · the system conditions</h4><p>Regulators, legal frameworks and advocacy groups set the rules everyone else works within.</p><ul class="relay__who"><li>Regulators</li><li>Legal environment</li><li>NGOs</li><li>Delivery platforms</li><li>Tourism</li></ul></div></li>
+          </ol>
+        </div>
         <blockquote class="c-pull reveal">Trust cannot rely on individual goodwill; it must be <em>embedded within the system itself.</em></blockquote>
         <div class="breaks reveal-stagger">
           <div><small>Where the chain breaks</small><h4>Lost in the middle</h4><p>Supplier labels don’t match, menus lag behind the kitchen, and spoken reminders replace records. A single miscommunication quietly erodes trust.</p></div>

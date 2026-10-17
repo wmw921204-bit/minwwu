@@ -631,3 +631,53 @@ img.is-zoomable { cursor: zoom-in; }
 /* Wide stats (e.g. 53.9%) sit in the upper right, clear of the dialogue box */
 .vn__big--stat { font-size: clamp(96px, 13vw, 230px); top: 24vh; translate: none; right: var(--gutter); white-space: nowrap; }
 @media (max-width: 760px) { .vn__big--stat { font-size: 22vw; top: 24vh; } }
+
+/* Relay cone: micro / meso / macro */
+.relay { display: grid; grid-template-columns: minmax(0, .9fr) minmax(0, 1.1fr); gap: clamp(28px, 5vw, 80px); align-items: center; margin-top: 40px; }
+.relay__cone { width: 100%; max-width: 460px; justify-self: center; overflow: visible; }
+.relay__edge { fill: none; stroke: rgba(250,247,240,.35); stroke-width: 1.2; }
+.relay__flow { stroke: #f2b84b; stroke-width: 2; stroke-dasharray: 5 7; animation: relay-flow 1.6s linear infinite; }
+@keyframes relay-flow { to { stroke-dashoffset: -24; } }
+.relay__ring ellipse { stroke: rgba(250,247,240,.6); stroke-width: 1.2; transition: opacity .4s, stroke .4s, transform .5s var(--ease); transform-box: fill-box; transform-origin: center; }
+.relay__ring[data-layer="0"] ellipse { fill: #a7ad86; }
+.relay__ring[data-layer="1"] ellipse { fill: #e3b7b4; }
+.relay__ring[data-layer="2"] ellipse { fill: #b9cfdc; }
+.relay__ring text { font: 600 17px var(--f-display); fill: #262c22; text-anchor: middle; pointer-events: none; }
+.relay__list { display: grid; gap: 8px; }
+.relay__list > li { display: grid; grid-template-columns: 14px 1fr; gap: 18px; padding: 20px 22px; border-radius: 18px; outline: none; transition: background .4s; cursor: default; }
+.relay__dot { width: 12px; height: 12px; margin-top: 8px; border-radius: 50%; }
+.relay__list > li[data-layer="0"] .relay__dot { background: #a7ad86; }
+.relay__list > li[data-layer="1"] .relay__dot { background: #e3b7b4; }
+.relay__list > li[data-layer="2"] .relay__dot { background: #b9cfdc; }
+.relay__list h4 { font: 600 clamp(19px, 1.7vw, 23px)/1.3 var(--f-display); letter-spacing: -0.015em; }
+.relay__list p { margin-top: 6px; color: var(--c-muted); line-height: 1.55; }
+.relay__who { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; }
+.relay__who li { padding: 4px 11px; border-radius: 99px; border: 1px solid rgba(250,247,240,.2); font-size: 13px; color: rgba(250,247,240,.8); }
+/* hovering a layer lights its ring and dims the others */
+.relay__list > li:hover, .relay__list > li:focus-visible { background: rgba(250,247,240,.07); }
+.relay:has(.relay__list > li:hover) .relay__ring ellipse, .relay:has(.relay__list > li:focus-visible) .relay__ring ellipse { opacity: .3; }
+.relay:has([data-layer="0"]:hover) .relay__ring[data-layer="0"] ellipse,
+.relay:has([data-layer="1"]:hover) .relay__ring[data-layer="1"] ellipse,
+.relay:has([data-layer="2"]:hover) .relay__ring[data-layer="2"] ellipse,
+.relay:has([data-layer="0"]:focus-visible) .relay__ring[data-layer="0"] ellipse,
+.relay:has([data-layer="1"]:focus-visible) .relay__ring[data-layer="1"] ellipse,
+.relay:has([data-layer="2"]:focus-visible) .relay__ring[data-layer="2"] ellipse { opacity: 1; stroke: #f2b84b; stroke-width: 2.5; transform: scale(1.06); }
+@media (max-width: 860px) { .relay { grid-template-columns: 1fr; } .relay__cone { max-width: 340px; } }
+@media (prefers-reduced-motion: reduce) { .relay__flow { animation: none; } }
+.relay__list > li { align-items: start; }
+.relay__list h4 { margin: 0; }
+.relay__dot { margin-top: 8px; }
+/* keep research photos within one screen */
+.rs-split > img { aspect-ratio: 4 / 5; max-height: min(68vh, 640px); object-fit: cover; object-position: 50% 40%; justify-self: center; }
+.rs-photos { max-width: 620px; }
+.rs-photos .rs-photos__wide { aspect-ratio: 16 / 10; }
+.rs-photos img:not(.rs-photos__wide) { aspect-ratio: 4 / 3; height: auto; }
+.relay:has(.relay__list > li:hover) .relay__ring ellipse, .relay:has(.relay__list > li:focus-visible) .relay__ring ellipse { opacity: 1; filter: grayscale(.8) brightness(.55); }
+.relay:has([data-layer="0"]:hover) .relay__ring[data-layer="0"] ellipse, .relay:has([data-layer="1"]:hover) .relay__ring[data-layer="1"] ellipse, .relay:has([data-layer="2"]:hover) .relay__ring[data-layer="2"] ellipse,
+.relay:has([data-layer="0"]:focus-visible) .relay__ring[data-layer="0"] ellipse, .relay:has([data-layer="1"]:focus-visible) .relay__ring[data-layer="1"] ellipse, .relay:has([data-layer="2"]:focus-visible) .relay__ring[data-layer="2"] ellipse { filter: none; }
+.relay__ring ellipse { transition: filter .4s, stroke .4s, transform .5s var(--ease); }
+.relay:has(.relay__list > li:hover) .relay__ring ellipse, .relay:has(.relay__list > li:focus-visible) .relay__ring ellipse { filter: none; fill: #5a6452; }
+.relay:has([data-layer="0"]:hover) .relay__ring[data-layer="0"] ellipse, .relay:has([data-layer="0"]:focus-visible) .relay__ring[data-layer="0"] ellipse { fill: #a7ad86; }
+.relay:has([data-layer="1"]:hover) .relay__ring[data-layer="1"] ellipse, .relay:has([data-layer="1"]:focus-visible) .relay__ring[data-layer="1"] ellipse { fill: #e3b7b4; }
+.relay:has([data-layer="2"]:hover) .relay__ring[data-layer="2"] ellipse, .relay:has([data-layer="2"]:focus-visible) .relay__ring[data-layer="2"] ellipse { fill: #b9cfdc; }
+.relay__ring ellipse { transition: fill .4s, stroke .4s, transform .5s var(--ease); }
