@@ -816,3 +816,12 @@ img.is-zoomable { cursor: zoom-in; }
 /* the recording already has its own phone mockup */
 .reco-device--video video { border: 0; border-radius: 0; background: transparent; height: 720px; }
 .reco-covers { grid-template-columns: 1fr 1fr; align-items: center; }
+/* Enable real AI control */
+.reco-ai { max-width: 344px; margin: 18px auto 0; text-align: center; }
+.reco-ai__btn { padding: 12px 22px; border: 0; border-radius: 99px; background: #fff3e3; color: #1d1b19; font: 600 15px/1 var(--f-display); transition: transform .3s var(--ease), background .3s; }
+.reco-ai__btn:hover:not(:disabled) { transform: translateY(-2px); background: #f5b849; }
+.reco-ai__btn:disabled { opacity: .7; cursor: default; }
+.reco-ai__btn.is-on { background: #e8392d; color: #fff; opacity: 1; }
+.reco-ai__note { margin-top: 10px; font-size: 13px; line-height: 1.5; color: rgba(255,243,227,.6); }
+.reco-ai__bar { height: 4px; margin-top: 12px; border-radius: 4px; background: rgba(255,243,227,.15); overflow: hidden; }
+.reco-ai__bar span { display: block; height: 100%; width: 0; background: #f5b849; transition: width .3s; }

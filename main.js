@@ -590,6 +590,45 @@ $$("[data-relay]").forEach((relay) => {
   $$(".relay__layer", relay).forEach((g) => g.addEventListener("pointerenter", () => set(g.dataset.layer)));
 });
 
+/* ---------- RECO demo: switch the embedded app to a real in-browser AI ---------- */
+$$("[data-reco-ai]").forEach((box) => {
+  const frame = box.closest("figure")?.querySelector("iframe");
+  const btn = $(".reco-ai__btn", box), note = $(".reco-ai__note", box), bar = $(".reco-ai__bar", box);
+  const tag = box.closest("figure")?.querySelector("[data-reco-mode]");
+  if (!frame) return;
+  if (!("gpu" in navigator)) {
+    btn.disabled = true;
+    note.textContent = "Your browser doesn’t support WebGPU, so the simulated BoKnee stays on. Try desktop Chrome or Edge for the real model.";
+  }
+  const send = (type) => frame.contentWindow?.postMessage({ source: "reco-page", type }, "*");
+  btn.addEventListener("click", () => {
+    btn.disabled = true;
+    btn.textContent = "Loading…";
+    bar.hidden = false;
+    note.textContent = "Downloading the model to your browser. You can keep chatting with the simulated BoKnee meanwhile.";
+    send("enable-ai");
+  });
+  addEventListener("message", (e) => {
+    if (e.source !== frame.contentWindow || e.data?.source !== "reco-app") return;
+    const d = e.data;
+    if (d.type === "ai-progress") {
+      bar.firstElementChild.style.width = `${Math.round((d.progress || 0) * 100)}%`;
+      btn.textContent = `Loading… ${Math.round((d.progress || 0) * 100)}%`;
+    } else if (d.type === "ai-ready") {
+      bar.hidden = true;
+      btn.textContent = "Real AI on";
+      btn.classList.add("is-on");
+      note.textContent = "BoKnee now answers with Llama 3.2 1B, running on your device. Replies are generated live, so they won’t match the video word for word.";
+      if (tag) { tag.textContent = "Try it here · real AI, on your device"; tag.classList.add("reco-tag--live"); }
+    } else if (d.type === "ai-error") {
+      bar.hidden = true;
+      btn.disabled = false;
+      btn.textContent = "Try again";
+      note.textContent = `Couldn’t start the real model (${d.message}). The simulated BoKnee is still on.`;
+    }
+  });
+});
+
 /* ---------- Flipbook: a printed document you page through like a book ---------- */
 $$("[data-flip]").forEach((flip) => {
   const book = $(".flip__book", flip);

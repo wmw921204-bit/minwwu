@@ -16,7 +16,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&family=Poppins:wght@400;500;600&family=Sulphur+Point:wght@400&family=Holtwood+One+SC&display=swap">
   <link rel="stylesheet" href="../styles.css?v=20261018a">
-  <link rel="stylesheet" href="../case.css?v=20261019c">
+  <link rel="stylesheet" href="../case.css?v=20261019d">
 </head>
 <body class="case case--reco">
   <a class="skip" href="#main">Skip to content</a>
@@ -163,11 +163,16 @@
         <div class="reco-demo">
           <figure class="reco-demo__item">
             <div class="reco-device reco-device--app"><iframe src="../assets/projects/reco/app/index.html" title="RECO app, simulated version" loading="lazy" scrolling="no"></iframe></div>
-            <figcaption><span class="reco-tag">Try it here · simulated</span>Type how your day went, tap an emotion, or tap the knee.</figcaption>
+            <figcaption><span class="reco-tag" data-reco-mode>Try it here · simulated</span>Type how your day went, tap an emotion, or tap the knee.</figcaption>
+            <div class="reco-ai" data-reco-ai>
+              <button class="reco-ai__btn" type="button">Enable real AI</button>
+              <p class="reco-ai__note">Free and private: a small open model (Llama 3.2 1B) runs on your own device with WebGPU. First load downloads about 0.9 GB, then it’s cached.</p>
+              <div class="reco-ai__bar" hidden><span></span></div>
+            </div>
           </figure>
           <div class="reco-demo__note reveal">
             <h3>Why there are two</h3>
-            <p>The real app sends every message to the <strong>OpenAI API</strong> and pulls studies from <strong>PubMed</strong>, and each call costs money. So the version on the left is a <strong>simulation</strong>: it reads what you write and answers with the replies BoKnee gave in our real session, with no API behind it.</p>
+            <p>The real app sends every message to the <strong>OpenAI API</strong> and pulls studies from <strong>PubMed</strong>, and each call costs money. So the version on the left starts as a <strong>simulation</strong>: it reads what you write and answers with the replies BoKnee gave in our real session.</p><p>Want real answers? <strong>Enable real AI</strong> runs a free open-source model inside your browser with the same BoKnee prompt. Nothing is sent to a server.</p>
             <p>The walkthrough on the right is the <strong>actual build</strong>, recorded while connected to the live APIs.</p>
             <p class="reco-demo__hint">Try: “hi”, then “my knee felt sore and stiff in rehab today”, then “seeing my teammates practice made me feel down”.</p>
           </div>
@@ -270,6 +275,6 @@
   </footer>
 
   <script src="../assets/js/lenis.min.js" defer></script>
-  <script src="../main.js?v=20261018f" defer></script>
+  <script src="../main.js?v=20261019a" defer></script>
 </body>
 </html>
