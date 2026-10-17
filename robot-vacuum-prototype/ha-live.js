@@ -198,7 +198,7 @@
   }
   function raiseProblem(key,info,noSpot){
     if(S.events.some(e=>e.key===key&&['needsReview','deferred'].includes(e.status)))return null;
-    const pos=noSpot?null:HA.map?.robot,zid='z'+(++seq);
+    const pos=noSpot?null:robotPose(),zid='z'+(++seq);
     ZONES[zid]={name:pos?'Where the robot was at '+hhmm(S.clock):'Robot map',room:pos?roomKey(pos):'live',cells:[],keys:[],mm:pos?{x:pos.x,y:pos.y}:null};
     defineProblem(key,info,zid);
     const ev={id:'e'+(++seq),key,at:S.clock,status:'needsReview',autonomous:false,log:[],outcome:null,zone:zid,problem:true,info,attempts:0};
@@ -215,9 +215,9 @@
     if(st!==HA.lastStatusProblem){if(HA.lastStatusProblem)resolveProblem('p_s_'+HA.lastStatusProblem,'Back to normal.');if(st)raiseProblem('p_s_'+st,STATUS_PROBLEMS[st],true);HA.lastStatusProblem=st}
     // the map Home Assistant sends is from before this cleaning
     const t=S.task;
-    if(t&&!t.done&&!mapFresh(t)&&Date.now()-t.startedAt>120000&&!t.mapWarned){t.mapWarned=true;
-      raiseProblem('p_map',{title:'Map not updating',what:'Home Assistant hasn’t sent a new map since '+(HA.map?.source_updated_at?hhmm(secOf(HA.map.source_updated_at)):'—')+', so cleaned cells, the robot’s position and objects can’t update.',fix:'Cleaning continues. In Home Assistant, reload the Roborock integration if this keeps happening.',why:'The map from Home Assistant is older than this cleaning.',options:['pOk']},true)}
-    if(t&&mapFresh(t))resolveProblem('p_map','The map is updating again.');
+    if(t&&!t.done&&!mapFresh(t)&&!trailOf(t).length&&Date.now()-t.startedAt>120000&&!t.mapWarned){t.mapWarned=true;
+      raiseProblem('p_map',{title:'Map not updating',what:'Home Assistant hasn’t sent a new map since '+(HA.map?.source_updated_at?hhmm(secOf(HA.map.source_updated_at)):'—')+', and the robot’s live position isn’t coming through either, so cleaned cells and the robot can’t move on the map.',fix:'Cleaning continues. In Home Assistant, reload the Roborock integration if this keeps happening.',why:'The map from Home Assistant is older than this cleaning.',options:['pOk']},true)}
+    if(t&&(mapFresh(t)||trailOf(t).length))resolveProblem('p_map',mapFresh(t)?'The map is updating again.':'The robot’s live position is coming through.');
   }
   const mapFresh=t=>!!(t&&HA.map&&Date.parse(HA.map.source_updated_at)>=t.startedAt-5000);
 
@@ -263,7 +263,7 @@
   function finishLiveTask(){
     const t=S.task;
     t.done=true;t.end=S.clock;t.endedAt=Date.now();t.area=HA.dev?.area??null;t.minutes=HA.dev?.minutes??Math.round((t.endedAt-t.startedAt)/60000);
-    t.path=mapFresh(t)?M().simplifyPath(HA.map?.path):[];
+    t.path=(mapFresh(t)?M().simplifyPath(HA.map?.path):[]).concat(trailOf(t));
     S.sim.pending=[];S.sim.queue=[];S.waitEv=null;S.checkEv=null;
     t.result=computeResult();t.pct=taskPct(t);
     if(t.result==='completed'&&t.area>0&&t.scopeLabel==='Entire home')HA.refArea=Math.max(HA.refArea||0,t.area);
@@ -303,7 +303,7 @@
 
   /* ---------- study events at the real robot's position ---------- */
   function fireStudy(key){
-    const pos=HA.map?.robot;
+    const pos=robotPose();
     const zid='z'+(++seq);
     ZONES[zid]={name:'Spot at '+hhmm(S.clock),room:pos?roomKey(pos):'live',cells:[],keys:[],mm:pos?{x:pos.x,y:pos.y}:null};
     DEFS[key].zone=zid;
@@ -376,6 +376,23 @@
     commit();
   }
 
+  /* ---------- live position: moves the robot and fills cells even when the map image is old ---------- */
+  const robotPose=()=>HA.pose||HA.map?.robot||null;
+  function takePosition(snap){
+    const lp=snap.position;if(!lp||!Number.isFinite(lp.x))return;
+    const last=HA.pose,moved=last?Math.hypot(lp.x-last.x,lp.y-last.y):0;
+    // the robot reports no heading here, so face the way it last moved
+    const angle=last&&moved>60?Math.atan2(lp.y-last.y,lp.x-last.x)*180/Math.PI:last?.angle??HA.map?.robot?.angle;
+    HA.pose={x:lp.x,y:lp.y,angle,at:lp.at};
+    const t=S.task;
+    if(t&&(!t.done||t.spot)&&['cleaning','returning','paused','error'].includes(S.device.status)){
+      t.trail=t.trail||[[]];let seg=t.trail[t.trail.length-1];const prev=seg[seg.length-1];
+      if(prev&&Math.hypot(lp.x-prev[0],lp.y-prev[1])>1500){seg=[];t.trail.push(seg)} // a jump, not a drive
+      if(!prev||Math.hypot(lp.x-prev[0],lp.y-prev[1])>=60)seg.push([Math.round(lp.x),Math.round(lp.y)]);
+    }
+  }
+  const trailOf=t=>(t&&t.trail||[]).filter(seg=>seg.length);
+
   /* ---------- Home Assistant snapshot → app state ---------- */
   function goOffline(msg){
     HA.error=msg;
@@ -394,12 +411,13 @@
     if(!HA.refArea&&status==='docked'&&d.area>0)HA.refArea=d.area;
     seedRobotRecord(snap,status);
     lifecycle(status);
+    takePosition(snap);
     checkProblems(snap,d);
     syncObjects(snap);
     S.objects=HA.objs.filter(o=>!o.dismissed).map(o=>({...o,k:roomKey(o.mm),at:secOf(o.source)}));
     HA.removedZones=HA.removedZones.filter(b=>robotZones().some(a=>sameZone(a,b))); // until the robot's map drops them
-    const rp=to3D(HA.map?.robot);
-    if(rp){S.sim.pos={c:rp.x-.5,r:rp.z-.5};S.sim.heading=Number.isFinite(HA.map.robot.angle)?90-HA.map.robot.angle:0}
+    const rp=to3D(robotPose());
+    if(rp){S.sim.pos={c:rp.x-.5,r:rp.z-.5};S.sim.heading=Number.isFinite(robotPose().angle)?90-robotPose().angle:0}
   }
   async function loadSchedules(){
     try{const r=await api('schedules');S.schedules=r.schedules;HA.schedLoaded=true;HA.schedError=''}
@@ -426,9 +444,9 @@
         timeline:[{t:secOf(begin),a:'robot',x:'Cleaning started'},{t:secOf(end),a:'result',x:'Cleaning finished. Recorded by the robot while this app wasn’t open, so there are no decisions to show.'}]}});
   }
   function signature(){
-    const p=HA.map?.robot;
+    const p=robotPose(),tr=S.task&&trailOf(S.task).reduce((a,x)=>a+x.length,0);
     return JSON.stringify([S.conn,S.device,HA.dev?.area,HA.dev?.minutes,HA.dev?.room,p&&[p.x,p.y,p.angle],HA.map?.path?.[0]?.length,HA.map?.source_updated_at,
-      S.objects.map(o=>o.status+o.label),robotZones().length,S.schedules.map(x=>x.id+x.on+x.time),S.task&&[S.task.id,S.task.done,S.task.result],S.events.map(e=>e.status),S.cmd&&S.cmd.state,S.ui.notice,!!HA.foot,HA.error]);
+      S.objects.map(o=>o.status+o.label),tr,robotZones().length,S.schedules.map(x=>x.id+x.on+x.time),S.task&&[S.task.id,S.task.done,S.task.result],S.events.map(e=>e.status),S.cmd&&S.cmd.state,S.ui.notice,!!HA.foot,HA.error]);
   }
   function commitIfChanged(){
     if(HA.editing||S.ui.modal||cur().name==='roomEdit')return; // never redraw under a drag or a typed name
@@ -459,7 +477,7 @@
     const d=dev(),room=HA.dev?.room;
     if(d.status==='cleaning'){
       if(HA.spotEv){const ev=findEvent(HA.spotEv);return 'Going back to '+(ZONES[ev?.zone]?.name||'the spot').toLowerCase()}
-      const here=room||M().roomAt(HA.rooms,HA.map?.robot)?.name;
+      const here=room||M().roomAt(HA.rooms,robotPose())?.name;
       return here?'Cleaning the '+here.toLowerCase():'Cleaning';
     }
     if(d.status==='returning')return 'Returning to the dock';
@@ -485,10 +503,10 @@
     const key=path.length+':'+path.map(s=>s.length).join(',')+':'+(path[0]?.[0]||'');
     if(cellCache.key===key)return cellCache.cells;
     const out=new Set();
-    for(const seg of path)for(let i=1;i<seg.length;i++){
+    for(const seg of path){if(seg.length===1)out.add(Math.floor(seg[0][0]/CELL_MM)+','+Math.floor(seg[0][1]/CELL_MM));for(let i=1;i<seg.length;i++){
       const [x0,y0]=seg[i-1],[x1,y1]=seg[i],n=Math.max(1,Math.ceil(Math.hypot(x1-x0,y1-y0)/100));
       for(let t=0;t<=n;t++)out.add(Math.floor((x0+(x1-x0)*t/n)/CELL_MM)+','+Math.floor((y0+(y1-y0)*t/n)/CELL_MM));
-    }
+    }}
     cellCache={key,cells:out};return out;
   }
   /* The 2 x 2 block of cells nearest a point, so spots line up with the grid. */
@@ -502,7 +520,7 @@
     const hist=o.cells&&o.cells.__task?S.history.find(h=>h.id===o.cells.__task):null;
     let path=[];
     if(hist)path=hist.snap.path||[];
-    else if(!o.cells&&S.task)path=!S.task.done||S.task.spot?(mapFresh(S.task)?M().simplifyPath(HA.map?.path):[]):(S.task.path||[]);
+    else if(!o.cells&&S.task)path=!S.task.done||S.task.spot?(mapFresh(S.task)?M().simplifyPath(HA.map?.path):[]).concat(trailOf(S.task)):(S.task.path||[]);
     const cells=new Map();
     pathCells(path).forEach(c=>cells.set(c,'cleaned'));
     if(path.length&&!o.noEvents)(o.events||visibleEvents()).forEach(ev=>{
@@ -571,7 +589,7 @@
     // 6 dock, path line and robot
     const dock=P(HA.map?.charger);
     if(dock)s+=`<g transform="translate(${dock.x},${dock.y})"><rect x="2" y="-10" width="9" height="20" rx="3" fill="var(--surface)" filter="url(#soft)"/><path d="M7.5-4 5 1h3l-1.5 4" stroke="var(--ok)" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/></g>`;
-    const rb=HA.map?.robot,rp=P(rb);
+    const rb=robotPose(),rp=P(rb);
     if(o.robot!==false&&showLive&&rp){
       const heading=Number.isFinite(rb.angle)?90-rb.angle:0;
       s+=`<g class="robot" style="transform:translate(${rp.x.toFixed(1)}px,${rp.y.toFixed(1)}px) rotate(${heading}deg)"><circle class="body" r="9"/><circle r="4" fill="none" stroke="#C3CAD9" stroke-width="1.2"/><circle class="eye" r="1.8" cy="-5.6"/></g>`;
@@ -626,7 +644,7 @@
     const ring=new THREE.Mesh(new THREE.TorusGeometry(.42,.02,8,40),mat('#AAB3C6'));ring.rotation.x=Math.PI/2;ring.position.y=.09;rb.add(ring);
     const lid=new THREE.Mesh(new THREE.CylinderGeometry(.13,.13,.08,24),mat('#E8EBF2',{roughness:.3}));lid.position.set(0,.2,.1);lid.castShadow=true;rb.add(lid);
     const eye=new THREE.Mesh(new THREE.BoxGeometry(.3,.05,.04),mat(cssv('--primary'),{emissive:new THREE.Color(cssv('--primary')),emissiveIntensity:.5}));eye.position.set(0,.12,-.41);rb.add(eye);
-    rb.visible=!!HA.map?.robot;root.add(rb);
+    rb.visible=!!robotPose();root.add(rb);
     Object.assign(T3,{robot:rb,root,R:R3,sc,cam,built:true,key,cellGeo:new THREE.PlaneGeometry(.94,.94),cells:[],markers:[],
       dist:Math.max(16,size*2.1),maxDist:Math.max(40,size*3.5)});
     // controls, as in the demo
@@ -643,7 +661,7 @@
   function liveSync3D(full){
     if(!T3.built||!full)return;
     T3.markers.concat(T3.cells).forEach(m=>{T3.root.remove(m);if(m.material.map)m.material.map.dispose();m.material.dispose();if(m.geometry&&m.geometry!==T3.cellGeo&&!m.isSprite)m.geometry.dispose()});
-    T3.markers=[];T3.cells=[];T3.robot.visible=!!HA.map?.robot;
+    T3.markers=[];T3.cells=[];T3.robot.visible=!!robotPose();
     HA.rooms.forEach(rm=>{
       rm.parts.forEach(b=>{const p=to3D({x:b[0],y:b[3]}),q=to3D({x:b[2],y:b[1]});if(!p||!q)return;
         const m=new THREE.Mesh(new THREE.PlaneGeometry(Math.abs(q.x-p.x),Math.abs(q.z-p.z)),new THREE.MeshStandardMaterial({color:new THREE.Color(cssv('--r-'+ROOM_COLORS[rm.color%ROOM_COLORS.length])).offsetHSL(0,.3,-.08).multiplyScalar(.72),roughness:.85,polygonOffset:true,polygonOffsetFactor:-2,polygonOffsetUnits:-2}));
@@ -707,7 +725,7 @@
   }
   function liveLegend(){
     const when=HA.map?.source_updated_at?' · updated '+hhmm(secOf(HA.map.source_updated_at)):'';
-    return `<div class="legend"><span><i style="background:var(--surface);box-shadow:inset 0 0 0 1.5px var(--primary);border-radius:50%"></i>Robot’s label</span><span><i style="background:var(--surface);box-shadow:inset 0 0 0 1.5px var(--warn-line);border-radius:50%"></i>Not sure</span><span><i style="background:var(--clean)"></i>Cleaned</span><span><i style="background:repeating-linear-gradient(45deg,var(--warn-line) 0 2px,var(--warn-soft) 2px 5px)"></i>Needs review</span><span><i style="background:repeating-linear-gradient(45deg,var(--skip) 0 1.5px,var(--skip-soft) 1.5px 5px)"></i>Skipped</span><span><i style="background:repeating-linear-gradient(-45deg,var(--stop) 0 2px,var(--stop-soft) 2px 5px)"></i>No-go</span><span><i style="background:var(--warn-line);border-radius:50%"></i>Study event</span><span><i style="background:var(--stop);border-radius:50%"></i>Robot problem</span></div><p class="small muted" style="margin:4px 6px 0">Robot map from Home Assistant${when}.</p>`;
+    return `<div class="legend"><span><i style="background:var(--surface);box-shadow:inset 0 0 0 1.5px var(--primary);border-radius:50%"></i>Robot’s label</span><span><i style="background:var(--surface);box-shadow:inset 0 0 0 1.5px var(--warn-line);border-radius:50%"></i>Not sure</span><span><i style="background:var(--clean)"></i>Cleaned</span><span><i style="background:repeating-linear-gradient(45deg,var(--warn-line) 0 2px,var(--warn-soft) 2px 5px)"></i>Needs review</span><span><i style="background:repeating-linear-gradient(45deg,var(--skip) 0 1.5px,var(--skip-soft) 1.5px 5px)"></i>Skipped</span><span><i style="background:repeating-linear-gradient(-45deg,var(--stop) 0 2px,var(--stop-soft) 2px 5px)"></i>No-go</span><span><i style="background:var(--warn-line);border-radius:50%"></i>Study event</span><span><i style="background:var(--stop);border-radius:50%"></i>Robot problem</span></div><p class="small muted" style="margin:4px 6px 0">Robot map from Home Assistant${when}.${HA.pose&&HA.pose.at?' Robot position live, '+Math.max(0,Math.round(Date.now()/1000-HA.pose.at))+' s ago.':''}</p>`;
   }
 
   /* ---------- patch the original app ---------- */

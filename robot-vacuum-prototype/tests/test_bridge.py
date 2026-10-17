@@ -40,15 +40,27 @@ class BridgeTests(unittest.TestCase):
         return results[0]
 
     def test_snapshot_returns_only_this_robot_without_credentials(self):
-        with patch.object(server, 'ha', return_value={'service_response': {'maps': [{'map_id': 0}]}}) as ha:
+        server.POSITION.update(at=0, value=None)
+        replies = [{'service_response': {'maps': [{'map_id': 0}]}}, {'service_response': {'vacuum.s6_maxv': {'x': 25769, 'y': 25605}}}]
+        with patch.object(server, 'ha', side_effect=replies) as ha:
             result = server.snapshot(STATES, include_geometry=True)
-            ha.assert_called_once_with('services/roborock_obstacles/read?return_response', {})
+            ha.assert_any_call('services/roborock_obstacles/read?return_response', {})
+            ha.assert_called_with('services/roborock/get_vacuum_current_position?return_response', {'entity_id': 'vacuum.s6_maxv'})
+        self.assertEqual((result['position']['x'], result['position']['y']), (25769, 25605))
         text = json.dumps(result)
         self.assertEqual(result['vacuum']['entity_id'], 'vacuum.s6_maxv')
         self.assertTrue(result['reader'])
         self.assertEqual(result['geometry']['maps'][0]['map_id'], 0)
         for secret in ('secret', 'signed-url', 'media-token'):
             self.assertNotIn(secret, text)
+
+    def test_live_position_is_rate_limited_and_survives_errors(self):
+        server.POSITION.update(at=0, value={'x': 1, 'y': 2, 'at': 0})
+        docked = STATES[0]
+        with patch.object(server, 'ha', side_effect=server.BridgeError('map')) as ha:
+            self.assertEqual(server.live_position(docked)['x'], 1)
+            self.assertEqual(server.live_position(docked)['x'], 1)
+            self.assertEqual(ha.call_count, 1)
 
     def test_geometry_failure_keeps_state(self):
         with patch.object(server, 'ha', side_effect=server.BridgeError('down')):

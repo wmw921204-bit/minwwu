@@ -28,6 +28,8 @@ MODES = {'vacuum', 'vac_and_mop'}
 MAX_NOGO = 10
 DAYS = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun']
 SCHEDULE_PREFIX = 'robot_app_'
+ACTIVE = {'cleaning', 'paused', 'returning', 'error'}
+POSITION = {'at': 0, 'value': None}  # live position, read at most every 3 s (60 s while docked)
 
 
 class BridgeError(Exception):
@@ -84,10 +86,27 @@ def snapshot(states, include_geometry=False):
             geometry = ha('services/roborock_obstacles/read?return_response', {}).get('service_response')
         except BridgeError:
             geometry = None  # State is still useful without the map reader.
-    return {'received_at': time.time(), 'vacuum': clean(vacuum) if vacuum else None,
+    position = live_position(vacuum) if include_geometry and vacuum is not None else None
+    return {'received_at': time.time(), 'vacuum': clean(vacuum) if vacuum else None, 'position': position,
             'vacuums': [{'entity_id': s['entity_id'], 'name': s.get('attributes', {}).get('friendly_name', s['entity_id'])}
                         for s in vacuums],
             'entities': related, 'reader': reader is not None, 'geometry': geometry}
+
+
+def live_position(vacuum):
+    # Home Assistant asks the robot for a fresh map to read its position, so it is rate-limited.
+    wait = 3 if vacuum.get('state') in ACTIVE else 60
+    if time.time() - POSITION['at'] < wait:
+        return POSITION['value']
+    POSITION['at'] = time.time()
+    try:
+        response = ha('services/roborock/get_vacuum_current_position?return_response', {'entity_id': vacuum['entity_id']})
+        point = response.get('service_response', {}).get(vacuum['entity_id']) or {}
+        if isinstance(point.get('x'), (int, float)) and isinstance(point.get('y'), (int, float)):
+            POSITION['value'] = {'x': point['x'], 'y': point['y'], 'at': time.time()}
+    except BridgeError:
+        pass  # keep the last position; the page shows how old it is
+    return POSITION['value']
 
 
 def zone_box(data):
