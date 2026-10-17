@@ -94,3 +94,19 @@ test('rooms: drawing converts back to millimetres and snaps to the grid', () => 
   assert.equal(M.roomAt(rooms, { x: 1500, y: 200 }).id, 'a');
   assert.equal(M.roomAt(rooms, { x: 1500, y: 800 }), null);
 });
+
+test('map alignment: two taps give rotation and shift, and commands map back', () => {
+  // live frame is the map frame rotated by 90 degrees and moved
+  const truth = p => ({ x: -p.y + 50000, y: p.x - 1000 });
+  const a = { live: { x: 25000, y: 25000 }, map: truth({ x: 25000, y: 25000 }) };
+  const b = { live: { x: 27000, y: 25500 }, map: truth({ x: 27000, y: 25500 }) };
+  const al = M.alignFrom(a, b);
+  const p = M.toMap(al, { x: 26000, y: 30000 }), q = truth({ x: 26000, y: 30000 });
+  assert.ok(Math.abs(p.x - q.x) < 1e-6 && Math.abs(p.y - q.y) < 1e-6);
+  const back = M.toRobot(al, p);
+  assert.ok(Math.abs(back.x - 26000) < 1e-6 && Math.abs(back.y - 30000) < 1e-6);
+  assert.deepEqual(M.robotBox(al, [20000, 24000, 21000, 25000]).map(v => Math.round(v)), [25000, 29000, 26000, 30000]);
+  const shift = M.alignFrom({ live: { x: 0, y: 0 }, map: { x: 100, y: -50 } });
+  assert.deepEqual(M.toMap(shift, { x: 10, y: 10 }), { x: 110, y: -40 });
+  assert.equal(M.toMap(null, { x: 1, y: 2 }).x, 1);
+});

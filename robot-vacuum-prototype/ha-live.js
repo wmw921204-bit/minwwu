@@ -28,7 +28,7 @@
   const FIRE_AFTER=[90,180,270,360]; // seconds into a real cleaning when study events appear
   const HA={snap:null,dev:null,map:null,tf:null,ppm:null,foot:null,error:'',pending:null,expectStart:null,
     retryQueue:[],spotEv:null,spotStarted:false,spotError:false,notes:{},refArea:null,prevStatus:null,
-    fetching:false,lastMap:0,editing:false,sig:'',prompted:false,restoreMode:null,removedZones:[],notified:{},rooms:[],savedZones:[],view:null,objs:[],objSnap:'',lastErr:null,lastStatusProblem:null,schedLoaded:false,schedError:''};
+    fetching:false,lastMap:0,editing:false,sig:'',prompted:false,restoreMode:null,removedZones:[],notified:{},rooms:[],savedZones:[],view:null,objs:[],objSnap:'',align:null,alignDraft:null,poseRaw:null,footKey:'',lastErr:null,lastStatusProblem:null,schedLoaded:false,schedError:''};
   window.HA=HA;
   const M=()=>window.HAModel;
   const now=()=>{const d=new Date();return d.getHours()*3600+d.getMinutes()*60+d.getSeconds()};
@@ -49,7 +49,7 @@
       const zones=Object.fromEntries(Object.entries(ZONES).filter(([k])=>k.startsWith('z')));
       try{localStorage.setItem(STORE,JSON.stringify({v:1,onboarded:!S.onboarding,autonomy:S.autonomy,rules:S.rules,nogo:S.nogo,notif:S.notif,
         history:S.history,task:S.task,events:S.events,timeline:S.timeline,pending:S.sim.pending,zones,seq,
-        objs:HA.objs,objSnap:HA.objSnap,lastErr:HA.lastErr,lastStatusProblem:HA.lastStatusProblem,refArea:HA.refArea,rooms:HA.rooms,savedZones:HA.savedZones,scenario:S.ctl.scenario,retryQueue:HA.retryQueue,spotEv:HA.spotEv,spotStarted:HA.spotStarted,
+        objs:HA.objs,objSnap:HA.objSnap,align:HA.align,lastErr:HA.lastErr,lastStatusProblem:HA.lastStatusProblem,refArea:HA.refArea,rooms:HA.rooms,savedZones:HA.savedZones,scenario:S.ctl.scenario,retryQueue:HA.retryQueue,spotEv:HA.spotEv,spotStarted:HA.spotStarted,
         prevStatus:HA.prevStatus,restoreMode:HA.restoreMode,removedZones:HA.removedZones,customObj:Object.fromEntries(Object.entries(OBJ).filter(([,o])=>o.custom))}))}catch(e){/* storage full or blocked: the app still works */}
     },400);
   }
@@ -65,7 +65,7 @@
     S.events=s.events||[];S.timeline=s.timeline||[];S.objects=[];
     S.sim.pending=s.pending||[];S.sim.queue=[];
     seq=Math.max(seq,s.seq||0);
-    HA.rooms=s.rooms||[];HA.savedZones=s.savedZones||[];HA.objs=s.objs||[];HA.objSnap=s.objSnap||'';HA.lastErr=s.lastErr||null;HA.lastStatusProblem=s.lastStatusProblem||null;
+    HA.rooms=s.rooms||[];HA.savedZones=s.savedZones||[];HA.objs=s.objs||[];HA.objSnap=s.objSnap||'';HA.align=s.align||null;HA.lastErr=s.lastErr||null;HA.lastStatusProblem=s.lastStatusProblem||null;
     HA.notes=s.notes||{};HA.refArea=s.refArea||null;HA.retryQueue=s.retryQueue||[];HA.spotEv=s.spotEv||null;HA.spotStarted=!!s.spotStarted;HA.prevStatus=s.prevStatus||null;
     SCEN.none={label:'No study events',keys:[]};
     S.ctl.scenario=s.scenario&&SCEN[s.scenario]?s.scenario:'all';
@@ -91,6 +91,8 @@
       const g=cv.getContext('2d');g.drawImage(bmp,0,0);
       const px=g.getImageData(0,0,bmp.width,bmp.height).data;
       HA.foot=M().footprint(px,bmp.width,bmp.height,6)||HA.foot;HA.foot3=M().footprint(px,bmp.width,bmp.height,12)||HA.foot3; // 3D walls on a coarser 0.3 m outline
+      HA.footKey=HA.foot?HA.foot.runs.length+':'+JSON.stringify(HA.map?.calibration):'';
+      if(HA.align&&HA.align.footKey&&HA.footKey&&HA.align.footKey!==HA.footKey){HA.align=null;flash('New robot map: the alignment was reset.')}
       HA.sig='';commitIfChanged();
     }catch(e){/* status stays useful without the map image */}
   }
@@ -351,7 +353,7 @@
       catch(e){fail('Couldn’t switch the cleaning mode: '+e.message);commit();return}
     }
     liveCommand('zone',{label:extra?'Extra pass':'Retry '+z.name.toLowerCase(),done:'Robot is going back to the spot',expect:['cleaning'],
-      body:{box:spotCells(z.mm).box},retry:()=>sendSpot(ev),onFail:()=>fail(extra?'The extra pass didn’t reach the robot':'The retry didn’t reach the robot')},
+      body:{box:M().robotBox(HA.align?.al,spotCells(z.mm).box)},retry:()=>sendSpot(ev),onFail:()=>fail(extra?'The extra pass didn’t reach the robot':'The retry didn’t reach the robot')},
       ()=>{HA.spotStarted=true;if(S.task)S.task.spot=true;tl('robot',(extra?'Extra pass started: ':'Spot clean started: ')+z.name,ev.id)});
   }
   function processRetries(){
@@ -372,7 +374,8 @@
   function nogoList(){
     const mine=S.nogo.filter(hasZone).map(zoneRect);
     const keep=robotZones().filter(a=>!HA.removedZones.some(b=>sameZone(a,b))&&!mine.some(b=>sameZone(a,b)));
-    return keep.concat(mine);
+    // zones drawn in this app are in map coordinates; the robot gets them in its own
+    return keep.concat(mine.map(a=>[0,2,4,6].flatMap(i=>{const p=M().toRobot(HA.align?.al,{x:a[i],y:a[i+1]});return [Math.round(p.x),Math.round(p.y)]})));
   }
   async function saveNogo(label,done){
     const zones=nogoList();
@@ -387,10 +390,11 @@
   const robotPose=()=>HA.pose||HA.map?.robot||null;
   function takePosition(snap){
     const lp=snap.position;if(!lp||!Number.isFinite(lp.x))return;
-    const last=HA.pose,moved=last?Math.hypot(lp.x-last.x,lp.y-last.y):0;
+    HA.poseRaw={x:lp.x,y:lp.y,at:lp.at};
+    const q=M().toMap(HA.align?.al,lp),last=HA.pose,moved=last?Math.hypot(q.x-last.x,q.y-last.y):0;
     // the robot reports no heading here, so face the way it last moved
-    const angle=last&&moved>60?Math.atan2(lp.y-last.y,lp.x-last.x)*180/Math.PI:last?.angle??HA.map?.robot?.angle;
-    HA.pose={x:lp.x,y:lp.y,angle,at:lp.at};
+    const angle=last&&moved>60?Math.atan2(q.y-last.y,q.x-last.x)*180/Math.PI:last?.angle??HA.map?.robot?.angle;
+    HA.pose={x:q.x,y:q.y,angle,at:lp.at};
     const t=S.task;
     if(t&&(!t.done||t.spot)&&['cleaning','returning','paused','error'].includes(S.device.status)){
       t.trail=t.trail||[[]];let seg=t.trail[t.trail.length-1];const prev=seg[seg.length-1];
@@ -398,7 +402,8 @@
       if(!prev||Math.hypot(lp.x-prev[0],lp.y-prev[1])>=60)seg.push([Math.round(lp.x),Math.round(lp.y)]);
     }
   }
-  const trailOf=t=>(t&&t.trail||[]).filter(seg=>seg.length);
+  // the trail is kept in the robot's own coordinates and aligned when drawn, so a later alignment fixes it too
+  const trailOf=t=>(t&&t.trail||[]).filter(seg=>seg.length).map(seg=>seg.map(([x,y])=>{const p=M().toMap(HA.align?.al,{x,y});return [p.x,p.y]}));
 
   /* ---------- Home Assistant snapshot → app state ---------- */
   function goOffline(msg){
@@ -545,7 +550,7 @@
     const rect=(x0,y0,x1,y1)=>{const a=P({x:x0,y:y0}),b=P({x:x1,y:y1});return a&&b?{x:Math.min(a.x,b.x),y:Math.min(a.y,b.y),w:Math.abs(b.x-a.x),h:Math.abs(b.y-a.y)}:null};
     const spot=mm=>{const b=spotCells(mm).box;return rect(b[0],b[1],b[2],b[3])};
     const showLive=!o.cells;
-    let s=`<svg class="map ${o.dim?'dim':''} ${o.edit?'ha-editing':''}" viewBox="-8 -8 ${v.w+16} ${v.h+16}" role="img" aria-label="${esc(o.label||'Robot map of the home')}">`;
+    let s=`<svg class="map ${o.dim?'dim':''} ${o.edit?'ha-editing':''} ${o.align?'ha-aligning':''}" viewBox="-8 -8 ${v.w+16} ${v.h+16}" role="img" aria-label="${esc(o.label||'Robot map of the home')}">`;
     // 1 mapped floor (the robot's own map; no invented rooms or furniture)
     const fx=`translate(${v.x({x:0,y:0})} ${v.y({x:0,y:0})}) scale(${v.s})`;
     s+=`<g filter="url(#soft)"><path class="room ha-floor ${o.sel?(o.sel.length?'sel':'dull'):''}" transform="${fx}" d="${HA.foot.d}"/></g>`;
@@ -574,6 +579,7 @@
       edit.parts.forEach((b,i)=>{const q=viewRect(b,v);s+=`<rect class="${edit.type==='nogo'?'cell nogo':'ha-part'}" x="${q.x}" y="${q.y}" width="${q.w}" height="${q.h}" rx="2"/><text class="lbl" x="${q.x+4}" y="${q.y+11}">${i+1}</text>`});
       s+=`<rect id="ha-draft" class="ha-draft" x="0" y="0" width="0" height="0" rx="2" style="display:none"/>`;
     }
+    if(o.align&&HA.alignDraft){const q=P(HA.alignDraft.a.map);if(q)s+=`<g transform="translate(${q.x},${q.y})"><circle r="6" fill="none" stroke="var(--primary)" stroke-width="2"/><path d="M-9 0h18M0-9v18" stroke="var(--primary)" stroke-width="1.5"/></g>`}
     // 4 study events: spot outline and status marker, as in the demo
     if(!o.noEvents)(o.events||visibleEvents()).forEach(ev=>{
       const d=DEFS[ev.key];if(d.type==='decision')return;
@@ -700,6 +706,7 @@
     h+=`<button class="btn soft block" style="margin-top:8px" data-a="haEditArea" data-v="zone|">Add a zone</button>`;
     h+=`<div class="sec-h">No-go zones<small>${S.nogo.length}</small></div><p class="small muted" style="margin:-4px 4px 8px">Saved on the robot. Remove them in Saved preferences.</p>`;
     h+=`<button class="btn soft block" data-a="haEditArea" data-v="nogo|">Draw a no-go zone</button>`;
+    h+=`<div class="sec-h">Robot position</div><p class="small muted" style="margin:-4px 4px 8px">Robot not where it really is on the map? Line it up in two taps.</p><button class="btn soft block" data-a="go" data-v="align">Align map with the robot</button>`;
     return h;
   }
   function scrRoomEdit(){
@@ -715,6 +722,40 @@
     if(e.id)h+=`<button class="btn danger block" style="margin-top:8px" data-a="haDeleteArea">Delete ${what}</button>`;
     return h;
   }
+  /* Two taps line the robot's live coordinates up with the saved map. */
+  function scrAlign(){
+    const d=HA.alignDraft,raw=HA.poseRaw,al=HA.align;
+    let h=topbar('Align map with the robot');
+    h+=`<p class="small muted" style="margin:0 4px 12px">If the robot on the map isn’t where it really is (for example after it failed to find its position), tap its real position twice. The app then shifts and turns its live position onto this map.</p>`;
+    if(!raw)h+=`<div class="calm">${ic('robot',20)}<span>Waiting for the robot’s live position…</span></div>`;
+    h+=`<div class="map-wrap">${liveMap({noEvents:true,align:true})}</div>`;
+    const moved=d&&raw?Math.hypot(raw.x-d.a.live.x,raw.y-d.a.live.y)/1000:0;
+    if(!d)h+=`<div class="card" style="margin-top:12px"><b>Step 1 of 2</b><p class="small" style="margin-top:4px">Tap where the robot really is right now. On the dock is easiest.</p></div>`;
+    else h+=`<div class="card" style="margin-top:12px"><b>Step 2 of 2</b><p class="small" style="margin-top:4px">Let the robot drive at least 2 m (it has moved ${moved.toFixed(1)} m), then tap where it really is.</p>
+      <div class="btn-row"><button class="btn plain" data-a="haAlignShift">Use a shift only</button><button class="btn plain" data-a="haAlignRestart">Start over</button></div></div>`;
+    h+=`<div class="sec-h">Current alignment</div><p class="small muted" style="margin:0 4px">${al?'Shifted '+(Math.hypot(al.al.tx,al.al.ty)>0?'and '+(al.b?'turned '+Math.round(Math.atan2(al.al.s,al.al.c)*180/Math.PI)+'°':'not turned'):'')+'. Set at '+hhmm(al.at||0)+'.':'None. The robot’s coordinates are used as they come.'}</p>`;
+    if(al)h+=`<button class="btn danger block" style="margin-top:12px" data-a="haAlignReset">Remove alignment</button>`;
+    return h;
+  }
+  function attachAlign(){
+    const svg=document.querySelector('.scroll svg.map.ha-aligning');if(!svg||svg.dataset.bound)return;svg.dataset.bound='1';
+    const inv=M().inverse(HA.map?.calibration);if(!inv)return;
+    svg.addEventListener('click',ev=>{
+      const raw=HA.poseRaw;if(!raw){flash('Waiting for the robot’s live position.');return}
+      const pt=svg.createSVGPoint();pt.x=ev.clientX;pt.y=ev.clientY;const p=pt.matrixTransform(svg.getScreenCTM().inverse()),v=HA.view;
+      const mm=inv({x:p.x/v.s+v.bb.x0,y:p.y/v.s+v.bb.y0}),pair={live:{x:raw.x,y:raw.y},map:{x:mm.x,y:mm.y}};
+      const d=HA.alignDraft;
+      if(!d){HA.alignDraft={a:pair};commit();return}
+      if(Math.hypot(raw.x-d.a.live.x,raw.y-d.a.live.y)<2000){flash('Let the robot move at least 2 m first.');return}
+      saveAlign(d.a,pair);
+    });
+  }
+  function saveAlign(a,b){
+    HA.align={a,b:b||null,al:M().alignFrom(a,b),footKey:HA.footKey,at:S.clock};HA.alignDraft=null;
+    if(HA.poseRaw){const q=M().toMap(HA.align.al,HA.poseRaw);HA.pose={...HA.pose,x:q.x,y:q.y}}
+    persist();HA.sig='';commit();flash(b?'Map aligned':'Map shifted. Add a second point later to fix turning.');
+  }
+
   /* Drag on the editor's map: screen → view units → map pixels → robot mm, snapped to the grid. */
   function attachDrawing(){
     const svg=document.querySelector('.scroll svg.map.ha-editing'),e=S.ui.edit;if(!svg||!e||svg.dataset.bound)return;
@@ -788,8 +829,8 @@
 
     // Study events take the zone of the event being drawn
     const zoneOf=ev=>{if(ev&&ev.zone&&DEFS[ev.key])DEFS[ev.key].zone=ev.zone};
-    window.EXTRA_SCREENS={rooms:scrRooms,roomEdit:scrRoomEdit};
-    const render0=window.render;window.render=function(){S.events.forEach(zoneOf);const out=render0.apply(this,arguments);if(cur().name==='roomEdit')attachDrawing();return out};
+    window.EXTRA_SCREENS={rooms:scrRooms,roomEdit:scrRoomEdit,align:scrAlign};
+    const render0=window.render;window.render=function(){S.events.forEach(zoneOf);const out=render0.apply(this,arguments);if(cur().name==='roomEdit')attachDrawing();if(cur().name==='align')attachAlign();return out};
     const art0=window.eventArt;window.eventArt=key=>{
       if(!key.startsWith('p_'))return art0(key);
       const L='fill="none" stroke="var(--ink)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"';
@@ -915,6 +956,7 @@
       const running=S.task&&!S.task.done;
       h=h.replace('<div class="sec-h">Notifications</div>','<div class="sec-h">Notifications</div><p class="small muted" style="margin:-4px 4px 8px">Sent to Home Assistant, and to your phone if the Home Assistant app is installed, while this app is open.</p>');
       return h.replace('</div>','</div>'+modeRows(true))+`<div class="sec-h">Home Assistant</div><div class="group">
+        <button class="row" data-a="go" data-v="align">Align map with the robot<span class="v">${HA.align?'Aligned':'Off'}</span>${ic('chev',18)}</button>
         <button class="row" data-a="go" data-v="rooms">Rooms and zones<span class="v">${HA.rooms.length+HA.savedZones.length}</span>${ic('chev',18)}</button>
         <button class="row" data-a="haConnect">Connection<span class="v">${S.conn==='connected'?'Connected':'Not connected'}</span>${ic('chev',18)}</button>
         <div class="row">Robot map<span class="v">${map}</span></div></div>
@@ -928,7 +970,7 @@
       const kind=S.ui.setup.kind,parts=setupParts(),label=setupLabel();
       if(kind!=='home'&&(!parts.length||parts.length>5))return;
       HA.expectStart={label,at:Date.now(),kind,parts};
-      liveCommand(kind==='home'?'start':'zones',{label:'Start cleaning',done:'Cleaning started',expect:['cleaning'],body:kind==='home'?null:{zones:parts},onFail:()=>{HA.expectStart=null}},
+      liveCommand(kind==='home'?'start':'zones',{label:'Start cleaning',done:'Cleaning started',expect:['cleaning'],body:kind==='home'?null:{zones:parts.map(b=>M().robotBox(HA.align?.al,b))},onFail:()=>{HA.expectStart=null}},
         ()=>{S.ui.stack=[];S.ui.tab='map';forceTop=true});
     };
     // Drawing rooms, zones and no-go zones
@@ -936,6 +978,9 @@
       const [type,id]=v.split('|'),src=type==='room'?HA.rooms.find(x=>x.id===id):type==='zone'?HA.savedZones.find(x=>x.id===id):null;
       S.ui.edit={type,id:src?src.id:null,name:src?src.name:'',parts:src?src.parts.map(b=>[...b]):[]};go('roomEdit');
     };
+    A.haAlignShift=()=>{if(HA.alignDraft)saveAlign(HA.alignDraft.a,null)};
+    A.haAlignRestart=()=>{HA.alignDraft=null;commit()};
+    A.haAlignReset=()=>{HA.align=null;HA.alignDraft=null;if(HA.poseRaw)HA.pose={...HA.pose,x:HA.poseRaw.x,y:HA.poseRaw.y};persist();HA.sig='';commit();flash('Alignment removed')};
     A.haUndoPart=()=>{S.ui.edit.parts.pop();commit()};
     A.haSaveArea=()=>{
       const e=S.ui.edit,name=(document.getElementById('ha-area-name')?.value??e.name).trim();
@@ -982,7 +1027,7 @@
 
     const commit0=window.commit;window.commit=function(){persist();return commit0.apply(this,arguments)};
     const st=document.createElement('style');
-    st.textContent='.map.tilted{transform:perspective(900px) rotateX(52deg) rotateZ(-32deg) scale(.84) translateY(-10px)}.map.ha-editing{touch-action:none;cursor:crosshair}.map .ha-part{fill:var(--primary-soft);stroke:var(--primary);stroke-width:1.5}.map .ha-draft{fill:var(--primary-soft);stroke:var(--primary);stroke-width:1.5;stroke-dasharray:4 3;pointer-events:none}.pill.recorded{background:var(--primary-soft);color:var(--primary)}.map .ha-floor{fill:var(--surface)}.map .ha-floor.sel{fill:var(--primary-soft)}.map .ha-wall{fill:none;stroke:var(--wall);stroke-width:2.2;stroke-linecap:square;vector-effect:non-scaling-stroke;pointer-events:none}.map .ha-swept{fill:none;stroke:var(--clean);stroke-linecap:round;stroke-linejoin:round;pointer-events:none}';
+    st.textContent='.map.tilted{transform:perspective(900px) rotateX(52deg) rotateZ(-32deg) scale(.84) translateY(-10px)}.map.ha-editing{touch-action:none;cursor:crosshair}.map.ha-aligning{cursor:crosshair}.map .ha-part{fill:var(--primary-soft);stroke:var(--primary);stroke-width:1.5}.map .ha-draft{fill:var(--primary-soft);stroke:var(--primary);stroke-width:1.5;stroke-dasharray:4 3;pointer-events:none}.pill.recorded{background:var(--primary-soft);color:var(--primary)}.map .ha-floor{fill:var(--surface)}.map .ha-floor.sel{fill:var(--primary-soft)}.map .ha-wall{fill:none;stroke:var(--wall);stroke-width:2.2;stroke-linecap:square;vector-effect:non-scaling-stroke;pointer-events:none}.map .ha-swept{fill:none;stroke:var(--clean);stroke-linecap:round;stroke-linejoin:round;pointer-events:none}';
     document.head.appendChild(st);
   }
 

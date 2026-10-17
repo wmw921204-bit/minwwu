@@ -29,6 +29,27 @@
   }
   const inBox=(p,b)=>p&&p.x>=b[0]&&p.x<b[2]&&p.y>=b[1]&&p.y<b[3];
   function roomAt(rooms,p){return (rooms||[]).find(r=>r.parts.some(b=>inBox(p,b)))||null}
+  /* Map alignment: when the robot's live coordinates drift from the saved map (after a failed
+     relocalisation), two pairs of (live point, true point on the map) give a rotation and shift.
+     One pair gives a shift only. */
+  function alignFrom(a,b){
+    if(!a)return null;
+    let c=1,s=0;
+    if(b){
+      const t=Math.atan2(b.map.y-a.map.y,b.map.x-a.map.x)-Math.atan2(b.live.y-a.live.y,b.live.x-a.live.x);
+      c=Math.cos(t);s=Math.sin(t);
+    }
+    return {c,s,tx:a.map.x-(c*a.live.x-s*a.live.y),ty:a.map.y-(s*a.live.x+c*a.live.y)};
+  }
+  const toMap=(al,p)=>al&&p?{x:al.c*p.x-al.s*p.y+al.tx,y:al.s*p.x+al.c*p.y+al.ty}:p;
+  const toRobot=(al,q)=>{if(!al||!q)return q;const x=q.x-al.tx,y=q.y-al.ty;return {x:al.c*x+al.s*y,y:-al.s*x+al.c*y}};
+  /* A map-frame box as the robot sees it: its corners moved back, then the box around them. */
+  function robotBox(al,b){
+    if(!al)return b;
+    const q=[[b[0],b[1]],[b[2],b[1]],[b[2],b[3]],[b[0],b[3]]].map(([x,y])=>toRobot(al,{x,y}));
+    const xs=q.map(p=>p.x),ys=q.map(p=>p.y);
+    return [Math.min(...xs),Math.min(...ys),Math.max(...xs),Math.max(...ys)].map(Math.round);
+  }
   /* Pixels per mm along x, used to size the robot, its swept path and spot zones. */
   function pxPerMm(calibration){
     const t=transform(calibration);if(!t)return null;
@@ -147,7 +168,7 @@
     return {s,w:width,h:bh*s,x:p=>(p.x-bbox.x0)*s,y:p=>(p.y-bbox.y0)*s};
   }
 
-  const api={transform,inverse,snapBox,boxCells,roomAt,inBox,pxPerMm,errorText,entity,value,number,device,objectId,selectedMap,objects,simplifyPath,footprint,view,LABELS};
+  const api={alignFrom,toMap,toRobot,robotBox,transform,inverse,snapBox,boxCells,roomAt,inBox,pxPerMm,errorText,entity,value,number,device,objectId,selectedMap,objects,simplifyPath,footprint,view,LABELS};
   root.HAModel=api;
   if(typeof module!=='undefined')module.exports=api;
 })(typeof window!=='undefined'?window:globalThis);
