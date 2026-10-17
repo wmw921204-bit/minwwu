@@ -700,6 +700,9 @@ $$("[data-flip]").forEach((flip) => {
   addEventListener("pointerup", release);
   addEventListener("pointercancel", release);
   leaves.forEach((leaf, k) => leaf.addEventListener("click", () => { if (!dragged) go(k < cur ? cur - 1 : cur + 1); }));
+  // a small "Drag" label: pages can be pulled over
+  book.dataset.cursorSize = "sm";
+  book.dataset.cursor = "Drag";
   prevBtn?.addEventListener("click", () => go(cur - 1));
   nextBtn?.addEventListener("click", () => go(cur + 1));
   range?.addEventListener("input", () => go(+range.value));
@@ -895,6 +898,7 @@ if (!reduceMotion && matchMedia("(hover: hover) and (pointer: fine)").matches &&
     cursor.classList.toggle("is-on", !!host);
     if (host) {
       cursor.textContent = host.dataset.cursor;
+      cursor.classList.toggle("is-sm", host.dataset.cursorSize === "sm");
       // links can tint the cursor (e.g. "Next" takes the next project's colour)
       const cs = getComputedStyle(host);
       cursor.style.setProperty("--cursor-bg", cs.getPropertyValue("--next-bg").trim() || "");

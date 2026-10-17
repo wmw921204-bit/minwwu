@@ -427,8 +427,10 @@ a.table__row:hover span:last-child::after { opacity: 1; transform: none; }
 }
 
 /* Custom cursor label (desktop) */
-.cursor { position: fixed; left: 0; top: 0; z-index: 90; pointer-events: none; display: grid; place-items: center; width: 92px; height: 92px; border-radius: 50%; background: var(--cursor-bg, var(--accent)); color: var(--cursor-fg, #fff); font: 500 14px/1 var(--f-body); letter-spacing: .02em; opacity: 0; scale: .3; transition: opacity .3s var(--ease), scale .5s var(--ease), background-color .3s; }
+.cursor { position: fixed; left: 0; top: 0; z-index: 90; pointer-events: none; display: grid; place-items: center; width: 92px; height: 92px; border-radius: 50%; background: var(--cursor-bg, var(--theme-bg, var(--accent))); color: var(--cursor-fg, var(--theme-fg, #fff)); box-shadow: 0 0 0 1px rgba(255,255,255,.18); font: 500 14px/1 var(--f-body); letter-spacing: .02em; opacity: 0; scale: .3; transition: opacity .3s var(--ease), scale .5s var(--ease), background-color .3s; }
 .cursor.is-on { opacity: 1; scale: 1; }
+.cursor { transition: opacity .3s var(--ease), scale .5s var(--ease), background-color .3s, width .4s var(--ease), height .4s var(--ease), font-size .3s; }
+.cursor.is-sm { width: 62px; height: 62px; font-size: 12px; }
 [data-cursor] { cursor: none; }
 @media (hover: none) { [data-cursor] { cursor: auto; } }
 

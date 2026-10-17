@@ -693,9 +693,21 @@ img.is-zoomable { cursor: zoom-in; }
 @media (min-width: 981px) { .relay { grid-template-columns: 470px minmax(0, 480px); justify-content: center; column-gap: 48px; } .relay__list > li::before { left: -48px; width: 92px; } }
 #ecosystem .relay-head { text-align: center; }
 /* Compact variant: whole-frame video on desktop, and on phones a tight 16:9 band under the header */
-@media (max-width: 640px) {
+@media (max-width: 640px), (max-aspect-ratio: 4/3) {
   .c-hero--compact { height: calc(56.25vw + 84px); }
   .c-hero--compact .c-hero__pin { position: relative; height: 100%; }
   .c-hero--compact .c-hero__media { top: 76px; height: 56.25vw; object-fit: cover; }
   .c-hero--compact .c-hero__cue { display: none; }
+}
+
+/* Project colours for the round cursor label */
+.case { --theme-bg: #de6536; --theme-fg: #fff; }
+.case--light { --theme-bg: #cae210; --theme-fg: #111; }
+.case--warm { --theme-bg: #885835; --theme-fg: #fff6ef; }
+.case--olive { --theme-bg: #424d3d; --theme-fg: #faf7f0; }
+/* Full-screen hero film anchored bottom-right, so the logo that lands there is never cropped */
+.c-hero--br .c-hero__media { object-position: 72% 100%; transform-origin: 72% 100%; transform: scale(calc(1.05 - var(--p, 0) * .05)); }
+@media (max-width: 640px), (max-aspect-ratio: 4/3) {
+  .c-hero--compact .c-hero__media { transform: none; object-position: 50% 50%; }
+  .c-hero--compact .c-hero__pin::after, .c-hero--compact .c-hero__intro { display: none; }
 }
