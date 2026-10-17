@@ -574,6 +574,22 @@ $$("[data-sound]").forEach((btn) => {
   sync();
 });
 
+/* ---------- Relay diagram: the layer in the middle of the screen lights up ---------- */
+$$("[data-relay]").forEach((relay) => {
+  const rows = $$(".relay__list > li", relay);
+  const set = (k) => { relay.dataset.active = k; };
+  set(0);
+  const io = new IntersectionObserver((entries) => {
+    for (const e of entries) if (e.isIntersecting) set(e.target.dataset.layer);
+  }, { rootMargin: "-45% 0px -45% 0px" });
+  rows.forEach((row) => {
+    io.observe(row);
+    row.addEventListener("pointerenter", () => set(row.dataset.layer));
+    row.addEventListener("focus", () => set(row.dataset.layer));
+  });
+  $$(".relay__layer", relay).forEach((g) => g.addEventListener("pointerenter", () => set(g.dataset.layer)));
+});
+
 /* ---------- Flipbook: a printed document you page through like a book ---------- */
 $$("[data-flip]").forEach((flip) => {
   const book = $(".flip__book", flip);

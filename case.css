@@ -633,51 +633,54 @@ img.is-zoomable { cursor: zoom-in; }
 @media (max-width: 760px) { .vn__big--stat { font-size: 22vw; top: 24vh; } }
 
 /* Relay cone: micro / meso / macro */
-.relay { display: grid; grid-template-columns: minmax(0, .9fr) minmax(0, 1.1fr); gap: clamp(28px, 5vw, 80px); align-items: center; margin-top: 40px; }
-.relay__cone { width: 100%; max-width: 460px; justify-self: center; overflow: visible; }
-.relay__edge { fill: none; stroke: rgba(250,247,240,.35); stroke-width: 1.2; }
-.relay__flow { stroke: #f2b84b; stroke-width: 2; stroke-dasharray: 5 7; animation: relay-flow 1.6s linear infinite; }
-@keyframes relay-flow { to { stroke-dashoffset: -24; } }
-.relay__ring ellipse { stroke: rgba(250,247,240,.6); stroke-width: 1.2; transition: opacity .4s, stroke .4s, transform .5s var(--ease); transform-box: fill-box; transform-origin: center; }
-.relay__ring[data-layer="0"] ellipse { fill: #a7ad86; }
-.relay__ring[data-layer="1"] ellipse { fill: #e3b7b4; }
-.relay__ring[data-layer="2"] ellipse { fill: #b9cfdc; }
-.relay__ring text { font: 600 17px var(--f-display); fill: #262c22; text-anchor: middle; pointer-events: none; }
-.relay__list { display: grid; gap: 8px; }
-.relay__list > li { display: grid; grid-template-columns: 14px 1fr; gap: 18px; padding: 20px 22px; border-radius: 18px; outline: none; transition: background .4s; cursor: default; }
-.relay__dot { width: 12px; height: 12px; margin-top: 8px; border-radius: 50%; }
-.relay__list > li[data-layer="0"] .relay__dot { background: #a7ad86; }
-.relay__list > li[data-layer="1"] .relay__dot { background: #e3b7b4; }
-.relay__list > li[data-layer="2"] .relay__dot { background: #b9cfdc; }
-.relay__list h4 { font: 600 clamp(19px, 1.7vw, 23px)/1.3 var(--f-display); letter-spacing: -0.015em; }
-.relay__list p { margin-top: 6px; color: var(--c-muted); line-height: 1.55; }
-.relay__who { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; }
-.relay__who li { padding: 4px 11px; border-radius: 99px; border: 1px solid rgba(250,247,240,.2); font-size: 13px; color: rgba(250,247,240,.8); }
 /* hovering a layer lights its ring and dims the others */
-.relay__list > li:hover, .relay__list > li:focus-visible { background: rgba(250,247,240,.07); }
-.relay:has(.relay__list > li:hover) .relay__ring ellipse, .relay:has(.relay__list > li:focus-visible) .relay__ring ellipse { opacity: .3; }
-.relay:has([data-layer="0"]:hover) .relay__ring[data-layer="0"] ellipse,
-.relay:has([data-layer="1"]:hover) .relay__ring[data-layer="1"] ellipse,
-.relay:has([data-layer="2"]:hover) .relay__ring[data-layer="2"] ellipse,
-.relay:has([data-layer="0"]:focus-visible) .relay__ring[data-layer="0"] ellipse,
-.relay:has([data-layer="1"]:focus-visible) .relay__ring[data-layer="1"] ellipse,
-.relay:has([data-layer="2"]:focus-visible) .relay__ring[data-layer="2"] ellipse { opacity: 1; stroke: #f2b84b; stroke-width: 2.5; transform: scale(1.06); }
-@media (max-width: 860px) { .relay { grid-template-columns: 1fr; } .relay__cone { max-width: 340px; } }
-@media (prefers-reduced-motion: reduce) { .relay__flow { animation: none; } }
-.relay__list > li { align-items: start; }
-.relay__list h4 { margin: 0; }
-.relay__dot { margin-top: 8px; }
 /* keep research photos within one screen */
 .rs-split > img { aspect-ratio: 4 / 5; max-height: min(68vh, 640px); object-fit: cover; object-position: 50% 40%; justify-self: center; }
 .rs-photos { max-width: 620px; }
 .rs-photos .rs-photos__wide { aspect-ratio: 16 / 10; }
 .rs-photos img:not(.rs-photos__wide) { aspect-ratio: 4 / 3; height: auto; }
-.relay:has(.relay__list > li:hover) .relay__ring ellipse, .relay:has(.relay__list > li:focus-visible) .relay__ring ellipse { opacity: 1; filter: grayscale(.8) brightness(.55); }
-.relay:has([data-layer="0"]:hover) .relay__ring[data-layer="0"] ellipse, .relay:has([data-layer="1"]:hover) .relay__ring[data-layer="1"] ellipse, .relay:has([data-layer="2"]:hover) .relay__ring[data-layer="2"] ellipse,
-.relay:has([data-layer="0"]:focus-visible) .relay__ring[data-layer="0"] ellipse, .relay:has([data-layer="1"]:focus-visible) .relay__ring[data-layer="1"] ellipse, .relay:has([data-layer="2"]:focus-visible) .relay__ring[data-layer="2"] ellipse { filter: none; }
-.relay__ring ellipse { transition: filter .4s, stroke .4s, transform .5s var(--ease); }
-.relay:has(.relay__list > li:hover) .relay__ring ellipse, .relay:has(.relay__list > li:focus-visible) .relay__ring ellipse { filter: none; fill: #5a6452; }
-.relay:has([data-layer="0"]:hover) .relay__ring[data-layer="0"] ellipse, .relay:has([data-layer="0"]:focus-visible) .relay__ring[data-layer="0"] ellipse { fill: #a7ad86; }
-.relay:has([data-layer="1"]:hover) .relay__ring[data-layer="1"] ellipse, .relay:has([data-layer="1"]:focus-visible) .relay__ring[data-layer="1"] ellipse { fill: #e3b7b4; }
-.relay:has([data-layer="2"]:hover) .relay__ring[data-layer="2"] ellipse, .relay:has([data-layer="2"]:focus-visible) .relay__ring[data-layer="2"] ellipse { fill: #b9cfdc; }
-.relay__ring ellipse { transition: fill .4s, stroke .4s, transform .5s var(--ease); }
+/* one sage green at three strengths */
+
+/* Relay cone (after the white paper's "How trust travels"): rows line up with rings */
+.relay { --row: 200px; position: relative; display: grid; grid-template-columns: 470px minmax(0, 1fr); margin-top: 40px; }
+.relay__cone { width: 470px; height: calc(var(--row) * 3); overflow: visible; }
+.relay__edge { fill: none; stroke: rgba(250,247,240,.28); stroke-width: 1.2; }
+.relay__flow { fill: none; stroke: #f2b84b; stroke-width: 2; stroke-dasharray: 5 7; animation: relay-flow 1.6s linear infinite; }
+@keyframes relay-flow { to { stroke-dashoffset: -24; } }
+.relay__layer { --a: .22; transition: opacity .5s var(--ease); }
+.relay__layer ellipse { fill: #b5bd93; stroke: rgba(250,247,240,.45); stroke-width: 1.2; transition: fill-opacity .5s, stroke .5s; }
+.relay__outer { fill-opacity: calc(var(--a) * .35); }
+.relay__inner { fill-opacity: var(--a); }
+.relay__inner--dash { stroke-dasharray: 4 5; }
+.relay__name { font: 600 17px var(--f-display); fill: #faf7f0; text-anchor: middle; transition: fill .5s; }
+.relay__actor circle { fill: #faf7f0; }
+.relay__actor text { font: 500 12px var(--f-body); fill: rgba(250,247,240,.8); }
+.relay__link { stroke: rgba(250,247,240,.3); stroke-width: 1.2; transition: stroke .5s; }
+.relay__list { display: grid; grid-template-rows: repeat(3, var(--row)); }
+.relay__list > li { position: relative; display: flex; flex-direction: column; justify-content: center; padding: 0 0 0 64px; outline: none; transition: opacity .5s var(--ease); }
+.relay__list > li::before { content: ""; position: absolute; left: 0; top: 50%; width: 48px; height: 1.2px; background: rgba(250,247,240,.3); transition: background .5s; }
+.relay__list > li::after { content: ""; position: absolute; left: 44px; top: 50%; width: 9px; height: 9px; margin-top: -4px; border-radius: 50%; background: rgba(250,247,240,.5); transition: background .5s, transform .5s var(--ease); }
+.relay__list small { font: 600 13px/1 var(--f-display); letter-spacing: .06em; text-transform: uppercase; color: #f2b84b; }
+.relay__list h4 { margin: 10px 0 8px; font: 600 clamp(20px, 2vw, 28px)/1.2 var(--f-display); letter-spacing: -0.02em; }
+.relay__list p { max-width: 32em; color: var(--c-muted); line-height: 1.55; }
+/* the active layer lights up, the rest step back */
+.relay[data-active] .relay__layer, .relay[data-active] .relay__list > li { opacity: .35; }
+.relay[data-active="0"] .relay__layer[data-layer="0"], .relay[data-active="1"] .relay__layer[data-layer="1"], .relay[data-active="2"] .relay__layer[data-layer="2"],
+.relay[data-active="0"] .relay__list > li[data-layer="0"], .relay[data-active="1"] .relay__list > li[data-layer="1"], .relay[data-active="2"] .relay__list > li[data-layer="2"] { opacity: 1; }
+.relay[data-active="0"] .relay__layer[data-layer="0"], .relay[data-active="1"] .relay__layer[data-layer="1"], .relay[data-active="2"] .relay__layer[data-layer="2"] { --a: .95; }
+.relay[data-active="0"] [data-layer="0"] .relay__inner, .relay[data-active="1"] [data-layer="1"] .relay__inner, .relay[data-active="2"] [data-layer="2"] .relay__inner { stroke: #f2b84b; stroke-width: 2; }
+.relay[data-active="0"] [data-layer="0"] .relay__name, .relay[data-active="1"] [data-layer="1"] .relay__name, .relay[data-active="2"] [data-layer="2"] .relay__name { fill: #262c22; }
+.relay[data-active="0"] [data-layer="0"] .relay__link, .relay[data-active="1"] [data-layer="1"] .relay__link, .relay[data-active="2"] [data-layer="2"] .relay__link { stroke: #f2b84b; }
+.relay[data-active="0"] li[data-layer="0"]::before, .relay[data-active="1"] li[data-layer="1"]::before, .relay[data-active="2"] li[data-layer="2"]::before,
+.relay[data-active="0"] li[data-layer="0"]::after, .relay[data-active="1"] li[data-layer="1"]::after, .relay[data-active="2"] li[data-layer="2"]::after { background: #f2b84b; }
+.relay[data-active="0"] li[data-layer="0"]::after, .relay[data-active="1"] li[data-layer="1"]::after, .relay[data-active="2"] li[data-layer="2"]::after { transform: scale(1.4); }
+@media (max-width: 980px) {
+  .relay { grid-template-columns: 1fr; }
+  .relay__cone { width: 100%; max-width: 470px; height: auto; justify-self: center; }
+  .relay__list { grid-template-rows: none; gap: 28px; margin-top: 32px; }
+  .relay__list > li { padding-left: 24px; }
+  .relay__list > li::before { display: none; }
+  .relay__list > li::after { left: 0; top: 6px; margin-top: 0; }
+}
+@media (prefers-reduced-motion: reduce) { .relay__flow { animation: none; } }
+@media (max-width: 980px) { .relay__link { display: none; } .relay__list > li::after { left: 2px; } }
