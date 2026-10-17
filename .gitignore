@@ -1,0 +1,4 @@
+
+# local secrets (Home Assistant token)
+.ha-local.json
+**/.ha-local.json
