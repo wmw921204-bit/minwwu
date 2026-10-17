@@ -246,13 +246,14 @@ if (counters.length) {
   const run = (el) => {
     const end = Number(el.dataset.count);
     const suffix = el.dataset.suffix || "";
-    if (reduceMotion) { el.textContent = end + suffix; return; }
+    const dec = Number(el.dataset.decimals) || 0;
+    if (reduceMotion) { el.textContent = end.toFixed(dec) + suffix; return; }
     const start = performance.now();
     const dur = 1400;
     const step = (now) => {
       const t = clamp((now - start) / dur);
       const eased = 1 - Math.pow(1 - t, 4);
-      el.textContent = Math.round(end * eased) + suffix;
+      el.textContent = (end * eased).toFixed(dec) + suffix;
       if (t < 1) requestAnimationFrame(step);
     };
     requestAnimationFrame(step);
@@ -547,6 +548,97 @@ $$("[data-deck]").forEach((deck) => {
   paint();
 });
 
+/* ---------- Flipbook: a printed document you page through like a book ---------- */
+$$("[data-flip]").forEach((flip) => {
+  const book = $(".flip__book", flip);
+  const n = +flip.dataset.pages;
+  const base = flip.dataset.base;
+  const [pw, ph] = (flip.dataset.size || "1600x1236").split("x");
+  const pad = (i) => String(i).padStart(2, "0");
+  const leaves = [];
+  const imgs = [];
+  for (let k = 0; k < Math.ceil(n / 2); k++) {
+    const leaf = document.createElement("div");
+    leaf.className = "flip__leaf";
+    [2 * k + 1, 2 * k + 2].forEach((p, side) => {
+      const face = document.createElement("div");
+      face.className = `flip__face flip__face--${side ? "back" : "front"}`;
+      if (p <= n) {
+        const img = document.createElement("img");
+        img.dataset.src = `${base}${pad(p)}.webp`;
+        img.alt = `${flip.dataset.title || "Page"} — page ${p}`;
+        img.dataset.label = `Page ${p} / ${n}`;
+        img.width = pw; img.height = ph;
+        img.decoding = "async";
+        face.append(img);
+        imgs[p] = img;
+      }
+      leaf.append(face);
+    });
+    book.append(leaf);
+    leaves.push(leaf);
+  }
+  const L = leaves.length;
+  const prevBtn = $(".flip__prev", flip), nextBtn = $(".flip__next", flip);
+  const count = $(".flip__count", flip), range = $(".flip__range", flip);
+  if (range) { range.max = L; }
+  let cur = 0;
+  // only fetch the pages around the open spread
+  const load = () => {
+    for (let p = Math.max(1, 2 * cur - 4); p <= Math.min(n, 2 * cur + 5); p++) {
+      const img = imgs[p];
+      if (img && !img.src) img.src = img.dataset.src;
+    }
+  };
+  const paint = (moving = -1) => {
+    leaves.forEach((leaf, k) => {
+      const flipped = k < cur;
+      leaf.classList.toggle("is-flipped", flipped);
+      leaf.style.zIndex = k === moving ? L + 2 : flipped ? k + 1 : L - k;
+    });
+    flip.classList.toggle("is-start", cur === 0);
+    flip.classList.toggle("is-end", cur === L);
+    if (prevBtn) prevBtn.disabled = cur === 0;
+    if (nextBtn) nextBtn.disabled = cur === L;
+    if (range) range.value = cur;
+    if (count) count.textContent = cur === 0 ? "Cover" : cur === L ? "Back cover" : `Pages ${2 * cur}–${Math.min(n, 2 * cur + 1)} / ${n}`;
+    load();
+  };
+  let timer = 0;
+  const go = (to) => {
+    to = Math.max(0, Math.min(L, to));
+    if (to === cur) return;
+    // the leaf that turns rides above the others for the length of the turn
+    const moving = to > cur ? cur : cur - 1;
+    const jump = Math.abs(to - cur) > 1;
+    cur = to;
+    paint(jump ? -1 : moving);
+    clearTimeout(timer);
+    timer = setTimeout(() => paint(), 1000);
+  };
+  leaves.forEach((leaf, k) => leaf.addEventListener("click", () => go(k < cur ? cur - 1 : cur + 1)));
+  prevBtn?.addEventListener("click", () => go(cur - 1));
+  nextBtn?.addEventListener("click", () => go(cur + 1));
+  range?.addEventListener("input", () => go(+range.value));
+  flip.addEventListener("keydown", (e) => {
+    if (e.key === "ArrowRight") { e.preventDefault(); go(cur + 1); }
+    if (e.key === "ArrowLeft") { e.preventDefault(); go(cur - 1); }
+  });
+  // swipe on touch screens
+  let sx = null;
+  book.addEventListener("touchstart", (e) => { sx = e.touches[0].clientX; }, { passive: true });
+  book.addEventListener("touchend", (e) => {
+    if (sx === null) return;
+    const dx = e.changedTouches[0].clientX - sx; sx = null;
+    if (Math.abs(dx) > 40) go(cur + (dx < 0 ? 1 : -1));
+  });
+  $(".flip__zoom", flip)?.addEventListener("click", () => {
+    const p = cur === L ? n : 2 * cur + 1 <= n ? 2 * cur + 1 : 2 * cur;
+    window.__lightbox?.open(imgs[p]);
+  });
+  paint();
+});
+
 /* ---------- Lightbox: every showcase image opens full-screen and zooms ---------- */
 (() => {
   const main = $(".case main") || $(".case");
@@ -558,8 +650,9 @@ $$("[data-deck]").forEach((deck) => {
   if (!imgs.length) return;
 
   const groupOf = (img) => {
-    const box = img.closest("[data-deck], .gallery__track") || img.closest("section") || main;
-    return $$("img", box).filter(zoomable).filter((i) => box.matches("[data-deck], .gallery__track") || !i.closest("[data-deck], .gallery__track"));
+    const own = "[data-deck], [data-flip], .gallery__track";
+    const box = img.closest(own) || img.closest("section") || main;
+    return $$("img", box).filter(zoomable).filter((i) => box.matches(own) || !i.closest(own));
   };
 
   const lb = document.createElement("div");
@@ -605,7 +698,7 @@ $$("[data-deck]").forEach((deck) => {
     idx = (i + group.length) % group.length;
     const src = group[idx];
     scale = 1; tx = 0; ty = 0; apply(false);
-    view.src = src.currentSrc || src.src;
+    view.src = src.currentSrc || src.src || src.dataset.src;
     view.alt = src.alt || "";
     $(".lb__cap", lb).textContent = src.dataset.label || src.alt || "";
     $(".lb__count", lb).textContent = group.length > 1 ? `${String(idx + 1).padStart(2, "0")} / ${String(group.length).padStart(2, "0")}` : "";
@@ -688,7 +781,7 @@ $$("[data-deck]").forEach((deck) => {
 
   // hook the page images up
   imgs.forEach((img) => {
-    if (img.closest("[data-deck]")) return; // decks open from their own button
+    if (img.closest("[data-deck], [data-flip]")) return; // decks and books open from their own button
     img.classList.add("is-zoomable");
     const inDrag = img.closest(".gallery__track");
     if (!inDrag && !img.closest("[data-cursor]")) img.dataset.cursor = "View";
