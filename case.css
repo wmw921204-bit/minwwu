@@ -706,7 +706,7 @@ img.is-zoomable { cursor: zoom-in; }
 .case--warm { --theme-bg: #885835; --theme-fg: #fff6ef; }
 .case--olive { --theme-bg: #424d3d; --theme-fg: #faf7f0; }
 /* Full-screen hero film anchored bottom-right, so the logo that lands there is never cropped */
-.c-hero--br .c-hero__media { object-position: 72% 100%; transform-origin: 72% 100%; transform: scale(calc(1.05 - var(--p, 0) * .05)); }
+.c-hero--br .c-hero__media { object-position: 50% 50%; transform-origin: 50% 50%; transform: scale(calc(1.03 - var(--p, 0) * .03)); }
 @media (max-width: 640px), (max-aspect-ratio: 4/3) {
   .c-hero--compact .c-hero__media { transform: none; object-position: 50% 50%; }
   .c-hero--compact .c-hero__pin::after, .c-hero--compact .c-hero__intro { display: none; }
