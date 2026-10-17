@@ -628,3 +628,6 @@ img.is-zoomable { cursor: zoom-in; }
 .flip__face--front::before { background: linear-gradient(90deg, rgba(0,0,0,.28), rgba(0,0,0,0) 45%, rgba(255,255,255,.18) 100%); }
 .flip__face--back::before { background: linear-gradient(270deg, rgba(0,0,0,.28), rgba(0,0,0,0) 45%, rgba(255,255,255,.18) 100%); }
 .flip__leaf.is-dragging .flip__face::before { transition: none; }
+/* Wide stats (e.g. 53.9%) sit in the upper right, clear of the dialogue box */
+.vn__big--stat { font-size: clamp(96px, 13vw, 230px); top: 24vh; translate: none; right: var(--gutter); white-space: nowrap; }
+@media (max-width: 760px) { .vn__big--stat { font-size: 22vw; top: 24vh; } }
