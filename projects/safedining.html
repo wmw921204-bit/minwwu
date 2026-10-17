@@ -16,7 +16,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&family=Poppins:wght@400;500;600&family=Sulphur+Point:wght@400&display=swap">
   <link rel="stylesheet" href="../styles.css?v=20261017a">
-  <link rel="stylesheet" href="../case.css?v=20261018d">
+  <link rel="stylesheet" href="../case.css?v=20261018e">
 </head>
 <body class="case case--olive">
   <a class="skip" href="#main">Skip to content</a>
@@ -56,10 +56,9 @@
   <main id="main">
     <section class="c-hero c-hero--title c-hero--fill" data-scene style="--beats:1;--hero-bg:#424d3d">
       <div class="c-hero__pin">
-        <video class="c-hero__media" autoplay muted loop playsinline preload="auto" poster="../assets/projects/safedining/vision-poster.webp" aria-label="Team Safe Dining vision video">
-          <source src="../assets/projects/safedining/vision.mp4" type="video/mp4">
+        <video class="c-hero__media" autoplay muted loop playsinline preload="auto" poster="../assets/projects/safedining/hero-poster.webp" aria-hidden="true">
+          <source src="../assets/projects/safedining/hero.mp4" type="video/mp4">
         </video>
-        <button class="c-hero__sound" type="button" data-sound aria-pressed="false"><span class="c-hero__sound-icon" aria-hidden="true"></span><span class="c-hero__sound-label">Watch with sound</span></button>
         <div class="c-hero__intro">
           <small>SERVICE DESIGN · FALL 2025</small>
           <p>Allergy-safe dining, from the menu to the kitchen.</p>
@@ -81,11 +80,11 @@
           <div><dt>Outputs</dt><dd>White paper · customer journey map · ecosystem map · infographics</dd></div>
         </dl>
       </div>
-      <div class="c-covers">
-        <img class="wipe" src="../assets/projects/safedining/wp/01.webp" alt="White paper cover: Safe Dining for People With Allergies" width="1600" height="1236" loading="lazy">
-        <img class="wipe" src="../assets/projects/safedining/poster-journey.webp?v=2" alt="Infographic poster: Customer Journey Map" width="4400" height="2779" loading="lazy">
-        <img class="wipe" src="../assets/projects/safedining/wp/07.webp" alt="White paper spread: Sitting at the Table of Trust" width="1600" height="1236" loading="lazy">
-        <img class="wipe" src="../assets/projects/safedining/poster-ecosystem.webp?v=2" alt="Infographic poster: Ecosystem Map" width="4400" height="2779" loading="lazy">
+      <div class="c-covers c-covers--natural">
+        <img class="wipe" src="../assets/projects/safedining/film-phone.webp" alt="Still from the vision film: a diner checking allergy information on her phone" width="1920" height="1080" loading="lazy">
+        <img class="wipe" src="../assets/projects/safedining/poster-journey.webp?v=2" alt="Infographic poster: customer journey map" width="4400" height="2779" loading="lazy">
+        <img class="wipe" src="../assets/projects/safedining/film-table.webp" alt="Still from the vision film: diners and staff at an outdoor table" width="1920" height="1080" loading="lazy">
+        <img class="wipe" src="../assets/projects/safedining/poster-ecosystem.webp?v=2" alt="Infographic poster: ecosystem map" width="4400" height="2779" loading="lazy">
       </div>
     </section>
 
@@ -128,7 +127,7 @@
         <div class="c-stat"><span class="c-stat__num" data-count="2">2</span><span class="c-stat__label"><b>co-creation workshops</b>, current and future state</span></div>
         <div class="c-stat"><span class="c-stat__num" data-count="1">1</span><span class="c-stat__label"><b>field study</b> at Sly’s, Savannah</span></div>
       </div>
-      <div class="switcher switcher--sheets" data-tabs>
+      <div class="switcher research" data-tabs>
         <div class="switcher__tabs" role="tablist" aria-label="Research methods">
           <button role="tab" aria-selected="true">Secondary research</button>
           <button role="tab" aria-selected="false" tabindex="-1">Survey</button>
@@ -137,54 +136,83 @@
           <button role="tab" aria-selected="false" tabindex="-1">Co-creation workshops</button>
         </div>
         <div class="switcher__stage">
-          <figure class="switcher__panel is-active" role="tabpanel">
-            <div class="deck" data-deck>
-              <button class="deck__stage" type="button" data-cursor="Next" aria-label="Show next page">
-              <img src="../assets/projects/safedining/wp/60.webp" alt="White paper page 60: Secondary research" data-label="Secondary research" width="1600" height="1236" loading="lazy">
-              <img src="../assets/projects/safedining/wp/61.webp" alt="White paper page 61: Summary of secondary findings" data-label="Summary of secondary findings" width="1600" height="1236" loading="lazy">
-              <img src="../assets/projects/safedining/wp/14.webp" alt="White paper page 14: Industry overview" data-label="Industry overview" width="1600" height="1236" loading="lazy">
-              <img src="../assets/projects/safedining/wp/15.webp" alt="White paper page 15: The cost of what’s missing" data-label="The cost of what’s missing" width="1600" height="1236" loading="lazy">
-              </button>
-              <div class="deck__bar"><span class="deck__count"><b>01</b> / 04</span><span class="deck__label">Secondary research</span><span class="deck__dots"></span></div>
+          <div class="switcher__panel is-active" role="tabpanel">
+            <p class="rs-lead">We reviewed research and industry data from <b>FARE, CDC/EHS-Net, the FDA and Apicbase</b>. Six findings shaped our strategy.</p>
+            <ol class="rs-grid">
+              <li><b>01</b><h3>Training gaps persist</h3><p>Only 44% of restaurant staff receive allergy training, and over 10% still believe “small amounts” of allergens are safe.</p></li>
+              <li><b>02</b><h3>Communication breaks down</h3><p>53.9% of reactions happen even after disclosure, through verbal miscommunication between servers and the kitchen.</p></li>
+              <li><b>03</b><h3>Transparency deficit</h3><p>Only 22% of restaurants provide allergen menus, and nearly 45% lack ingredient lists or recipes.</p></li>
+              <li><b>04</b><h3>Emotional safety matters</h3><p>Diners face anxiety and isolation. Empathy and visible safety cues matter as much as physical safety.</p></li>
+              <li><b>05</b><h3>Regulation is fragmented</h3><p>Unlike packaged food, restaurant allergen disclosure isn’t federally mandated, so standards vary by state.</p></li>
+              <li><b>06</b><h3>A growing market</h3><p>The global allergy-free food market is projected to reach $102.8 billion by 2035.</p></li>
+            </ol>
+          </div>
+          <div class="switcher__panel" role="tabpanel">
+            <div class="rs-split">
+              <div>
+                <p class="rs-lead">A short online survey of <b>diners with allergies, caregivers and restaurant staff</b>, to see how each side navigates safety while eating out.</p>
+                <ul class="rs-points">
+                  <li>Most diners check websites, menus and reviews, or call ahead, because allergen information is unclear or missing.</li>
+                  <li>Many find menu labels confusing and aren’t sure staff understand their needs.</li>
+                  <li>Some have had reactions despite disclosing their allergy.</li>
+                </ul>
+                <p class="rs-close">What they want is <b>trust, not luck</b>: clearer menus, better-trained staff and reliable systems.</p>
+              </div>
+              <div class="rs-quotes">
+                <blockquote>“Have a clear detailed menu that explains what’s in the food.”</blockquote>
+                <blockquote>“List out our ingredients and bold allergens. The big issue isn’t popular franchises, it’s the smaller community-run places that haven’t organized allergen warnings.”</blockquote>
+                <cite>Survey participants</cite>
+              </div>
             </div>
-            <p>Reports from FARE, the FDA, the CDC and industry data, distilled into six findings.</p></figure>
-          <figure class="switcher__panel" role="tabpanel">
-            <div class="deck" data-deck>
-              <button class="deck__stage" type="button" data-cursor="Next" aria-label="Show next page">
-              <img src="../assets/projects/safedining/wp/64.webp" alt="White paper page 64: Survey · our aim" data-label="Survey · our aim" width="1600" height="1236" loading="lazy">
-              <img src="../assets/projects/safedining/wp/65.webp" alt="White paper page 65: Survey · findings" data-label="Survey · findings" width="1600" height="1236" loading="lazy">
-              </button>
-              <div class="deck__bar"><span class="deck__count"><b>01</b> / 02</span><span class="deck__label">Survey · our aim</span><span class="deck__dots"></span></div>
+          </div>
+          <div class="switcher__panel" role="tabpanel">
+            <div class="rs-split">
+              <div>
+                <p class="rs-lead"><b>12 in-depth interviews</b> with people managing allergies at different severity levels, and caregivers who advocate for safe meals on others’ behalf.</p>
+                <ul class="rs-bubbles">
+                  <li>What was it like when you first arrived at the restaurant?</li>
+                  <li>What kinds of interactions did you have with the staff?</li>
+                  <li>How did those conversations feel to you?</li>
+                  <li>How did you go about deciding what to order?</li>
+                  <li>If you imagine the “ideal” dining experience, what comes to mind?</li>
+                </ul>
+                <p class="rs-close">Dining out is shaped less by the food than by <b>uncertainty, emotional labour and fragile communication</b>. People apologise for their needs, and moments of safety depend on individual staff, not systems.</p>
+              </div>
+              <img src="../assets/projects/safedining/photo-interview.webp" alt="Two team members during an interview, with sticky notes on the table" width="978" height="1430" loading="lazy">
             </div>
-            <p>An online survey of diners with allergies, caregivers and restaurant staff: most check menus, reviews or call ahead before they go.</p></figure>
-          <figure class="switcher__panel" role="tabpanel">
-            <div class="deck" data-deck>
-              <button class="deck__stage" type="button" data-cursor="Next" aria-label="Show next page">
-              <img src="../assets/projects/safedining/wp/66.webp" alt="White paper page 66: Interviews · our aim" data-label="Interviews · our aim" width="1600" height="1236" loading="lazy">
-              <img src="../assets/projects/safedining/wp/68.webp" alt="White paper page 68: Interviews · findings" data-label="Interviews · findings" width="1600" height="1236" loading="lazy">
-              </button>
-              <div class="deck__bar"><span class="deck__count"><b>01</b> / 02</span><span class="deck__label">Interviews · our aim</span><span class="deck__dots"></span></div>
+          </div>
+          <div class="switcher__panel" role="tabpanel">
+            <div class="rs-split">
+              <div>
+                <p class="rs-lead">An ethnographic study at <b>Sly’s in Savannah, GA</b>, watching real-time service and the kitchen workflow.</p>
+                <ul class="rs-points">
+                  <li>Allergy protocols varied a lot from one staff member to the next.</li>
+                  <li>Many relied on verbal reminders or personal judgment.</li>
+                  <li>Cross-contact steps weren’t built into the workflow.</li>
+                  <li>Front-of-house to kitchen communication lacked structure or records.</li>
+                </ul>
+              </div>
+              <div class="rs-photos">
+                <img class="rs-photos__wide" src="../assets/projects/safedining/photo-menu.webp" alt="Chalkboard menu at Sly’s Sliders" width="884" height="607" loading="lazy">
+                <img src="../assets/projects/safedining/photo-store.webp" alt="Sly’s storefront" width="449" height="650" loading="lazy">
+                <img src="../assets/projects/safedining/photo-window.webp" alt="Stickers and notices on the restaurant door" width="426" height="650" loading="lazy">
+              </div>
             </div>
-            <p>12 interviews: dining out is shaped less by the food than by uncertainty, emotional labour and fragile communication.</p></figure>
-          <figure class="switcher__panel" role="tabpanel">
-            <div class="deck" data-deck>
-              <button class="deck__stage" type="button" data-cursor="Next" aria-label="Show next page">
-              <img src="../assets/projects/safedining/wp/62.webp" alt="White paper page 62: Primary research" data-label="Primary research" width="1600" height="1236" loading="lazy">
-              <img src="../assets/projects/safedining/wp/69.webp" alt="White paper page 69: Field observation" data-label="Field observation" width="1600" height="1236" loading="lazy">
-              </button>
-              <div class="deck__bar"><span class="deck__count"><b>01</b> / 02</span><span class="deck__label">Primary research</span><span class="deck__dots"></span></div>
+          </div>
+          <div class="switcher__panel" role="tabpanel">
+            <div class="rs-workshops">
+              <article>
+                <img src="../assets/projects/safedining/photo-ws1.webp" alt="Workshop 1: preparation materials and participant sticky notes" width="793" height="1212" loading="lazy">
+                <small>Workshop 1</small><h3>Current-state roleplay</h3>
+                <p>An allergen-card icebreaker, then a restaurant role-play as diners, servers, chefs, suppliers and regulators. Walking the journey showed where communication breaks and trust fails.</p>
+              </article>
+              <article>
+                <img src="../assets/projects/safedining/photo-ws2.webp" alt="Workshop 2: guided booklets and a 2025 versus 2035 sticky-note board" width="794" height="1209" loading="lazy">
+                <small>Workshop 2</small><h3>Future-state co-creation</h3>
+                <p>“Welcome to 2035.” With a guided booklet, each role wrote their ideal dining journey, then debated and refined it in a challenge round. Safety, they agreed, has to live in systems, not people.</p>
+              </article>
             </div>
-            <p>Watching real service at Sly’s in Savannah: where allergy information is spoken, written down, or lost.</p></figure>
-          <figure class="switcher__panel" role="tabpanel">
-            <div class="deck" data-deck>
-              <button class="deck__stage" type="button" data-cursor="Next" aria-label="Show next page">
-              <img src="../assets/projects/safedining/wp/70.webp" alt="White paper page 70: Co-creation workshops" data-label="Co-creation workshops" width="1600" height="1236" loading="lazy">
-              <img src="../assets/projects/safedining/wp/71.webp" alt="White paper page 71: Workshop 1 · current-state roleplay" data-label="Workshop 1 · current-state roleplay" width="1600" height="1236" loading="lazy">
-              <img src="../assets/projects/safedining/wp/72.webp" alt="White paper page 72: Workshop 2 · future-state co-creation" data-label="Workshop 2 · future-state co-creation" width="1600" height="1236" loading="lazy">
-              </button>
-              <div class="deck__bar"><span class="deck__count"><b>01</b> / 03</span><span class="deck__label">Co-creation workshops</span><span class="deck__dots"></span></div>
-            </div>
-            <p>Roleplaying today’s service, then co-designing a safer one with diners and staff.</p></figure>
+          </div>
         </div>
       </div>
     </section>
@@ -216,36 +244,22 @@
       <div class="wrap c-sec">
         <div class="c-chapter"><span class="c-chapter__num">04</span><h2 class="c-kicker">Ecosystem analysis</h2></div>
         <p class="c-head reveal-mask">Many players, shared responsibility.</p>
-        <p class="c-text reveal">Safety doesn’t live with one server. It travels from regulators and suppliers, through managers and kitchens, to the diner’s table. We mapped that chain at the micro, meso and macro level to find where it breaks.</p>
-        <figure class="c-figure c-figure--map reveal"><img src="../assets/projects/safedining/system-map.webp" alt="Allergy-friendly dining ecosystem map: the restaurant at the centre, surrounded by suppliers, certification bodies, review and delivery platforms, regulators, advocacy groups, the medical system and tourism, linked by service, money, goods, information, value and regulation" width="3000" height="2680" loading="lazy"><figcaption>Six kinds of flow (service, money, physical goods, information, intangible value and regulation) between everyone who touches the meal.</figcaption></figure>
-        <div class="switcher switcher--sheets" data-tabs style="margin-top:72px">
-          <div class="switcher__tabs" role="tablist" aria-label="Ecosystem maps">
-            <button role="tab" aria-selected="true">Ecosystem map</button>
-            <button role="tab" aria-selected="false" tabindex="-1">Where it breaks</button>
-          </div>
-          <div class="switcher__stage">
-          <figure class="switcher__panel is-active" role="tabpanel">
-            <div class="deck" data-deck>
-              <button class="deck__stage" type="button" data-cursor="Next" aria-label="Show next page">
-              <img src="../assets/projects/safedining/wp/19.webp" alt="White paper page 19: Who’s at the table?" data-label="Who’s at the table?" width="1600" height="1236" loading="lazy">
-              <img src="../assets/projects/safedining/wp/20.webp" alt="White paper page 20: Ecosystem map" data-label="Ecosystem map" width="1600" height="1236" loading="lazy">
-              <img src="../assets/projects/safedining/wp/21.webp" alt="White paper page 21: How trust travels through the system" data-label="How trust travels through the system" width="1600" height="1236" loading="lazy">
-              </button>
-              <div class="deck__bar"><span class="deck__count"><b>01</b> / 03</span><span class="deck__label">Who’s at the table?</span><span class="deck__dots"></span></div>
-            </div>
-            <p>Diners, staff, kitchens, suppliers, regulators and advocates, and the information, service and regulation flowing between them.</p></figure>
-          <figure class="switcher__panel" role="tabpanel">
-            <div class="deck" data-deck>
-              <button class="deck__stage" type="button" data-cursor="Next" aria-label="Show next page">
-              <img src="../assets/projects/safedining/wp/23.webp" alt="White paper page 23: When information stops, trust breaks" data-label="When information stops, trust breaks" width="1600" height="1236" loading="lazy">
-              <img src="../assets/projects/safedining/wp/24.webp" alt="White paper page 24: How the chain breaks" data-label="How the chain breaks" width="1600" height="1236" loading="lazy">
-              <img src="../assets/projects/safedining/wp/25.webp" alt="White paper page 25: Loss in transmission" data-label="Loss in transmission" width="1600" height="1236" loading="lazy">
-              <img src="../assets/projects/safedining/wp/27.webp" alt="White paper page 27: When no one owns the whole" data-label="When no one owns the whole" width="1600" height="1236" loading="lazy">
-              </button>
-              <div class="deck__bar"><span class="deck__count"><b>01</b> / 04</span><span class="deck__label">When information stops, trust breaks</span><span class="deck__dots"></span></div>
-            </div>
-            <p>Regulations exist, but rarely reach the floor: rules stay in documents, and the people serving food are left to improvise.</p></figure>
-          </div>
+        <div class="c-split" style="align-items:start">
+          <p class="c-text reveal" style="margin-top:0">Food allergy safety doesn’t fail in isolation, <strong>it fails in connection</strong>. Suppliers, restaurants, platforms, regulators and diners each carry part of the responsibility, yet no one can guarantee safety alone.</p>
+          <p class="c-text reveal" style="margin-top:0">The system is complex, fragmented and unevenly informed, leaving gaps exactly where trust, data and accountability should flow.</p>
+        </div>
+        <figure class="c-figure c-figure--map reveal"><img src="../assets/projects/safedining/system-map.webp" alt="Allergy-friendly dining ecosystem map: the restaurant at the centre, surrounded by suppliers, certification bodies, review and delivery platforms, regulators, advocacy groups, the medical system and tourism" width="3000" height="2680" loading="lazy"><figcaption>Six kinds of flow (service, money, physical goods, information, intangible value and regulation) between everyone who touches the meal.</figcaption></figure>
+        <h3 class="c-kicker" style="margin-top:96px">How trust travels: a relay race from regulation to plate</h3>
+        <ol class="layers reveal-stagger">
+          <li style="--c:#a7ad86"><span class="layers__ring"><b>Micro</b></span><div><h4>Trust begins with people</h4><p>Diners, friends and family, chefs, servers and managers decide, in the moment, whether the meal is safe.</p><p class="layers__who">Diner · friends &amp; family · restaurant</p></div></li>
+          <li style="--c:#e3b7b4"><span class="layers__ring"><b>Meso</b></span><div><h4>The support network</h4><p>Suppliers, training providers, review platforms and certifiers make sure information is conveyed, applied and tracked.</p><p class="layers__who">Supplier · certification body · IT &amp; digital services</p></div></li>
+          <li style="--c:#b9cfdc"><span class="layers__ring"><b>Macro</b></span><div><h4>The system conditions</h4><p>Regulators, legal frameworks and advocacy groups set the rules everyone else works within.</p><p class="layers__who">Regulators · legal environment · NGOs · delivery platforms · tourism · medical system</p></div></li>
+        </ol>
+        <blockquote class="c-pull reveal">Trust cannot rely on individual goodwill; it must be <em>embedded within the system itself.</em></blockquote>
+        <div class="breaks reveal-stagger">
+          <div><small>Where the chain breaks</small><h4>Lost in the middle</h4><p>Supplier labels don’t match, menus lag behind the kitchen, and spoken reminders replace records. A single miscommunication quietly erodes trust.</p></div>
+          <div><small>Loss in transmission</small><h4>Rules that never reach the table</h4><p>Standards should flow down from regulators, through training and platforms, to frontline staff. Instead each tier reads “safety” its own way.</p></div>
+          <div><small>When no one owns the whole</small><h4>Risk lands on the diner</h4><p>Every stakeholder fixes problems inside its own boundary. Without a connecting layer, every failure travels down the chain to the person eating.</p></div>
         </div>
       </div>
     </section>
@@ -295,22 +309,29 @@
       </ol>
     </section>
 
+    <!-- Vision film -->
+    <section class="wrap c-sec" id="vision" data-chapter="Vision film">
+      <div class="c-chapter"><span class="c-chapter__num">07</span><h2 class="c-kicker">Vision film</h2></div>
+      <p class="c-head reveal-mask">Welcome to 2035.</p>
+      <p class="c-text reveal">Our team’s vision video follows a diner through a meal where safety is built in: from finding trustworthy information before she goes, to a table where staff and kitchen share the same picture of her allergy.</p>
+      <figure class="film reveal"><video controls playsinline preload="metadata" poster="../assets/projects/safedining/vision-poster.webp"><source src="../assets/projects/safedining/vision.mp4" type="video/mp4"></video></figure>
+    </section>
+
     <!-- 06 Outputs -->
     <section class="wrap c-sec" id="outputs" data-chapter="Infographics">
-      <div class="c-chapter"><span class="c-chapter__num">07</span><h2 class="c-kicker">Infographics</h2></div>
+      <div class="c-chapter"><span class="c-chapter__num">08</span><h2 class="c-kicker">Infographics</h2></div>
       <p class="c-head reveal-mask">Research you can read across a room.</p>
       <p class="c-text reveal">Two printed posters carry the journey and the ecosystem, each with a QR code to its interactive online version. Click to look closer.</p>
       <div class="posters reveal-stagger">
         <figure><img src="../assets/projects/safedining/poster-journey.webp?v=2" alt="Infographic poster: Between Anxiety and Assurance, the customer journey map" width="4400" height="2779" loading="lazy"><figcaption>Between Anxiety and Assurance · customer journey map</figcaption></figure>
         <figure><img src="../assets/projects/safedining/poster-ecosystem.webp?v=2" alt="Infographic poster: Who Keeps the Meal Safe, the ecosystem map" width="4400" height="2779" loading="lazy"><figcaption>Who Keeps the Meal Safe? · ecosystem map</figcaption></figure>
       </div>
-      <figure class="c-figure reveal"><img src="../assets/projects/safedining/infographic-board.webp" alt="Infographic board: prevalence, the Big 9 allergens, market growth, profit impact, emotional drivers, stakeholder ecosystem, problem heatmap and opportunity matrix" width="3200" height="2692" loading="lazy"></figure>
     </section>
 
     <!-- 07 White paper -->
-    <section class="c-band" id="white-paper" data-chapter="The white paper">
+    <section class="c-desk" id="white-paper" data-chapter="The white paper">
       <div class="wrap c-sec">
-        <div class="c-chapter"><span class="c-chapter__num">08</span><h2 class="c-kicker">The white paper</h2></div>
+        <div class="c-chapter"><span class="c-chapter__num">09</span><h2 class="c-kicker">The white paper</h2></div>
         <p class="c-head reveal-mask">Where care is the recipe, and safety is the standard.</p>
         <p class="c-text reveal">The final deliverable: an 82-page printed white paper. Turn the pages below.</p>
         <div class="flip is-start" data-flip data-pages="82" data-base="../assets/projects/safedining/wp/" data-size="1600x1236" data-title="Safe Dining white paper" tabindex="0" aria-label="Safe Dining white paper, use the arrow keys to turn pages">
@@ -322,7 +343,7 @@
             <input class="flip__range" type="range" min="0" max="41" value="0" aria-label="Jump to spread">
             <button class="deck__zoom flip__zoom" type="button" aria-label="Enlarge this page"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M12 3h5v5M8 17H3v-5M17 3l-6 6M3 17l6-6" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Enlarge</span></button>
           </div>
-          <p class="flip__hint">Click a page, swipe, or use ← → to turn</p>
+          <p class="flip__hint">Drag a page corner to turn it, or click, swipe, or use ← →</p>
         </div>
       </div>
     </section>
@@ -337,7 +358,7 @@
   <nav class="chapter" aria-label="Chapters">
     <ol class="chapter__list"></ol>
     <button class="chapter__toggle" aria-expanded="false">
-      <span class="chapter__num">01 / 08</span><span class="chapter__label">The problem</span>
+      <span class="chapter__num">01 / 09</span><span class="chapter__label">The problem</span>
       <span class="chapter__bar"><span></span></span>
     </button>
   </nav>
@@ -378,6 +399,6 @@
   </footer>
 
   <script src="../assets/js/lenis.min.js" defer></script>
-  <script src="../main.js?v=20261018b" defer></script>
+  <script src="../main.js?v=20261018c" defer></script>
 </body>
 </html>

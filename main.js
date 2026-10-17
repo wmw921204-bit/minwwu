@@ -642,21 +642,54 @@ $$("[data-flip]").forEach((flip) => {
     clearTimeout(timer);
     timer = setTimeout(() => paint(), 1000);
   };
-  leaves.forEach((leaf, k) => leaf.addEventListener("click", () => go(k < cur ? cur - 1 : cur + 1)));
+  // drag a page over like a real one: the turning leaf follows the pointer, then settles
+  let drag = null, dragged = false;
+  book.addEventListener("pointerdown", (e) => {
+    if (e.button !== 0) return;
+    const leaf = e.target.closest(".flip__leaf");
+    const k = leaves.indexOf(leaf);
+    if (k !== cur && k !== cur - 1) return;
+    drag = { leaf, k, fwd: k === cur, x0: e.clientX, w: leaf.offsetWidth, p: 0, id: e.pointerId };
+    dragged = false;
+  });
+  addEventListener("pointermove", (e) => {
+    if (!drag || e.pointerId !== drag.id) return;
+    const dx = e.clientX - drag.x0;
+    if (!dragged && Math.abs(dx) < 6) return;
+    if (!dragged) {
+      dragged = true;
+      drag.leaf.classList.add("is-dragging");
+      drag.leaf.style.zIndex = L + 2;
+      book.classList.add("is-dragging");
+    }
+    // a full turn is about one and a half page widths of travel
+    drag.p = clamp((drag.fwd ? -dx : dx) / (drag.w * 1.5));
+    const angle = drag.fwd ? -180 * drag.p : -180 * (1 - drag.p);
+    drag.leaf.style.transform = `rotateY(${angle.toFixed(1)}deg)`;
+    drag.leaf.style.setProperty("--bend", Math.sin(Math.PI * drag.p).toFixed(3));
+  });
+  const release = () => {
+    if (!drag) return;
+    const { leaf, fwd, p } = drag;
+    drag = null;
+    if (!dragged) return;
+    leaf.classList.remove("is-dragging");
+    book.classList.remove("is-dragging");
+    leaf.style.transform = "";
+    leaf.style.removeProperty("--bend");
+    if (p > 0.3) go(cur + (fwd ? 1 : -1));
+    else paint();
+    setTimeout(() => { dragged = false; }, 50);
+  };
+  addEventListener("pointerup", release);
+  addEventListener("pointercancel", release);
+  leaves.forEach((leaf, k) => leaf.addEventListener("click", () => { if (!dragged) go(k < cur ? cur - 1 : cur + 1); }));
   prevBtn?.addEventListener("click", () => go(cur - 1));
   nextBtn?.addEventListener("click", () => go(cur + 1));
   range?.addEventListener("input", () => go(+range.value));
   flip.addEventListener("keydown", (e) => {
     if (e.key === "ArrowRight") { e.preventDefault(); go(cur + 1); }
     if (e.key === "ArrowLeft") { e.preventDefault(); go(cur - 1); }
-  });
-  // swipe on touch screens
-  let sx = null;
-  book.addEventListener("touchstart", (e) => { sx = e.touches[0].clientX; }, { passive: true });
-  book.addEventListener("touchend", (e) => {
-    if (sx === null) return;
-    const dx = e.changedTouches[0].clientX - sx; sx = null;
-    if (Math.abs(dx) > 40) go(cur + (dx < 0 ? 1 : -1));
   });
   $(".flip__zoom", flip)?.addEventListener("click", () => {
     const p = cur === L ? n : 2 * cur + 1 <= n ? 2 * cur + 1 : 2 * cur;
