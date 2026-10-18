@@ -57,7 +57,7 @@
     const s=read();
     S.onboarding=s.onboarded?null:'intro';
     if(s.autonomy)S.autonomy=s.autonomy;
-    S.rules=s.rules||[];S.nogo=s.nogo||[];if(s.notif)S.notif=s.notif;S.schedules=[];
+    S.rules=s.rules||[];S.nogo=s.nogo||[];if(s.notif)S.notif={...S.notif,...s.notif}; // new switches keep their defaultS.schedules=[];
     HA.restoreMode=s.restoreMode||null;HA.removedZones=s.removedZones||[];
     Object.assign(ZONES,s.zones||{});Object.assign(OBJ,s.customObj||{});
     S.history=(s.history||[]).map(h=>({...h,day:dayLabel(h.endedAt||h.startedAt)}));
@@ -78,7 +78,7 @@
     const r=await fetch('/api/'+path,{signal:AbortSignal.timeout(15000),cache:'no-store',
       ...(body?{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}:{})});
     let v={};try{v=await r.json()}catch(e){}
-    if(!r.ok)throw new Error(v.error||'Home Assistant request failed ('+r.status+')');
+    if(!r.ok){const err=new Error(v.error||'Home Assistant request failed ('+r.status+')');err.status=r.status;throw err}
     return v;
   }
   const MAPSTORE='robot-live-map-v1';
@@ -105,7 +105,7 @@
 
   /* ---------- commands: sent for real, confirmed by the robot's next state ---------- */
   async function liveCommand(action,opts,fn){
-    if(action==='pause')HA.appPauseAt=Date.now();
+    if(action==='pause'){HA.appPauseAt=Date.now();HA.appPaused=true}
     if(S.conn!=='connected'){flash('You’re offline. Reconnect to send commands.');return false}
     if(!opts.force&&(HA.pending||(S.cmd&&S.cmd.state==='sending'))){flash('Still waiting for the robot to answer.');return false}
     const fail=()=>{S.cmd={label:opts.label,state:'failed',retry:opts.retry||(()=>liveCommand(action,opts,fn))};opts.onFail&&opts.onFail();commit()};
@@ -481,7 +481,8 @@
     else{HA.returnSince=0;if(st==='docked')resolveProblem('p_slowreturn','Back on the dock.')}
     if(!t||t.done||HA.spotEv||HA.resuming||t.recharging)return;
     // paused, but not by this app: someone pressed its button, used the Roborock app, or it stopped by itself
-    if(st==='paused'&&!S.waitEv&&!S.checkEv&&!HA.pending&&now-HA.appPauseAt>20000)
+    if(st==='cleaning'||st==='docked')HA.appPaused=false;
+    if(st==='paused'&&!HA.appPaused&&!S.waitEv&&!S.checkEv&&!HA.pending&&now-HA.appPauseAt>20000)
       raiseProblem('p_paused',{title:'Paused on its own',what:'The robot paused without a command from this app.',fix:'Someone may have pressed its button or paused it in the Roborock app, or it stopped because it couldn’t carry on. Check on it, then resume.',why:'From the robot’s status.',options:['pResume','pDock']},true);
     if(st==='cleaning')resolveProblem('p_paused','Cleaning again.');
     if(st==='cleaning'){
@@ -574,11 +575,13 @@
   async function refresh(){
     if(HA.fetching)return;HA.fetching=true;
     try{
-      const snap=await api('state');HA.error='';apply(snap);
+      const snap=await api('state');HA.error='';HA.bridgeSeen=true;apply(snap);
       if(!snap.reader)HA.error='Install the roborock_obstacles reader in Home Assistant to see the map, objects and robot position.';
       checkPending();processRetries();
       if(Date.now()-HA.lastMap>(HA.foot&&S.task&&!S.task.done?20000:60000))loadMap(); // at most every 20 s, even with no outline yet
     }catch(e){
+      // no bridge behind this page at all (e.g. GitHub Pages): use the simulation instead
+      if(e.status===404&&!HA.bridgeSeen){location.replace(location.pathname+'?demo=1');return}
       goOffline(e.message);
       if(/token/i.test(e.message)&&!HA.prompted&&!S.onboarding){HA.prompted=true;A.haConnect()}
     }finally{HA.fetching=false;persist();commitIfChanged()}
