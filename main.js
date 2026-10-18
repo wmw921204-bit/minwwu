@@ -611,10 +611,11 @@ $$("[data-guess]").forEach((box) => {
 });
 $$("[data-constellation]").forEach((sky) => {
   inView(sky, () => sky.classList.add("is-in"));
-  const lines = $$(".fin-sky__lines path", sky);
+  const scope = sky.closest(".fin-orbit") || sky;
+  const lines = $$(".fin-orb__spokes line", sky);
   const pick = (id) => {
-    $$("[data-info]", sky).forEach((p) => p.classList.toggle("is-active", p.dataset.info === id));
-    $$(".fin-sky__node", sky).forEach((n) => n.classList.toggle("is-active", n.dataset.node === id));
+    $$("[data-info]", scope).forEach((p) => p.classList.toggle("is-active", p.dataset.info === id));
+    $$("[data-node]", sky).forEach((n) => n.classList.toggle("is-active", n.dataset.node === id));
     lines.forEach((l, i) => l.classList.toggle("is-hot", String(i) === id));
   };
   $$("[data-node]", sky).forEach((n) => {
@@ -628,21 +629,55 @@ $$("[data-forum]").forEach((forum) => {
     posts.forEach((li, i) => setTimeout(() => {
       li.classList.add("is-on");
       if (i === posts.length - 1) setTimeout(() => forum.classList.add("is-done"), 900);
-    }, reduceMotion ? 0 : 500 + i * 1100));
-  });
+    }, reduceMotion ? 0 : 400 + i * 1100));
+  }, { threshold: 0, rootMargin: "0px 0px -45% 0px" });
 });
 $$("[data-journey]").forEach((jr) => {
-  inView(jr, () => jr.classList.add("is-in"));
-  const pts = $$("[data-stage]", jr), cards = $$("[data-card]", jr);
-  const go = (k) => {
-    pts.forEach((p) => p.classList.toggle("is-active", p.dataset.stage === k));
-    cards.forEach((c) => c.classList.toggle("is-active", c.dataset.card === k));
+  const line = $(".fin-jr__line", jr), dot = $(".fin-jr__dot", jr), wipe = $(".fin-jr__wipe", jr);
+  const cols = $$("[data-stage]", jr), cards = $$("[data-card]", jr);
+  const L = line.getTotalLength();
+  const lenAtX = (x) => { let lo = 0, hi = L; for (let k = 0; k < 24; k++) { const m = (lo + hi) / 2; if (line.getPointAtLength(m).x < x) lo = m; else hi = m; } return lo; };
+  const stops = [150, 450, 750].map(lenAtX);
+  let at = -1, pos = 0, revealed = 0, raf = 0;
+  const mark = (k) => {
+    if (k === at) return;
+    at = k; jr.dataset.at = k;
+    cols.forEach((c, i) => c.classList.toggle("is-active", i === k));
+    cards.forEach((c, i) => c.classList.toggle("is-active", i === k));
   };
-  pts.forEach((p) => { p.addEventListener("click", () => go(p.dataset.stage)); p.addEventListener("mouseenter", () => go(p.dataset.stage)); });
+  const place = (l) => {
+    pos = l;
+    const p = line.getPointAtLength(l);
+    dot.setAttribute("cx", p.x); dot.setAttribute("cy", p.y);
+    revealed = Math.max(revealed, p.x + 4);
+    wipe.setAttribute("width", Math.min(900, revealed));
+    mark(l >= stops[2] - 2 ? 2 : l >= stops[1] - 2 ? 1 : 0);
+  };
+  const travel = (to, ms) => {
+    cancelAnimationFrame(raf);
+    const from = pos, t0 = performance.now();
+    const step = (t) => {
+      const k = Math.min(1, (t - t0) / ms), e = k < 0.5 ? 2 * k * k : 1 - Math.pow(-2 * k + 2, 2) / 2;
+      place(from + (to - from) * e);
+      if (k < 1) raf = requestAnimationFrame(step);
+    };
+    raf = requestAnimationFrame(step);
+  };
+  place(0);
+  inView(jr, () => {
+    if (reduceMotion) { revealed = 900; place(stops[2]); return; }
+    // walk the whole journey once, pausing at each stage
+    travel(stops[0], 700);
+    setTimeout(() => travel(stops[1], 1500), 1500);
+    setTimeout(() => travel(stops[2], 1500), 3600);
+    setTimeout(() => { revealed = 900; wipe.setAttribute("width", 900); }, 5200);
+  });
+  cols.forEach((c, i) => c.addEventListener("click", () => travel(stops[i], 700)));
 });
 
 /* ---------- FINRA maze vs path: toggle the same task before and after ---------- */
 $$("[data-maze]").forEach((mz) => {
+  $$(".fin-mz__route", mz).forEach((p) => p.style.setProperty("--len", Math.ceil(p.getTotalLength()) + 1));
   let touched = false;
   const set = (mode) => {
     mz.dataset.mode = mode;
@@ -652,6 +687,15 @@ $$("[data-maze]").forEach((mz) => {
   };
   $$("[data-maze-to]", mz).forEach((b) => b.addEventListener("click", () => { touched = true; set(b.dataset.mazeTo); }));
   inView(mz, () => { set("before"); setTimeout(() => { if (!touched) set("after"); }, reduceMotion ? 2500 : 6200); });
+});
+
+/* ---------- FINRA usability board: bars grow, rows open ---------- */
+$$("[data-ut]").forEach((ut) => {
+  inView(ut, () => ut.classList.add("is-in"), { threshold: 0.2 });
+  const rows = $$(".fin-ut__row", ut);
+  rows.forEach((row) => $(".fin-ut__task", row).addEventListener("click", () => {
+    rows.forEach((r) => { const on = r === row && !r.classList.contains("is-open"); r.classList.toggle("is-open", on); $(".fin-ut__task", r).setAttribute("aria-expanded", String(on)); });
+  }));
 });
 
 /* ---------- FINRA synthesis: 700 notes cluster into 110, 27 and 6 as you scroll ---------- */
@@ -665,7 +709,7 @@ $$("[data-affinity]").forEach((sec) => {
     ["27", "themes"],
     ["6", "problems to solve"],
   ];
-  let W = 0, H = 0, dpr = 1, centers = [];
+  let W = 0, H = 0, dpr = 1, centers = [], box = [0, 0, 1, 1];
   // Every note belongs to one group, theme and problem, nested in order
   const notes = Array.from({ length: N }, (_, i) => ({
     g: Math.floor((i * 110) / N), t: Math.floor((i * 27) / N), p: Math.floor((i * 6) / N),
@@ -682,21 +726,24 @@ $$("[data-affinity]").forEach((sec) => {
     dpr = Math.min(2, devicePixelRatio || 1);
     W = r.width; H = r.height;
     canvas.width = W * dpr; canvas.height = H * dpr;
-    const narrow = W < 700;
+    const narrow = W < 900;
+    // the copy owns the left (or top on phones); notes live in the rest
+    box = narrow ? [W * 0.04, H * 0.4, W * 0.96, H * 0.97] : [W * 0.4, H * 0.1, W * 0.97, H * 0.95];
+    const [x0, y0, x1, y1] = box;
     centers = [
       null,
-      grid(110, narrow ? 10 : 14, W * 0.05, H * 0.42, W * 0.95, H * 0.96),
-      grid(27, narrow ? 5 : 9, W * 0.06, H * 0.44, W * 0.94, H * 0.95),
-      grid(6, 3, W * 0.04, H * 0.36, W * 0.96, H * 0.92),
+      grid(110, narrow ? 10 : 11, x0, y0, x1, y1),
+      grid(27, narrow ? 5 : 6, x0, y0, x1, y1),
+      grid(6, narrow ? 3 : 3, x0, y0, x1, y1 - (y1 - y0) * 0.12),
     ];
     // problem labels sit just under their cluster
-    const rad = Math.min(W, H) * 0.0098 * Math.sqrt(N / 6) + 10;
+    const rad = Math.min(box[2] - box[0], box[3] - box[1]) * 1.15 * 0.0098 * Math.sqrt(N / 6) + 10;
     $$(".fin-aff__tags li", sec).forEach((li, k) => { li.style.setProperty("--x", centers[3][k][0] + "px"); li.style.setProperty("--y", centers[3][k][1] + rad + "px"); });
   };
   const spiral = (k, gap) => { const a = k * 2.39996, d = gap * Math.sqrt(k); return [Math.cos(a) * d, Math.sin(a) * d]; };
   const posAt = (n, i, s) => {
-    if (s === 0) return [n.rx * W, H * 0.4 + n.ry * H * 0.57];
-    const size = Math.min(W, H);
+    if (s === 0) return [box[0] + n.rx * (box[2] - box[0]), box[1] + n.ry * (box[3] - box[1])];
+    const size = Math.min(box[2] - box[0], box[3] - box[1]) * 1.15;
     const [cx, cy] = s === 1 ? centers[1][n.g] : s === 2 ? centers[2][n.t] : centers[3][n.p];
     const [ox, oy] = s === 1 ? spiral(rG[i], size * 0.0085) : s === 2 ? spiral(rT[i], size * 0.0105) : spiral(rP[i], size * 0.0098);
     return [cx + ox, cy + oy];
