@@ -590,6 +590,48 @@ $$("[data-relay]").forEach((relay) => {
   $$(".relay__layer", relay).forEach((g) => g.addEventListener("pointerenter", () => set(g.dataset.layer)));
 });
 
+/* ---------- Prototype guide: follow the embedded app and explain each step ---------- */
+$$("[data-proto-guide]").forEach((guide) => {
+  const demo = guide.closest(".fin-demo") || guide.parentElement;
+  const frame = $("[data-proto-frame]", demo.parentElement);
+  const view = frame && frame.parentElement;
+  const cfg = JSON.parse($("[data-proto-rules]", demo).textContent);
+  const steps = $$("[data-step]", guide);
+  const items = $$(".fin-guide__list li", guide);
+  const count = $("[data-proto-count]", guide);
+  const seen = new Set();
+  let current = "";
+  const show = (id) => {
+    if (id === current) return;
+    current = id;
+    let group = 0;
+    steps.forEach((s) => {
+      const on = s.dataset.step === id;
+      s.classList.toggle("is-active", on);
+      if (on) group = Number(s.dataset.group);
+    });
+    seen.add(group);
+    items.forEach((li, i) => { li.classList.toggle("is-active", i === group); li.classList.toggle("is-done", seen.has(i) && i !== group); });
+    if (count) count.textContent = String(group + 1).padStart(2, "0");
+  };
+  const check = () => {
+    let doc;
+    try { doc = frame.contentDocument; } catch (e) { return; }
+    if (!doc || !doc.body) return;
+    const visible = (sel) => [...doc.querySelectorAll(sel)].some((el) => el.getClientRects().length);
+    const hit = cfg.rules.find((r) => visible(r.sel));
+    show(hit ? hit.id : cfg.fallback);
+  };
+  show(cfg.fallback);
+  setInterval(check, 400);
+  // The app is a 1440 x 900 desktop layout, scaled to fit the browser frame
+  const fit = () => { if (view) view.style.setProperty("--fs", (view.clientWidth / 1440).toFixed(4)); };
+  fit();
+  addEventListener("resize", fit);
+  const restart = $("[data-proto-restart]", demo);
+  if (restart) restart.addEventListener("click", () => { seen.clear(); current = ""; frame.src = frame.src; });
+});
+
 /* ---------- RECO demo: size the embedded phone to the screen ---------- */
 $$(".reco-device--app").forEach((dev) => {
   const fit = () => dev.style.setProperty("--dev-s", (dev.getBoundingClientRect().height / 900).toFixed(4));
