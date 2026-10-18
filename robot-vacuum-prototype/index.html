@@ -999,7 +999,7 @@ function evItem(ev){
   const d=DEFS[ev.key];const icC=ev.status==='resolved'||ev.status==='info'?'ok':ev.status==='skipped'?'gray':ev.status==='inProgress'?'blue':'warn';
   const icN=ev.status==='resolved'?'check':ev.status==='skipped'?'skip':ev.status==='inProgress'?'robot':ev.status==='info'?'robot':'alert';
   const room=ROOM[ZONES[d.zone].room].name;
-  return `<button class="item" data-a="openEvent" data-v="${ev.id}"><span class="ico ${icC}">${ic(icN,20)}</span><span class="body"><span class="t">${esc(ev.suggest&&ev.status==='needsReview'?'Extra pass suggested':d.title)}</span><span class="s">${room} · ${hhmm(ev.at)}${ev.retryFailed?' · retry didn’t work':''}</span></span><span class="pill ${ev.status}">${STATUSLABEL[ev.status]}</span></button>`;
+  return `<button class="item" data-a="openEvent" data-v="${ev.id}"><span class="ico ${icC}">${ic(icN,20)}</span><span class="body"><span class="t">${esc(ev.suggest&&ev.status==='needsReview'?'Extra pass suggested':d.title)}</span><span class="s">${room} · ${hhmm(ev.at)}${ev.retryFailed?' · retry didn’t work':''}</span></span><span class="pill ${ev.status}">${ev.status==='info'&&!ev.autonomous?'Done':STATUSLABEL[ev.status]}</span></button>`;
 }
 function statusCard(){
   const d=dev();const off=S.conn!=='connected';
@@ -1041,6 +1041,10 @@ function attention(){
   if(po.length&&S.task&&S.task.done)h+=objGroups(po).map(g=>`<button class="item" data-a="reviewRoom" data-v="${g.room}"><span class="ico warn" style="font-size:17px">${g.items.slice(0,2).map(o=>OBJ[o.label].e).join('')}</span><span class="body"><span class="t">${esc(g.name)}: ${g.items.length} item${g.items.length>1?'s':''} to check</span><span class="s">Confirm them together, or ignore them for now.</span></span><span class="pill needsReview">Check</span></button>`).join('');
   else if(po.length)h+=`<p class="small muted" style="margin:10px 4px 0">${po.length} object${po.length>1?'s':''} to check after cleaning. Nothing is blocked.</p>`;
   if(later.length)h+=`<div class="sec-h" style="margin-top:18px">Clean later</div>`+later.map(evItem).join('');
+  const leftOut=S.task&&S.task.done?evs.filter(e=>e.status==='skipped'&&DEFS[e.key].type!=='decision'):[];
+  if(leftOut.length)h+=`<p class="small muted" style="margin:12px 4px 0">${leftOut.length} area${leftOut.length>1?'s':''} left uncleaned today · ${leftOut.map(e=>`<button class="link" data-a="openEvent" data-v="${e.id}">${esc(ZONES[DEFS[e.key].zone].name)}</button>`).join(', ')}</p>`;
+  const unchecked=visibleObjs().filter(o=>o.status==='ignored');
+  if(unchecked.length)h+=`<p class="small muted" style="margin:8px 4px 0">${unchecked.length} object${unchecked.length>1?'s':''} not checked yet · <button class="link" data-a="recheckObjs">Check now</button></p>`;
   if(done.length)h+=`<p class="small muted" style="margin:12px 4px 0">${done.length} you handled · <button class="link" data-a="openTimeline" data-v="${S.task.id}">See timeline</button></p>`;
   if(auto.length){
     h+=`<div class="sec-h">Handled by the robot<small>${auto.length}</small></div>`;
@@ -1264,7 +1268,7 @@ function scrReport(id){
   const evRow=e=>r.live?evItem(e):`<div class="item"><span class="ico ${e.status==='info'||e.status==='resolved'?'ok':'gray'}">${ic(e.status==='info'||e.status==='resolved'?'check':'skip',20)}</span><span class="body"><span class="t">${esc(DEFS[e.key].title)}</span><span class="s">${esc(e.outcome||'')}</span></span><span class="pill ${e.status}">${STATUSLABEL[e.status]}</span></div>`;
   h+=sec('Not cleaned',notCleaned,'Every planned area was cleaned or deliberately excluded.',evRow);
   h+=sec('Robot adjusted on its own',auto,'No automatic adjustments.',evRow);
-  h+=sec('Needed your call',you,'Nothing needed your input.',e=>{const acts=e.log.filter(l=>l.a==='you').map(l=>l.x).join('; ');return r.live?evItem(e).replace('</span></span><span class="pill',`${acts?` · ${esc(acts)}`:' · no response yet'}</span></span><span class="pill`):evRow(e)});
+  h+=sec('Needed your call',you,'Nothing needed your input.',e=>{const yl=e.log.filter(l=>l.a==='you'&&!/changed your choice|undid/.test(l.x)),acts=yl.length?yl[yl.length-1].x+(yl.length>1?' (changed)':''):'';return r.live?evItem(e).replace('</span></span><span class="pill',`${acts?` · ${esc(acts)}`:' · no response yet'}</span></span><span class="pill`):evRow(e)});
   if(r.live&&visibleObjs().length){const ob=visibleObjs();h+=`<div class="sec-h">Objects found<small>${ob.length}</small></div>`+ob.map(objItem).join('')}
   h+=sec('Still open',open,'Nothing left to handle.',evRow);
   h+=`<button class="btn soft block" style="margin-top:22px" data-a="openTimeline" data-v="${id}">Open decision timeline</button>`;
@@ -1567,6 +1571,7 @@ const A={
   groupIgnore(v){const items=pendingObjs().filter(o=>CELLROOM[o.k]===v);items.forEach(o=>{o.status='ignored'});
     tl('you',`You left ${items.length} object${items.length>1?'s':''} in ${ROOM[v]?ROOM[v].the:'the home'} unchecked for now`);if(window.onObjChange)window.onObjChange(items);
     S.ui.modal=null;flash('Ignored for now. The robot keeps going around them.');commit()},
+  recheckObjs(){const items=visibleObjs().filter(o=>o.status==='ignored');if(!items.length)return;items.forEach(o=>{o.status='pending'});if(window.onObjChange)window.onObjChange(items);A.reviewRoom(CELLROOM[items[0].k])},
   fixObj(v){S.ui.objId=v;S.ui.objSel=null;S.ui.objCustom='';S.ui.objQueue=null;S.ui.modal=objModal(v);commit()},
   reviewObjs(){const q=pendingObjs().map(o=>o.id);if(!q.length)return;S.ui.notice=null;S.ui.objQueue=q;S.ui.objId=q[0];S.ui.objSel=null;S.ui.modal=objModal(q[0]);commit()},
   objPick(v){S.ui.objSel=v;S.ui.modal=objModal(S.ui.objId);commit();if(v==='other')setTimeout(()=>{const i=document.getElementById('obj-custom');if(i)i.focus()},60)},
