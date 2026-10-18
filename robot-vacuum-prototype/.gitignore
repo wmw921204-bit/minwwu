@@ -2,3 +2,4 @@
 .map-cache.png
 .map-cache.json
 __pycache__/
+node_modules/

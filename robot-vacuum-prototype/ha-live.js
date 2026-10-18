@@ -31,8 +31,10 @@
     fetching:false,lastMap:0,editing:false,sig:'',prompted:false,restoreMode:null,removedZones:[],notified:{},rooms:[],savedZones:[],view:null,objs:[],objSnap:'',align:null,retryWhen:'now',recent:[],areaMark:null,returnSince:0,snooze:{},careDay:{},appPauseAt:0,alignDraft:null,poseRaw:null,footKey:'',lastErr:null,lastStatusProblem:null,schedLoaded:false,schedError:''};
   window.HA=HA;
   const M=()=>window.HAModel;
-  const now=()=>{const d=new Date();return d.getHours()*3600+d.getMinutes()*60+d.getSeconds()};
-  const secOf=iso=>{const d=iso?new Date(iso):null;return d&&!isNaN(d)?d.getHours()*3600+d.getMinutes()*60+d.getSeconds():now()};
+  const DAY0=new Date(2026,0,1);
+  const clockOf=d=>Math.round((new Date(d.getFullYear(),d.getMonth(),d.getDate())-DAY0)/864e5)*86400+d.getHours()*3600+d.getMinutes()*60+d.getSeconds();
+  const now=()=>clockOf(new Date());
+  const secOf=iso=>{const d=iso?new Date(iso):null;return d&&!isNaN(d)?clockOf(d):now()};
   const read=()=>{try{return JSON.parse(localStorage.getItem(STORE))||{}}catch(e){return {}}};
   function dayLabel(ms){
     if(!ms)return 'Earlier';const d=new Date(ms),t=new Date();
@@ -97,7 +99,7 @@
       // an empty image means the robot has no map right now: keep showing the last good outline
       if(f&&HA.map){HA.foot=f;HA.foot3=M().footprint(px,bmp.width,bmp.height,12)||HA.foot3;saveGoodMap()} // 3D walls on a coarser 0.3 m outline
       const oldKey=HA.footKey;HA.footKey=HA.foot?HA.foot.runs.length+':'+JSON.stringify(HA.map?.calibration):'';
-      if(oldKey&&HA.footKey&&oldKey!==HA.footKey&&!HA.map?.stale){tl('robot','The robot updated its map');S.mapNews='The robot updated its map';banner('moved',{id:'moved',title:'Map updated',body:'The robot updated its map.'})}
+      if(oldKey&&HA.footKey&&oldKey!==HA.footKey&&!HA.map?.stale){tl('robot','The robot updated its map');checkDrawnAreas('The robot’s map changed shape.');S.mapNews='The robot updated its map';banner('moved',{id:'moved',title:'Map updated',body:'The robot updated its map.'})}
       if(HA.align&&HA.align.footKey&&HA.footKey&&HA.align.footKey!==HA.footKey){HA.align=null;flash('New robot map: the alignment was reset.')}
       HA.sig='';commitIfChanged();
     }catch(e){/* status stays useful without the map image */}
@@ -194,7 +196,7 @@
     nogo_zone_detected:'Carry the robot out of the no-go zone, then resume.',robot_on_carpet:'Move the robot off the carpet, then resume.',
     filter_blocked:'Clean or replace the filter, then resume.',visual_sensor:'Wipe the front camera, then resume.',
   };
-  const PLABELS={pResume:'I fixed it, resume',pDock:'Send it to the dock',pLater:'Leave it for now',pRetry:'Try again',pOk:'Got it',pAlign:'Align the map',pFinish:'Finish the cleaning here'};
+  const PLABELS={pResume:'I fixed it, resume',pDock:'Send it to the dock',pLater:'Leave it for now',pRetry:'Try again',pOk:'Got it',pAlign:'Align the map',pFinish:'Finish the cleaning here',pRooms:'Check rooms and zones'};
   function problemInfo(code){
     const [title,what]=PROBLEMS[code]||['Robot problem: '+code.replace(/_/g,' '),'The robot reports “'+code.replace(/_/g,' ')+'”.'];
     return {title,what,fix:FIXES[code]||M().errorText(code)||'Check the robot, then resume.',why:'Reported by the robot ('+code+').',options:['pResume','pDock','pLater']};
@@ -460,6 +462,10 @@
   // the trail is kept in the robot's own coordinates and aligned when drawn, so a later alignment fixes it too
   const trailOf=t=>(t&&t.trail||[]).filter(seg=>seg.length).map(seg=>seg.map(([x,y])=>{const p=M().toMap(HA.align?.al,{x,y});return [p.x,p.y]}));
 
+  function checkDrawnAreas(why){
+    if(!HA.rooms.length&&!HA.savedZones.length&&!S.nogo.length&&!HA.align)return;
+    raiseProblem('p_newmap',{title:'Check your rooms on the new map',what:why,fix:'Rooms, saved zones and no-go zones you drew, and the alignment, were made on the old map and may no longer line up. Open Rooms and zones to check them, and align the map if the robot looks off.',why:'The robot’s map in Home Assistant changed.',options:['pRooms','pAlign','pOk']},true);
+  }
   /* ---------- maintenance counters: one notice a day per part that is due ---------- */
   const CARE=[['sensor_time_left',10,'Sensors need cleaning','Wipe the floor sensors underneath and the laser cover with a dry cloth, then reset the counter in the Roborock app.'],
     ['filter_time_left',15,'Filter needs cleaning','Tap the filter clean, or replace it if it is worn.'],
@@ -520,7 +526,7 @@
     if(status==='idle'&&S.task&&!S.task.done)status='paused';
     S.device={status,battery:d.battery,error:d.error};
     HA.map=M().selectedMap(snap);
-    if(HA.map&&HA.map.calibration&&!HA.map.stale){HA.goodMap={map_id:HA.map.map_id,calibration:HA.map.calibration,no_go_areas:HA.map.no_go_areas,source_updated_at:HA.map.source_updated_at,charger:HA.map.charger,image_size:HA.map.image_size};resolveProblem('p_nomap','The robot has a map again.')}
+    if(HA.map&&HA.map.calibration&&!HA.map.stale){if(S.events.some(e=>e.key==='p_nomap'&&e.status==='needsReview'))checkDrawnAreas('The robot has a map again after having none.');HA.goodMap={map_id:HA.map.map_id,calibration:HA.map.calibration,no_go_areas:HA.map.no_go_areas,source_updated_at:HA.map.source_updated_at,charger:HA.map.charger,image_size:HA.map.image_size};resolveProblem('p_nomap','The robot has a map again.')}
     else if(HA.map&&(HA.map.stale||HA.goodMap)){
       // the robot reports no map: keep using the last good copy, without its old path or objects
       if(!S.events.some(e=>e.key==='p_nomap'&&e.status!=='resolved'))raiseProblem('p_nomap',{title:'Robot has no map right now',what:'Home Assistant reports an empty map for the robot.',fix:'This usually means it is building a new map, or lost its saved one after failing to find its place. The app keeps showing your last saved copy. Check the map in the Roborock app; if it is gone, let the robot finish a full cleaning from the dock, then redraw rooms and align the map.',why:'The robot’s map in Home Assistant has no size or calibration.',options:['pOk','pAlign']},true);
@@ -891,7 +897,7 @@
   function patch(){
     RESULTLABEL.recorded='Robot record';
     AUTOOUT.asRug='Treated as a rug (simulated: the real robot was not sent back).'; // study events never move the robot on their own
-    Object.assign(OPTICON,{pResume:'retry',pDock:'home',pLater:'clock',pRetry:'retry',pOk:'check',pAlign:'map',pFinish:'check'});
+    Object.assign(OPTICON,{pResume:'retry',pDock:'home',pLater:'clock',pRetry:'retry',pOk:'check',pAlign:'map',pFinish:'check',pRooms:'home'});
     ROOM.live={id:'live',name:'Robot map',the:'your home'};CELLROOM.live='live';
     Object.assign(OBJ,{unknown:{n:'Unknown object',e:'❔'},waste:{n:'Pet waste',e:'💩'},scale:{n:'Scale',e:'⚖️'}});
     // Event texts without the demo's fictional rooms
@@ -992,6 +998,7 @@
           return liveCommand('start',{label:'Start cleaning',done:'Cleaning started',expect:['cleaning'],onFail:()=>{HA.expectStart=null}},()=>done('resolved','You started the cleaning again.'))}
         if(act==='pLater'){done('deferred','Left for later.');return commit()}
         if(act==='pAlign'){done('resolved','Opened Align map.');S.ui.stack=[];S.ui.tab='settings';go('align');return}
+        if(act==='pRooms'){done('resolved','Opened Rooms and zones.');S.ui.stack=[];S.ui.tab='settings';go('rooms');return}
         if(act==='pFinish'){done('resolved','You finished the cleaning here.');if(S.task&&!S.task.done){S.task.endedEarly=true;finishLiveTask()}return commit()}
         done('resolved','Seen.');return commit();
       }

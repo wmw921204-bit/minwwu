@@ -63,12 +63,24 @@ commands: start/resume, pause, return to dock, a spot clean of at most 4 × 4 m,
 | Schedules | Saved in Home Assistant as automations that start the robot at that time, even when the app is closed. Entire home only. |
 | Notifications | The three switches now apply. Sent to Home Assistant, and to phones paired with the Home Assistant app, while the app is open. |
 
+### Use it on a phone
+
+By default the bridge only answers this Mac. To open the app on a phone on the same Wi-Fi, start it with a PIN of at least 6 characters:
+
+```bash
+LAN=1 APP_PIN=482915 python3 server.py
+```
+
+It prints the address to open on the phone. The phone asks for the PIN once (it is remembered until the bridge restarts; 10 wrong PINs lock it for 10 minutes). The connection is not encrypted, so use it on a home network you trust.
+
 ### Tests
 
 ```bash
-node --test tests/*.test.cjs
-python3 -m unittest discover -s tests
+npm install        # once: jsdom, used only by the tests
+npm test
 ```
+
+`tests/live.test.cjs` loads the real app in jsdom against a fake bridge and checks live mode end to end: tasks follow the robot, retries go now or after the cleaning, ending cancels them, study events never move the robot on their own, robot errors become events, opening the app sends nothing, and with no bridge it falls back to the simulation. It cannot reach Home Assistant or the robot. `tests/test_bridge.py` covers the bridge, including the phone PIN; `tests/ha-model.test.cjs` covers the data model.
 
 ## Round 2 changes (from the P1–P7 study)
 
@@ -86,3 +98,12 @@ python3 -m unittest discover -s tests
 - **How it decided:** "Why did this happen?" shows what the robot measured; the legend has Extra pass, whose area can be tapped; the app says "Robot decided" or "Needs your call" throughout.
 - **Where the map comes from:** a "This is your home's map" onboarding step, "Map updated …" with Update map on the Map tab, and a "Map updated: furniture moved" notice (demo) or when the real robot's map changes.
 - **Live extras:** robot paused on its own, maintenance counters running low, an empty water tank or missing mop before a vacuum-and-mop start (offers vacuum only), and schedules inside the robot's Do Not Disturb.
+
+## Round 4 changes
+
+- Study events are off by default; when the robot decides one by itself it never moves the real robot. Home shows when they are on.
+- The automation-level illustrations are image files (`img/`), so the page is about half the size.
+- Live times keep counting past midnight, so a late cleaning stays in order.
+- Simulation: Settings → Testing → *Reminders use real time*, for studies where "remind me in 30 minutes" should mean 30 real minutes.
+- After the robot's map changes (or comes back after having none), the app asks you to check rooms, zones, no-go zones and alignment.
+- Phone access over Wi-Fi with a PIN (above), and end-to-end tests for live mode.

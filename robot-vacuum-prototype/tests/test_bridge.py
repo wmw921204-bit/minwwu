@@ -29,16 +29,53 @@ class BridgeTests(unittest.TestCase):
             patcher.start()
             self.addCleanup(patcher.stop)
 
-    def request(self, path, body=None, origin=ORIGIN, host=HOST):
+    def request(self, path, body=None, origin=ORIGIN, host=HOST, client='127.0.0.1', cookie=None):
         handler = object.__new__(server.Handler)
+        handler.client_address = (client, 50000)
         raw = json.dumps(body).encode() if body is not None else b''
         handler.path = path
         handler.headers = {'Host': host, 'Origin': origin, 'Content-Type': 'application/json', 'Content-Length': str(len(raw))}
+        if cookie:
+            handler.headers['Cookie'] = cookie
+        sent = {}
+        handler.send_response = lambda code: sent.update(code=code)
+        handler.send_header = lambda k, v: sent.setdefault('headers', {}).update({k: v})
+        handler.end_headers = lambda: None
         handler.rfile = BytesIO(raw)
         results = []
         handler.send = lambda *args: results.append(args)
         (handler.do_POST if body is not None else handler.do_GET)()
-        return results[0]
+        return results[0] if results else (sent['code'], sent.get('headers', {}))
+
+    def test_other_devices_are_refused_unless_lan_mode_and_pin(self):
+        lan_ip, lan_host = '192.168.1.20', '192.168.1.5:%d' % server.PORT
+        with patch.object(server, 'LAN', False):
+            self.assertEqual(self.request('/', client=lan_ip, host=lan_host)[0], 403)
+        with patch.object(server, 'LAN', True), patch.object(server, 'APP_PIN', '482915'):
+            server.PIN_FAILS.clear()
+            status, page, mime = self.request('/', client=lan_ip, host=lan_host)
+            self.assertEqual((status, mime), (200, 'text/html; charset=utf-8'))
+            self.assertIn(b'Enter the PIN', page)
+            self.assertNotIn(b'Robot app</title><style>', b'')  # the app itself is not served yet
+            self.assertEqual(self.request('/api/state', client=lan_ip, host=lan_host)[0], 401)
+            self.assertIn(b'not right', self.request('/?pin=000000', client=lan_ip, host=lan_host)[1])
+            code, headers = self.request('/?pin=482915', client=lan_ip, host=lan_host)
+            self.assertEqual((code, headers['Location']), (302, '/'))
+            cookie = headers['Set-Cookie'].split(';')[0]
+            self.assertIn('HttpOnly', headers['Set-Cookie'])
+            self.assertEqual(self.request('/ha-live.js', client=lan_ip, host=lan_host, cookie=cookie)[0], 200)
+            with patch.object(server, 'ha', side_effect=[STATES, []]):
+                self.assertEqual(self.request('/api/command', {'action': 'pause'}, client=lan_ip, host=lan_host, cookie=cookie,
+                                              origin='http://' + lan_host)[0], 200)
+            self.assertEqual(self.request('/api/command', {'action': 'pause'}, client=lan_ip, host=lan_host, cookie=cookie,
+                                          origin='http://evil.test')[0], 403)
+
+    def test_wrong_pins_are_rate_limited(self):
+        with patch.object(server, 'LAN', True), patch.object(server, 'APP_PIN', '482915'):
+            server.PIN_FAILS.clear()
+            for _ in range(10):
+                self.request('/?pin=111111', client='192.168.1.20', host='x:%d' % server.PORT)
+            self.assertEqual(self.request('/?pin=482915', client='192.168.1.20', host='x:%d' % server.PORT)[0], 429)
 
     def test_snapshot_returns_only_this_robot_without_credentials(self):
         server.POSITION.update(at=0, value=None)

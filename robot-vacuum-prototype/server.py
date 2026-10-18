@@ -3,12 +3,15 @@
 The browser never sees the Home Assistant token. The bridge only returns the
 selected robot's entities and only forwards an allowlist of robot commands.
 """
+import hmac
 import json
 import os
+import socket
 import re
 import secrets
 import time
 from pathlib import Path
+from urllib.parse import parse_qs
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from urllib.request import Request, urlopen
 from urllib.error import HTTPError, URLError
@@ -21,7 +24,20 @@ HA_URL = os.environ.get('HA_URL', 'http://127.0.0.1:8124').rstrip('/')
 PORT = int(os.environ.get('PORT', '8787'))
 HOSTS = ('127.0.0.1:%d' % PORT, 'localhost:%d' % PORT)
 ORIGINS = tuple('http://' + h for h in HOSTS)
+# Phones on the same Wi-Fi: start with LAN=1 and APP_PIN (6+ characters). Off by default.
+LAN = os.environ.get('LAN') == '1'
+APP_PIN = os.environ.get('APP_PIN', '')
+AUTH_KEY = secrets.token_bytes(32)  # new each start, so phones enter the PIN again after a restart
+PIN_FAILS = []
+PIN_PAGE = '''<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Robot app</title><style>body{font:16px system-ui,sans-serif;margin:0;display:grid;place-items:center;min-height:100vh;background:#eef1f8;color:#10131f}
+form{background:#fff;padding:24px;border-radius:20px;box-shadow:0 8px 30px rgba(20,30,80,.12);width:min(320px,86vw)}h1{font-size:20px;margin:0 0 6px}
+p{color:#5b6274;font-size:14px;margin:0 0 14px}input,button{width:100%;box-sizing:border-box;font:inherit;padding:12px;border-radius:12px}
+input{border:1px solid #cfd5e3;margin-bottom:10px}button{border:0;background:#3246f0;color:#fff;font-weight:700}.e{color:#c0392b}</style>
+<form method="get" action="/"><h1>Robot app</h1><p>Enter the PIN shown where the bridge was started.</p>{msg}
+<input name="pin" type="password" inputmode="numeric" autocomplete="off" autofocus aria-label="PIN"><button>Open</button></form>'''
 FILES = {'/': 'index.html', '/index.html': 'index.html', '/ha-model.js': 'ha-model.js', '/ha-live.js': 'ha-live.js'}
+IMAGES = {'/img/level-%s.jpg' % k: 'img/level-%s.jpg' % k for k in ('manual', 'assist', 'autoNotify', 'fullAuto')}
 SIMPLE = {'start', 'pause', 'return_to_base'}
 ZONE_LIMIT = 4000  # mm; a spot retry never covers more than 4 x 4 m
 ROOM_LIMIT = 15000  # mm; a room or saved zone part is at most 15 x 15 m
@@ -289,13 +305,48 @@ class Handler(BaseHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(payload)
 
+    def loopback(self):
+        return self.client_address[0] in ('127.0.0.1', '::1', '::ffff:127.0.0.1')
+
     def valid_host(self):
-        return self.headers.get('Host') in HOSTS
+        # This Mac: only loopback names (blocks DNS rebinding). Other devices: LAN mode and the PIN cookie.
+        if self.loopback():
+            return self.headers.get('Host') in HOSTS
+        if not LAN:
+            return False
+        cookies = dict(c.strip().split('=', 1) for c in (self.headers.get('Cookie') or '').split(';') if '=' in c)
+        return hmac.compare_digest(cookies.get('robot_auth', ''), hmac.new(AUTH_KEY, b'robot-app', 'sha256').hexdigest())
+
+    def same_origin(self):
+        if self.loopback():
+            return self.headers.get('Origin') in ORIGINS
+        return self.headers.get('Origin') == 'http://' + (self.headers.get('Host') or '')
+
+    def pin_gate(self, path, query):
+        """Another device without the cookie: show the PIN form, or set the cookie for a right PIN."""
+        if path not in ('/', '/index.html'):
+            return self.send(401, {'error': 'Enter the PIN first'})
+        pin = parse_qs(query).get('pin', [''])[0]
+        now = time.time()
+        PIN_FAILS[:] = [t for t in PIN_FAILS if now - t < 600]
+        if pin and len(PIN_FAILS) >= 10:
+            return self.send(429, PIN_PAGE.replace('{msg}', '<p class="e">Too many wrong PINs. Try again in 10 minutes.</p>').encode(), 'text/html; charset=utf-8')
+        if pin and hmac.compare_digest(pin.encode(), APP_PIN.encode()):
+            self.send_response(302)
+            self.send_header('Location', '/')
+            self.send_header('Set-Cookie', 'robot_auth=%s; HttpOnly; SameSite=Strict; Path=/; Max-Age=2592000' % hmac.new(AUTH_KEY, b'robot-app', 'sha256').hexdigest())
+            self.send_header('Content-Length', '0')
+            return self.end_headers()
+        if pin:
+            PIN_FAILS.append(now)
+        self.send(200, PIN_PAGE.replace('{msg}', '<p class="e">That PIN is not right.</p>' if pin else '').encode(), 'text/html; charset=utf-8')
 
     def do_GET(self):
+        path, _, query = self.path.partition('?')
         if not self.valid_host():
+            if LAN and not self.loopback():
+                return self.pin_gate(path, query)
             return self.send(403, {'error': 'Local access only'})
-        path = self.path.split('?')[0]
         try:
             if path == '/api/state':
                 return self.send(200, snapshot(ha('states'), include_geometry=True))
@@ -316,6 +367,8 @@ class Handler(BaseHTTPRequestHandler):
                 else:
                     MAP_IMAGE.write_bytes(body)
                 return self.send(200, body, mime)
+            if path in IMAGES:
+                return self.send(200, (ROOT / IMAGES[path]).read_bytes(), 'image/jpeg')
             if path not in FILES:
                 return self.send(404, {'error': 'Not found'})
             name = FILES[path]
@@ -325,7 +378,7 @@ class Handler(BaseHTTPRequestHandler):
             self.send(503, {'error': str(exc)})
 
     def do_POST(self):
-        if not self.valid_host() or self.headers.get('Origin') not in ORIGINS:
+        if not self.valid_host() or not self.same_origin():
             return self.send(403, {'error': 'Same-origin local access required'})
         if self.headers.get('Content-Type') != 'application/json':
             return self.send(415, {'error': 'JSON required'})
@@ -386,6 +439,19 @@ class Handler(BaseHTTPRequestHandler):
             self.send(503, {'error': str(exc)})
 
 
+def lan_address():
+    with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
+        try:
+            s.connect(('192.0.2.1', 9))  # no packet is sent; this only picks the Wi-Fi interface
+            return s.getsockname()[0]
+        except OSError:
+            return 'this-mac.local'
+
+
 if __name__ == '__main__':
+    if LAN and len(APP_PIN) < 6:
+        raise SystemExit('LAN=1 needs APP_PIN with at least 6 characters, for example: LAN=1 APP_PIN=482915 python3 server.py')
     print('Robot app: http://127.0.0.1:%d  (Home Assistant: %s)  Ctrl+C to stop' % (PORT, HA_URL), flush=True)
-    ThreadingHTTPServer(('127.0.0.1', PORT), Handler).serve_forever()
+    if LAN:
+        print('On phones on the same Wi-Fi: http://%s:%d  (PIN: the APP_PIN you set; traffic is not encrypted)' % (lan_address(), PORT), flush=True)
+    ThreadingHTTPServer(('0.0.0.0' if LAN else '127.0.0.1', PORT), Handler).serve_forever()
