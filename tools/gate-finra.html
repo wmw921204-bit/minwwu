@@ -1,0 +1,134 @@
+<main id="main">
+    <script>try { if (sessionStorage.getItem("case-pass:" + location.pathname)) document.documentElement.classList.add("is-unlocking"); } catch (e) {}</script>
+    <section class="lock" aria-labelledby="lock-title">
+      <canvas class="lock__maze" aria-hidden="true"></canvas>
+      <div class="lock__inner wrap">
+        <div class="lock__card">
+          <p class="lock__eyebrow"><span class="lock__icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg></span>Protected case study</p>
+          <h1 class="lock__title" id="lock-title">FINRA × SCADpro</h1>
+          <p class="lock__lead">One login and an active dashboard that guide financial firms from sign-in to finished filings. I was Research Lead on a 21-person team, from research and synthesis to a coded, testable prototype.</p>
+          <ul class="lock__facts">
+            <li><b>Winter 2026</b>10 weeks</li>
+            <li><b>Research Lead</b>21-person team</li>
+            <li><b>UX research</b>Product design</li>
+          </ul>
+          <p class="lock__why">This was an industry partnership with FINRA through SCADpro, so the full case study is password protected to respect the client’s confidentiality.</p>
+          <form class="lock__form" data-lock autocomplete="off">
+            <label class="sr-only" for="lock-pass">Password</label>
+            <input id="lock-pass" type="password" placeholder="Enter password" required>
+            <button type="submit">Unlock <i class="pill__arrow" aria-hidden="true"></i></button>
+          </form>
+          <p class="lock__msg" data-lock-msg role="status" aria-live="polite"></p>
+          <div class="lock__contact">
+            <p>Don’t have the password? I’m happy to share it.</p>
+            <div class="lock__links">
+              <a class="pill" href="mailto:wmw921204@gmail.com?subject=Password%20for%20the%20FINRA%20case%20study">Email me <i class="pill__arrow" aria-hidden="true"></i></a>
+              <a class="pill pill--ghost" href="https://www.linkedin.com/in/minwei-wu-7470a3347/" target="_blank" rel="noopener">LinkedIn <i class="pill__arrow" aria-hidden="true"></i></a>
+            </div>
+            <p class="lock__mail">wmw921204@gmail.com</p>
+          </div>
+        </div>
+        <p class="lock__hint" aria-hidden="true">Move around to light up the maze</p>
+      </div>
+    </section>
+
+    <section class="wrap lock-more" aria-labelledby="more-title">
+      <h2 class="c-kicker" id="more-title">Explore other projects</h2>
+      <ul class="lock-more__grid">
+        <li><a href="fitfido.html" data-cursor="View" style="--next-bg:#de6536;--next-fg:#fff"><img src="../assets/img/fitfido.webp" alt="" loading="lazy"><span>Fitfido</span><small>Smart pet feeder</small></a></li>
+        <li><a href="brilliant.html" data-cursor="View" style="--next-bg:#cae210;--next-fg:#111"><img src="../assets/img/brilliant.webp" alt="" loading="lazy"><span>Brilliant.org</span><small>UX design</small></a></li>
+        <li><a href="swifthome.html" data-cursor="View" style="--next-bg:#885835;--next-fg:#fff6ef"><img src="../assets/projects/swifthome/card-home.webp" alt="" loading="lazy"><span>SwiftHome</span><small>Furniture rental app</small></a></li>
+        <li><a href="safedining.html" data-cursor="View" style="--next-bg:#424d3d;--next-fg:#faf7f0"><img src="../assets/projects/safedining/card-home.webp" alt="" loading="lazy"><span>Safe Dining</span><small>Service design</small></a></li>
+        <li><a href="reco.html" data-cursor="View" style="--next-bg:#e8392d;--next-fg:#fff"><img src="../assets/projects/reco/card-home.webp" alt="" loading="lazy"><span>RECO</span><small>AI recovery companion</small></a></li>
+        <li><a href="zenbloom.html" data-cursor="View" style="--next-bg:#cea662;--next-fg:#1a120b"><img src="../assets/projects/zenbloom/card-home.webp" alt="" loading="lazy"><span>Zen Bloom</span><small>VR ikebana</small></a></li>
+      </ul>
+    </section>
+  </main>
+  <script type="application/json" id="locked-case">__PAYLOAD__</script>
+  <script>
+  (() => {
+    /* ---------- Unlock: derive the key, decrypt, swap in the real page ---------- */
+    const payload = JSON.parse(document.getElementById("locked-case").textContent);
+    const bytes = (b64) => Uint8Array.from(atob(b64), (c) => c.charCodeAt(0));
+    const KEY = "case-pass:" + location.pathname;
+    const open = async (password) => {
+      const base = await crypto.subtle.importKey("raw", new TextEncoder().encode(password), "PBKDF2", false, ["deriveKey"]);
+      const key = await crypto.subtle.deriveKey({ name: "PBKDF2", salt: bytes(payload.salt), iterations: payload.iter, hash: "SHA-256" }, base, { name: "AES-GCM", length: 256 }, false, ["decrypt"]);
+      const html = new TextDecoder().decode(await crypto.subtle.decrypt({ name: "AES-GCM", iv: bytes(payload.iv) }, key, bytes(payload.data)));
+      return html;
+    };
+    const show = (html) => { document.open(); document.write(html); document.close(); };
+    const loadSite = () => JSON.parse('__SCRIPTS__').reduce((p, src) => p.then(() => new Promise((ok) => { const s = document.createElement("script"); s.src = src; s.onload = s.onerror = ok; document.body.appendChild(s); })), Promise.resolve());
+    const form = document.querySelector("[data-lock]"), msg = document.querySelector("[data-lock-msg]"), input = form.querySelector("input");
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      msg.textContent = "Unlocking…"; form.classList.remove("is-wrong");
+      try {
+        await open(input.value);
+        // remember for this tab, then load the real page fresh
+        try { sessionStorage.setItem(KEY, input.value); } catch (e) {}
+        location.reload();
+      } catch (err) {
+        msg.textContent = "That’s not the right password. Email me and I’ll send it over.";
+        void form.offsetWidth; form.classList.add("is-wrong"); input.select();
+      }
+    });
+    // Already unlocked in this tab? Open straight away
+    let saved = null;
+    try { saved = sessionStorage.getItem(KEY); } catch (e) {}
+    if (saved) open(saved).then(show).catch(() => {
+      try { sessionStorage.removeItem(KEY); } catch (e) {}
+      document.documentElement.classList.remove("is-unlocking"); loadSite();
+    });
+    else loadSite();
+
+    /* ---------- Background: a maze that lights up around the cursor ---------- */
+    const canvas = document.querySelector(".lock__maze"), ctx = canvas.getContext("2d");
+    const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+    let W = 0, H = 0, dpr = 1, walls = [], pathCells = [];
+    const light = { x: 0, y: 0, tx: 0, ty: 0, moved: 0 };
+    const build = () => {
+      const r = canvas.getBoundingClientRect();
+      dpr = Math.min(2, devicePixelRatio || 1); W = r.width; H = r.height;
+      canvas.width = W * dpr; canvas.height = H * dpr;
+      const S = W < 700 ? 40 : 56, cols = Math.ceil(W / S) + 1, rows = Math.ceil(H / S) + 1;
+      // depth-first maze: every cell reachable, one winding route between any two
+      const seen = new Uint8Array(cols * rows), right = new Uint8Array(cols * rows).fill(1), down = new Uint8Array(cols * rows).fill(1);
+      const stack = [0]; seen[0] = 1;
+      while (stack.length) {
+        const c = stack[stack.length - 1], x = c % cols, y = (c / cols) | 0;
+        const nb = [[x + 1, y], [x - 1, y], [x, y + 1], [x, y - 1]].filter(([a, b]) => a >= 0 && b >= 0 && a < cols && b < rows && !seen[b * cols + a]);
+        if (!nb.length) { stack.pop(); continue; }
+        const [a, b] = nb[(Math.random() * nb.length) | 0], n = b * cols + a;
+        if (a > x) right[c] = 0; else if (a < x) right[n] = 0; else if (b > y) down[c] = 0; else down[n] = 0;
+        seen[n] = 1; stack.push(n);
+      }
+      walls = [];
+      for (let y = 0; y < rows; y++) for (let x = 0; x < cols; x++) {
+        const c = y * cols + x;
+        if (right[c]) walls.push([(x + 1) * S, y * S, (x + 1) * S, (y + 1) * S]);
+        if (down[c]) walls.push([x * S, (y + 1) * S, (x + 1) * S, (y + 1) * S]);
+      }
+      light.x = light.tx = W * 0.5; light.y = light.ty = H * 0.5;
+    };
+    const draw = (t) => {
+      // follow the pointer; drift on a slow loop when nobody moves it
+      if (performance.now() - light.moved > 2500) { light.tx = W * (0.5 + 0.32 * Math.cos(t / 3200)); light.ty = H * (0.5 + 0.3 * Math.sin(t / 2300)); }
+      light.x += (light.tx - light.x) * 0.08; light.y += (light.ty - light.y) * 0.08;
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.clearRect(0, 0, W, H);
+      ctx.lineCap = "round";
+      ctx.beginPath(); walls.forEach(([a, b, c, d]) => { ctx.moveTo(a, b); ctx.lineTo(c, d); });
+      ctx.lineWidth = 2; ctx.strokeStyle = "rgba(130,207,255,.07)"; ctx.stroke();
+      const R = Math.max(220, Math.min(W, H) * 0.32), g = ctx.createRadialGradient(light.x, light.y, 0, light.x, light.y, R);
+      g.addColorStop(0, "rgba(160,220,255,.95)"); g.addColorStop(0.45, "rgba(130,207,255,.45)"); g.addColorStop(1, "rgba(130,207,255,0)");
+      ctx.lineWidth = 2.5; ctx.strokeStyle = g; ctx.stroke();
+      const glow = ctx.createRadialGradient(light.x, light.y, 0, light.x, light.y, R * 0.9);
+      glow.addColorStop(0, "rgba(11,74,140,.35)"); glow.addColorStop(1, "rgba(11,74,140,0)");
+      ctx.fillStyle = glow; ctx.fillRect(0, 0, W, H);
+      if (!reduce) requestAnimationFrame(draw);
+    };
+    addEventListener("pointermove", (e) => { const r = canvas.getBoundingClientRect(); light.tx = e.clientX - r.left; light.ty = e.clientY - r.top; light.moved = performance.now(); }, { passive: true });
+    addEventListener("resize", build);
+    build(); requestAnimationFrame(draw);
+  })();
+  </script>

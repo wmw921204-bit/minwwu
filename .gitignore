@@ -2,3 +2,6 @@
 # local secrets (Home Assistant token)
 .ha-local.json
 **/.ha-local.json
+
+# readable source of password-protected case studies (never commit)
+private/
