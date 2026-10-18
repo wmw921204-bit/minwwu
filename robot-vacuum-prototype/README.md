@@ -78,3 +78,11 @@ python3 -m unittest discover -s tests
 - **Failures explain themselves.** A failed retry says what the robot still detects and what to do; after two failures it stops suggesting another retry and suggests no-go or skip. A stuck robot says why a person is needed. The simulation fails a retry at most once.
 - **Notification switches apply.** Needs-review banners, finish banners, and decisions in Full auto follow Settings → Notifications.
 - **Live mode watches behaviour the robot doesn't report as an error:** working in one spot for 2 minutes, no new area for 4 minutes, a sudden position jump (lost its place), mapping instead of cleaning, going back to charge mid-cleaning (the cleaning isn't ended), a slow return to the dock, and an empty map in Home Assistant (the app and the bridge keep the last good copy, marked as such).
+
+## Round 3 changes (P1 items 5–8)
+
+- **Inbox** replaces Activity: everything that still needs you (calls, robot problems, objects to check, reminders, clean later), with a count badge; past cleanings sit below it with a summary ("3 robot decided · 1 your call"). Object checks open full screen.
+- **Notifications by type:** needs your call, robot problems, finished, every decision, unusual behaviour. **Pause for 1 hour** holds them and shows one summary afterwards. **Ask me later** on any open question (30 min, 1 hour, after this cleaning); in Manual the robot carries on meanwhile. **Leave the app (lock screen)** in Settings → Testing shows notices as phone notifications for studies.
+- **How it decided:** "Why did this happen?" shows what the robot measured; the legend has Extra pass, whose area can be tapped; the app says "Robot decided" or "Needs your call" throughout.
+- **Where the map comes from:** a "This is your home's map" onboarding step, "Map updated …" with Update map on the Map tab, and a "Map updated: furniture moved" notice (demo) or when the real robot's map changes.
+- **Live extras:** robot paused on its own, maintenance counters running low, an empty water tank or missing mop before a vacuum-and-mop start (offers vacuum only), and schedules inside the robot's Do Not Disturb.

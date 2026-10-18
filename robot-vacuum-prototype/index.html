@@ -373,6 +373,19 @@ button.tile{font:inherit;width:100%}
   .phone{width:100%;height:100vh;height:100dvh;min-height:0;border-radius:0;box-shadow:none;zoom:1!important}
   .sbar{padding-top:4px;height:40px}
 }
+/* round 3: inbox badge, full-screen sheets, lock screen, ask later */
+.tab .badge{position:absolute;top:3px;left:50%;margin-left:5px;min-width:17px;height:17px;border-radius:9px;background:var(--warn-line);color:#fff;font-size:10.5px;font-weight:800;display:grid;place-items:center;padding:0 4px;box-shadow:0 0 0 2px var(--surface)}
+.modal{position:relative}
+.modal.full{max-height:none;height:100%;border-radius:0;padding-top:58px}
+.modal .close-full{position:absolute;top:12px;left:14px}
+.later-row{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:14px 4px 0;font-size:13px;color:var(--muted);font-weight:700}
+.later-row .chip{height:32px;font-size:12.5px}
+.lock{position:absolute;inset:0;z-index:60;background:linear-gradient(165deg,#1d2552 0%,#43397a 55%,#7b5b8e 100%);color:#fff;padding:64px 16px 26px;display:flex;flex-direction:column;gap:10px}
+.lock-time{font:300 76px/1 'Barlow Condensed',sans-serif;text-align:center;letter-spacing:.01em}
+.lock-date{text-align:center;font-weight:600;font-size:15px;margin-bottom:16px;opacity:.85}
+.lock-card{all:unset;display:block;background:rgba(255,255,255,.17);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-radius:20px;padding:12px 14px;font-size:14px;line-height:1.35;cursor:pointer}
+.lock-card .lk-app{display:flex;justify-content:space-between;font-size:12px;opacity:.75;margin-bottom:3px}
+.lock-open{all:unset;margin-top:auto;text-align:center;font-weight:700;opacity:.9;cursor:pointer;padding:12px}
 /* round 2: level notes, mode pill, undo, grouped checks, failure details */
 .lp-note{display:flex;gap:6px;align-items:flex-start;font-size:12px;color:var(--primary);font-weight:700;margin:6px 0 0 30px;line-height:1.35}
 .lp-note svg{flex:none;margin-top:1px}
@@ -462,6 +475,7 @@ const DEFS={
     next:'It skipped this spot and is cleaning the rest of the living room.',
     dflt:'This area will remain skipped while the robot cleans elsewhere.',
     options:['avoid','retryCleared','later'],retryControlled:true,snapshot:'cable',
+    basis:'The front camera saw a thin line about 30 cm long. It was 62% sure it is a cable; below 80% it asks instead of driving over.',
     failWhy:'Still detecting a thin object about 30 cm long in the same place.',failNext:'If it is a cable, move it and try once more. Otherwise leave this spot for today.',
     remember:{avoid:{text:'Avoid possible cables near the sofa',scope:'Living room, near the sofa. Other rooms still ask.'}}},
   rug:{type:'rug',zone:'rug',kind:'Floor type unclear',title:'Not sure about this floor',chip:'Left a hallway patch for now',
@@ -470,7 +484,8 @@ const DEFS={
     unsure:'It could be a thin rug or hard floor.',
     next:'It left this patch alone and moved on.',
     dflt:'The patch stays uncleaned until you choose.',
-    options:['asRug','asHard','skipNow'],retryControlled:false},
+    options:['asRug','asHard','skipNow'],retryControlled:false,
+    basis:'The carpet sensor read 0.4. It treats 0.6 and above as rug and below 0.2 as hard floor, so this was in between.'},
   bed:{type:'nav',zone:'bed',kind:'Navigation issue',title:"Couldn't get under the bed",chip:'Gave up on the area under the bed',
     what:'The robot tried to reach the area under the bed 3 times.',
     why:'Something near the bed frame keeps blocking the way in. It may be a low object on the floor, or the gap may be too tight.',
@@ -478,6 +493,7 @@ const DEFS={
     next:'It stopped trying and is finishing the rest of the bedroom.',
     dflt:'This area stays marked as not cleaned.',
     options:['retry','cleanLater','skipNow','nogo','pauseCheck'],retryControlled:true,snapshot:'bed',
+    basis:'The bumper hit the bed frame 3 times at about 8 cm high before it reached the gap.',
     failWhy:'The gap under the bed frame looks about 8 cm high. The robot needs about 9.5 cm to get in.',failNext:'Clear what’s in front of the gap, or skip this area. A no-go zone stops it trying every time.'},
   extra:{type:'decision',zone:'stove',kind:'Robot decision',title:'Extra pass by the stove',chip:'Extra pass by the stove',
     what:'The robot is going over the area by the stove a second time.',
@@ -485,7 +501,7 @@ const DEFS={
     unsure:null,
     next:'After the extra pass it moves on. This adds about a minute.',
     dflt:'The extra pass goes ahead.',
-    options:['allow','skipOnce'],
+    options:['allow','skipOnce'],basis:'The dirt sensor read about 2× the usual level for this spot on the first pass.',
     remember:{skipOnce:{text:'Skip extra passes in the kitchen',scope:'Kitchen only. The robot still does one normal pass.'}}},
 };
 const SCEN={
@@ -494,7 +510,7 @@ const SCEN={
   missed:{label:'Missed area',keys:['bed']},
   all:{label:'All events',keys:['rug','extra','cable','bed']},
 };
-const STATUSLABEL={needsReview:'Needs review',inProgress:'In progress',resolved:'Resolved',deferred:'Clean later',skipped:'Skipped',info:'Handled by robot'};
+const STATUSLABEL={needsReview:'Needs review',inProgress:'In progress',resolved:'Resolved',deferred:'Clean later',skipped:'Skipped',info:'Robot decided'};
 const RESULTLABEL={completed:'Completed',partial:'Partially completed',ended:'Ended early'};
 const MODES={
   manual:{name:'Manual',d:'You decide everything. The robot stops and waits whenever it’s unsure.',lvl:1,ex:'Robot stops and waits for you.',note:'You get a notice for every event, and it waits for you.'},
@@ -572,7 +588,7 @@ function initState(){
     device:{status:'docked',battery:92,error:null},
     autonomy:'autoNotify',
     rules:[],nogo:[],
-    notif:{review:true,finished:true,decisions:false},
+    notif:{review:true,problems:true,finished:true,decisions:false,behaviour:true},quietUntil:null,missed:[],lockNotes:[],mapLabel:'yesterday 09:54',mapNews:null,
     schedules:[{id:'s1',time:'09:30',days:['Mon','Wed','Fri'],scope:'Entire home',on:true},{id:'s2',time:'18:00',days:['Sun'],scope:'Kitchen',on:false}],
     cells:blankCells('out'),
     task:null,events:[],timeline:[],
@@ -695,7 +711,39 @@ function queueExtra(ev){
   const items=ZONES.stove.keys.map(k=>({k,kind:'extra',ev:ev.id}));
   S.sim.queue.unshift(...items);
 }
-function notice(ev){const own=ev.autonomous&&!ev.changed;if(own?(ev.quiet&&!S.notif.decisions):!S.notif.review)return;S.ui.notice=ev.id;clearTimeout(notice.t);notice.t=setTimeout(()=>{S.ui.notice=null;commit()},6000)}
+const BEHAVIOUR_KEYS=['p_dwell','p_noprogress','p_jump','p_slowreturn','p_recharge','p_paused'];
+const noticeKind=ev=>ev.problem?(BEHAVIOUR_KEYS.includes(ev.key)?'behaviour':'problems'):(ev.autonomous&&!ev.changed)?'decisions':'review';
+const nowT=()=>window.HA_LIVE?Date.now():S.clock;
+const quietNow=()=>S.quietUntil!=null&&nowT()<S.quietUntil;
+const atLabel=t=>window.HA_LIVE?(d=>String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0'))(new Date(t)):hhmm(t);
+function noticeTitle(ev){return ev.reminded?'Reminder':ev.retryFailed?'Retry didn’t work':(ev.autonomous&&!ev.changed)?'Robot decided':S.waitEv===ev.id?'Robot is waiting for you':ev.suggestion?'Robot suggests something':DEFS[ev.key].kind}
+function pushLock(n){S.lockNotes=[{...n,at:S.clock}].concat(S.lockNotes.filter(x=>x.id!==n.id)).slice(0,6);commit()}
+function nextBanner(){if(S.bannerNext){const k=S.bannerNext;S.bannerNext=null;banner(k)}}
+/* Banners that aren't one event: finished, objects to check, stuck, map updated, missed while paused. */
+function banner(key,lock){
+  if(S.ui.away){if(lock)pushLock(lock);return}
+  if(quietNow()&&key!=='missed'){S.missed.push(key);return}
+  S.ui.notice=key;clearTimeout(notice.t);
+  if(key!=='stuck')notice.t=setTimeout(()=>{S.ui.notice=null;nextBanner();commit()},7000);
+}
+function notice(ev){
+  const own=ev.autonomous&&!ev.changed;
+  if(own?(ev.quiet&&!S.notif.decisions):!S.notif[noticeKind(ev)])return;
+  if(ev.later&&!ev.reminded)return; // asked to be reminded later
+  if(S.ui.away){pushLock({id:ev.id,title:noticeTitle(ev),body:SHORT[ev.key]?SHORT[ev.key].q:DEFS[ev.key].title});return}
+  if(quietNow()){if(!S.missed.includes(ev.id))S.missed.push(ev.id);return}
+  S.ui.notice=ev.id;clearTimeout(notice.t);notice.t=setTimeout(()=>{S.ui.notice=null;nextBanner();commit()},6000);
+}
+function laterLabel(ev){return !ev.later?'':ev.later.task?'After this cleaning':'At '+atLabel(ev.later.until)}
+function checkReminders(){
+  const t=nowT();
+  S.events.forEach(ev=>{
+    if(!ev.later||ev.status!=='needsReview')return;
+    const due=ev.later.task?(!S.task||S.task.done||S.task.id!==ev.later.task):t>=ev.later.until;
+    if(due){delete ev.later;ev.reminded=true;evLog(ev,'robot','Reminder: '+(SHORT[ev.key]?SHORT[ev.key].q:DEFS[ev.key].title));notice(ev);commit()}
+  });
+  if(S.quietUntil!=null&&!quietNow()){S.quietUntil=null;S.missedN=S.missed.length;S.missed=[];if(S.missedN)banner('missed');commit()}
+}
 
 function stepClean(){
   const sim=S.sim;
@@ -778,7 +826,10 @@ function stepReturn(){
     if(!S.task.done){
       S.task.done=true;S.task.end=S.clock;S.task.result=computeResult();
       const nc=S.events.filter(e=>e.status!=='resolved'&&e.status!=='info'&&DEFS[e.key].type!=='decision').length;
-      if(S.notif.finished){S.ui.notice=pendingObjs().length?'objs':'done';clearTimeout(notice.t);notice.t=setTimeout(()=>{S.ui.notice=null;commit()},7000)}
+      if(S.notif.finished)banner(pendingObjs().length?'objs':'done',{id:'done',title:'Cleaning finished',body:RESULTLABEL[S.task.result]});
+      if(!S.task.endedEarly&&S.ctl.scenario==='all'&&!S.mapNewsShown){ // the demo's moved-furniture moment
+        S.mapNewsShown=true;S.mapLabel='today '+hhmm(S.clock);S.mapNews='Furniture moved in the bedroom';tl('robot','Furniture moved in the bedroom. Map updated');
+        if(S.ui.notice)S.bannerNext='moved';else banner('moved',{id:'moved',title:'Map updated',body:'Furniture moved in the bedroom.'})}
       tl('result',S.task.result==='completed'?'Task completed':S.task.result==='ended'?'Task ended early':`Task partially completed: ${nc} area${nc===1?'':'s'} not cleaned`);
     }else{
       S.task.result=S.task.endedEarly?'ended':computeResult();
@@ -912,7 +963,12 @@ function mapSVG(o={}){
   if(o.roomTap)ROOMS.forEach(r=>{s+=`<rect class="roomtap" data-a="toggleRoom" data-v="${r.id}" x="${r.x*CELL}" y="${r.y*CELL}" width="${r.w*CELL}" height="${r.h*CELL}"><title>${r.name}</title></rect>`});
   if(o.zoneOnly){const z=ZONES[o.zoneOnly];const xs=z.cells.map(c=>c[0]),ys=z.cells.map(c=>c[1]);s+=`<rect class="zone hl" x="${Math.min(...xs)*CELL-2}" y="${Math.min(...ys)*CELL-2}" width="${(Math.max(...xs)-Math.min(...xs)+1)*CELL+4}" height="${(Math.max(...ys)-Math.min(...ys)+1)*CELL+4}" rx="6" style="stroke:var(--primary);fill:var(--clean)"/>`}
   if(!o.noEvents)evs.forEach(ev=>{
-    const d=DEFS[ev.key];if(d.type==='decision')return;
+    const d=DEFS[ev.key];
+    if(d.type==='decision'){ // the extra-pass area answers "why is this darker?"
+      if(!o.mini&&!ev.archived){const z=ZONES[d.zone],xs=z.cells.map(c=>c[0]),ys=z.cells.map(c=>c[1]);
+        s+=`<rect x="${Math.min(...xs)*CELL}" y="${Math.min(...ys)*CELL}" width="${(Math.max(...xs)-Math.min(...xs)+1)*CELL}" height="${(Math.max(...ys)-Math.min(...ys)+1)*CELL}" fill="transparent" style="cursor:pointer" data-a="openEvent" data-v="${ev.id}"><title>Extra pass: why?</title></rect>`}
+      return;
+    }
     const z=ZONES[d.zone];const xs=z.cells.map(c=>c[0]),ys=z.cells.map(c=>c[1]);
     const x=Math.min(...xs)*CELL-2,y=Math.min(...ys)*CELL-2,w=(Math.max(...xs)-Math.min(...xs)+1)*CELL+4,h=(Math.max(...ys)-Math.min(...ys)+1)*CELL+4;
     const hl=o.highlight===ev.id?'hl':'';
@@ -955,7 +1011,8 @@ function isoRobot(){
   </svg>`;
 }
 function trailPts(){return (S.sim.trail||[]).map(([c,r])=>`${c*CELL+10},${r*CELL+10}`).join(' ')}
-function legend(){return `<div class="legend"><span><i style="background:var(--surface);box-shadow:inset 0 0 0 1.5px var(--primary);border-radius:50%"></i>Robot is sure</span><span><i style="background:var(--surface);box-shadow:inset 0 0 0 1.5px var(--warn-line);border-radius:50%"></i>Not sure</span><span><i style="background:var(--clean)"></i>Cleaned</span><span><i style="box-shadow:inset 0 0 0 1.5px var(--line)"></i>Not cleaned yet</span><span><i style="background:url(#h-warn);background:repeating-linear-gradient(45deg,var(--warn-line) 0 2px,var(--warn-soft) 2px 5px)"></i>Needs review</span><span><i style="background:repeating-linear-gradient(45deg,var(--skip) 0 1.5px,var(--skip-soft) 1.5px 5px)"></i>Skipped</span><span><i style="background:repeating-linear-gradient(-45deg,var(--stop) 0 2px,var(--stop-soft) 2px 5px)"></i>No-go</span></div>`}
+function mapUpdateRow(){return `<div class="small muted" style="margin:6px 6px 0;display:flex;align-items:center;gap:8px"><span style="flex:1">Map updated ${esc(S.mapLabel)}${S.mapNews?' · '+esc(S.mapNews):''}</span><button class="link" data-a="updateMap">Update map</button></div>`}
+function legend(){return `<div class="legend"><span><i style="background:var(--surface);box-shadow:inset 0 0 0 1.5px var(--primary);border-radius:50%"></i>Robot is sure</span><span><i style="background:var(--surface);box-shadow:inset 0 0 0 1.5px var(--warn-line);border-radius:50%"></i>Not sure</span><span><i style="background:var(--clean)"></i>Cleaned</span><span><i style="background:var(--clean2)"></i>Extra pass</span><span><i style="box-shadow:inset 0 0 0 1.5px var(--line)"></i>Not cleaned yet</span><span><i style="background:url(#h-warn);background:repeating-linear-gradient(45deg,var(--warn-line) 0 2px,var(--warn-soft) 2px 5px)"></i>Needs review</span><span><i style="background:repeating-linear-gradient(45deg,var(--skip) 0 1.5px,var(--skip-soft) 1.5px 5px)"></i>Skipped</span><span><i style="background:repeating-linear-gradient(-45deg,var(--stop) 0 2px,var(--stop-soft) 2px 5px)"></i>No-go</span></div>`}
 
 /* ============ live values ============ */
 function statusLine(){
@@ -995,7 +1052,7 @@ function objItem(o){
 }
 function evItem(ev){
   if(ev.autonomous&&!ev.changed){const d=DEFS[ev.key];const lab=ev.autoChoice?SHORT[ev.key].labels[ev.autoChoice]:'Saved preference';
-    return `<button class="item" data-a="openEvent" data-v="${ev.id}"><span class="ico blue">${ic('robot',20)}</span><span class="body"><span class="t">${esc(SHORT[ev.key].q)}</span><span class="s">Robot chose: ${esc(lab)} · ${hhmm(ev.at)}</span></span><span class="pill info">Handled</span></button>`}
+    return `<button class="item" data-a="openEvent" data-v="${ev.id}"><span class="ico blue">${ic('robot',20)}</span><span class="body"><span class="t">${esc(SHORT[ev.key].q)}</span><span class="s">Robot chose: ${esc(lab)} · ${hhmm(ev.at)}</span></span><span class="pill info">Robot decided</span></button>`}
   const d=DEFS[ev.key];const icC=ev.status==='resolved'||ev.status==='info'?'ok':ev.status==='skipped'?'gray':ev.status==='inProgress'?'blue':'warn';
   const icN=ev.status==='resolved'?'check':ev.status==='skipped'?'skip':ev.status==='inProgress'?'robot':ev.status==='info'?'robot':'alert';
   const room=ROOM[ZONES[d.zone].room].name;
@@ -1032,8 +1089,8 @@ function statusCard(){
 function attention(){
   const all=visibleEvents();const auto=all.filter(e=>e.autonomous&&!e.changed);
   const evs=all.filter(e=>e.status!=='info'&&!(e.autonomous&&!e.changed));
-  const open=evs.filter(e=>e.status==='needsReview'), prog=evs.filter(e=>e.status==='inProgress'), later=evs.filter(e=>e.status==='deferred'), done=evs.filter(e=>e.status==='resolved'||e.status==='skipped');
-  let h=`<div class="sec-h">Needs your attention${open.length?`<small>${open.length} to review</small>`:''}</div>`;
+  const open=evs.filter(e=>e.status==='needsReview'&&!e.later), prog=evs.filter(e=>e.status==='inProgress'), later=evs.filter(e=>e.status==='deferred'), done=evs.filter(e=>e.status==='resolved'||e.status==='skipped');
+  let h=`<div class="sec-h">Needs your call${open.length?`<small>${open.length}</small>`:''}</div>`;
   if(S.conn!=='connected')h+=`<div class="calm">${ic('wifi',20)}<span>Can’t check for new issues while the app is offline. Items below are from ${hhmm(S.snap.clock)}.</span></div>`;
   if(!open.length&&!prog.length&&!later.length&&!(pendingObjs().length&&S.task&&S.task.done)&&S.conn==='connected')h+=`<div class="calm">${ic('check',20)}<span>Nothing needs you right now. The robot will let you know if something comes up.</span></div>`;
   h+=open.concat(prog).map(evItem).join('');
@@ -1047,7 +1104,7 @@ function attention(){
   if(unchecked.length)h+=`<p class="small muted" style="margin:8px 4px 0">${unchecked.length} object${unchecked.length>1?'s':''} not checked yet · <button class="link" data-a="recheckObjs">Check now</button></p>`;
   if(done.length)h+=`<p class="small muted" style="margin:12px 4px 0">${done.length} you handled · <button class="link" data-a="openTimeline" data-v="${S.task.id}">See timeline</button></p>`;
   if(auto.length){
-    h+=`<div class="sec-h">Handled by the robot<small>${auto.length}</small></div>`;
+    h+=`<div class="sec-h">Robot decided<small>${auto.length}</small></div>`;
     if(auto.every(e=>e.quiet))h+=`<button class="item" data-a="openTimeline" data-v="${S.task.id}"><span class="ico blue">${ic('robot',20)}</span><span class="body"><span class="t">${auto.length} decision${auto.length>1?'s':''} made on its own</span><span class="s">Full auto · open to review any of them</span></span>${ic('chev',18)}</button>`;
     else h+=auto.map(evItem).join('');
   }
@@ -1081,7 +1138,7 @@ function scrMap(){
   const d=dev();const off=S.conn!=='connected';
   const evs=visibleEvents().filter(e=>DEFS[e.key].type!=='decision');
   let h=`<div style="display:flex;align-items:center;justify-content:space-between"><div class="page-title">Live map</div><div class="seg" style="width:112px"><button class="${S.ui.map3d?'':'on'}" data-a="map3d" data-v="0" aria-label="Flat map">2D</button><button class="${S.ui.map3d?'on':''}" data-a="map3d" data-v="1" aria-label="Tilted 3D map">3D</button></div></div>`;
-  h+=S.ui.map3d&&typeof THREE!=='undefined'?`<div class="map-wrap" style="padding:8px"><div class="map3d" id="map3d-host"><span class="hint">Drag to turn · pinch or scroll to zoom</span></div></div>${legend()}`:`<div class="map-wrap">${mapSVG({dim:off})}</div>${legend()}`;
+  h+=S.ui.map3d&&typeof THREE!=='undefined'?`<div class="map-wrap" style="padding:8px"><div class="map3d" id="map3d-host"><span class="hint">Drag to turn · pinch or scroll to zoom</span></div></div>${legend()}${mapUpdateRow()}`:`<div class="map-wrap">${mapSVG({dim:off})}</div>${legend()}${mapUpdateRow()}`;
   if(S.task){
     h+=`<div class="card" style="margin-top:12px"><div class="status-kicker"><span class="live-dot ${off?'off':needsYou().length?'warn':''}"></span>${live('status')}</div><div class="progress"><i data-live="bar" style="width:${LIVE.bar()}"></i></div><div class="meta-row">${live('pct')}${live('elapsed')}${d.status==='cleaning'&&!off?live('remain'):''}</div>`;
     const sending=S.cmd&&S.cmd.state==='sending';
@@ -1089,7 +1146,7 @@ function scrMap(){
     if(!off&&(d.status==='paused'||d.status==='error'))h+=`<div class="btn-row"><button class="btn primary" data-a="resume" ${sending?'disabled':''}>Resume</button><button class="btn plain" data-a="endReturn" ${sending?'disabled':''}>End and return</button></div>`;
     h+='</div>';
   }else h+=`<div class="calm" style="margin-top:12px">${ic('robot',20)}<span>No cleaning yet today. Start one from Home, then watch progress here.</span></div>`;
-  if(evs.length)h+=`<div class="sec-h">Needs a look</div>`+evs.map(evItem).join('');
+  if(evs.length)h+=`<div class="sec-h">This cleaning<small>${evs.filter(e=>e.status==='needsReview').length} need your call</small></div>`+evs.map(evItem).join('');
   const objs=visibleObjs();
   if(objs.length){
     const pend=objs.filter(x=>x.status==='pending');
@@ -1172,7 +1229,8 @@ function scrEvent(id){
       if(ev.status==='needsReview'&&!ev.suggest)h+=`<p class="small muted" style="margin:12px 4px 0">${S.waitEv===ev.id?'Cleaning continues as soon as you choose.':`No rush. Until you choose, ${esc(d.type==='rug'?'this patch stays uncleaned':'this spot stays skipped')}.`}</p>`;
     }
   }
-  h+=`<details class="why"><summary>Why did this happen?</summary><p>${esc(d.why)}</p>${d.unsure?`<p><b>Not sure:</b> ${esc(d.unsure)}</p>`:''}${ev.log.length?tlRows(ev.log,false):''}</details>`;
+  if(ev.status==='needsReview'&&!ev.archived&&!ev.suggest)h+=`<div class="later-row">${ic('clock',16)}<span>Ask me later${S.waitEv===ev.id?' (it carries on meanwhile)':''}:</span><button class="chip" data-a="askLater" data-v="${ev.id}|30">In 30 min</button><button class="chip" data-a="askLater" data-v="${ev.id}|60">In 1 hour</button>${running()?`<button class="chip" data-a="askLater" data-v="${ev.id}|task">After this cleaning</button>`:''}</div>`;
+  h+=`<details class="why"><summary>Why did this happen?</summary><p>${esc(d.why)}</p>${d.basis?`<p><b>What the robot measured:</b> ${esc(d.basis)}</p>`:''}${d.unsure?`<p><b>Not sure:</b> ${esc(d.unsure)}</p>`:''}${ev.log.length?tlRows(ev.log,false):''}</details>`;
   return h;
 }
 
@@ -1240,12 +1298,36 @@ function tlRows(rows,link=true){
     return `<div class="tl-row a-${r.a}"><span class="tm">${hhmm(r.t)}</span>${link&&r.ev?`<button data-a="openEvent" data-v="${r.ev}">${inner}<span class="small" style="color:var(--primary);font-weight:700">Open event</span></button>`:`<div>${inner}</div>`}</div>`}).join('')}</div>`;
 }
 function taskById(id){if(S.task&&S.task.id===id)return {t:S.task,live:true};const h=S.history.find(x=>x.id===id);return h?{t:h,live:false}:null}
+/* Everything that still needs you, in one place, whether or not a notice was seen. */
+function inbox(){
+  const evs=visibleEvents(),done=!S.task||S.task.done;
+  const needs=evs.filter(e=>e.status==='needsReview'&&!e.later),later=evs.filter(e=>e.later&&e.status==='needsReview');
+  const deferred=evs.filter(e=>e.status==='deferred'),po=done?pendingObjs():[],ignored=visibleObjs().filter(o=>o.status==='ignored');
+  const stuck=S.device.status==='error'&&!evs.some(e=>e.problem&&e.status==='needsReview');
+  return {needs,later,deferred,po,ignored,stuck,count:needs.length+(po.length?objGroups(po).length:0)+(stuck?1:0)};
+}
+function evSummary(evs){
+  const dec=evs.filter(e=>e.autonomous&&!e.changed).length,you=evs.filter(e=>!e.problem&&(!e.autonomous||e.changed)).length,pr=evs.filter(e=>e.problem).length;
+  return [dec?dec+' robot decided':'',you?you+' your call':'',pr?pr+' problem'+(pr>1?'s':''):''].filter(Boolean).join(' · ');
+}
+function scrInbox(){
+  const it=inbox();
+  let h=`<div class="page-title">Inbox</div><p class="small muted" style="margin:-4px 4px 12px">What still needs you. Things stay here after a notice is gone.</p>`;
+  if(!it.count&&!it.later.length&&!it.deferred.length&&!it.ignored.length)h+=`<div class="calm">${ic('check',20)}<span>Nothing waiting for you.</span></div>`;
+  if(it.stuck)h+=`<div class="sec-h">Robot problem</div><button class="item" data-a="tab" data-v="home"><span class="ico" style="background:var(--stop-soft);color:var(--stop)">${ic('alert',20)}</span><span class="body"><span class="t">Robot is stuck</span><span class="s">${esc(S.device.error||'It needs a hand.')}</span></span>${ic('chev',18)}</button>`;
+  if(it.needs.length)h+=`<div class="sec-h">Needs your call<small>${it.needs.length}</small></div>`+it.needs.map(evItem).join('');
+  if(it.po.length)h+=`<div class="sec-h">Objects to check</div>`+objGroups(it.po).map(g=>`<button class="item" data-a="reviewRoom" data-v="${g.room}"><span class="ico warn" style="font-size:17px">${g.items.slice(0,2).map(o=>OBJ[o.label].e).join('')}</span><span class="body"><span class="t">${esc(g.name)}: ${g.items.length} item${g.items.length>1?'s':''}</span><span class="s">Confirm together, or ignore for now.</span></span><span class="pill needsReview">Check</span></button>`).join('');
+  if(it.later.length)h+=`<div class="sec-h">Remind me later<small>${it.later.length}</small></div>`+it.later.map(e=>evItem(e).replace(/<span class="pill [^"]*">[^<]*<\/span>/,`<span class="pill deferred">${esc(laterLabel(e))}</span>`)).join('');
+  if(it.deferred.length)h+=`<div class="sec-h">Clean later<small>${it.deferred.length}</small></div>`+it.deferred.map(evItem).join('');
+  if(it.ignored.length)h+=`<p class="small muted" style="margin:12px 4px 0">${it.ignored.length} object${it.ignored.length>1?'s':''} not checked yet · <button class="link" data-a="recheckObjs">Check now</button></p>`;
+  return h+`<div class="sec-h" style="margin-top:22px">Past cleanings</div>`+scrActivity().replace('<div class="page-title">Activity</div>','');
+}
 function scrActivity(){
   let h=`<div class="page-title">Activity</div>`;
   const rows=[];
   if(S.task)rows.push({id:S.task.id,day:'Today',start:S.task.start,scopeLabel:S.task.scopeLabel,result:S.task.done?S.task.result:null});
   S.history.forEach(x=>rows.push(x));
-  h+=rows.map(r=>`<button class="item" data-a="openReport" data-v="${r.id}"><span class="ico ${r.result==='completed'?'ok':r.result?'warn':'blue'}">${ic(r.result?'check':'robot',20)}</span><span class="body"><span class="t">${esc(r.scopeLabel)}</span><span class="s">${r.day} · ${hhmm(r.start)}</span></span>${r.result?`<span class="pill ${r.result}">${RESULTLABEL[r.result]}</span>`:'<span class="pill inProgress">In progress</span>'}</button>`).join('');
+  h+=rows.map(r=>`<button class="item" data-a="openReport" data-v="${r.id}"><span class="ico ${r.result==='completed'?'ok':r.result?'warn':'blue'}">${ic(r.result?'check':'robot',20)}</span><span class="body"><span class="t">${esc(r.scopeLabel)}</span><span class="s">${r.day} · ${hhmm(r.start)}${(s=>s?' · '+esc(s):'')(evSummary(r.id===(S.task&&S.task.id)?S.events:(r.snap&&r.snap.events)||[]))}</span></span>${r.result?`<span class="pill ${r.result}">${RESULTLABEL[r.result]}</span>`:'<span class="pill inProgress">In progress</span>'}</button>`).join('');
   return h;
 }
 function reportData(id){
@@ -1267,7 +1349,7 @@ function scrReport(id){
   const sec=(title,list,empty,fn)=>`<div class="sec-h">${title}<small>${list.length}</small></div>`+(list.length?list.map(fn).join(''):`<p class="small muted" style="margin:0 4px">${empty}</p>`);
   const evRow=e=>r.live?evItem(e):`<div class="item"><span class="ico ${e.status==='info'||e.status==='resolved'?'ok':'gray'}">${ic(e.status==='info'||e.status==='resolved'?'check':'skip',20)}</span><span class="body"><span class="t">${esc(DEFS[e.key].title)}</span><span class="s">${esc(e.outcome||'')}</span></span><span class="pill ${e.status}">${STATUSLABEL[e.status]}</span></div>`;
   h+=sec('Not cleaned',notCleaned,'Every planned area was cleaned or deliberately excluded.',evRow);
-  h+=sec('Robot adjusted on its own',auto,'No automatic adjustments.',evRow);
+  h+=sec('Robot decided',auto,'The robot made no decisions on its own.',evRow);
   h+=sec('Needed your call',you,'Nothing needed your input.',e=>{const yl=e.log.filter(l=>l.a==='you'&&!/changed your choice|undid/.test(l.x)),acts=yl.length?yl[yl.length-1].x+(yl.length>1?' (changed)':''):'';return r.live?evItem(e).replace('</span></span><span class="pill',`${acts?` · ${esc(acts)}`:' · no response yet'}</span></span><span class="pill`):evRow(e)});
   if(r.live&&visibleObjs().length){const ob=visibleObjs();h+=`<div class="sec-h">Objects found<small>${ob.length}</small></div>`+ob.map(objItem).join('')}
   h+=sec('Still open',open,'Nothing left to handle.',evRow);
@@ -1288,10 +1370,15 @@ function scrSettings(){
   </div>
   <div class="sec-h">Notifications</div>
   <div class="group">
-   ${[['review','Something needs my review'],['finished','Cleaning finished'],['decisions','Every robot decision']].map(([k,l])=>`<div class="row">${l}<button class="switch ${S.notif[k]?'on':''}" role="switch" aria-checked="${S.notif[k]}" aria-label="${l}" data-a="notif" data-v="${k}"></button></div>`).join('')}
+   ${[['review','Needs your call'],['problems','Robot is stuck or has a problem'],['finished','Cleaning finished'],['decisions','Every robot decision, also in Full auto'],['behaviour','Unusual behaviour (real robot)']].map(([k,l])=>`<div class="row">${l}<button class="switch ${S.notif[k]?'on':''}" role="switch" aria-checked="${S.notif[k]}" aria-label="${l}" data-a="notif" data-v="${k}"></button></div>`).join('')}
   </div>
+  <div class="group" style="margin-top:10px"><div class="row">Pause for 1 hour${quietNow()?`<span class="v">until ${atLabel(S.quietUntil)}</span>`:''}<button class="switch ${quietNow()?'on':''}" role="switch" aria-checked="${quietNow()}" aria-label="Pause notifications for 1 hour" data-a="pauseNotif"></button></div></div>
+  <p class="small muted" style="margin:6px 4px 0">Paused or switched off, nothing is lost: it all waits in Inbox.</p>
   <div class="sec-h">Support</div>
-  <div class="group"><button class="row" data-a="go" data-v="help">Help and tips${ic('chev',18)}</button></div>`;
+  <div class="group"><button class="row" data-a="go" data-v="help">Help and tips${ic('chev',18)}</button></div>
+  <div class="sec-h">Testing</div>
+  <div class="group"><button class="row" data-a="lockShow">Leave the app (lock screen)${ic('chev',18)}</button></div>
+  <p class="small muted" style="margin:6px 4px 0">For studies: shows how notices arrive while the app isn’t open.</p>`;
 }
 function scrAutonomy(){
   return topbar('Automation level')+`<p class="small muted" style="margin:0 4px 12px">How much the robot decides on its own.</p>`+levelPicker(S.autonomy,'setAutonomy');
@@ -1318,7 +1405,8 @@ function scrHelp(){
 function obScreen(){
   const o=S.onboarding;
   const heroMap=`<div style="border-radius:22px;background:var(--surface);padding:10px;margin-top:8px">${mapSVG({cells:demoHeroCells(),robot:false,noEvents:true})}</div>`;
-  if(o==='intro')return `<div class="ob"><div class="hero-name" style="margin-top:4px"><b>Roborock</b><span>S6 MaxV</span></div><div class="hero">${isoRobot()}</div><h1 style="font-size:32px">The robot handles routine cleaning. You stay informed and step in when needed.</h1><p class="lead">See what it’s doing, why it made a call, and fix only the part that needs you.</p><div class="grow"></div><button class="btn primary block" data-a="ob" data-v="mode">Get started</button></div>`;
+  if(o==='intro')return `<div class="ob"><div class="hero-name" style="margin-top:4px"><b>Roborock</b><span>S6 MaxV</span></div><div class="hero">${isoRobot()}</div><h1 style="font-size:32px">The robot handles routine cleaning. You stay informed and step in when needed.</h1><p class="lead">See what it’s doing, why it made a call, and fix only the part that needs you.</p><div class="grow"></div><button class="btn primary block" data-a="ob" data-v="mapping">Get started</button></div>`;
+  if(o==='mapping')return `<div class="ob"><h1 style="margin-top:6px;font-size:34px">This is your home’s map</h1>${heroMap}<p class="lead" style="margin-top:14px">The robot made it on its first cleaning by scanning each room with its laser. It keeps updating the map as it cleans, so moved furniture shows up next time.</p><div class="grow"></div><button class="btn primary block" data-a="ob" data-v="mode">Next</button></div>`;
   if(o==='mode')return `<div class="ob"><h1 style="margin-top:6px;font-size:34px">How involved do you want to be?</h1><p class="lead" style="margin-bottom:12px;font-size:14.5px">You can change this any time in Settings.</p>${levelPicker(S.ui.obMode,'obMode')}<div class="grow" style="min-height:14px"></div><button class="btn primary block" data-a="obDone">Go to home</button></div>`;
 }
 const demoHeroCellsMarker='';
@@ -1337,13 +1425,13 @@ function objModal(id){
   ${sel==='other'?`<label class="field" style="margin-top:10px"><span>What is it?</span><input id="obj-custom" data-obj-input maxlength="30" placeholder="e.g. Charging cable box" value="${esc(S.ui.objCustom||'')}" autocomplete="off"></label>`:''}`;
   const last=!q||q.indexOf(id)===q.length-1;
   const primary=sel==='other'?'Save my label':unsure?(sel===o.label?`Yes, ${OBJ[sel].n.toLowerCase()}`:`Save as ${OBJ[sel].n.toLowerCase()}`):(sel===o.label?'Looks right':`Change to ${OBJ[sel].n.toLowerCase()}`);
-  return {title:unsure?`Is this ${/^[aeiou]/i.test(OBJ[o.label].n)?'an':'a'} ${OBJ[o.label].n.toLowerCase()}?`:OBJ[o.label].n,body,
+  return {full:true,title:unsure?`Is this ${/^[aeiou]/i.test(OBJ[o.label].n)?'an':'a'} ${OBJ[o.label].n.toLowerCase()}?`:OBJ[o.label].n,body,
     buttons:[{label:primary+(q&&!last?' · Next':''),a:'objSave',cls:'primary'},{label:'Nothing there',a:'objNone',cls:'plain'}]};
 }
 function groupModal(room){
   const items=pendingObjs().filter(o=>CELLROOM[o.k]===room);if(!items.length)return null;
   const name=ROOM[room]?ROOM[room].name:'Home',guessed=items.filter(o=>o.label!=='unknown');
-  return {title:`${name}: ${items.length} item${items.length>1?'s':''} to check`,body:`<p class="small muted" style="margin-bottom:6px">The robot wasn’t sure about these. If its guesses look right, confirm them all at once.</p>
+  return {full:true,title:`${name}: ${items.length} item${items.length>1?'s':''} to check`,body:`<p class="small muted" style="margin-bottom:6px">The robot wasn’t sure about these. If its guesses look right, confirm them all at once.</p>
     ${items.map(o=>`<div class="grp-row"><span class="e">${OBJ[o.label].e}</span><span class="t">${o.label==='unknown'?'Unknown object':'Maybe '+esc(OBJ[o.label].n.toLowerCase())+'?'}</span><button data-a="fixObj" data-v="${esc(o.id)}">Change</button></div>`).join('')}
     <p class="small muted" style="margin-top:10px">Ignore for now: the robot keeps going around them, and they stay on the map as not checked.</p>`,
     buttons:[guessed.length?{label:guessed.length<items.length?`Confirm the ${guessed.length} guessed`:'All look right',a:'groupOk',v:room,cls:'primary'}:null,{label:'Ignore these for now',a:'groupIgnore',v:room},{label:'Cancel',a:'closeModal'}].filter(Boolean)};
@@ -1362,7 +1450,7 @@ function checkTemp(){
 }
 function modalHTML(){
   const m=S.ui.modal;if(!m)return '';
-  return `<div class="modal-bg" data-a="closeModalBg"><div class="modal" role="dialog" aria-modal="true" aria-label="${esc(m.title)}"><h2>${esc(m.title)}</h2>${m.body}<div style="margin-top:18px">${m.buttons.map((b,i)=>`<button class="btn ${b.cls||'plain'} block" style="${i?'margin-top:8px':''}" data-a="${b.a}" data-v="${esc(b.v||'')}">${esc(b.label)}</button>`).join('')}</div></div></div>`;
+  return `<div class="modal-bg" data-a="closeModalBg"><div class="modal ${m.full?'full':''}" role="dialog" aria-modal="true" aria-label="${esc(m.title)}">${m.full?`<button class="icon-btn close-full" data-a="closeModal" aria-label="Close">${ic('back')}</button>`:''}<h2>${esc(m.title)}</h2>${m.body}<div style="margin-top:18px">${m.buttons.map((b,i)=>`<button class="btn ${b.cls||'plain'} block" style="${i?'margin-top:8px':''}" data-a="${b.a}" data-v="${esc(b.v||'')}">${esc(b.label)}</button>`).join('')}</div></div></div>`;
 }
 function snapshotModal(ev){
   const d=DEFS[ev.key];
@@ -1506,14 +1594,17 @@ function render(){
   if(S.conn==='disconnected')h+=`<div class="banner"><span><b>Disconnected</b>Last update ${hhmm(S.snap.clock)}. Current status can’t be confirmed.</span><button class="btn primary" style="height:38px;font-size:13px;padding:0 12px" data-a="reconnect">Reconnect</button></div>`;
   if(S.conn==='connecting')h+=`<div class="banner connecting"><span class="spin"></span><span style="flex:1"><b>Reconnecting…</b>Getting the latest status</span></div>`;
   const c=cur();
-  const map={home:scrHome,map:scrMap,activity:scrActivity,settings:scrSettings,setup:scrSetup,event:scrEvent,report:scrReport,timeline:scrTimeline,autonomy:scrAutonomy,rules:scrRules,schedule:scrSchedule,help:scrHelp,...(window.EXTRA_SCREENS||{})};
+  const map={home:scrHome,map:scrMap,activity:scrInbox,settings:scrSettings,setup:scrSetup,event:scrEvent,report:scrReport,timeline:scrTimeline,autonomy:scrAutonomy,rules:scrRules,schedule:scrSchedule,help:scrHelp,...(window.EXTRA_SCREENS||{})};
   h+=`<div class="scroll">${map[c.name](c.id)}</div>`;
   const badge=needsYou().length;
-  h+=`<nav class="tabbar">${[['home','Home'],['map','Map'],['activity','Activity'],['settings','Settings']].map(([k,l])=>`<button class="tab ${S.ui.tab===k?'on':''}" data-a="tab" data-v="${k}" aria-label="${l}">${k==='home'&&badge?'<span class="dot"></span>':''}${ic(k)}${l}</button>`).join('')}</nav>`;
+  const inboxN=inbox().count;
+  h+=`<nav class="tabbar">${[['home','Home'],['map','Map'],['activity','Inbox'],['settings','Settings']].map(([k,l])=>`<button class="tab ${S.ui.tab===k?'on':''}" data-a="tab" data-v="${k}" aria-label="${l}${k==='activity'&&inboxN?', '+inboxN+' waiting':''}">${k==='activity'&&inboxN?`<span class="badge">${inboxN}</span>`:''}${ic(k==='activity'?'bell':k)}${l}</button>`).join('')}</nav>`;
   if(S.ui.notice==='stuck'&&S.device.status==='error'&&!(c.name==='home'||(c.name===undefined&&S.ui.tab==='home'))){h+=`<div class="notice" role="alert"><span class="ico" style="width:34px;height:34px;border-radius:10px;display:grid;place-items:center;background:var(--stop-soft);color:var(--stop)">${ic('alert',18)}</span><span class="body"><b>Robot is stuck</b><br><span class="muted">Tried 3 times to free itself in ${curRoom().the}. It needs a hand.</span></span><button class="btn soft" style="height:36px;padding:0 12px;font-size:13px" data-a="tab" data-v="home">View</button></div>`}
+  else if(S.ui.notice==='moved'){h+=`<div class="notice" role="status"><span class="ico blue" style="width:34px;height:34px;border-radius:10px;display:grid;place-items:center">${ic('map',18)}</span><span class="body"><b>Map updated</b><br><span class="muted">${esc(S.mapNews||'')}</span></span><button class="btn soft" style="height:36px;padding:0 12px;font-size:13px" data-a="tab" data-v="map">View</button></div>`}
+  else if(S.ui.notice==='missed'){h+=`<div class="notice" role="status"><span class="ico blue" style="width:34px;height:34px;border-radius:10px;display:grid;place-items:center">${ic('bell',18)}</span><span class="body"><b>While notices were paused</b><br><span class="muted">${S.missedN} thing${S.missedN>1?'s':''} came up</span></span><button class="btn soft" style="height:36px;padding:0 12px;font-size:13px" data-a="tab" data-v="activity">Inbox</button></div>`}
   else if(S.ui.notice==='done'&&S.task&&S.task.done){h+=`<div class="notice" role="status"><span class="ico ok" style="width:34px;height:34px;border-radius:10px;display:grid;place-items:center">${ic('check',18)}</span><span class="body"><b>Cleaning finished</b><br><span class="muted">${esc(RESULTLABEL[S.task.result]||'Done')}</span></span><button class="btn soft" style="height:36px;padding:0 12px;font-size:13px" data-a="openReport" data-v="${S.task.id}">Report</button></div>`}
   else if(S.ui.notice==='objs'){const n=pendingObjs().length;if(n)h+=`<div class="notice" role="status"><span class="ico warn" style="width:34px;height:34px;border-radius:10px;display:grid;place-items:center;font-size:18px">${OBJ[pendingObjs()[0].label].e}</span><span class="body"><b>Cleaning done</b><br><span class="muted">${n} object${n>1?'s':''} to check</span></span><button class="btn soft" style="height:36px;padding:0 12px;font-size:13px" data-a="reviewRoom" data-v="${CELLROOM[pendingObjs()[0].k]}">Check</button></div>`}
-  else if(S.ui.notice&&!(c.name==='event'&&c.id===S.ui.notice)){const ev=findEvent(S.ui.notice);if(ev)h+=`<div class="notice" role="status"><span class="ico warn" style="width:34px;height:34px;border-radius:10px;display:grid;place-items:center">${ic('alert',18)}</span><span class="body"><b>${esc(ev.retryFailed?'Retry didn’t work':(ev.autonomous&&!ev.changed)?'Robot handled it':S.waitEv===ev.id?'Robot is waiting for you':ev.suggestion?'Robot suggests something':DEFS[ev.key].kind)}</b><br><span class="muted">${esc(SHORT[ev.key].q)}${ev.autonomous&&ev.autoChoice?' · '+esc(SHORT[ev.key].labels[ev.autoChoice]):''}</span></span><button class="btn soft" style="height:36px;padding:0 12px;font-size:13px" data-a="openEvent" data-v="${ev.id}">Review</button></div>`}
+  else if(S.ui.notice&&!(c.name==='event'&&c.id===S.ui.notice)){const ev=findEvent(S.ui.notice);if(ev)h+=`<div class="notice" role="status"><span class="ico warn" style="width:34px;height:34px;border-radius:10px;display:grid;place-items:center">${ic('alert',18)}</span><span class="body"><b>${esc(noticeTitle(ev))}</b><br><span class="muted">${esc(SHORT[ev.key].q)}${ev.autonomous&&ev.autoChoice?' · '+esc(SHORT[ev.key].labels[ev.autoChoice]):''}</span></span><button class="btn soft" style="height:36px;padding:0 12px;font-size:13px" data-a="openEvent" data-v="${ev.id}">Review</button></div>`}
   if(S.cmd){const m=S.cmd;
     if(m.state==='sending')h+=`<div class="cmd" role="status"><span class="spin"></span>Sending: ${esc(m.label)}…</div>`;
     else if(m.state==='confirmed')h+=`<div class="cmd" role="status">${ic('check',18)}${esc(m.label)}</div>`;
@@ -1522,6 +1613,9 @@ function render(){
     else h+=`<div class="cmd failed" role="alert"><span>${ic('alert',18)}</span><span style="flex:1"><b>${esc(m.label)} wasn’t confirmed.</b> The robot didn’t answer, so nothing has changed yet.</span><div class="acts"><button data-a="cmdRetry">Try again</button><button data-a="cmdRefresh">Refresh status</button><button data-a="cmdDismiss">Dismiss</button></div></div>`;
   }
   h+=modalHTML();
+  if(S.ui.away)h+=`<div class="lock"><div class="lock-time">${hhmm(S.clock)}</div><div class="lock-date">${window.HA_LIVE?new Date().toLocaleDateString(undefined,{weekday:'long',month:'long',day:'numeric'}):'Today'}</div>
+    ${S.lockNotes.map(n=>`<button class="lock-card" data-a="lockOpen" data-v="${esc(n.id)}"><span class="lk-app"><span>${ic('robot',13)} Robot</span><span>${hhmm(n.at)}</span></span><b>${esc(n.title)}</b><br>${esc(n.body||'')}</button>`).join('')||'<p style="text-align:center;opacity:.7;font-size:14px">No notifications yet. The robot keeps working.</p>'}
+    <button class="lock-open" data-a="lockBack">Open the app</button></div>`;
   app.innerHTML=h;
   const sc=app.querySelector('.scroll');if(sc)sc.scrollTop=st;
   mount3D();
@@ -1550,6 +1644,23 @@ function renderPanel(){return;
 const A={
   panelToggle(){document.getElementById('panel').classList.toggle('open')},
   openObj(v){S.ui.objId=v;S.ui.objSel=null;S.ui.objCustom='';S.ui.objQueue=null;S.ui.modal=objModal(v);commit()},
+  askLater(v){const [id,m]=v.split('|');const ev=findEvent(id);if(!ev)return;
+    ev.later=m==='task'?{task:S.task&&S.task.id}:{until:nowT()+(+m)*(window.HA_LIVE?60000:60)};ev.reminded=false;
+    evLog(ev,'you',m==='task'?'You asked to be reminded after this cleaning':'You asked to be reminded in '+(m==='60'?'1 hour':m+' minutes'));
+    if(S.waitEv===ev.id){if(window.HA_LIVE&&window.onAskLaterResume)window.onAskLaterResume();else{S.waitEv=null;S.device.status='cleaning';tl('robot','Carrying on. It will ask again later',ev.id)}}
+    if(S.ui.notice===ev.id)S.ui.notice=null;back();flash('OK. Reminder '+laterLabel(ev).toLowerCase())},
+  pauseNotif(){if(quietNow())S.quietUntil=nowT()-1;else S.quietUntil=nowT()+(window.HA_LIVE?3600e3:3600);checkReminders();commit()},
+  lockShow(){S.ui.away=true;S.lockNotes=[];S.ui.modal=null;S.ui.notice=null;commit()},
+  lockBack(){S.ui.away=false;commit()},
+  lockOpen(v){S.ui.away=false;S.ui.modal=null;S.ui.stack=[];
+    if(v==='done'&&S.task){S.ui.tab='activity';go('report',S.task.id);return}
+    if(v==='moved'){A.tab('map');return}
+    if(v==='stuck'){A.tab('home');return}
+    if(findEvent(v)){S.ui.tab='home';go('event',v);return}
+    commit()},
+  updateMap(){if(running()){flash('The map updates while the robot cleans.');return}
+    S.ui.modal={title:'Update the map?',body:'<p>The robot drives through every room without cleaning and scans them again with its laser. It takes about 6 minutes. Do this after moving furniture.</p>',buttons:[{label:'Start scanning',a:'updateMapGo',cls:'primary'},{label:'Cancel',a:'closeModal'}]};commit()},
+  updateMapGo(){S.ui.modal=null;command('Update map','Rooms scanned. Map updated',()=>{S.mapLabel='today '+hhmm(S.clock);S.mapNews=null})},
   undoAct(){const u=S.undo;if(!u)return;const ev=findEvent(u.ev),s=u.snap;if(!ev)return;
     Object.keys(ev).forEach(k=>{if(!(k in s.ev))delete ev[k]});Object.assign(ev,JSON.parse(JSON.stringify(s.ev)));
     S.cells=s.cells;dirtyAll();S.nogo=s.nogo;S.rules=s.rules;S.sim.queue=s.queue;S.device.status=s.status;S.waitEv=s.waitEv;S.checkEv=s.checkEv;S.timeline.length=s.tl;
@@ -1636,7 +1747,7 @@ const A={
   ctlSpeed(v){S.ctl.speed=+v;renderPanel()},
   ctlFail(){S.ctl.failNext=!S.ctl.failNext;renderPanel()},
   ctlDisconnect(){S.snap={clock:S.clock,device:{...S.device},pos:{...S.sim.pos},pct:pct()};S.conn='disconnected';commit()},
-  ctlStuck(){if(S.device.status!=='cleaning')return;S.device.status='error';S.device.error=`Wheels can’t move after 3 tries to free itself in ${curRoom().the}. Lift it onto open floor, check the wheels, then resume.`;tl('robot','Stuck: wheels can’t move');S.ui.notice='stuck';clearTimeout(notice.t);commit()},
+  ctlStuck(){if(S.device.status!=='cleaning')return;S.device.status='error';S.device.error=`Wheels can’t move after 3 tries to free itself in ${curRoom().the}. Lift it onto open floor, check the wheels, then resume.`;tl('robot','Stuck: wheels can’t move');if(S.notif.problems)banner('stuck',{id:'stuck',title:'Robot is stuck',body:'It tried 3 times to free itself. It needs a hand.'});commit()},
   ctlReset(){const keep={autonomy:S.autonomy,rules:S.rules,nogo:S.nogo,schedules:S.schedules,ctl:S.ctl,history:S.history};S=initState();Object.assign(S,keep);S.onboarding=null;commit(true)},
   ctlRestart(){const ctl=S.ctl;S=initState();S.ctl=ctl;commit(true)},
 };
@@ -1687,7 +1798,7 @@ setInterval(()=>{
     else if(S.device.status==='returning')stepReturn();
     else if(S.device.status==='docked'&&S.device.battery<100&&Math.random()<.2)S.device.battery++;
   }
-  checkTemp();
+  checkTemp();checkReminders();
   updateLive();
 },80);
 if(window.HA_LIVE)HA_INIT();else if(window.HA_DEMO_INIT)HA_DEMO_INIT();
