@@ -597,16 +597,9 @@ const inView = (el, fn, opts = { threshold: 0.35 }) => {
 };
 $$("[data-bounce]").forEach((box) => {
   const dots = $$(".fin-bounce__grid i", box), num = $("[data-bounce-num]", box);
-  // 62 of 100 visitors leave; pick them at random but stable
-  const order = dots.map((_, i) => i).sort(() => Math.random() - 0.5);
-  const gone = new Set(order.slice(0, 62));
-  dots.forEach((d, i) => {
-    if (gone.has(i)) {
-      const a = Math.random() * Math.PI * 2;
-      d.style.setProperty("--dx", Math.cos(a) * 40 + "px"); d.style.setProperty("--dy", Math.sin(a) * 40 + "px");
-      d.style.setProperty("--d", (0.2 + Math.random() * 1.6).toFixed(2) + "s");
-    }
-  });
+  // the top 62 leave row by row; the bottom 38 stay as a neat block
+  const gone = new Set(dots.map((_, i) => i).slice(0, 62));
+  dots.forEach((d, i) => { if (gone.has(i)) d.style.setProperty("--d", (0.15 + Math.floor(i / 10) * 0.22 + (i % 10) * 0.025).toFixed(2) + "s"); });
   inView(box, () => {
     box.classList.add("is-in");
     dots.forEach((d, i) => d.classList.add(gone.has(i) ? "is-gone" : "is-stay"));
@@ -647,6 +640,21 @@ $$("[data-forum]").forEach((forum) => {
   onScrollFns.push(check);
   check();
 });
+/* ---------- FINRA jargon: cycle through terms, hover to pick ---------- */
+$$("[data-jargon]").forEach((jg) => {
+  const terms = $$("[data-term]", jg), defs = $$("[data-def]", jg);
+  let k = -1, pausedUntil = 0, started = false;
+  const pick = (i) => { k = i; terms.forEach((t, n) => t.classList.toggle("is-active", n === i)); defs.forEach((d, n) => d.classList.toggle("is-active", n === i)); };
+  terms.forEach((t, i) => { const go = () => { pausedUntil = Date.now() + 8000; pick(i); }; t.addEventListener("mouseenter", go); t.addEventListener("click", go); t.addEventListener("focus", go); });
+  inView(jg, () => { started = true; pick(0); }, { threshold: 0.5 });
+  setInterval(() => {
+    if (!started || Date.now() < pausedUntil || document.hidden) return;
+    const r = jg.getBoundingClientRect();
+    if (r.bottom < 0 || r.top > innerHeight) return;
+    pick((k + 1) % terms.length);
+  }, 2800);
+});
+
 $$("[data-journey]").forEach((jr) => {
   const line = $(".fin-jr__line", jr), dot = $(".fin-jr__dot", jr), wipe = $(".fin-jr__wipe", jr);
   const cols = $$("[data-stage]", jr), cards = $$("[data-card]", jr);
