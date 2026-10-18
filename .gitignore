@@ -5,3 +5,8 @@
 
 # readable source of password-protected case studies (never commit)
 private/
+
+# Robot app: local secrets and caches, never commit
+.ha-local.json
+.map-cache.png
+.map-cache.json
