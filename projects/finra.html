@@ -16,7 +16,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&family=Poppins:wght@400;500;600&family=Sulphur+Point:wght@400&display=swap">
   <link rel="stylesheet" href="../styles.css?v=20261018a">
-  <link rel="stylesheet" href="../case.css?v=20261021a">
+  <link rel="stylesheet" href="../case.css?v=20261021e">
 </head>
 <body class="case case--finra">
   <a class="skip" href="#main">Skip to content</a>
@@ -105,12 +105,26 @@
     <!-- 01 The goal -->
     <section class="wrap c-sec" id="goal" data-chapter="The goal">
       <div class="c-chapter"><span class="c-chapter__num">01</span><h2 class="c-kicker">Entering the maze</h2></div>
-      <p class="c-head reveal-mask">When users feel uncertain, they don’t search harder. They leave.</p>
-      <p class="c-text reveal">Our goal: create a unified login and dashboard that streamlines navigation, task completion and permission-based access across FINRA’s platforms. If FINRA’s systems are inefficient, firms struggle to finish required tasks on time, raising the risk of mistakes and compliance issues.</p>
-      <div class="c-stats reveal-stagger">
-        <div class="c-stat"><span class="c-stat__num" data-count="62.2" data-decimals="1" data-suffix="%">62.2%</span><span class="c-stat__label">of FINRA.org visitors <b>leave after viewing one page</b></span></div>
-        <div class="c-stat"><span class="c-stat__num" data-count="30" data-suffix="%">30%</span><span class="c-stat__label">of FINRA’s call volume is <b>about logging in</b></span></div>
-        <div class="c-stat"><span class="c-stat__num">$100M</span><span class="c-stat__label">spent each year by securities firms <b>searching for information</b></span></div>
+      <p class="c-head reveal-mask">First, a question.</p>
+      <div class="fin-guess reveal" data-guess>
+        <p class="fin-guess__q">What percentage of FINRA.org visitors leave after viewing just one page?</p>
+        <div class="fin-guess__row">
+          <input type="range" min="0" max="100" value="30" step="1" aria-label="Your guess, in percent" data-guess-input>
+          <output data-guess-out>30%</output>
+          <button type="button" class="fin-guess__btn" data-guess-btn>Lock in</button>
+        </div>
+        <div class="fin-guess__bars" aria-live="polite">
+          <div class="fin-guess__bar"><span>Your guess</span><i data-guess-mine></i><b data-guess-mine-v></b></div>
+          <div class="fin-guess__bar fin-guess__bar--real"><span>Reality</span><i data-guess-real></i><b>62.2%</b></div>
+        </div>
+        <p class="fin-guess__punch" data-guess-punch>When users feel uncertain, they don’t search harder. <em>They leave.</em></p>
+      </div>
+      <div class="c-split" style="align-items:start">
+        <p class="c-text reveal">Our goal: create a unified login and dashboard that streamlines navigation, task completion and permission-based access across FINRA’s platforms. If FINRA’s systems are inefficient, firms struggle to finish required tasks on time, raising the risk of mistakes and compliance issues.</p>
+        <div class="c-stats reveal-stagger" style="margin-top:0">
+          <div class="c-stat"><span class="c-stat__num" data-count="30" data-suffix="%">30%</span><span class="c-stat__label">of FINRA’s call volume is <b>about logging in</b></span></div>
+          <div class="c-stat"><span class="c-stat__num">$100M</span><span class="c-stat__label">spent each year by securities firms <b>searching for information</b></span></div>
+        </div>
       </div>
     </section>
 
@@ -118,40 +132,93 @@
     <section class="wrap c-sec" id="research" data-chapter="Research">
       <div class="c-chapter"><span class="c-chapter__num">02</span><h2 class="c-kicker">The first turns: research</h2></div>
       <p class="c-head reveal-mask">Users say “FINRA” for a whole constellation of systems.</p>
-      <p class="c-text reveal">We combined SME interviews and user surveys with forum research, case studies of high-trust platforms, and AI models. Gateway, FinPro, Web CRD, the DR Portal: users meet many entry points without understanding how they fit together.</p>
-      <ul class="fin-quotes reveal-stagger">
-        <li>“I can’t log into FINRA.”</li>
-        <li>“How to deal with it or whom do I connect with… Can anyone help or share the process?”</li>
-        <li>“Should I be worried?”</li>
-        <li>“Is there a support email?”</li>
-      </ul>
-      <p class="fin-note reveal">Real posts from Reddit and other forums. Unsure about contacting their regulator, users turn to anonymous “shadow support” for help.</p>
-      <div class="fin-cards reveal-stagger">
-        <article><small>SME interviews</small><h3>Expert bias</h3><p>Internal staff had made decisions for users without enough direct research. Experts pointed us to a “lobby” concept and an active workspace, built for firms of very different sizes.</p></article>
-        <article><small>Emotional journey</small><h3>Exam passed, then a wall</h3><p>A user passes a major career milestone, then can’t log in. With no feedback from the system, anxiety builds and they start doubting their own success.</p></article>
-        <article><small>Case studies</small><h3>Trust comes from clarity</h3><p>High-trust financial platforms orient users right after login, reveal complexity progressively, and deliberately slow down high-risk actions.</p></article>
+      <p class="c-text reveal">We combined SME interviews and user surveys with forum research, case studies of high-trust platforms, and AI models. The first thing we learned: what users call “FINRA” is really many separate systems, each with its own entrance.</p>
+
+      <div class="fin-sky reveal" data-constellation>
+        <svg viewBox="0 0 900 520" preserveAspectRatio="none" aria-hidden="true">
+          <g class="fin-sky__lines">
+            <path d="M450 260L170 110"/><path d="M450 260L720 100"/><path d="M450 260L140 360"/><path d="M450 260L760 380"/><path d="M450 260L450 410"/><path d="M450 260L330 60"/>
+          </g>
+        </svg>
+        <button type="button" class="fin-sky__hub" data-node="hub">FINRA</button>
+        <button type="button" class="fin-sky__node" style="--x:18.9%;--y:21.2%" data-node="0">Gateway</button>
+        <button type="button" class="fin-sky__node" style="--x:80%;--y:19.2%" data-node="1">FinPro</button>
+        <button type="button" class="fin-sky__node" style="--x:15.6%;--y:69.2%" data-node="2">Web CRD</button>
+        <button type="button" class="fin-sky__node" style="--x:84.4%;--y:73.1%" data-node="3">DR Portal</button>
+        <button type="button" class="fin-sky__node" style="--x:50%;--y:78.8%" data-node="4">BrokerCheck</button>
+        <button type="button" class="fin-sky__node" style="--x:36.7%;--y:11.5%" data-node="5">FINRA.org</button>
+        <div class="fin-sky__info" data-sky-info>
+          <p data-info="hub" class="is-active"><b>One word, many doors.</b> Tap a star to see what users actually mean.</p>
+          <p data-info="0"><b>FINRA Gateway</b> Where firms file, report and request access.</p>
+          <p data-info="1"><b>FinPro</b> The portal for individual registered professionals.</p>
+          <p data-info="2"><b>Web CRD</b> The registration and licensing database.</p>
+          <p data-info="3"><b>DR Portal</b> Dispute resolution: arbitration and mediation.</p>
+          <p data-info="4"><b>BrokerCheck</b> The public lookup for brokers and firms.</p>
+          <p data-info="5"><b>FINRA.org</b> Rules, guidance and news, where most journeys begin.</p>
+        </div>
+      </div>
+
+      <div class="fin-split2">
+        <div class="reveal">
+          <h3 class="fin-sub">Shadow support</h3>
+          <p class="c-text">Unsure about contacting their own regulator, users turn to anonymous forums like Reddit for help. These are real posts we collected.</p>
+        </div>
+        <div class="fin-forum" data-forum>
+          <div class="fin-forum__head"><b>Reddit &amp; forums</b><span>Real posts, usernames hidden</span></div>
+          <ol class="fin-forum__list">
+            <li><i>Anonymous user</i><p>I can’t log into FINRA.</p></li>
+            <li><i>Anonymous user</i><p>How to deal with it or whom do I connect with… Can anyone help or share the process?</p></li>
+            <li><i>Anonymous user</i><p>Should I be worried?</p></li>
+            <li><i>Anonymous user</i><p>Is there a support email?</p></li>
+          </ol>
+          <p class="fin-forum__typing" aria-hidden="true"><span></span><span></span><span></span></p>
+          <p class="fin-forum__foot">0 official replies</p>
+        </div>
+      </div>
+
+      <div class="fin-journey reveal" data-journey>
+        <h3 class="fin-sub">An emotional journey</h3>
+        <div class="fin-journey__chart">
+          <svg viewBox="0 0 900 260" preserveAspectRatio="none" aria-hidden="true"><path class="fin-journey__line" d="M40 60 C 200 40, 300 40, 450 170 S 700 230, 860 220"/></svg>
+          <button type="button" class="fin-journey__pt is-active" style="--x:4.4%;--y:22%" data-stage="0"><span>Exam passed</span></button>
+          <button type="button" class="fin-journey__pt" style="--x:50%;--y:65%" data-stage="1"><span>Login failure</span></button>
+          <button type="button" class="fin-journey__pt" style="--x:95.6%;--y:85%" data-stage="2"><span>Information vacuum</span></button>
+        </div>
+        <div class="fin-journey__cards">
+          <p data-card="0" class="is-active"><b>High expectation</b> A major career milestone. Users expect immediate validation and their credentials.</p>
+          <p data-card="1"><b>The reality</b> They passed, then hit a wall at login, with no clear way forward.</p>
+          <p data-card="2"><b>The emotional state</b> With no feedback from the system, anxiety builds and users start doubting their own success.</p>
+        </div>
+      </div>
+
+      <div class="fin-lessons reveal-stagger">
+        <p><small>From SME interviews</small>Internal experts had been deciding for users without direct research. They pointed us to a “lobby” and an active workspace.</p>
+        <p><small>From case studies</small>High-trust platforms orient users right after login, reveal complexity step by step, and slow down risky actions on purpose.</p>
+        <p><small>From AI models</small>AI works best as a navigation layer that lowers cognitive load, not a gimmick.</p>
       </div>
     </section>
 
     <!-- 03 Synthesis -->
-    <section class="wrap c-sec" id="synthesis" data-chapter="Synthesis">
-      <div class="c-chapter"><span class="c-chapter__num">03</span><h2 class="c-kicker">Wandering the maze: synthesis</h2></div>
-      <p class="c-head reveal-mask">700 data points, six problems.</p>
-      <div class="fin-funnel reveal-stagger">
-        <div><b data-count="700" data-suffix="+">700+</b><span>data points</span></div>
-        <div><b data-count="110">110</b><span>groups</span></div>
-        <div><b data-count="27">27</b><span>themes</span></div>
-        <div><b data-count="6">6</b><span>problems</span></div>
+    <section class="fin-aff" id="synthesis" data-chapter="Synthesis" data-affinity>
+      <div class="fin-aff__stage">
+        <canvas class="fin-aff__canvas" aria-hidden="true"></canvas>
+        <div class="fin-aff__copy wrap">
+          <div class="c-chapter"><span class="c-chapter__num">03</span><h2 class="c-kicker">Wandering the maze: synthesis</h2></div>
+          <p class="fin-aff__num" data-aff-num>700+</p>
+          <p class="fin-aff__label" data-aff-label>data points, from every interview, survey and forum post</p>
+        </div>
+        <ol class="fin-aff__tags" aria-label="The six problems">
+          <li style="--x:20%;--y:38%">Confusing navigation &amp; multiple entry points</li>
+          <li style="--x:50%;--y:38%">High cognitive load</li>
+          <li style="--x:80%;--y:38%">Trust &amp; security</li>
+          <li style="--x:20%;--y:80%">Tasks fragmented across systems</li>
+          <li style="--x:50%;--y:80%">Redundant, inconsistent interfaces</li>
+          <li style="--x:80%;--y:80%">Locating, dividing &amp; resuming tasks</li>
+        </ol>
       </div>
-      <figure class="c-figure reveal"><img src="../assets/projects/finra/affinity.webp" alt="The team’s affinity wall in FigJam: hundreds of sticky notes grouped into themes" width="2000" height="1260" loading="lazy"></figure>
-      <ol class="fin-problems reveal-stagger">
-        <li>Confusing navigation and multiple entry points</li>
-        <li>High cognitive load</li>
-        <li>Trust and security</li>
-        <li>Tasks fragmented across systems</li>
-        <li>Redundant, inconsistent interface design</li>
-        <li>Locating, dividing and resuming tasks</li>
-      </ol>
+    </section>
+    <section class="wrap fin-aff-after">
+      <figure class="c-figure reveal" style="margin-top:0"><img src="../assets/projects/finra/affinity.webp" alt="The team’s real affinity wall in FigJam: hundreds of sticky notes grouped into themes" width="2000" height="1260" loading="lazy"><figcaption class="fin-note">The real wall: our affinity map in FigJam.</figcaption></figure>
     </section>
 
     <!-- 04 Iterations -->
@@ -186,10 +253,40 @@
       </div>
     </section>
 
+    <!-- 05 Maze vs path -->
+    <section class="wrap c-sec" id="compare" data-chapter="Maze vs path">
+      <div class="c-chapter"><span class="c-chapter__num">05</span><h2 class="c-kicker">From maze to path</h2></div>
+      <p class="c-head reveal-mask">Same task. A very different journey.</p>
+      <p class="c-text reveal">Filing a Form U4, before and after. Switch between them to see how the redesign turns a maze into a path.</p>
+      <div class="fin-mz reveal" data-maze data-mode="before">
+        <div class="fin-mz__toggle" role="tablist" aria-label="Compare journeys">
+          <button type="button" role="tab" aria-selected="true" data-maze-to="before">Before: today’s FINRA</button>
+          <button type="button" role="tab" aria-selected="false" data-maze-to="after">After: our design</button>
+        </div>
+        <div class="fin-mz__board">
+          <svg viewBox="0 0 1000 500" preserveAspectRatio="none" aria-hidden="true">
+            <path class="fin-mz__walls" d="M0 0H1000V500H0Z M140 0V180 M140 330V500 M300 160V420 M300 160H520 M520 0V240 M360 420H700 M700 220V420 M700 220H880 M880 60V320 M500 500V420"/>
+            <path class="fin-mz__route fin-mz__route--before" d="M60 420 L60 250 L220 250 L220 80 L420 80 L420 330 L600 330 L600 140 L800 140 L800 420 L940 420" pathLength="1"/>
+            <path class="fin-mz__route fin-mz__route--after" d="M60 250 L360 250 L660 250 L940 250" pathLength="1"/>
+          </svg>
+          <ol class="fin-mz__nodes fin-mz__nodes--before"><li class="fin-mz__n" style="--x:6.0%;--y:84.0%;--i:0"><span>FINRA.org</span></li><li class="fin-mz__n is-pain" style="--x:6.0%;--y:50.0%;--i:1"><span>Search “U4”: zero results</span></li><li class="fin-mz__n is-pain" style="--x:22.0%;--y:50.0%;--i:2"><span>Which system? Gateway, FinPro, CRD…</span></li><li class="fin-mz__n" style="--x:22.0%;--y:16.0%;--i:3"><span>Log in to Gateway</span></li><li class="fin-mz__n is-pain" style="--x:42.0%;--y:16.0%;--i:4"><span>Wrong place, back out</span></li><li class="fin-mz__n is-pain" style="--x:42.0%;--y:66.0%;--i:5"><span>Log in again, another system</span></li><li class="fin-mz__n is-pain" style="--x:60.0%;--y:66.0%;--i:6"><span>“Modern” or “Classic” page?</span></li><li class="fin-mz__n is-pain" style="--x:60.0%;--y:28.0%;--i:7"><span>Re-enter the same U4 data</span></li><li class="fin-mz__n is-pain" style="--x:80.0%;--y:28.0%;--i:8"><span>Session timed out, work lost</span></li><li class="fin-mz__n" style="--x:80.0%;--y:84.0%;--i:9"><span>Start over</span></li><li class="fin-mz__n" style="--x:94.0%;--y:84.0%;--i:10"><span>Filed, finally</span></li></ol>
+          <ol class="fin-mz__nodes fin-mz__nodes--after"><li class="fin-mz__n" style="--x:6.0%;--y:50.0%;--i:0"><span>FINRA.org: ask the chatbot</span></li><li class="fin-mz__n" style="--x:36.0%;--y:50.0%;--i:1"><span>One login + passcode</span></li><li class="fin-mz__n" style="--x:66.0%;--y:50.0%;--i:2"><span>Dashboard: “Continue your work”</span></li><li class="fin-mz__n" style="--x:94.0%;--y:50.0%;--i:3"><span>Filed, draft saved along the way</span></li></ol>
+        </div>
+        <ol class="fin-mz__pains" aria-label="Pain points along the old journey"><li>Search “U4”: zero results</li><li>Which system? Gateway, FinPro, CRD…</li><li>Wrong place, back out</li><li>Log in again, another system</li><li>“Modern” or “Classic” page?</li><li>Re-enter the same U4 data</li><li>Session timed out, work lost</li></ol>
+        <dl class="fin-mz__stats">
+          <div><dt>Steps</dt><dd><span data-b="11" data-a="4">11</span></dd></div>
+          <div><dt>Separate logins</dt><dd><span data-b="2+" data-a="1">2+</span></dd></div>
+          <div><dt>Dead ends &amp; pain points</dt><dd><span data-b="6" data-a="0">6</span></dd></div>
+          <div><dt>Systems to understand</dt><dd><span data-b="3+" data-a="1">3+</span></dd></div>
+        </dl>
+        <p class="fin-note">An illustrated journey built from the pain points we found in research: unforgiving search, multiple entry points, repeated logins, mixed interfaces, re-entering form data and aggressive timeouts.</p>
+      </div>
+    </section>
+
     <!-- 05 Prototype -->
     <section class="fin-try-sec" id="prototype" data-chapter="Try the prototype">
       <div class="wrap c-sec">
-        <div class="c-chapter"><span class="c-chapter__num">05</span><h2 class="c-kicker">Finding the exit: try it</h2></div>
+        <div class="c-chapter"><span class="c-chapter__num">06</span><h2 class="c-kicker">Finding the exit: try it</h2></div>
         <div class="fin-demo">
           <div class="fin-browser">
             <div class="fin-browser__bar"><i></i><i></i><i></i><span>Final prototype · coded</span><button type="button" class="fin-restart" data-proto-restart>Restart</button></div>
@@ -225,7 +322,7 @@
 
     <!-- 06 Client feedback -->
     <section class="wrap c-sec" id="feedback" data-chapter="Client feedback">
-      <div class="c-chapter"><span class="c-chapter__num">06</span><h2 class="c-kicker">Client feedback</h2></div>
+      <div class="c-chapter"><span class="c-chapter__num">07</span><h2 class="c-kicker">Client feedback</h2></div>
       <p class="c-head reveal-mask">“Connected the dots with storytelling.”</p>
       <p class="c-text reveal">We presented the process as a journey through a maze, from entering to finding the exit, then let the FINRA team explore the coded prototype themselves.</p>
       <div class="fin-cards fin-cards--2 reveal-stagger">
@@ -243,7 +340,7 @@
   <nav class="chapter" aria-label="Chapters">
     <ol class="chapter__list"></ol>
     <button class="chapter__toggle" aria-expanded="false">
-      <span class="chapter__num">01 / 06</span><span class="chapter__label">The goal</span>
+      <span class="chapter__num">01 / 07</span><span class="chapter__label">The goal</span>
       <span class="chapter__bar"><span></span></span>
     </button>
   </nav>
@@ -284,6 +381,6 @@
   </footer>
 
   <script src="../assets/js/lenis.min.js" defer></script>
-  <script src="../main.js?v=20261021a" defer></script>
+  <script src="../main.js?v=20261021d" defer></script>
 </body>
 </html>

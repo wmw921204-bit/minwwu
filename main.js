@@ -590,6 +590,152 @@ $$("[data-relay]").forEach((relay) => {
   $$(".relay__layer", relay).forEach((g) => g.addEventListener("pointerenter", () => set(g.dataset.layer)));
 });
 
+/* ---------- FINRA research: guess, constellation, forum, journey ---------- */
+const inView = (el, fn, opts = { threshold: 0.35 }) => {
+  const io = new IntersectionObserver((es) => es.forEach((e) => { if (e.isIntersecting) { fn(); io.disconnect(); } }), opts);
+  io.observe(el);
+};
+$$("[data-guess]").forEach((box) => {
+  const input = $("[data-guess-input]", box), out = $("[data-guess-out]", box);
+  const sync = () => { out.textContent = input.value + "%"; };
+  input.addEventListener("input", sync);
+  $("[data-guess-btn]", box).addEventListener("click", () => {
+    $("[data-guess-mine-v]", box).textContent = input.value + "%";
+    box.classList.add("is-done");
+    requestAnimationFrame(() => {
+      $("[data-guess-mine]", box).style.width = input.value + "%";
+      $("[data-guess-real]", box).style.width = "62.2%";
+    });
+  });
+  sync();
+});
+$$("[data-constellation]").forEach((sky) => {
+  inView(sky, () => sky.classList.add("is-in"));
+  const lines = $$(".fin-sky__lines path", sky);
+  const pick = (id) => {
+    $$("[data-info]", sky).forEach((p) => p.classList.toggle("is-active", p.dataset.info === id));
+    $$(".fin-sky__node", sky).forEach((n) => n.classList.toggle("is-active", n.dataset.node === id));
+    lines.forEach((l, i) => l.classList.toggle("is-hot", String(i) === id));
+  };
+  $$("[data-node]", sky).forEach((n) => {
+    n.addEventListener("click", () => pick(n.dataset.node));
+    n.addEventListener("mouseenter", () => pick(n.dataset.node));
+  });
+});
+$$("[data-forum]").forEach((forum) => {
+  const posts = $$("li", forum);
+  inView(forum, () => {
+    posts.forEach((li, i) => setTimeout(() => {
+      li.classList.add("is-on");
+      if (i === posts.length - 1) setTimeout(() => forum.classList.add("is-done"), 900);
+    }, reduceMotion ? 0 : 500 + i * 1100));
+  });
+});
+$$("[data-journey]").forEach((jr) => {
+  inView(jr, () => jr.classList.add("is-in"));
+  const pts = $$("[data-stage]", jr), cards = $$("[data-card]", jr);
+  const go = (k) => {
+    pts.forEach((p) => p.classList.toggle("is-active", p.dataset.stage === k));
+    cards.forEach((c) => c.classList.toggle("is-active", c.dataset.card === k));
+  };
+  pts.forEach((p) => { p.addEventListener("click", () => go(p.dataset.stage)); p.addEventListener("mouseenter", () => go(p.dataset.stage)); });
+});
+
+/* ---------- FINRA maze vs path: toggle the same task before and after ---------- */
+$$("[data-maze]").forEach((mz) => {
+  let touched = false;
+  const set = (mode) => {
+    mz.dataset.mode = mode;
+    mz.classList.remove("is-play"); void mz.offsetWidth; mz.classList.add("is-play");
+    $$("[data-maze-to]", mz).forEach((b) => b.setAttribute("aria-selected", String(b.dataset.mazeTo === mode)));
+    $$("[data-b]", mz).forEach((n) => { n.textContent = mode === "after" ? n.dataset.a : n.dataset.b; n.style.animation = "none"; void n.offsetWidth; n.style.animation = ""; });
+  };
+  $$("[data-maze-to]", mz).forEach((b) => b.addEventListener("click", () => { touched = true; set(b.dataset.mazeTo); }));
+  inView(mz, () => { set("before"); setTimeout(() => { if (!touched) set("after"); }, reduceMotion ? 2500 : 6200); });
+});
+
+/* ---------- FINRA synthesis: 700 notes cluster into 110, 27 and 6 as you scroll ---------- */
+$$("[data-affinity]").forEach((sec) => {
+  const canvas = $("canvas", sec), ctx = canvas.getContext("2d");
+  const num = $("[data-aff-num]", sec), label = $("[data-aff-label]", sec);
+  const N = 700, COLORS = ["#ffd166", "#ff8fab", "#ffa76b", "#7cc8ff", "#8ee3a8", "#b9a3ff"];
+  const STAGES = [
+    ["700+", "data points, from every interview, survey and forum post"],
+    ["110", "groups of related notes"],
+    ["27", "themes"],
+    ["6", "problems to solve"],
+  ];
+  let W = 0, H = 0, dpr = 1, centers = [];
+  // Every note belongs to one group, theme and problem, nested in order
+  const notes = Array.from({ length: N }, (_, i) => ({
+    g: Math.floor((i * 110) / N), t: Math.floor((i * 27) / N), p: Math.floor((i * 6) / N),
+    rx: Math.random(), ry: Math.random(), rot: (Math.random() - 0.5) * 0.5, seed: Math.random(),
+  }));
+  const rank = (key) => { const c = {}; return notes.map((n) => (c[n[key]] = (c[n[key]] || 0) + 1) - 1); };
+  const rG = rank("g"), rT = rank("t"), rP = rank("p");
+  const grid = (count, cols, x0, y0, x1, y1) => {
+    const rows = Math.ceil(count / cols);
+    return Array.from({ length: count }, (_, k) => [x0 + ((k % cols) + 0.5) * (x1 - x0) / cols, y0 + (Math.floor(k / cols) + 0.5) * (y1 - y0) / rows]);
+  };
+  const layout = () => {
+    const r = canvas.getBoundingClientRect();
+    dpr = Math.min(2, devicePixelRatio || 1);
+    W = r.width; H = r.height;
+    canvas.width = W * dpr; canvas.height = H * dpr;
+    const narrow = W < 700;
+    centers = [
+      null,
+      grid(110, narrow ? 10 : 14, W * 0.05, H * 0.42, W * 0.95, H * 0.96),
+      grid(27, narrow ? 5 : 9, W * 0.06, H * 0.44, W * 0.94, H * 0.95),
+      grid(6, 3, W * 0.04, H * 0.36, W * 0.96, H * 0.92),
+    ];
+    // problem labels sit just under their cluster
+    const rad = Math.min(W, H) * 0.0098 * Math.sqrt(N / 6) + 10;
+    $$(".fin-aff__tags li", sec).forEach((li, k) => { li.style.setProperty("--x", centers[3][k][0] + "px"); li.style.setProperty("--y", centers[3][k][1] + rad + "px"); });
+  };
+  const spiral = (k, gap) => { const a = k * 2.39996, d = gap * Math.sqrt(k); return [Math.cos(a) * d, Math.sin(a) * d]; };
+  const posAt = (n, i, s) => {
+    if (s === 0) return [n.rx * W, H * 0.4 + n.ry * H * 0.57];
+    const size = Math.min(W, H);
+    const [cx, cy] = s === 1 ? centers[1][n.g] : s === 2 ? centers[2][n.t] : centers[3][n.p];
+    const [ox, oy] = s === 1 ? spiral(rG[i], size * 0.0085) : s === 2 ? spiral(rT[i], size * 0.0105) : spiral(rP[i], size * 0.0098);
+    return [cx + ox, cy + oy];
+  };
+  const ease = (x) => (x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2);
+  let lastStage = -1;
+  const draw = (prog) => {
+    // three transitions with pauses between them
+    const s = Math.min(3, Math.max(0, (prog - 0.06) / 0.28));
+    const a = Math.floor(Math.min(2.999, s)), f = ease(Math.min(1, (s - a) * 1.6));
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.clearRect(0, 0, W, H);
+    const sz = Math.max(5, Math.min(W, H) * 0.0115);
+    notes.forEach((n, i) => {
+      const [x0, y0] = posAt(n, i, a), [x1, y1] = posAt(n, i, a + 1);
+      const x = x0 + (x1 - x0) * f, y = y0 + (y1 - y0) * f;
+      ctx.save(); ctx.translate(x, y); ctx.rotate(n.rot * (1 - Math.min(1, s / 3)));
+      ctx.fillStyle = COLORS[n.p]; ctx.globalAlpha = 0.9;
+      ctx.fillRect(-sz / 2, -sz / 2, sz, sz);
+      ctx.restore();
+    });
+    const stage = Math.round(s >= 2.999 ? 3 : a + (f > 0.5 ? 1 : 0));
+    if (stage !== lastStage) {
+      lastStage = stage;
+      num.textContent = STAGES[stage][0]; label.textContent = STAGES[stage][1];
+      sec.classList.toggle("is-final", stage === 3);
+    }
+  };
+  const update = () => {
+    const r = sec.getBoundingClientRect();
+    if (r.bottom < 0 || r.top > innerHeight) return;
+    draw(reduceMotion ? 1 : clamp(-r.top / Math.max(1, r.height - innerHeight)));
+  };
+  layout();
+  addEventListener("resize", () => { layout(); lastStage = -1; update(); });
+  onScrollFns.push(update);
+  update();
+});
+
 /* ---------- Prototype guide: follow the embedded app and explain each step ---------- */
 $$("[data-proto-guide]").forEach((guide) => {
   const demo = guide.closest(".fin-demo") || guide.parentElement;
