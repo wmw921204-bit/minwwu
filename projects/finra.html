@@ -16,7 +16,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&family=Poppins:wght@400;500;600&family=Sulphur+Point:wght@400&display=swap">
   <link rel="stylesheet" href="../styles.css?v=20261018a">
-  <link rel="stylesheet" href="../case.css?v=20261021k">
+  <link rel="stylesheet" href="../case.css?v=20261021l">
 </head>
 <body class="case case--finra">
   <a class="skip" href="#main">Skip to content</a>
@@ -105,19 +105,14 @@
     <!-- 01 The goal -->
     <section class="wrap c-sec" id="goal" data-chapter="The goal">
       <div class="c-chapter"><span class="c-chapter__num">01</span><h2 class="c-kicker">Entering the maze</h2></div>
-      <p class="c-head reveal-mask">First, a question.</p>
-      <div class="fin-guess reveal" data-guess>
-        <p class="fin-guess__q">What percentage of FINRA.org visitors leave after viewing just one page?</p>
-        <div class="fin-guess__row">
-          <input type="range" min="0" max="100" value="30" step="1" aria-label="Your guess, in percent" data-guess-input>
-          <output data-guess-out>30%</output>
-          <button type="button" class="fin-guess__btn" data-guess-btn>Lock in</button>
+      <p class="c-head reveal-mask">Most visitors never make it past the first page.</p>
+      <div class="fin-bounce" data-bounce>
+        <div class="fin-bounce__copy">
+          <p class="fin-bounce__num"><span data-bounce-num>0</span>%</p>
+          <p class="fin-bounce__label">of FINRA.org visitors leave after viewing <b>just one page</b>.</p>
+          <p class="fin-bounce__punch">When users feel uncertain, they don’t search harder. <em>They leave.</em></p>
         </div>
-        <div class="fin-guess__bars" aria-live="polite">
-          <div class="fin-guess__bar"><span>Your guess</span><i data-guess-mine></i><b data-guess-mine-v></b></div>
-          <div class="fin-guess__bar fin-guess__bar--real"><span>Reality</span><i data-guess-real></i><b>62.2%</b></div>
-        </div>
-        <p class="fin-guess__punch" data-guess-punch>When users feel uncertain, they don’t search harder. <em>They leave.</em></p>
+        <div class="fin-bounce__grid" aria-label="Out of every 100 visitors, about 62 leave after one page"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
       </div>
       <div class="c-split" style="align-items:start">
         <p class="c-text reveal">Our goal: create a unified login and dashboard that streamlines navigation, task completion and permission-based access across FINRA’s platforms. If FINRA’s systems are inefficient, firms struggle to finish required tasks on time, raising the risk of mistakes and compliance issues.</p>
@@ -225,44 +220,18 @@
         <figure><img src="../assets/projects/finra/wf-v2.webp" alt="Version 2: a simpler dashboard with an active summary and AI search" width="1440" height="1024" loading="lazy"><figcaption><b>Version 2</b> A simpler dashboard with an active summary and AI search.</figcaption></figure>
         <figure><img src="../assets/projects/finra/wf-accounts.webp" alt="Account switching across firm and individual accounts" width="1512" height="982" loading="lazy"><figcaption><b>Switching accounts</b> Firm and individual accounts in one place.</figcaption></figure>
       </div>
-      <div class="fin-ut" data-ut>
-        <div class="fin-ut__top">
-          <div>
-            <h3 class="fin-sub">Usability testing</h3>
-            <p class="fin-ut__big reveal-mask">Everyone finished. <em>Not everyone felt sure.</em></p>
-          </div>
-          <dl class="fin-ut__facts reveal">
-            <div><dt>Participants</dt><dd>18</dd><span>aged 18–40, plus an A/B visual variant</span></div>
-            <div><dt>Task completion</dt><dd>100%</dd><span>across all five realistic tasks</span></div>
-          </dl>
+      <div class="fin-ut2" data-ut>
+        <div class="fin-ut2__lead">
+          <h3 class="fin-sub">Usability testing</h3>
+          <p class="fin-ut2__big reveal-mask">Everyone finished. <em>Not everyone felt sure.</em></p>
+          <p class="c-text reveal">18 participants aged 18–40 tried five realistic tasks. All of them completed every task, yet many hesitated along the way.</p>
+          <div class="fin-ut2__nums reveal-stagger"><p><b>18</b>participants</p><p><b>100%</b>task completion</p></div>
         </div>
-        <div class="fin-ut__board reveal">
-          <div class="fin-ut__legend"><span>Task</span><span>Done</span><span><i class="hi"></i>High &amp; <i class="md"></i>medium confusion</span><span>Errors</span></div>
-          <ol class="fin-ut__rows">
-          <li class="fin-ut__row" style="--hi:10;--md:20;--er:0">
-            <button type="button" class="fin-ut__task" aria-expanded="false"><span class="fin-ut__n">01</span><span class="fin-ut__name">Log in using a firm account</span><span class="fin-ut__done" title="Task completion">100%</span><span class="fin-ut__bar" aria-label="10% high confusion, 20% medium confusion"><i class="hi"></i><i class="md"></i></span><span class="fin-ut__err" aria-label="0% error rate">0%</span></button>
-            <p class="fin-ut__find">Everyone logged in without errors, but confusion and trust concerns clustered around unclear account status and account selection that wasn’t obvious.</p>
-          </li><li class="fin-ut__row is-open" style="--hi:33;--md:11;--er:30">
-            <button type="button" class="fin-ut__task" aria-expanded="true"><span class="fin-ut__n">02</span><span class="fin-ut__name">Use AI to learn how to complete Form U4</span><span class="fin-ut__done" title="Task completion">100%</span><span class="fin-ut__bar" aria-label="33% high confusion, 11% medium confusion"><i class="hi"></i><i class="md"></i></span><span class="fin-ut__err" aria-label="30% error rate">30%</span></button>
-            <p class="fin-ut__find">The most friction of all five tasks. Confusion and errors came from AI discoverability: missteps, extra attempts and uncertainty about where to ask.</p>
-          </li><li class="fin-ut__row" style="--hi:22;--md:22;--er:0">
-            <button type="button" class="fin-ut__task" aria-expanded="false"><span class="fin-ut__n">03</span><span class="fin-ut__name">Locate the Form U4 submission portal</span><span class="fin-ut__done" title="Task completion">100%</span><span class="fin-ut__bar" aria-label="22% high confusion, 22% medium confusion"><i class="hi"></i><i class="md"></i></span><span class="fin-ut__err" aria-label="0% error rate">0%</span></button>
-            <p class="fin-ut__find">Completion was consistent, but navigation splits confused people, and several didn’t recognise text elements as clickable.</p>
-          </li><li class="fin-ut__row" style="--hi:22;--md:9;--er:30">
-            <button type="button" class="fin-ut__task" aria-expanded="false"><span class="fin-ut__n">04</span><span class="fin-ut__name">View and interpret notifications</span><span class="fin-ut__done" title="Task completion">100%</span><span class="fin-ut__bar" aria-label="22% high confusion, 9% medium confusion"><i class="hi"></i><i class="md"></i></span><span class="fin-ut__err" aria-label="30% error rate">30%</span></button>
-            <p class="fin-ut__find">Several users couldn’t tell which account a notification came from: the missing account context reduced their confidence.</p>
-          </li><li class="fin-ut__row" style="--hi:22;--md:34;--er:11">
-            <button type="button" class="fin-ut__task" aria-expanded="false"><span class="fin-ut__n">05</span><span class="fin-ut__name">Switch between accounts</span><span class="fin-ut__done" title="Task completion">100%</span><span class="fin-ut__bar" aria-label="22% high confusion, 34% medium confusion"><i class="hi"></i><i class="md"></i></span><span class="fin-ut__err" aria-label="11% error rate">11%</span></button>
-            <p class="fin-ut__find">Everyone switched, but without clear system feedback the change felt sudden and disconnected from the rest of the experience.</p>
-          </li>
-          </ol>
+        <div class="fin-ut2__chart reveal">
+          <p class="fin-ut2__cap">Participants who felt confused, by task</p>
+          <ol><li style="--v:30"><span class="fin-ut2__name">Log in with a firm account</span><span class="fin-ut2__bar"><i></i></span><b>30%</b></li><li style="--v:44"><span class="fin-ut2__name">Learn Form U4 with AI</span><span class="fin-ut2__bar"><i></i></span><b>44%</b></li><li style="--v:44"><span class="fin-ut2__name">Find the submission portal</span><span class="fin-ut2__bar"><i></i></span><b>44%</b></li><li style="--v:31"><span class="fin-ut2__name">Read notifications</span><span class="fin-ut2__bar"><i></i></span><b>31%</b></li><li style="--v:56"><span class="fin-ut2__name">Switch accounts</span><span class="fin-ut2__bar"><i></i></span><b>56%</b></li></ol>
+          <p class="fin-ut2__take">Confusion came from unclear feedback and system state, not from the tasks themselves.</p>
         </div>
-        <ol class="fin-ut__insights reveal-stagger">
-          <li><b>01</b>Trust drops before usability does.</li>
-          <li><b>02</b>AI created the most cognitive friction, despite full task success.</li>
-          <li><b>03</b>Users hesitate when interaction cues are invisible.</li>
-          <li><b>04</b>Account switching failed at feedback, not functionality.</li>
-        </ol>
       </div>
       <div class="fin-pivot reveal">
         <small>The pivot</small>
@@ -288,7 +257,7 @@
             <path class="fin-mz__route fin-mz__route--before" d="M60 420 L60 250 L220 250 L220 80 L420 80 L420 330 L600 330 L600 140 L800 140 L800 420 L940 420"/>
             <path class="fin-mz__route fin-mz__route--after" d="M60 250 L360 250 L660 250 L940 250"/>
           </svg>
-          <ol class="fin-mz__nodes fin-mz__nodes--before"><li class="fin-mz__n" style="--x:6.0%;--y:84.0%;--i:0"><span>FINRA.org</span></li><li class="fin-mz__n is-pain is-a" style="--x:6.0%;--y:50.0%;--i:1"><span>Search “U4”:<br>zero results</span></li><li class="fin-mz__n is-pain" style="--x:22.0%;--y:50.0%;--i:2"><span>Which system? Gateway, FinPro, CRD…</span></li><li class="fin-mz__n" style="--x:22.0%;--y:16.0%;--i:3"><span>Log in to Gateway</span></li><li class="fin-mz__n is-pain" style="--x:42.0%;--y:16.0%;--i:4"><span>Wrong place, back out</span></li><li class="fin-mz__n is-pain" style="--x:42.0%;--y:66.0%;--i:5"><span>Log in again, another system</span></li><li class="fin-mz__n is-pain is-a" style="--x:60.0%;--y:66.0%;--i:6"><span>“Modern” or<br>“Classic” page?</span></li><li class="fin-mz__n is-pain is-a" style="--x:60.0%;--y:28.0%;--i:7"><span>Re-enter the same U4 data</span></li><li class="fin-mz__n is-pain is-l" style="--x:80.0%;--y:28.0%;--i:8"><span>Session timed out,<br>work lost</span></li><li class="fin-mz__n is-l" style="--x:80.0%;--y:84.0%;--i:9"><span>Start over</span></li><li class="fin-mz__n is-a" style="--x:94.0%;--y:84.0%;--i:10"><span>Filed, finally</span></li></ol>
+          <ol class="fin-mz__nodes fin-mz__nodes--before"><li class="fin-mz__n" style="--x:6.0%;--y:84.0%;--i:0"><span>FINRA.org</span></li><li class="fin-mz__n is-pain is-a" style="--x:6.0%;--y:50.0%;--i:1"><span>Search “U4”:<br>zero results</span></li><li class="fin-mz__n is-pain" style="--x:22.0%;--y:50.0%;--i:2"><span>Which system? Gateway, FinPro, CRD…</span></li><li class="fin-mz__n" style="--x:22.0%;--y:16.0%;--i:3"><span>Log in to Gateway</span></li><li class="fin-mz__n is-pain is-a" style="--x:42.0%;--y:16.0%;--i:4"><span>Wrong place, back out</span></li><li class="fin-mz__n is-pain" style="--x:42.0%;--y:66.0%;--i:5"><span>Log in again, another system</span></li><li class="fin-mz__n is-pain is-a" style="--x:60.0%;--y:66.0%;--i:6"><span>“Modern” or<br>“Classic” page?</span></li><li class="fin-mz__n is-pain is-a" style="--x:60.0%;--y:28.0%;--i:7"><span>Re-enter the same U4 data</span></li><li class="fin-mz__n is-pain is-l" style="--x:80.0%;--y:28.0%;--i:8"><span>Session timed out,<br>work lost</span></li><li class="fin-mz__n is-l" style="--x:80.0%;--y:84.0%;--i:9"><span>Start over</span></li><li class="fin-mz__n is-a" style="--x:94.0%;--y:84.0%;--i:10"><span>Filed, finally</span></li></ol>
           <ol class="fin-mz__nodes fin-mz__nodes--after"><li class="fin-mz__n" style="--x:6.0%;--y:50.0%;--i:0"><span>Ask the chatbot</span></li><li class="fin-mz__n" style="--x:36.0%;--y:50.0%;--i:1"><span>One login + passcode</span></li><li class="fin-mz__n" style="--x:66.0%;--y:50.0%;--i:2"><span>“Continue your work”</span></li><li class="fin-mz__n" style="--x:94.0%;--y:50.0%;--i:3"><span>Filed, draft saved</span></li></ol>
         </div>
         <ol class="fin-mz__pains" aria-label="Pain points along the old journey"><li>Search “U4”: zero results</li><li>Which system? Gateway, FinPro, CRD…</li><li>Wrong place, back out</li><li>Log in again, another system</li><li>“Modern” or “Classic” page?</li><li>Re-enter the same U4 data</li><li>Session timed out, work lost</li></ol>
@@ -401,6 +370,6 @@
   </footer>
 
   <script src="../assets/js/lenis.min.js" defer></script>
-  <script src="../main.js?v=20261021j" defer></script>
+  <script src="../main.js?v=20261021l" defer></script>
 </body>
 </html>

@@ -595,19 +595,25 @@ const inView = (el, fn, opts = { threshold: 0.35 }) => {
   const io = new IntersectionObserver((es) => es.forEach((e) => { if (e.isIntersecting) { fn(); io.disconnect(); } }), opts);
   io.observe(el);
 };
-$$("[data-guess]").forEach((box) => {
-  const input = $("[data-guess-input]", box), out = $("[data-guess-out]", box);
-  const sync = () => { out.textContent = input.value + "%"; };
-  input.addEventListener("input", sync);
-  $("[data-guess-btn]", box).addEventListener("click", () => {
-    $("[data-guess-mine-v]", box).textContent = input.value + "%";
-    box.classList.add("is-done");
-    requestAnimationFrame(() => {
-      $("[data-guess-mine]", box).style.width = input.value + "%";
-      $("[data-guess-real]", box).style.width = "62.2%";
-    });
+$$("[data-bounce]").forEach((box) => {
+  const dots = $$(".fin-bounce__grid i", box), num = $("[data-bounce-num]", box);
+  // 62 of 100 visitors leave; pick them at random but stable
+  const order = dots.map((_, i) => i).sort(() => Math.random() - 0.5);
+  const gone = new Set(order.slice(0, 62));
+  dots.forEach((d, i) => {
+    if (gone.has(i)) {
+      const a = Math.random() * Math.PI * 2;
+      d.style.setProperty("--dx", Math.cos(a) * 40 + "px"); d.style.setProperty("--dy", Math.sin(a) * 40 + "px");
+      d.style.setProperty("--d", (0.2 + Math.random() * 1.6).toFixed(2) + "s");
+    }
   });
-  sync();
+  inView(box, () => {
+    box.classList.add("is-in");
+    dots.forEach((d, i) => d.classList.add(gone.has(i) ? "is-gone" : "is-stay"));
+    const t0 = performance.now(), T = reduceMotion ? 1 : 2000;
+    const tick = (t) => { const k = Math.min(1, (t - t0) / T), e = 1 - Math.pow(1 - k, 3); num.textContent = (62.2 * e).toFixed(1); if (k < 1) requestAnimationFrame(tick); };
+    requestAnimationFrame(tick);
+  }, { threshold: 0.45 });
 });
 $$("[data-constellation]").forEach((sky) => {
   inView(sky, () => sky.classList.add("is-in"));
@@ -713,14 +719,8 @@ $$("[data-maze]").forEach((mz) => {
   }, 500);
 });
 
-/* ---------- FINRA usability board: bars grow, rows open ---------- */
-$$("[data-ut]").forEach((ut) => {
-  inView(ut, () => ut.classList.add("is-in"), { threshold: 0.2 });
-  const rows = $$(".fin-ut__row", ut);
-  rows.forEach((row) => $(".fin-ut__task", row).addEventListener("click", () => {
-    rows.forEach((r) => { const on = r === row && !r.classList.contains("is-open"); r.classList.toggle("is-open", on); $(".fin-ut__task", r).setAttribute("aria-expanded", String(on)); });
-  }));
-});
+/* ---------- FINRA usability chart: bars grow in view ---------- */
+$$("[data-ut]").forEach((ut) => inView(ut, () => ut.classList.add("is-in"), { threshold: 0.3 }));
 
 /* ---------- FINRA synthesis: 700 notes cluster into 110, 27 and 6 as you scroll ---------- */
 $$("[data-affinity]").forEach((sec) => {
