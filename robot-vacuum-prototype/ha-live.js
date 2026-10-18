@@ -28,7 +28,7 @@
   const FIRE_AFTER=[90,180,270,360]; // seconds into a real cleaning when study events appear
   const HA={snap:null,dev:null,map:null,tf:null,ppm:null,foot:null,error:'',pending:null,expectStart:null,
     retryQueue:[],spotEv:null,spotStarted:false,spotError:false,notes:{},refArea:null,prevStatus:null,
-    fetching:false,lastMap:0,editing:false,sig:'',prompted:false,restoreMode:null,removedZones:[],notified:{},rooms:[],savedZones:[],view:null,objs:[],objSnap:'',align:null,retryWhen:'now',alignDraft:null,poseRaw:null,footKey:'',lastErr:null,lastStatusProblem:null,schedLoaded:false,schedError:''};
+    fetching:false,lastMap:0,editing:false,sig:'',prompted:false,restoreMode:null,removedZones:[],notified:{},rooms:[],savedZones:[],view:null,objs:[],objSnap:'',align:null,retryWhen:'now',recent:[],areaMark:null,returnSince:0,snooze:{},alignDraft:null,poseRaw:null,footKey:'',lastErr:null,lastStatusProblem:null,schedLoaded:false,schedError:''};
   window.HA=HA;
   const M=()=>window.HAModel;
   const now=()=>{const d=new Date();return d.getHours()*3600+d.getMinutes()*60+d.getSeconds()};
@@ -49,7 +49,7 @@
       const zones=Object.fromEntries(Object.entries(ZONES).filter(([k])=>k.startsWith('z')));
       try{localStorage.setItem(STORE,JSON.stringify({v:1,onboarded:!S.onboarding,autonomy:S.autonomy,rules:S.rules,nogo:S.nogo,notif:S.notif,
         history:S.history,task:S.task,events:S.events,timeline:S.timeline,pending:S.sim.pending,zones,seq,
-        objs:HA.objs,objSnap:HA.objSnap,align:HA.align,retryWhen:HA.retryWhen,lastErr:HA.lastErr,lastStatusProblem:HA.lastStatusProblem,refArea:HA.refArea,rooms:HA.rooms,savedZones:HA.savedZones,scenario:S.ctl.scenario,retryQueue:HA.retryQueue,spotEv:HA.spotEv,spotStarted:HA.spotStarted,
+        objs:HA.objs,objSnap:HA.objSnap,align:HA.align,retryWhen:HA.retryWhen,temp:S.temp,lastErr:HA.lastErr,lastStatusProblem:HA.lastStatusProblem,refArea:HA.refArea,rooms:HA.rooms,savedZones:HA.savedZones,scenario:S.ctl.scenario,retryQueue:HA.retryQueue,spotEv:HA.spotEv,spotStarted:HA.spotStarted,
         prevStatus:HA.prevStatus,restoreMode:HA.restoreMode,removedZones:HA.removedZones,customObj:Object.fromEntries(Object.entries(OBJ).filter(([,o])=>o.custom))}))}catch(e){/* storage full or blocked: the app still works */}
     },400);
   }
@@ -68,7 +68,7 @@
     HA.rooms=s.rooms||[];HA.savedZones=s.savedZones||[];HA.objs=s.objs||[];HA.objSnap=s.objSnap||'';HA.align=s.align||null;HA.retryWhen=s.retryWhen||'now';HA.lastErr=s.lastErr||null;HA.lastStatusProblem=s.lastStatusProblem||null;
     HA.notes=s.notes||{};HA.refArea=s.refArea||null;HA.retryQueue=s.retryQueue||[];HA.spotEv=s.spotEv||null;HA.spotStarted=!!s.spotStarted;HA.prevStatus=s.prevStatus||null;
     SCEN.none={label:'No study events',keys:[]};
-    S.ctl.scenario=s.scenario&&SCEN[s.scenario]?s.scenario:'all';
+    S.ctl.scenario=s.scenario&&SCEN[s.scenario]?s.scenario:'all';S.temp=s.temp||null;
     S.clock=now();S.conn='connecting';S.device={status:'docked',battery:null,error:null};
     S.snap={clock:S.clock,device:{...S.device},pos:null,pct:0};
   }
@@ -81,6 +81,9 @@
     if(!r.ok)throw new Error(v.error||'Home Assistant request failed ('+r.status+')');
     return v;
   }
+  const MAPSTORE='robot-live-map-v1';
+  function saveGoodMap(){try{localStorage.setItem(MAPSTORE,JSON.stringify({foot:HA.foot,foot3:HA.foot3,map:HA.goodMap}))}catch(e){/* too big or blocked: the live map still works */}}
+  function loadGoodMap(){try{const m=JSON.parse(localStorage.getItem(MAPSTORE));if(m){HA.foot=HA.foot||m.foot;HA.foot3=HA.foot3||m.foot3;HA.goodMap=HA.goodMap||m.map}}catch(e){}}
   async function loadMap(){
     HA.lastMap=Date.now();
     try{
@@ -90,7 +93,9 @@
       const cv=document.createElement('canvas');cv.width=bmp.width;cv.height=bmp.height;
       const g=cv.getContext('2d');g.drawImage(bmp,0,0);
       const px=g.getImageData(0,0,bmp.width,bmp.height).data;
-      HA.foot=M().footprint(px,bmp.width,bmp.height,6)||HA.foot;HA.foot3=M().footprint(px,bmp.width,bmp.height,12)||HA.foot3; // 3D walls on a coarser 0.3 m outline
+      const f=M().footprint(px,bmp.width,bmp.height,6);
+      // an empty image means the robot has no map right now: keep showing the last good outline
+      if(f&&HA.map){HA.foot=f;HA.foot3=M().footprint(px,bmp.width,bmp.height,12)||HA.foot3;saveGoodMap()} // 3D walls on a coarser 0.3 m outline
       HA.footKey=HA.foot?HA.foot.runs.length+':'+JSON.stringify(HA.map?.calibration):'';
       if(HA.align&&HA.align.footKey&&HA.footKey&&HA.align.footKey!==HA.footKey){HA.align=null;flash('New robot map: the alignment was reset.')}
       HA.sig='';commitIfChanged();
@@ -186,12 +191,13 @@
     nogo_zone_detected:'Carry the robot out of the no-go zone, then resume.',robot_on_carpet:'Move the robot off the carpet, then resume.',
     filter_blocked:'Clean or replace the filter, then resume.',visual_sensor:'Wipe the front camera, then resume.',
   };
-  const PLABELS={pResume:'I fixed it, resume',pDock:'Send it to the dock',pLater:'Leave it for now',pRetry:'Try again',pOk:'Got it'};
+  const PLABELS={pResume:'I fixed it, resume',pDock:'Send it to the dock',pLater:'Leave it for now',pRetry:'Try again',pOk:'Got it',pAlign:'Align the map',pFinish:'Finish the cleaning here'};
   function problemInfo(code){
     const [title,what]=PROBLEMS[code]||['Robot problem: '+code.replace(/_/g,' '),'The robot reports “'+code.replace(/_/g,' ')+'”.'];
     return {title,what,fix:FIXES[code]||M().errorText(code)||'Check the robot, then resume.',why:'Reported by the robot ('+code+').',options:['pResume','pDock','pLater']};
   }
   const STATUS_PROBLEMS={
+    mapping:{title:'Mapping your home',what:'The robot is building a new map instead of using its saved one.',fix:'Let it finish. If it already had a map, it may have failed to find its place, and your rooms and alignment may no longer line up afterwards.',why:'Reported by the robot (mapping).',options:['pOk']},
     charging_problem:{title:'Not charging',what:'The robot is on the dock but not charging.',fix:'Check the dock is plugged in and the charging contacts are clean.',why:'Reported by the robot (charging problem).',options:['pOk']},
     locked:{title:'Robot locked',what:'The robot is locked and won’t take commands.',fix:'Unlock it in the Roborock app or on the robot.',why:'Reported by the robot (locked).',options:['pOk']},
     updating:{title:'Updating',what:'The robot is updating its firmware and can’t clean right now.',fix:'Wait until the update finishes.',why:'Reported by the robot (updating).',options:['pOk']},
@@ -202,6 +208,7 @@
   }
   function raiseProblem(key,info,noSpot){
     if(S.events.some(e=>e.key===key&&['needsReview','deferred'].includes(e.status)))return null;
+    if(HA.snooze[key]&&Date.now()-HA.snooze[key]<600000)return null; // you just dealt with this one
     const pos=noSpot?null:robotPose(),zid='z'+(++seq);
     ZONES[zid]={name:pos?'Where the robot was at '+hhmm(S.clock):'Robot map',room:pos?roomKey(pos):'live',cells:[],keys:[],mm:pos?{x:pos.x,y:pos.y}:null};
     defineProblem(key,info,zid);
@@ -268,8 +275,8 @@
     S.task={id:'t'+Date.now(),day:'Today',startedAt:Date.now(),start:S.clock,end:null,scopeLabel:label,result:null,done:false,endedEarly:false,real:true,kind,parts,baseSig:pathSig(HA.map?.path)};
     tl(fromApp||sch?'you':'robot',fromApp?'You started cleaning: '+label:sch?'Your schedule started the cleaning ('+sch.time+')':'Cleaning was started from the Roborock app or the robot');
     tl('robot','Cleaning started');
-    const unsure=HA.objs.filter(o=>o.status==='pending');
-    if(unsure.length){HA.objs=HA.objs.filter(o=>o.status!=='pending');tl('robot','Cleared '+unsure.length+' unsure object'+(unsure.length>1?'s':'')+' from the last cleaning')}
+    const unsure=HA.objs.filter(o=>o.status==='pending'||o.status==='ignored');
+    if(unsure.length){HA.objs=HA.objs.filter(o=>!unsure.includes(o));tl('robot','Cleared '+unsure.length+' unsure object'+(unsure.length>1?'s':'')+' from the last cleaning')}
   }
   function finishLiveTask(){
     const t=S.task;
@@ -280,7 +287,7 @@
     if(t.result==='completed'&&t.area>0&&t.scopeLabel==='Entire home')HA.refArea=Math.max(HA.refArea||0,t.area);
     const nc=S.events.filter(e=>e.status!=='resolved'&&e.status!=='info'&&DEFS[e.key].type!=='decision').length;
     tl('result',t.result==='completed'?'Task completed':t.result==='ended'?'Task ended early':`Task partially completed: ${nc} area${nc===1?'':'s'} not cleaned`);
-    if(pendingObjs().length&&S.autonomy!=='fullAuto'){S.ui.notice='objs';clearTimeout(notice.t);notice.t=setTimeout(()=>{S.ui.notice=null;commit()},7000)}
+    if(S.notif.finished){S.ui.notice=pendingObjs().length?'objs':'done';clearTimeout(notice.t);notice.t=setTimeout(()=>{S.ui.notice=null;commit()},7000)}
     checkGone(t);
     if(!t.endedEarly&&t.endedAt-t.startedAt<120000)raiseProblem('p_short',{title:'Cleaning stopped early',what:'The cleaning ended after '+Math.max(1,Math.round((t.endedAt-t.startedAt)/1000))+' seconds without you stopping it.',
       fix:'The robot may have failed to find its position on the map. Make sure it starts from the dock with the room lights on, then try again.',why:'The robot went back to the dock much sooner than a normal cleaning.',options:['pRetry','pLater']},true);
@@ -297,7 +304,7 @@
       ev.extraQueued=false;ev.outcome=HA.spotError?'The extra pass didn’t finish: the robot reported a problem.':'Extra pass done on this spot.';
       evLog(ev,'result',ev.outcome.replace(/\.$/,''));
     }else if(ev){
-      if(HA.spotError){ev.status='needsReview';ev.attempts=(ev.attempts||0)+1;ev.retryFailed=true;evLog(ev,'robot','Retry didn’t work: the robot reported a problem');notice(ev)}
+      if(HA.spotError){ev.status='needsReview';ev.attempts=(ev.attempts||0)+1;ev.retryFailed=true;ev.retryFails=(ev.retryFails||0)+1;evLog(ev,'robot','Retry didn’t work: the robot reported a problem');notice(ev)}
       else{ev.status='resolved';ev.retryFailed=false;ev.outcome=ev.pendingOutcome||'Area cleaned successfully.';evLog(ev,'result',ev.outcome.replace(/\.$/,''))}
     }
     const cancelled=HA.spotCancelled;
@@ -323,7 +330,14 @@
       return;
     }
     if(status==='cleaning'&&(!S.task||S.task.done))startLiveTask();
-    else if(S.task&&!S.task.done&&status==='docked')finishLiveTask();
+    else if(S.task&&!S.task.done&&status==='docked'){
+      const t=S.task,b=S.device.battery;
+      if(t.recharging){if(b>=100&&Date.now()-t.rechargeAt>20*60000)finishLiveTask()} // it never left again
+      else if(!t.endedEarly&&b!=null&&b<=30&&Date.now()-t.startedAt>120000){t.recharging=true;t.rechargeAt=Date.now();
+        raiseProblem('p_recharge',{title:'Recharging, then continuing',what:'The battery got low ('+b+'%), so the robot went back to charge in the middle of the cleaning.',fix:'It carries on by itself once it has enough charge. You don’t need to do anything.',why:'From the robot’s battery level and status.',options:['pOk','pFinish']},true)}
+      else finishLiveTask();
+    }
+    if(status==='cleaning'&&S.task&&S.task.recharging){S.task.recharging=false;resolveProblem('p_recharge','Charged and back to cleaning.')}
   }
 
   /* ---------- study events at the real robot's position ---------- */
@@ -442,6 +456,35 @@
   // the trail is kept in the robot's own coordinates and aligned when drawn, so a later alignment fixes it too
   const trailOf=t=>(t&&t.trail||[]).filter(seg=>seg.length).map(seg=>seg.map(([x,y])=>{const p=M().toMap(HA.align?.al,{x,y});return [p.x,p.y]}));
 
+  /* ---------- behaviour the robot doesn't report as an error ---------- */
+  function watchBehaviour(d){
+    const t=S.task,now=Date.now(),st=S.device.status;
+    if(HA.poseRaw&&(!HA.recent.length||HA.recent[HA.recent.length-1].at!==HA.poseRaw.at))HA.recent.push({x:HA.poseRaw.x,y:HA.poseRaw.y,at:HA.poseRaw.at,t:now});
+    HA.recent=HA.recent.filter(p=>now-p.t<300000);
+    if(st==='returning'){HA.returnSince=HA.returnSince||now;
+      if(now-HA.returnSince>240000)raiseProblem('p_slowreturn',{title:'Taking long to get back',what:'It has been heading to the dock for 4 minutes.',fix:'Check that nothing blocks the way to the dock, or carry it back.',why:'From the robot’s status.',options:['pOk']},true)}
+    else{HA.returnSince=0;if(st==='docked')resolveProblem('p_slowreturn','Back on the dock.')}
+    if(!t||t.done||HA.spotEv||HA.resuming||t.recharging)return;
+    if(st==='cleaning'){
+      // working in one spot: everything from the last 2 minutes within about 0.7 m
+      const win=HA.recent.filter(p=>now-p.t<=120000);
+      if(win.length>=8&&now-win[0].t>=110000){
+        const cx=win.reduce((a,p)=>a+p.x,0)/win.length,cy=win.reduce((a,p)=>a+p.y,0)/win.length,rad=Math.max(...win.map(p=>Math.hypot(p.x-cx,p.y-cy)));
+        if(rad<700)raiseProblem('p_dwell',{title:'Working in one spot',what:'The robot has stayed within about 1 m for 2 minutes.',fix:'It may be cleaning a dirty patch, or going round something it can’t get past. Take a look if it keeps going.',why:'From the robot’s live position.',options:['pOk','pDock']});
+        else if(rad>1500)resolveProblem('p_dwell','It moved on.');
+      }
+      // no progress: the cleaned area hasn't grown for 4 minutes
+      if(d.area!=null){
+        if(!HA.areaMark||HA.areaMark.task!==t.id||d.area>HA.areaMark.a){HA.areaMark={a:d.area,t:now,task:t.id};resolveProblem('p_noprogress','Cleaning is making progress again.')}
+        else if(now-HA.areaMark.t>240000)raiseProblem('p_noprogress',{title:'Not making progress',what:'The cleaned area hasn’t grown for 4 minutes (still '+d.area+' m²).',fix:'The robot may be circling or unable to reach new areas. Check on it, or send it to the dock.',why:'From the robot’s cleaned-area reading.',options:['pOk','pDock']},true);
+      }
+    }
+    // a jump: the robot re-found (or lost) its place on the map
+    const a=HA.recent[HA.recent.length-2],b=HA.recent[HA.recent.length-1];
+    if(a&&b&&b.t-a.t<10000&&Math.hypot(b.x-a.x,b.y-a.y)>2500&&!t.jumpWarned){t.jumpWarned=true;
+      raiseProblem('p_jump',{title:'Robot lost its place',what:'Its position jumped by '+(Math.hypot(b.x-a.x,b.y-a.y)/1000).toFixed(1)+' m in a few seconds.',fix:'This happens when the robot re-finds where it is on the map. If the robot on the map now looks wrong, align the map.',why:'From the robot’s live position.',options:['pOk','pAlign']},true)}
+  }
+
   /* ---------- Home Assistant snapshot → app state ---------- */
   function goOffline(msg){
     HA.error=msg;
@@ -456,13 +499,21 @@
     let status=d.status;
     if(status==='idle'&&S.task&&!S.task.done)status='paused';
     S.device={status,battery:d.battery,error:d.error};
-    HA.map=M().selectedMap(snap);HA.tf=HA.map?M().transform(HA.map.calibration):null;HA.ppm=HA.map?M().pxPerMm(HA.map.calibration):null;
+    HA.map=M().selectedMap(snap);
+    if(HA.map&&HA.map.calibration&&!HA.map.stale){HA.goodMap={map_id:HA.map.map_id,calibration:HA.map.calibration,no_go_areas:HA.map.no_go_areas,source_updated_at:HA.map.source_updated_at,charger:HA.map.charger,image_size:HA.map.image_size};resolveProblem('p_nomap','The robot has a map again.')}
+    else if(HA.map&&(HA.map.stale||HA.goodMap)){
+      // the robot reports no map: keep using the last good copy, without its old path or objects
+      if(!S.events.some(e=>e.key==='p_nomap'&&e.status!=='resolved'))raiseProblem('p_nomap',{title:'Robot has no map right now',what:'Home Assistant reports an empty map for the robot.',fix:'This usually means it is building a new map, or lost its saved one after failing to find its place. The app keeps showing your last saved copy. Check the map in the Roborock app; if it is gone, let the robot finish a full cleaning from the dock, then redraw rooms and align the map.',why:'The robot’s map in Home Assistant has no size or calibration.',options:['pOk','pAlign']},true);
+      HA.map=HA.map.stale?{...HA.map,path:[],obstacles:[],robot:null}:{...HA.goodMap,path:[],obstacles:[],robot:null,stale:true}; // the bridge may already fill it from its cache
+    }
+    HA.tf=HA.map&&HA.map.calibration?M().transform(HA.map.calibration):null;HA.ppm=HA.map?M().pxPerMm(HA.map.calibration):null;
     if(!HA.refArea&&status==='docked'&&d.area>0)HA.refArea=d.area;
     seedRobotRecord(snap,status);
     lifecycle(status);
     takePosition(snap);
+    watchBehaviour(d);
     checkProblems(snap,d);
-    syncObjects(snap);
+    if(!HA.map?.stale)syncObjects(snap); // a placeholder map says nothing about objects
     S.objects=HA.objs.filter(o=>!o.dismissed).map(o=>({...o,k:roomKey(o.mm),at:secOf(o.source)}));
     HA.removedZones=HA.removedZones.filter(b=>robotZones().some(a=>sameZone(a,b))); // until the robot's map drops them
     const rp=to3D(robotPose());
@@ -507,7 +558,7 @@
       const snap=await api('state');HA.error='';apply(snap);
       if(!snap.reader)HA.error='Install the roborock_obstacles reader in Home Assistant to see the map, objects and robot position.';
       checkPending();processRetries();
-      if(!HA.foot||Date.now()-HA.lastMap>(S.task&&!S.task.done?20000:60000))loadMap();
+      if(Date.now()-HA.lastMap>(HA.foot&&S.task&&!S.task.done?20000:60000))loadMap(); // at most every 20 s, even with no outline yet
     }catch(e){
       goOffline(e.message);
       if(/token/i.test(e.message)&&!HA.prompted&&!S.onboarding){HA.prompted=true;A.haConnect()}
@@ -632,7 +683,7 @@
     // 5 objects from the robot's map, one id shared by marker, list and review sheet
     if(!o.noEvents&&showLive)S.objects.forEach(ob=>{
       const p=P(ob.mm);if(!p)return;const sz=o.mini?8:10.5;
-      const ring=ob.status==='pending'?'stroke="var(--warn-line)" stroke-width="2" stroke-dasharray="3 2"':ob.status==='auto'?'stroke="var(--primary)" stroke-width="1.6"':'stroke="var(--ok)" stroke-width="1.8"';
+      const ring=ob.status==='pending'||ob.status==='ignored'?'stroke="var(--warn-line)" stroke-width="2" stroke-dasharray="3 2"':ob.status==='auto'?'stroke="var(--primary)" stroke-width="1.6"':'stroke="var(--ok)" stroke-width="1.8"';
       const badge=o.mini?'':ob.status==='pending'?`<circle cx="8" cy="-8" r="5.5" fill="var(--warn-line)"/><text x="8" y="-5.3" text-anchor="middle" font-size="8" font-weight="800" fill="#fff" font-family="Manrope">?</text>`:(ob.status==='confirmed'||ob.status==='corrected')?`<circle cx="8" cy="-8" r="5" fill="var(--ok)"/><path d="M5.6-8l1.7 1.7 3-3.2" stroke="#fff" stroke-width="1.5" fill="none" stroke-linecap="round"/>`:'';
       s+=`<g class="obj" ${o.mini?'':`data-a="openObj" data-v="${esc(ob.id)}"`} transform="translate(${p.x.toFixed(1)},${p.y.toFixed(1)})"><circle r="${sz}" fill="var(--surface)" ${ring} filter="url(#soft)"/><text y="${o.mini?3:4}" text-anchor="middle" font-size="${o.mini?9:12}">${OBJ[ob.label].e}</text>${badge}<title>${esc(OBJ[ob.label].n)}</title></g>`;
     });
@@ -809,7 +860,7 @@
       if(e.type==='zone')e.parts=[b];else e.parts.push(b);commit()});
   }
   function liveLegend(){
-    const when=HA.map?.source_updated_at?' · updated '+hhmm(secOf(HA.map.source_updated_at)):'';
+    const when=HA.map?.stale?' · saved copy from '+hhmm(secOf(HA.map.source_updated_at))+' (the robot has no map in Home Assistant right now)':HA.map?.source_updated_at?' · updated '+hhmm(secOf(HA.map.source_updated_at)):'';
     return `<div class="legend"><span><i style="background:var(--surface);box-shadow:inset 0 0 0 1.5px var(--primary);border-radius:50%"></i>Robot’s label</span><span><i style="background:var(--surface);box-shadow:inset 0 0 0 1.5px var(--warn-line);border-radius:50%"></i>Not sure</span><span><i style="background:var(--clean)"></i>Cleaned</span><span><i style="background:repeating-linear-gradient(45deg,var(--warn-line) 0 2px,var(--warn-soft) 2px 5px)"></i>Needs review</span><span><i style="background:repeating-linear-gradient(45deg,var(--skip) 0 1.5px,var(--skip-soft) 1.5px 5px)"></i>Skipped</span><span><i style="background:repeating-linear-gradient(-45deg,var(--stop) 0 2px,var(--stop-soft) 2px 5px)"></i>No-go</span><span><i style="background:var(--warn-line);border-radius:50%"></i>Study event</span><span><i style="background:var(--stop);border-radius:50%"></i>Robot problem</span></div><p class="small muted" style="margin:4px 6px 0">Robot map from Home Assistant${when}.${HA.pose&&HA.pose.at?' Robot position live, '+Math.max(0,Math.round(Date.now()/1000-HA.pose.at))+' s ago.':''}</p>`;
   }
 
@@ -817,7 +868,7 @@
   function wrap(name,after){const orig=window[name];window[name]=function(...a){return after(orig.apply(this,a),...a)}}
   function patch(){
     RESULTLABEL.recorded='Robot record';
-    Object.assign(OPTICON,{pResume:'retry',pDock:'home',pLater:'clock',pRetry:'retry',pOk:'check'});
+    Object.assign(OPTICON,{pResume:'retry',pDock:'home',pLater:'clock',pRetry:'retry',pOk:'check',pAlign:'map',pFinish:'check'});
     ROOM.live={id:'live',name:'Robot map',the:'your home'};CELLROOM.live='live';
     Object.assign(OBJ,{unknown:{n:'Unknown object',e:'❔'},waste:{n:'Pet waste',e:'💩'},scale:{n:'Scale',e:'⚖️'}});
     // Event texts without the demo's fictional rooms
@@ -904,7 +955,7 @@
     window.doAction=(ev,act,saveRule)=>{
       if(ev.problem){
         if(!ev.archived){S.ui.stack=[];S.ui.scrollTop=0;forceTop=true}
-        const done=(st,text)=>{ev.status=st;ev.outcome=text;evLog(ev,'you',text.replace(/\.$/,''))};
+        const done=(st,text)=>{ev.status=st;ev.outcome=text;evLog(ev,'you',text.replace(/\.$/,''));HA.snooze[ev.key]=Date.now()};
         if(act==='pResume'){
           if(S.conn==='connected'&&['error','paused','idle'].includes(dev().status))return liveCommand('start',{label:'Resume',done:'Cleaning resumed',expect:['cleaning']},()=>done('resolved','You fixed it and the robot carried on.'));
           done('resolved','Marked as fixed.');return commit();
@@ -913,10 +964,13 @@
         if(act==='pRetry'){HA.expectStart={label:'Entire home',at:Date.now(),kind:'home'};
           return liveCommand('start',{label:'Start cleaning',done:'Cleaning started',expect:['cleaning'],onFail:()=>{HA.expectStart=null}},()=>done('resolved','You started the cleaning again.'))}
         if(act==='pLater'){done('deferred','Left for later.');return commit()}
+        if(act==='pAlign'){done('resolved','Opened Align map.');S.ui.stack=[];S.ui.tab='settings';go('align');return}
+        if(act==='pFinish'){done('resolved','You finished the cleaning here.');if(S.task&&!S.task.done){S.task.endedEarly=true;finishLiveTask()}return commit()}
         done('resolved','Seen.');return commit();
       }
       if(!ev.archived){S.ui.stack=[];S.ui.tab='map';S.ui.scrollTop=0;forceTop=true}
-      const run=()=>{applyAction(ev,act,false);if(saveRule){const r=DEFS[ev.key].remember[act];S.rules.push({id:'r'+(++seq),key:ev.key,act,text:r.text,scope:r.scope})}};
+      const snap=snapFor(ev);
+      const run=()=>{resetForChange(ev,act);applyAction(ev,act,false);if(saveRule){const r=DEFS[ev.key].remember[act];S.rules.push({id:'r'+(++seq),key:ev.key,act,text:r.text,scope:r.scope})}};
       if(act==='pauseCheck')return liveCommand('pause',{label:'Pause',done:'Paused',expect:['paused','idle']},run);
       if(S.ui.retryOnce)ev.retryWhen=S.ui.retryOnce;
       const goesNow=['retry','retryCleared','asRug','asHard','allow'].includes(act)&&(ev.retryWhen||HA.retryWhen)==='now';
@@ -924,6 +978,7 @@
       run();
       if(act==='skipOnce'){ev.extraQueued=false;HA.retryQueue=HA.retryQueue.filter(x=>x!==ev.id)}
       if(act==='nogo'){commit();return saveNogo('Save no-go zone on the robot','No-go zone saved on the robot')}
+      if(!['retry','retryCleared','asRug','asHard','allow'].includes(act))offerUndo(ev,act,snap); // app-only choices can be undone
       commit();processRetries();
     };
     const delNogo0=A.delNogo;A.delNogo=v=>{if(hasZone(v))HA.removedZones.push(zoneRect(v));delNogo0(v);saveNogo('Remove no-go zone from the robot','No-go zone removed from the robot')};
@@ -955,7 +1010,7 @@
     A.haMode=v=>{if(v==='demo')switchTo('demo')};
 
     // Objects: the robot's labels, corrections kept in this app
-    window.objStatus=o=>o.status==='pending'?'Robot couldn’t tell what it is':o.status==='auto'?'Robot’s label':o.status==='corrected'?`You corrected it (robot said ${OBJ[o.orig].n.toLowerCase()})`:'You confirmed it';
+    window.objStatus=o=>o.status==='ignored'?'Not checked yet (ignored for now)':o.status==='pending'?'Robot couldn’t tell what it is':o.status==='auto'?'Robot’s label':o.status==='corrected'?`You corrected it (robot said ${OBJ[o.orig].n.toLowerCase()})`:'You confirmed it';
     wrap('objItem',(h,o)=>o.label==='unknown'?h.replace('Maybe unknown object?','Unknown object'):h);
     wrap('objModal',(m,id)=>{
       if(!m)return m;const o=S.objects.find(x=>x.id===id);
@@ -970,6 +1025,7 @@
     const objSave0=A.objSave,objNone0=A.objNone;
     A.objSave=()=>{const id=S.ui.objId,o0=S.objects.find(x=>x.id===id);if(o0&&o0.label==='unknown'&&(!S.ui.objSel||S.ui.objSel==='unknown'))return;objSave0();
       const m=HA.objs.find(x=>x.id===id),o=S.objects.find(x=>x.id===id);if(m&&o)Object.assign(m,{label:o.label,status:o.status});persist()};
+    window.onObjChange=items=>{items.forEach(o=>{const m=HA.objs.find(x=>x.id===o.id);if(m)m.status=o.status});persist()};
     A.objNone=()=>{const m=HA.objs.find(x=>x.id===S.ui.objId);if(m)Object.assign(m,{dismissed:true,dismissedSnap:HA.objSnap});objNone0();persist()};
 
     // Screens
@@ -1087,8 +1143,8 @@
     document.head.appendChild(st);
   }
 
-  window.HA_INIT=()=>{restore();patch();registerRooms();
+  window.HA_INIT=()=>{restore();loadGoodMap();patch();registerRooms();
     S.events.concat(...S.history.map(h=>h.snap.events||[])).forEach(e=>{if(e.problem&&e.info&&!DEFS[e.key])defineProblem(e.key,e.info,e.zone)});
    refresh();loadSchedules();setInterval(refresh,4000);setInterval(loadSchedules,60000)};
-  window.HA_TICK=()=>{S.clock=now();fireDue();updateLive()};
+  window.HA_TICK=()=>{S.clock=now();fireDue();checkTemp();updateLive()};
 })();

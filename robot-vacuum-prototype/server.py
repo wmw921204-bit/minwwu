@@ -15,6 +15,8 @@ from urllib.error import HTTPError, URLError
 
 ROOT = Path(__file__).resolve().parent
 CONFIG = ROOT / '.ha-local.json'
+MAP_IMAGE = ROOT / '.map-cache.png'   # last real map image, served while HA reports an empty map
+MAP_GEOMETRY = ROOT / '.map-cache.json'
 HA_URL = os.environ.get('HA_URL', 'http://127.0.0.1:8124').rstrip('/')
 PORT = int(os.environ.get('PORT', '8787'))
 HOSTS = ('127.0.0.1:%d' % PORT, 'localhost:%d' % PORT)
@@ -83,7 +85,7 @@ def snapshot(states, include_geometry=False):
     geometry = None
     if include_geometry and reader is not None and vacuum is not None:
         try:
-            geometry = ha('services/roborock_obstacles/read?return_response', {}).get('service_response')
+            geometry = keep_good_maps(ha('services/roborock_obstacles/read?return_response', {}).get('service_response'))
         except BridgeError:
             geometry = None  # State is still useful without the map reader.
     position = live_position(vacuum) if include_geometry and vacuum is not None else None
@@ -91,6 +93,32 @@ def snapshot(states, include_geometry=False):
             'vacuums': [{'entity_id': s['entity_id'], 'name': s.get('attributes', {}).get('friendly_name', s['entity_id'])}
                         for s in vacuums],
             'entities': related, 'reader': reader is not None, 'geometry': geometry}
+
+
+def placeholder(body):
+    # HA serves a tiny blank PNG when the robot has no map
+    return len(body) < 2000 or (body[:8] == b'\x89PNG\r\n\x1a\n' and int.from_bytes(body[16:20], 'big') <= 300)
+
+
+def keep_good_maps(geometry):
+    """Remember each map's calibration; fill an empty map from the last good copy, marked stale."""
+    if not geometry:
+        return geometry
+    try:
+        cache = json.loads(MAP_GEOMETRY.read_text())
+    except (FileNotFoundError, ValueError):
+        cache = {}
+    changed = False
+    for m in geometry.get('maps', []):
+        key = str(m.get('map_id'))
+        if m.get('calibration'):
+            cache[key] = {k: m.get(k) for k in ('map_id', 'calibration', 'no_go_areas', 'image_size', 'charger', 'source_updated_at')}
+            changed = True
+        elif key in cache:
+            m.update(cache[key], stale=True, path=[], obstacles=[], robot=None)
+    if changed:
+        MAP_GEOMETRY.write_text(json.dumps(cache))
+    return geometry
 
 
 def live_position(vacuum):
@@ -282,6 +310,11 @@ class Handler(BaseHTTPRequestHandler):
                 if not image:
                     raise BridgeError('Home Assistant has no map image for this robot yet.')
                 body, mime = ha('image_proxy/' + image['entity_id'])
+                if placeholder(body):
+                    if MAP_IMAGE.exists():
+                        return self.send(200, MAP_IMAGE.read_bytes(), 'image/png')
+                else:
+                    MAP_IMAGE.write_bytes(body)
                 return self.send(200, body, mime)
             if path not in FILES:
                 return self.send(404, {'error': 'Not found'})

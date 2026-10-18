@@ -24,9 +24,10 @@ class BridgeTests(unittest.TestCase):
     def setUp(self):
         directory = tempfile.TemporaryDirectory()
         self.addCleanup(directory.cleanup)
-        patcher = patch.object(server, 'CONFIG', Path(directory.name) / 'config.json')
-        patcher.start()
-        self.addCleanup(patcher.stop)
+        for name, file in (('CONFIG', 'config.json'), ('MAP_IMAGE', 'map.png'), ('MAP_GEOMETRY', 'map.json')):
+            patcher = patch.object(server, name, Path(directory.name) / file)
+            patcher.start()
+            self.addCleanup(patcher.stop)
 
     def request(self, path, body=None, origin=ORIGIN, host=HOST):
         handler = object.__new__(server.Handler)
@@ -180,6 +181,19 @@ class BridgeTests(unittest.TestCase):
         for path in ('/.ha-local.json', '/server.py', '/tests/test_bridge.py'):
             self.assertEqual(self.request(path)[0], 404)
         self.assertEqual(self.request('/ha-live.js')[0], 200)
+
+    def test_empty_map_falls_back_to_the_last_good_one(self):
+        good = b'\x89PNG\r\n\x1a\n' + b'\x00\x00\x00\rIHDR' + (1428).to_bytes(4, 'big') + (1380).to_bytes(4, 'big') + b'x' * 3000
+        blank = b'\x89PNG\r\n\x1a\n' + b'\x00\x00\x00\rIHDR' + (300).to_bytes(4, 'big') + (200).to_bytes(4, 'big') + b'x' * 700
+        with patch.object(server, 'ha', side_effect=[STATES, (good, 'image/png'), STATES, (blank, 'image/png')]):
+            self.assertEqual(self.request('/api/map')[1], good)
+            self.assertEqual(self.request('/api/map')[1], good)
+        cal = [{'vacuum': {'x': 1, 'y': 1}, 'map': {'x': 2, 'y': 2}}] * 3
+        server.keep_good_maps({'maps': [{'map_id': 0, 'calibration': cal, 'no_go_areas': [], 'path': [[1]], 'obstacles': [1]}]})
+        empty = server.keep_good_maps({'maps': [{'map_id': 0, 'calibration': None, 'path': [], 'obstacles': []}]})['maps'][0]
+        self.assertTrue(empty['stale'])
+        self.assertEqual(empty['calibration'], cal)
+        self.assertEqual(empty['obstacles'], [])
 
     def test_map_uses_authenticated_proxy(self):
         with patch.object(server, 'ha', side_effect=[STATES, (b'png', 'image/png')]) as ha:

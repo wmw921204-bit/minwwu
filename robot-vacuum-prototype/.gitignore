@@ -1,2 +1,4 @@
 .ha-local.json
+.map-cache.png
+.map-cache.json
 __pycache__/

@@ -69,3 +69,12 @@ commands: start/resume, pause, return to dock, a spot clean of at most 4 × 4 m,
 node --test tests/*.test.cjs
 python3 -m unittest discover -s tests
 ```
+
+## Round 2 changes (from the P1–P7 study)
+
+- **Change any decision, in one step.** Your own choices show "Change it?" too, not only the robot's. Every app-only choice shows Undo for a few seconds. "Remember" saves straight away, with its scope written next to the box; edit it in Saved preferences.
+- **Automation level from Home.** The level on Home is a button that opens all four levels, each saying which notices you'll get. A level can be set for 1 hour or until the cleaning ends, then it switches back by itself.
+- **Fewer checks.** Common objects are labelled by the robot; only odd ones are asked about. Unsure objects are grouped per room ("Living room: 2 items") with All look right, Change, or Ignore these for now.
+- **Failures explain themselves.** A failed retry says what the robot still detects and what to do; after two failures it stops suggesting another retry and suggests no-go or skip. A stuck robot says why a person is needed. The simulation fails a retry at most once.
+- **Notification switches apply.** Needs-review banners, finish banners, and decisions in Full auto follow Settings → Notifications.
+- **Live mode watches behaviour the robot doesn't report as an error:** working in one spot for 2 minutes, no new area for 4 minutes, a sudden position jump (lost its place), mapping instead of cleaning, going back to charge mid-cleaning (the cleaning isn't ended), a slow return to the dock, and an empty map in Home Assistant (the app and the bridge keep the last good copy, marked as such).
