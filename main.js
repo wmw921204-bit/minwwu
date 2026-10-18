@@ -625,12 +625,21 @@ $$("[data-constellation]").forEach((sky) => {
 });
 $$("[data-forum]").forEach((forum) => {
   const posts = $$("li", forum);
-  inView(forum, () => {
+  let started = false;
+  const start = () => {
+    started = true;
     posts.forEach((li, i) => setTimeout(() => {
       li.classList.add("is-on");
       if (i === posts.length - 1) setTimeout(() => forum.classList.add("is-done"), 900);
-    }, reduceMotion ? 0 : 400 + i * 1100));
-  }, { threshold: 0, rootMargin: "0px 0px -45% 0px" });
+    }, reduceMotion ? 0 : 500 + i * 1200));
+  };
+  const check = () => {
+    if (started) return;
+    const r = forum.getBoundingClientRect();
+    if (r.top >= 60 && r.bottom <= innerHeight - 40) start();
+  };
+  onScrollFns.push(check);
+  check();
 });
 $$("[data-journey]").forEach((jr) => {
   const line = $(".fin-jr__line", jr), dot = $(".fin-jr__dot", jr), wipe = $(".fin-jr__wipe", jr);
@@ -665,28 +674,43 @@ $$("[data-journey]").forEach((jr) => {
   };
   place(0);
   inView(jr, () => {
-    if (reduceMotion) { revealed = 900; place(stops[2]); return; }
+    if (reduceMotion) { revealed = 900; place(stops[2]); jr.classList.add("is-run"); return; }
     // walk the whole journey once, pausing at each stage
     travel(stops[0], 700);
     setTimeout(() => travel(stops[1], 1500), 1500);
     setTimeout(() => travel(stops[2], 1500), 3600);
-    setTimeout(() => { revealed = 900; wipe.setAttribute("width", 900); }, 5200);
+    setTimeout(() => { revealed = 900; wipe.setAttribute("width", 900); jr.classList.add("is-run"); }, 5200);
   });
-  cols.forEach((c, i) => c.addEventListener("click", () => travel(stops[i], 700)));
+  // keep moving through the stages on its own until someone clicks
+  let idleUntil = 0;
+  cols.forEach((c, i) => c.addEventListener("click", () => { idleUntil = Date.now() + 12000; travel(stops[i], 700); }));
+  setInterval(() => {
+    if (!jr.classList.contains("is-run") || Date.now() < idleUntil || document.hidden) return;
+    const r = jr.getBoundingClientRect();
+    if (r.bottom < 0 || r.top > innerHeight) return;
+    travel(stops[(at + 1) % 3], at === 2 ? 1400 : 1100);
+  }, 4200);
 });
 
 /* ---------- FINRA maze vs path: toggle the same task before and after ---------- */
 $$("[data-maze]").forEach((mz) => {
   $$(".fin-mz__route", mz).forEach((p) => p.style.setProperty("--len", Math.ceil(p.getTotalLength()) + 1));
-  let touched = false;
   const set = (mode) => {
     mz.dataset.mode = mode;
     mz.classList.remove("is-play"); void mz.offsetWidth; mz.classList.add("is-play");
     $$("[data-maze-to]", mz).forEach((b) => b.setAttribute("aria-selected", String(b.dataset.mazeTo === mode)));
     $$("[data-b]", mz).forEach((n) => { n.textContent = mode === "after" ? n.dataset.a : n.dataset.b; n.style.animation = "none"; void n.offsetWidth; n.style.animation = ""; });
   };
-  $$("[data-maze-to]", mz).forEach((b) => b.addEventListener("click", () => { touched = true; set(b.dataset.mazeTo); }));
-  inView(mz, () => { set("before"); setTimeout(() => { if (!touched) set("after"); }, reduceMotion ? 2500 : 6200); });
+  let idleUntil = 0, started = false;
+  $$("[data-maze-to]", mz).forEach((b) => b.addEventListener("click", () => { idleUntil = Date.now() + 15000; set(b.dataset.mazeTo); }));
+  inView(mz, () => { started = true; set("before"); idleUntil = Date.now() + 6000; });
+  setInterval(() => {
+    if (!started || Date.now() < idleUntil || document.hidden) return;
+    const r = mz.getBoundingClientRect();
+    if (r.bottom < 0 || r.top > innerHeight) return;
+    set(mz.dataset.mode === "before" ? "after" : "before");
+    idleUntil = Date.now() + (mz.dataset.mode === "after" ? 5000 : 7000);
+  }, 500);
 });
 
 /* ---------- FINRA usability board: bars grow, rows open ---------- */
@@ -728,7 +752,8 @@ $$("[data-affinity]").forEach((sec) => {
     canvas.width = W * dpr; canvas.height = H * dpr;
     const narrow = W < 900;
     // the copy owns the left (or top on phones); notes live in the rest
-    box = narrow ? [W * 0.04, H * 0.4, W * 0.96, H * 0.97] : [W * 0.4, H * 0.1, W * 0.97, H * 0.95];
+    const line = $(".c-chapter", sec), top = line ? line.getBoundingClientRect().bottom - canvas.getBoundingClientRect().top + 30 : H * 0.18;
+    box = narrow ? [W * 0.04, Math.max(top, H * 0.4), W * 0.96, H * 0.97] : [W * 0.4, Math.max(top, H * 0.16), W * 0.97, H * 0.95];
     const [x0, y0, x1, y1] = box;
     centers = [
       null,

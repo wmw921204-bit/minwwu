@@ -1046,7 +1046,6 @@ img.is-zoomable { cursor: zoom-in; }
 .fin-guess.is-done .fin-guess__punch { opacity: 1; transform: none; }
 .fin-guess.is-done .fin-guess__row { opacity: .55; pointer-events: none; }
 
-  background: radial-gradient(ellipse 60% 70% at 50% 50%, #0b3a6e, #06192f 75%); }
 
 .fin-split2 { display: grid; grid-template-columns: 1fr 1.1fr; gap: clamp(24px, 4vw, 72px); align-items: center; margin-top: 80px; }
 .fin-forum { border-radius: 22px; background: #f4f7fb; color: #14243a; padding: 18px; box-shadow: 0 30px 70px rgba(0,0,0,.35); }
@@ -1082,7 +1081,7 @@ img.is-zoomable { cursor: zoom-in; }
 .fin-aff.is-final .fin-aff__tags li { opacity: 1; }
 .fin-aff-after { padding-top: 40px; }
 @media (max-width: 900px) {
-  .fin-split2, .fin-lessons { grid-template-columns: 1fr; gap: 28px; }
+  .fin-lessons { grid-template-columns: 1fr; gap: 28px; }
   .fin-aff__tags li { width: 30vw; font-size: 11px; }
 }
 @media (prefers-reduced-motion: reduce) { .fin-aff { height: auto; } .fin-aff__stage { position: relative; } }
@@ -1167,8 +1166,9 @@ img.is-zoomable { cursor: zoom-in; }
 .fin-jr__col:nth-child(2).is-active { border-color: #ffb37a; } .fin-jr__col:nth-child(3).is-active { border-color: #ff6b6b; }
 .fin-jr__chart { position: relative; margin-top: 8px; }
 .fin-jr__chart svg { display: block; width: 100%; height: auto; overflow: visible; }
-.fin-jr__axis { position: absolute; left: 0; font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--c-muted); }
-.fin-jr__axis--top { top: 6px; } .fin-jr__axis--bot { bottom: 6px; }
+.fin-jr__chart { padding-left: 96px; }
+.fin-jr__axis { position: absolute; left: 0; top: var(--ay); transform: translateY(-50%); font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--c-muted); }
+.fin-jr__axis::after { content: ""; display: inline-block; width: 16px; height: 1px; margin-left: 8px; vertical-align: middle; background: var(--c-line); }
 .fin-jr__sep { stroke: var(--c-line); stroke-width: 1; stroke-dasharray: 4 6; }
 .fin-jr__area { fill: url(#jrFill); }
 .fin-jr__line { fill: none; stroke: url(#jrStroke); stroke-width: 5; stroke-linecap: round; }
@@ -1244,9 +1244,24 @@ img.is-zoomable { cursor: zoom-in; }
   .fin-mz__board { width: 100%; }
 }
 @keyframes fin-node { from { opacity: 0; } to { opacity: 1; } }
-@media (max-width: 900px) { .fin-jr__axis { display: none; } }
+@media (max-width: 900px) { .fin-jr__axis { display: none; } .fin-jr__chart { padding-left: 0; } }
 .fin-mz__nodes--before .fin-mz__n.is-a span { top: auto; bottom: 12px; }
 .fin-mz__nodes--before .fin-mz__n.is-l span { left: auto; right: 12px; text-align: right; }
 .fin-mz__nodes--before .fin-mz__n:last-child.is-a span { right: 0; }
 .fin-mz__board { width: min(100%, calc((100vh - 400px) * 2)); }
 .fin-mz-sec.c-sec { padding-top: 40px; padding-bottom: 30px; }
+@media (max-width: 760px) { .fin-split2 { grid-template-columns: 1fr; gap: 28px; } }
+/* maze: never stretch the board, so dots stay on the route */
+.fin-mz__main { align-items: center; }
+.fin-mz__board { align-self: center; }
+.fin-mz__nodes--after .fin-mz__n span { white-space: nowrap; max-width: none; }
+.fin-mz__nodes--after .fin-mz__n:first-child span { left: -6px; transform: none; text-align: left; }
+.fin-mz__auto { margin-left: 12px; font-size: 12px; color: var(--c-muted); }
+/* usability board in the FINRA blues */
+.fin-ut__big em { color: #82cfff; }
+.fin-ut__legend .hi, .fin-ut__bar .hi { background: #82cfff; }
+.fin-ut__legend .md, .fin-ut__bar .md { background: rgba(130,207,255,.42); }
+.fin-ut__done { color: var(--c-fg); opacity: .8; }
+.fin-ut__done::before { color: #82cfff; }
+.fin-ut__err { color: var(--c-fg); }
+.fin-ut__row.is-open { background: linear-gradient(90deg, rgba(130,207,255,.08), transparent 70%); }
