@@ -592,9 +592,10 @@ $$("[data-relay]").forEach((relay) => {
 
 /* ---------- RECO demo: switch the embedded app to a real in-browser AI ---------- */
 $$("[data-reco-ai]").forEach((box) => {
-  const frame = box.closest("figure")?.querySelector("iframe");
+  const demo = box.closest(".reco-demo") || document;
+  const frame = $("iframe", demo);
   const btn = $(".reco-ai__btn", box), note = $(".reco-ai__note", box), bar = $(".reco-ai__bar", box);
-  const tag = box.closest("figure")?.querySelector("[data-reco-mode]");
+  const tag = $("[data-reco-mode]", demo);
   if (!frame) return;
   if (!("gpu" in navigator)) {
     btn.disabled = true;
