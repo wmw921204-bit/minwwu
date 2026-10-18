@@ -351,7 +351,7 @@
     ZONES[zid]={name:'Spot at '+hhmm(S.clock),room:pos?roomKey(pos):'live',cells:[],keys:[],mm:pos?{x:pos.x,y:pos.y}:null};
     DEFS[key].zone=zid;
     const waitBefore=S.waitEv,n=S.timeline.length;
-    fire(key);
+    HA.inFire=true;try{fire(key)}finally{HA.inFire=false}
     const ev=S.events.find(e=>e.key===key&&!e.zone);
     S.timeline.slice(n).forEach(r=>r.x=placeless(r.x));
     if(!ev)return;
@@ -890,6 +890,7 @@
   function wrap(name,after){const orig=window[name];window[name]=function(...a){return after(orig.apply(this,a),...a)}}
   function patch(){
     RESULTLABEL.recorded='Robot record';
+    AUTOOUT.asRug='Treated as a rug (simulated: the real robot was not sent back).'; // study events never move the robot on their own
     Object.assign(OPTICON,{pResume:'retry',pDock:'home',pLater:'clock',pRetry:'retry',pOk:'check',pAlign:'map',pFinish:'check'});
     ROOM.live={id:'live',name:'Robot map',the:'your home'};CELLROOM.live='live';
     Object.assign(OBJ,{unknown:{n:'Unknown object',e:'❔'},waste:{n:'Pet waste',e:'💩'},scale:{n:'Scale',e:'⚖️'}});
@@ -908,7 +909,9 @@
     window.statusLine=statusText;
     window.mapSVG=liveMap;window.legend=liveLegend;window.build3D=live3D;window.sync3D=liveSync3D;
     // Extra pass: a real second pass over the spot once the cleaning ends
-    window.queueExtra=ev=>{ev.extraQueued=true;ev.queued=retryTiming(ev)==='after'&&!!(S.task&&!S.task.done);S.sim.queue.unshift({kind:'extra',ev:ev.id});if(!HA.retryQueue.includes(ev.id))HA.retryQueue.push(ev.id)};
+    window.queueExtra=ev=>{
+      if(HA.inFire){ev.outcome='Extra pass (simulated: the real robot was not sent back).';return}
+      ev.extraQueued=true;ev.queued=retryTiming(ev)==='after'&&!!(S.task&&!S.task.done);S.sim.queue.unshift({kind:'extra',ev:ev.id});if(!HA.retryQueue.includes(ev.id))HA.retryQueue.push(ev.id)};
     const notice0=window.notice;window.notice=ev=>{notice0(ev);if(ev.problem)clearTimeout(notice.t);notifyEvent(ev)}; // problem banners stay until opened
     window.visibleObjs=()=>S.objects||[];
     window.updateLive=()=>document.querySelectorAll('[data-live]').forEach(el=>{const n=el.dataset.live;if(n==='bar')el.style.width=LIVE.bar();else el.textContent=LIVE[n]()});
@@ -964,6 +967,8 @@
       return h;
     };
     window.startRetry=(ev,outcomeText)=>{
+      if(HA.inFire){ // the robot "decided" on a study event: show the outcome, don't drive the real robot
+        ev.status='resolved';ev.outcome=(outcomeText||'Area cleaned.').replace(/\.$/,'')+' (simulated: the real robot was not sent back).';return}
       if(!ev.zone)ev.zone=DEFS[ev.key].zone; // automatic choices run inside fire(), before fireStudy() stores the spot
       ev.pendingOutcome=outcomeText||null;ev.retryTries=(ev.retryTries||0)+1;
       ev.cleanMode=/rug/i.test(outcomeText||'')?'vacuum':/hard floor/i.test(outcomeText||'')?'vac_and_mop':null;
@@ -1060,6 +1065,7 @@
     A.objNone=()=>{const m=HA.objs.find(x=>x.id===S.ui.objId);if(m)Object.assign(m,{dismissed:true,dismissedSnap:HA.objSnap});objNone0();persist()};
 
     // Screens
+    wrap('scrHome',h=>S.ctl.scenario==='none'?h:h.replace('</button></div>',`</button></div><p class="small" style="margin:8px 2px 0;color:var(--warn);font-weight:700">${ic('bulb',14)} Study events on: simulated events can appear during cleanings. <button class="link" data-a="haScenario" data-v="none">Turn off</button></p>`));
     wrap('statusCard',h=>{
       if(dev().status!=='idle'||S.conn!=='connected')return h;
       return h.replace('></span>undefined<','></span>Stopped<').replace('On the dock and ready for the next cleaning.','Off the dock and not cleaning.')
