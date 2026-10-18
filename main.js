@@ -590,6 +590,13 @@ $$("[data-relay]").forEach((relay) => {
   $$(".relay__layer", relay).forEach((g) => g.addEventListener("pointerenter", () => set(g.dataset.layer)));
 });
 
+/* ---------- RECO demo: size the embedded phone to the screen ---------- */
+$$(".reco-device--app").forEach((dev) => {
+  const fit = () => dev.style.setProperty("--dev-s", (dev.getBoundingClientRect().height / 900).toFixed(4));
+  fit();
+  addEventListener("resize", fit);
+});
+
 /* ---------- RECO demo: switch the embedded app to a real in-browser AI ---------- */
 $$("[data-reco-ai]").forEach((box) => {
   const demo = box.closest(".reco-demo") || document;

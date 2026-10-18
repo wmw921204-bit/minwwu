@@ -881,3 +881,10 @@ img.is-zoomable { cursor: zoom-in; }
 .reco-try .c-head { font-size: clamp(26px, 2.6vw, 38px); }
 /* crop the recording's black side margins so both phones show at the same size */
 .reco-device--video video { width: 100%; height: 100%; max-width: none; object-fit: cover; }
+/* Try RECO: phones as tall as the screen allows */
+.reco-try { --dev-h: clamp(440px, calc(100vh - 200px), 760px); }
+@media (max-height: 860px), (max-height: 760px) { .reco-try { --dev-h: clamp(440px, calc(100vh - 200px), 760px); } }
+.reco-try .c-sec { padding-top: 32px; padding-bottom: 24px; }
+.reco-demo { margin-top: 20px; }
+.reco-demo__note .reco-demo__title { font: 600 clamp(30px, 2.8vw, 42px)/1.1 var(--f-display); letter-spacing: -0.03em; color: var(--c-fg); margin-bottom: 18px; }
+@media (max-width: 760px) { .reco-try { --dev-h: 600px; } }
