@@ -9,14 +9,14 @@
   <meta property="og:type" content="article">
   <meta property="og:title" content="Zen Bloom VR — Minwei Wu">
   <meta property="og:description" content="A Zen flower arrangement experience in VR.">
-  <meta property="og:image" content="https://wmw921204-bit.github.io/minwwu/assets/projects/zenbloom/hero-poster.webp">
+  <meta property="og:image" content="https://wmw921204-bit.github.io/minwwu/assets/projects/zenbloom/hero-poster.webp?v=2">
   <meta name="theme-color" content="#0f0b08">
   <link rel="icon" href="../assets/img/logo.webp">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&family=Poppins:wght@400;500;600&family=Sulphur+Point:wght@400&family=Cormorant+Garamond:wght@400;500&display=swap">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&family=Poppins:wght@400;500;600&family=Sulphur+Point:wght@400&family=Cormorant+Garamond:ital,wght@0,400;0,500;1,500&family=Josefin+Sans:wght@200;300&display=swap">
   <link rel="stylesheet" href="../styles.css?v=20261018a">
-  <link rel="stylesheet" href="../case.css?v=20261020a">
+  <link rel="stylesheet" href="../case.css?v=20261020b">
 </head>
 <body class="case case--zen">
   <a class="skip" href="#main">Skip to content</a>
@@ -58,7 +58,7 @@
   <main id="main">
     <section class="c-hero c-hero--br c-hero--compact" data-scene style="--beats:1;--hero-bg:#0f0b08">
       <div class="c-hero__pin">
-        <video class="c-hero__media" autoplay muted loop playsinline preload="auto" poster="../assets/projects/zenbloom/hero-poster.webp" aria-label="A night garden, a moon window and a flower blooming in Zen Bloom VR, ending on the Zen Bloom logo"><source src="../assets/projects/zenbloom/hero.mp4" type="video/mp4"></video>
+        <video class="c-hero__media" autoplay muted loop playsinline preload="auto" poster="../assets/projects/zenbloom/hero-poster.webp?v=2" aria-label="A moonlit night garden dissolves into the Zen Bloom VR logo"><source src="../assets/projects/zenbloom/hero.mp4?v=2" type="video/mp4"></video>
         <div class="c-hero__intro">
           <small>VR EXPERIENCE · IXDS 712</small>
           <p>Ikebana you can practise with your hands.</p>
@@ -121,7 +121,7 @@
     </section>
 
     <!-- 03 The experience -->
-    <section class="vn" data-scene style="--beats:7" aria-label="The experience" data-chapter="The experience">
+    <section class="vn zen-exp" data-scene style="--beats:7" aria-label="The experience" data-chapter="The experience">
       <div class="vn__stage">
         <div class="vn__bg">
           <img data-beat="0" src="../assets/projects/zenbloom/enter.webp" alt="" loading="lazy">
@@ -132,22 +132,15 @@
           <img data-beat="5" src="../assets/projects/zenbloom/save.webp" alt="" loading="lazy">
           <img data-beat="6" src="../assets/projects/zenbloom/gallery.webp" alt="" loading="lazy">
         </div>
-        <div class="vn__shade"></div>
+        <div class="zen-exp__shade"></div>
         <p class="vn__chapter"><b>03</b> The experience</p>
-        <h3 class="vn__title"><span data-beat="0">Gaze, then pinch.</span><span data-beat="1">Pluck to listen.</span><span data-beat="2">Flowers, your choice.</span><span data-beat="3">Bend, shape, create.</span><span data-beat="4">Paint, seal, bloom.</span><span data-beat="5">Palms together, saved.</span><span data-beat="6">Beyond the bloom.</span></h3>
-        <div class="vn__box">
-          <p class="vn__name"><span data-beat="0">Step 01 / 07 · Enter</span><span data-beat="1">Step 02 / 07 · Pipa</span><span data-beat="2">Step 03 / 07 · Choose</span><span data-beat="3">Step 04 / 07 · Arrange</span><span data-beat="4">Step 05 / 07 · Draw</span><span data-beat="5">Step 06 / 07 · Save</span><span data-beat="6">Step 07 / 07 · Gallery</span></p>
-          <div class="vn__lines">
-            <p data-beat="0" data-type>Face one of three moon windows to choose a studio, then hold a pinch to step through.</p>
-            <p data-beat="1" data-type>Pluck the pipa to fill the room with music. Pluck it again to return to silence.</p>
-            <p data-beat="2" data-type>Unroll the scroll and explore the flowers. Pick the ones that inspire you.</p>
-            <p data-beat="3" data-type>Place stems in the kenzan and bend them freely, until the shape feels like yours.</p>
-            <p data-beat="4" data-type>Paint a flower with ink, press the seal, and AI grows your sketch into a 3D bloom.</p>
-            <p data-beat="5" data-type>Bring your palms together to save the arrangement. It joins your gallery.</p>
-            <p data-beat="6" data-type>The moment passes. Your creation remains, displayed in a quiet alcove.</p>
-          </div>
-          <span class="vn__next" aria-hidden="true"></span>
-        </div>
+        <div class="zen-cap zen-cap--l" data-beat="0" style="--x:6.1%;--y:73.7%"><h3>Gaze, then pinch</h3><p>Face a moon window to select it, then hold a pinch to step through.</p></div>
+        <div class="zen-cap zen-cap--r" data-beat="1" style="--x:7.7%;--y:77.8%"><h3>Pluck, to Listen</h3><p>Pluck the pipa to play music. Pluck again to return to silence.</p></div>
+        <div class="zen-cap zen-cap--l" data-beat="2" style="--x:11.5%;--y:54.9%"><h3>Flowers, Your Choice</h3><p>Explore different flowers. Select the ones that inspire you.</p></div>
+        <div class="zen-cap zen-cap--r" data-beat="3" style="--x:9.9%;--y:51.4%"><h3>Bend, Shape, Create</h3><p>Bend and arrange flowers freely, creating something uniquely yours.</p></div>
+        <div class="zen-cap zen-cap--r" data-beat="4" style="--x:7.5%;--y:17%"><h3>Paint, Seal, Bloom</h3><p>Paint with ink, press the seal, and AI grows the sketch into a 3D flower.</p></div>
+        <div class="zen-cap zen-cap--l" data-beat="5" style="--x:6.4%;--y:47.7%"><h3>Palms Together, Saved</h3><p>Bring your palms together to save your arrangement. It joins your gallery.</p></div>
+        <div class="zen-cap zen-cap--l" data-beat="6" style="--x:10.2%;--y:71.3%"><h3>Beyond the Bloom</h3><p>The moment passes. Your creation remains.</p></div>
         <div class="vn__dots"><button data-goto="0" aria-label="Step 1"></button><button data-goto="1" aria-label="Step 2"></button><button data-goto="2" aria-label="Step 3"></button><button data-goto="3" aria-label="Step 4"></button><button data-goto="4" aria-label="Step 5"></button><button data-goto="5" aria-label="Step 6"></button><button data-goto="6" aria-label="Step 7"></button></div>
         <div class="vn__progress"></div>
       </div>
@@ -157,23 +150,34 @@
     <section class="wrap c-sec" id="gestures" data-chapter="Gesture language">
       <div class="c-chapter"><span class="c-chapter__num">04</span><h2 class="c-kicker">Gesture language</h2></div>
       <p class="c-head reveal-mask">Your hands are the controller.</p>
-      <p class="c-text reveal">We replaced controllers with a hybrid gesture framework, so every action feels closer to the real ritual. A few consistent rules keep it learnable.</p>
-      <ul class="zen-gestures reveal-stagger">
-        <li><b>Gaze + long pinch</b><p>Look at a target, then hold a pinch to confirm. Used for key choices and teleporting, so nothing fires by accident.</p></li>
-        <li><b>Tea as a tutorial</b><p>The lobby teaches gestures through a cup of tea, so onboarding feels like part of the ritual, not a manual.</p></li>
-        <li><b>Pluck the pipa</b><p>Music on or off is an instrument in the room, not a menu.</p></li>
-        <li><b>Grab, place, bend</b><p>Pick stems from the scroll, set them in the vase and bend branches to shape the composition.</p></li>
-        <li><b>Draw to bloom</b><p>Sketch a flower with ink and stamp the seal to turn 2D into 3D.</p></li>
-        <li><b>Palms together</b><p>A quiet, familiar gesture to save your work to the gallery.</p></li>
+      <p class="c-text reveal">We replaced controllers with a hybrid gesture framework, so every action feels closer to the real ritual. One gesture, one moment.</p>
+      <ul class="zen-gest reveal-stagger">
+        <li><div class="zen-gest__media"><video autoplay muted loop playsinline preload="none" poster="../assets/projects/zenbloom/g/pinch.webp" aria-label="Gaze + long pinch in Zen Bloom VR"><source data-src="../assets/projects/zenbloom/g/pinch.mp4" type="video/mp4"></video></div><h3>Gaze + long pinch</h3><p>Look at a moon window, hold a pinch to step through. Nothing fires by accident.</p></li>
+        <li><div class="zen-gest__media"><video autoplay muted loop playsinline preload="none" poster="../assets/projects/zenbloom/g/tea.webp" aria-label="Tea as a tutorial in Zen Bloom VR"><source data-src="../assets/projects/zenbloom/g/tea.mp4" type="video/mp4"></video></div><h3>Tea as a tutorial</h3><p>Lifting a cup of tea in the lobby teaches you to grab, before you touch a flower.</p></li>
+        <li><div class="zen-gest__media"><img src="../assets/projects/zenbloom/g/pipa.webp" alt="The pipa hanging by a garden window" width="720" height="405" loading="lazy"></div><h3>Pluck the pipa</h3><p>Music on or off is an instrument in the room, not a menu.</p></li>
+        <li><div class="zen-gest__media"><video autoplay muted loop playsinline preload="none" poster="../assets/projects/zenbloom/g/scroll.webp" aria-label="Unroll the scroll in Zen Bloom VR"><source data-src="../assets/projects/zenbloom/g/scroll.mp4" type="video/mp4"></video></div><h3>Unroll the scroll</h3><p>Open the scroll to reveal the flowers, painted in ink.</p></li>
+        <li><div class="zen-gest__media"><video autoplay muted loop playsinline preload="none" poster="../assets/projects/zenbloom/g/pick.webp" aria-label="Pick a flower in Zen Bloom VR"><source data-src="../assets/projects/zenbloom/g/pick.mp4" type="video/mp4"></video></div><h3>Pick a flower</h3><p>Pinch a painted flower and it lifts off the page as a real stem.</p></li>
+        <li><div class="zen-gest__media"><video autoplay muted loop playsinline preload="none" poster="../assets/projects/zenbloom/g/place.webp" aria-label="Place in the vase in Zen Bloom VR"><source data-src="../assets/projects/zenbloom/g/place.mp4" type="video/mp4"></video></div><h3>Place in the vase</h3><p>Set the stem into the kenzan at any height and angle.</p></li>
+        <li><div class="zen-gest__media"><video autoplay muted loop playsinline preload="none" poster="../assets/projects/zenbloom/g/bend.webp" aria-label="Bend and shape in Zen Bloom VR"><source data-src="../assets/projects/zenbloom/g/bend.mp4" type="video/mp4"></video></div><h3>Bend and shape</h3><p>Bend stems and branches until the line feels right.</p></li>
+        <li><div class="zen-gest__media"><video autoplay muted loop playsinline preload="none" poster="../assets/projects/zenbloom/g/turn.webp" aria-label="Turn to view in Zen Bloom VR"><source data-src="../assets/projects/zenbloom/g/turn.mp4" type="video/mp4"></video></div><h3>Turn to view</h3><p>Rotate the stand to see your arrangement from every side.</p></li>
+        <li><div class="zen-gest__media"><video autoplay muted loop playsinline preload="none" poster="../assets/projects/zenbloom/g/draw.webp" aria-label="Draw with ink in Zen Bloom VR"><source data-src="../assets/projects/zenbloom/g/draw.mp4" type="video/mp4"></video></div><h3>Draw with ink</h3><p>Paint your own flower with the brush on the paper.</p></li>
+        <li><div class="zen-gest__media"><video autoplay muted loop playsinline preload="none" poster="../assets/projects/zenbloom/g/stamp.webp" aria-label="Stamp to bloom in Zen Bloom VR"><source data-src="../assets/projects/zenbloom/g/stamp.mp4" type="video/mp4"></video></div><h3>Stamp to bloom</h3><p>Press the seal, and AI grows your sketch into a 3D flower.</p></li>
+        <li><div class="zen-gest__media"><video autoplay muted loop playsinline preload="none" poster="../assets/projects/zenbloom/g/palms.webp" aria-label="Palms together in Zen Bloom VR"><source data-src="../assets/projects/zenbloom/g/palms.mp4" type="video/mp4"></video></div><h3>Palms together</h3><p>A quiet, familiar gesture saves the arrangement.</p></li>
+        <li><div class="zen-gest__media"><video autoplay muted loop playsinline preload="none" poster="../assets/projects/zenbloom/g/gallery.webp" aria-label="Visit the gallery in Zen Bloom VR"><source data-src="../assets/projects/zenbloom/g/gallery.mp4" type="video/mp4"></video></div><h3>Visit the gallery</h3><p>Your saved work waits in a lantern-lit alcove.</p></li>
       </ul>
-      <figure class="c-figure reveal"><img src="../assets/projects/zenbloom/award.webp" alt="Translucent hands place a lily into an arrangement in front of a lantern-lit garden" width="1800" height="1200" loading="lazy"></figure>
     </section>
 
-    <!-- 05 AI flowers -->
-    <section class="wrap c-sec" id="ai" data-chapter="Drawing to bloom">
-      <div class="c-chapter"><span class="c-chapter__num">05</span><h2 class="c-kicker">Drawing to bloom</h2></div>
-      <p class="c-head reveal-mask">From a reference to a flower you can hold.</p>
-      <p class="c-text reveal">To fill the studio with flowers, and to power the draw-to-bloom moment, we built an AI-assisted modelling pipeline. It became the foundation for turning a user’s sketch into a 3D flower inside the scene.</p>
+    <!-- 05 How we built it -->
+    <section class="wrap c-sec" id="build" data-chapter="How we built it">
+      <div class="c-chapter"><span class="c-chapter__num">05</span><h2 class="c-kicker">How we built it</h2></div>
+      <p class="c-head reveal-mask">Built in Unity, lit like a night garden.</p>
+      <p class="c-text reveal">The whole experience runs in Unity with Meta Quest hand tracking. We staged each space, from the lobby’s moon windows to the gallery corridor, and lit them with warm lanterns against the dark garden.</p>
+      <div class="zen-unity reveal-stagger">
+        <figure><img src="../assets/projects/zenbloom/unity-lobby.webp" alt="Unity editor: the lobby with three moon windows and the scene hierarchy" width="1600" height="933" loading="lazy"><figcaption>The lobby and its moon windows in the Unity editor.</figcaption></figure>
+        <figure><img src="../assets/projects/zenbloom/unity-gallery.webp" alt="Unity editor: placing spot lights along the gallery corridor" width="1600" height="839" loading="lazy"><figcaption>Lighting the gallery corridor, one lantern at a time.</figcaption></figure>
+      </div>
+      <h3 class="zen-sub reveal">Drawing to bloom: an AI flower pipeline</h3>
+      <p class="c-text reveal">To fill the studio with flowers, and to power the draw-to-bloom moment, we built an AI-assisted modelling pipeline.</p>
       <ol class="zen-pipe reveal-stagger">
         <li><img src="../assets/projects/zenbloom/model-1.webp" alt="Reference photo of red gerberas in an ikebana arrangement" width="416" height="900" loading="lazy"><b>01</b><h3>Inspiration</h3><p>Mood boards and references set the aesthetic direction.</p></li>
         <li><img src="../assets/projects/zenbloom/model-2.webp" alt="AI-generated gerbera on a white background" width="600" height="900" loading="lazy"><b>02</b><h3>AI concept</h3><p>Clean, white-background flower concepts as precise modelling references.</p></li>
@@ -194,17 +198,6 @@
       </div>
     </section>
 
-    <!-- 07 Reflection -->
-    <section class="wrap c-sec" id="reflection" data-chapter="Reflection">
-      <div class="c-chapter"><span class="c-chapter__num">07</span><h2 class="c-kicker">Reflection</h2></div>
-      <p class="c-head reveal-mask">What worked, and what’s next.</p>
-      <div class="zen-reflect reveal-stagger">
-        <article><small>What worked</small><p>Ikebana translated into VR through gesture, spatial composition and small rituals: tea to learn, the pipa for music, palms together to save. Arranging, bending and drawing made it feel expressive, not just functional.</p></article>
-        <article><small>What could be better</small><p>Generated flowers could match the drawing more closely. Next, we’d let people cut branches more freely, offer more flowers, and bring finished arrangements into mixed reality to place in their own rooms.</p></article>
-      </div>
-      <figure class="c-figure reveal"><img src="../assets/projects/zenbloom/render.webp" alt="A moonlit garden framed by a wide window" width="1600" height="900" loading="lazy"></figure>
-    </section>
-
     <a class="c-next wrap" href="fitfido.html" data-cursor="Next" style="--next:#de6536;--next-bg:#de6536;--next-fg:#fff">
       <p class="eyebrow">Next project</p>
       <p class="c-next__title">Fitfido</p>
@@ -214,7 +207,7 @@
   <nav class="chapter" aria-label="Chapters">
     <ol class="chapter__list"></ol>
     <button class="chapter__toggle" aria-expanded="false">
-      <span class="chapter__num">01 / 07</span><span class="chapter__label">Vision film</span>
+      <span class="chapter__num">01 / 06</span><span class="chapter__label">Vision film</span>
       <span class="chapter__bar"><span></span></span>
     </button>
   </nav>
