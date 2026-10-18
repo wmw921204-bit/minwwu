@@ -68,7 +68,7 @@
     HA.rooms=s.rooms||[];HA.savedZones=s.savedZones||[];HA.objs=s.objs||[];HA.objSnap=s.objSnap||'';HA.align=s.align||null;HA.retryWhen=s.retryWhen||'now';HA.lastErr=s.lastErr||null;HA.lastStatusProblem=s.lastStatusProblem||null;
     HA.notes=s.notes||{};HA.refArea=s.refArea||null;HA.retryQueue=s.retryQueue||[];HA.spotEv=s.spotEv||null;HA.spotStarted=!!s.spotStarted;HA.prevStatus=s.prevStatus||null;S.quietUntil=s.quietUntil||null;HA.careDay=s.careDay||{};
     SCEN.none={label:'No study events',keys:[]};
-    S.ctl.scenario=s.scenario&&SCEN[s.scenario]?s.scenario:'all';S.temp=s.temp||null;
+    S.ctl.scenario=s.scenario&&SCEN[s.scenario]?s.scenario:'none'; // study events only when a facilitator turns them onS.temp=s.temp||null;
     S.clock=now();S.conn='connecting';S.device={status:'docked',battery:null,error:null};
     S.snap={clock:S.clock,device:{...S.device},pos:null,pct:0};
   }
