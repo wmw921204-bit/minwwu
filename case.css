@@ -957,3 +957,9 @@ img.is-zoomable { cursor: zoom-in; }
 .zen-sub { font: 600 clamp(22px, 2vw, 28px)/1.25 var(--f-display); margin: 80px 0 14px; }
 @media (max-width: 900px) { .zen-gest { grid-template-columns: 1fr 1fr; } .zen-unity { grid-template-columns: 1fr; } }
 @media (max-width: 560px) { .zen-gest { grid-template-columns: 1fr; } }
+/* Unity shots share one frame size so they line up */
+.zen-unity figure { margin: 0; }
+.zen-unity img { aspect-ratio: 16 / 9; object-fit: cover; object-position: 50% 0; }
+/* Closing logo animation, keyed onto the page colour */
+.zen-end { padding: clamp(40px, 8vw, 120px) 0 clamp(20px, 4vw, 60px); background: var(--c-bg); }
+.zen-end video { display: block; width: min(100%, 1200px); margin: 0 auto; aspect-ratio: 1600 / 634; object-fit: cover; background: var(--c-bg); -webkit-mask-image: radial-gradient(ellipse 50% 50% at 50% 50%, #000 62%, transparent 100%); mask-image: radial-gradient(ellipse 50% 50% at 50% 50%, #000 62%, transparent 100%); }
