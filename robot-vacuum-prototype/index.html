@@ -131,7 +131,7 @@ button.tile{font:inherit;width:100%}
 .why-chip{display:flex;width:100%;align-items:center;gap:10px;border:0;background:var(--primary-soft);color:var(--ink);border-radius:16px;padding:12px 13px;margin-top:14px;text-align:left;font-size:13px;line-height:1.35}
 .why-chip svg{color:var(--primary);flex:none}
 .why-chip b{font-weight:700}
-.why-chip .why{margin-left:auto;color:var(--primary);font-weight:800;white-space:nowrap}
+.why-chip .why-link{margin-left:auto;color:var(--primary);font-weight:800;white-space:nowrap}
 
 .btn{height:52px;border-radius:99px;border:0;padding:0 20px;font-weight:800;font-size:15px;display:inline-flex;align-items:center;justify-content:center;gap:8px}
 .btn.primary{background:var(--primary);color:var(--primary-ink);box-shadow:0 12px 24px -12px var(--primary)}
@@ -1088,11 +1088,12 @@ function statusCard(){
     h+=`<p class="status-sub">${d.status==='error'?esc(S.device.error):d.status==='paused'&&S.waitEv?`Stopped at ${ZONES[DEFS[findEvent(S.waitEv).key].zone].name.toLowerCase()}. It won’t continue until you choose.`:nY.length?`${nY.length} ${nY.length===1?'thing needs':'things need'} your review. Cleaning continues elsewhere.`:d.status==='paused'&&S.waitEv?`Stopped at ${ZONES[DEFS[findEvent(S.waitEv).key].zone].name.toLowerCase()}. It won’t continue until you choose.`:d.status==='paused'&&S.checkEv?'Check the area under the bed, then resume.':'Everything is running normally.'}</p>`;
     h+=`<div class="progress"><i data-live="bar" style="width:${LIVE.bar()}"></i></div><div class="meta-row">${live('pct')}${live('elapsed')}${d.status==='cleaning'?live('remain'):''}</div>`;
     const latest=[...visibleEvents()].reverse().find(e=>!e.quiet&&(e.autonomous||e.status==='info'||e.status==='needsReview'||e.status==='inProgress'));
-    if(latest&&d.status!=='returning')h+=`<button class="why-chip" data-a="openEvent" data-v="${latest.id}">${ic('robot',18)}<b>${esc(S.waitEv===latest.id?'Waiting: '+SHORT[latest.key].q:latest.status==='inProgress'?'Heading back: '+ZONES[DEFS[latest.key].zone].name:DEFS[latest.key].chip)}</b><span class="why">Why this?</span></button>`;
+    if(latest&&d.status!=='returning')h+=`<button class="why-chip" data-a="openEvent" data-v="${latest.id}">${ic('robot',18)}<b>${esc(S.waitEv===latest.id?'Waiting: '+SHORT[latest.key].q:latest.status==='inProgress'?'Heading back: '+ZONES[DEFS[latest.key].zone].name:DEFS[latest.key].chip)}</b><span class="why-link">Why this?</span></button>`;
     const sending=S.cmd&&S.cmd.state==='sending';
     if(d.status==='cleaning')h+=`<div class="btn-row"><button class="btn plain" data-a="pause" ${sending?'disabled':''}>Pause</button><button class="btn plain" data-a="endReturn" ${sending?'disabled':''}>Return to dock</button></div>`;
     if(d.status==='paused'&&S.waitEv)h+=`<div class="btn-row"><button class="btn primary" data-a="openEvent" data-v="${S.waitEv}">Choose now</button><button class="btn plain" data-a="resume" ${sending?'disabled':''}>Skip, keep going</button></div>`;
     else if(d.status==='paused'||d.status==='error')h+=`<div class="btn-row"><button class="btn primary" data-a="resume" ${sending?'disabled':''}>Resume</button><button class="btn plain" data-a="endReturn" ${sending?'disabled':''}>End and return</button></div>`;
+    if(d.status==='error')h+=`<p class="small" style="margin:10px 2px 0"><button class="link" data-a="go" data-v="stuck">What happened and what to do</button></p>`;
   }else{
     if(S.task&&S.task.done){
       const nc=S.events.filter(e=>['needsReview','deferred','skipped'].includes(e.status)&&DEFS[e.key].type!=='decision').length;
@@ -1332,7 +1333,7 @@ function scrInbox(){
   const it=inbox();
   let h=`<div class="page-title">Inbox</div><p class="small muted" style="margin:-4px 4px 12px">What still needs you. Things stay here after a notice is gone.</p>`;
   if(!it.count&&!it.later.length&&!it.deferred.length&&!it.ignored.length)h+=`<div class="calm">${ic('check',20)}<span>Nothing waiting for you.</span></div>`;
-  if(it.stuck)h+=`<div class="sec-h">Robot problem</div><button class="item" data-a="tab" data-v="home"><span class="ico" style="background:var(--stop-soft);color:var(--stop)">${ic('alert',20)}</span><span class="body"><span class="t">Robot is stuck</span><span class="s">${esc(S.device.error||'It needs a hand.')}</span></span>${ic('chev',18)}</button>`;
+  if(it.stuck)h+=`<div class="sec-h">Robot problem</div><button class="item" data-a="go" data-v="stuck"><span class="ico" style="background:var(--stop-soft);color:var(--stop)">${ic('alert',20)}</span><span class="body"><span class="t">Robot is stuck</span><span class="s">${esc(S.device.error||'It needs a hand.')}</span></span>${ic('chev',18)}</button>`;
   if(it.needs.length)h+=`<div class="sec-h">Needs your call<small>${it.needs.length}</small></div>`+it.needs.map(evItem).join('');
   if(it.po.length)h+=`<div class="sec-h">Objects to check</div>`+objGroups(it.po).map(g=>`<button class="item" data-a="reviewRoom" data-v="${g.room}"><span class="ico warn" style="font-size:17px">${g.items.slice(0,2).map(o=>OBJ[o.label].e).join('')}</span><span class="body"><span class="t">${esc(g.name)}: ${g.items.length} item${g.items.length>1?'s':''}</span><span class="s">Confirm together, or ignore for now.</span></span><span class="pill needsReview">Check</span></button>`).join('');
   if(it.later.length)h+=`<div class="sec-h">Remind me later<small>${it.later.length}</small></div>`+it.later.map(e=>evItem(e).replace(/<span class="pill [^"]*">[^<]*<\/span>/,`<span class="pill deferred">${esc(laterLabel(e))}</span>`)).join('');
@@ -1415,6 +1416,20 @@ function scrSchedule(){
   let h=topbar('Schedule');
   h+=S.schedules.map(s=>`<div class="item"><span class="body" style="cursor:pointer" data-a="editSched" data-v="${s.id}"><span class="t">${s.time} · ${s.days.join(', ')}</span><span class="s">${esc(s.scope)}</span></span><button class="switch ${s.on?'on':''}" role="switch" aria-checked="${s.on}" aria-label="Schedule on" data-a="toggleSched" data-v="${s.id}"></button></div>`).join('');
   h+=`<button class="btn soft block" style="margin-top:14px" data-a="editSched" data-v="new">Add schedule</button>`;
+  return h;
+}
+/* The robot is stuck: what happened, why it needs a person, and what to do. */
+function scrStuck(){
+  const d=S.device;let h=`<div class="topbar"><button class="icon-btn" data-a="back" aria-label="Back">${ic('back')}</button><span style="flex:1"></span>${d.status==='error'?'<span class="pill needsReview">Needs you</span>':'<span class="pill resolved">Moving again</span>'}</div>`;
+  h+=`<div class="h-screen" style="margin-top:14px">${d.status==='error'?'The robot is stuck':'The robot is moving again'}</div>`;
+  if(d.status!=='error')return h+`<p class="ev-line">It’s free and back to cleaning. Nothing else to do.</p>`;
+  h+=`<p class="ev-line">In ${esc(curRoom().the)}.</p>`;
+  h+=`<div class="map-wrap" style="margin-top:14px">${mapSVG({mini:true})}</div>`;
+  h+=`<div class="sec-h">What happened</div><div class="card"><p style="font-size:15px;line-height:1.5">${esc(d.error||'It can’t move.')}</p></div>`;
+  h+=`<div class="sec-h">Why it needs you</div><div class="card"><p style="font-size:15px;line-height:1.5">It already tried to free itself 3 times. It can’t move on its own now, so someone has to lift it or clear the way.</p></div>`;
+  h+=`<div class="sec-h">What to do</div><div class="card"><ol style="margin:0;padding-left:20px;font-size:15px;line-height:1.6"><li>Go to the robot in ${esc(curRoom().the)}.</li><li>Lift it onto open floor, or remove what’s caught.</li><li>Check the wheels for hair or a cable.</li><li>Tap Resume.</li></ol></div>`;
+  const sending=S.cmd&&S.cmd.state==='sending';
+  h+=`<div class="btn-row" style="margin-top:16px"><button class="btn primary" data-a="resume" ${sending?'disabled':''}>Resume</button><button class="btn plain" data-a="endReturn" ${sending?'disabled':''}>End and return</button></div>`;
   return h;
 }
 function scrHelp(){
@@ -1615,12 +1630,12 @@ function render(){
   if(S.conn==='disconnected')h+=`<div class="banner"><span><b>Disconnected</b>Last update ${hhmm(S.snap.clock)}. Current status can’t be confirmed.</span><button class="btn primary" style="height:38px;font-size:13px;padding:0 12px" data-a="reconnect">Reconnect</button></div>`;
   if(S.conn==='connecting')h+=`<div class="banner connecting"><span class="spin"></span><span style="flex:1"><b>Reconnecting…</b>Getting the latest status</span></div>`;
   const c=cur();
-  const map={home:scrHome,map:scrMap,activity:scrInbox,settings:scrSettings,setup:scrSetup,event:scrEvent,report:scrReport,timeline:scrTimeline,autonomy:scrAutonomy,rules:scrRules,schedule:scrSchedule,help:scrHelp,...(window.EXTRA_SCREENS||{})};
+  const map={home:scrHome,map:scrMap,activity:scrInbox,settings:scrSettings,setup:scrSetup,event:scrEvent,report:scrReport,timeline:scrTimeline,autonomy:scrAutonomy,rules:scrRules,schedule:scrSchedule,help:scrHelp,stuck:scrStuck,...(window.EXTRA_SCREENS||{})};
   h+=`<div class="scroll">${map[c.name](c.id)}</div>`;
   const badge=needsYou().length;
   const inboxN=inbox().count;
   h+=`<nav class="tabbar">${[['home','Home'],['map','Map'],['activity','Inbox'],['settings','Settings']].map(([k,l])=>`<button class="tab ${S.ui.tab===k?'on':''}" data-a="tab" data-v="${k}" aria-label="${l}${k==='activity'&&inboxN?', '+inboxN+' waiting':''}">${k==='activity'&&inboxN?`<span class="badge">${inboxN}</span>`:''}${ic(k==='activity'?'bell':k)}${l}</button>`).join('')}</nav>`;
-  if(S.ui.notice==='stuck'&&S.device.status==='error'&&!(c.name==='home'||(c.name===undefined&&S.ui.tab==='home'))){h+=`<div class="notice" role="alert"><span class="ico" style="width:34px;height:34px;border-radius:10px;display:grid;place-items:center;background:var(--stop-soft);color:var(--stop)">${ic('alert',18)}</span><span class="body"><b>Robot is stuck</b><br><span class="muted">Tried 3 times to free itself in ${curRoom().the}. It needs a hand.</span></span><button class="btn soft" style="height:36px;padding:0 12px;font-size:13px" data-a="tab" data-v="home">View</button></div>`}
+  if(S.ui.notice==='stuck'&&S.device.status==='error'&&c.name!=='stuck'){h+=`<div class="notice" role="alert"><span class="ico" style="width:34px;height:34px;border-radius:10px;display:grid;place-items:center;background:var(--stop-soft);color:var(--stop)">${ic('alert',18)}</span><span class="body"><b>Robot is stuck</b><br><span class="muted">Tried 3 times to free itself in ${curRoom().the}. It needs a hand.</span></span><button class="btn soft" style="height:36px;padding:0 12px;font-size:13px" data-a="go" data-v="stuck">View</button></div>`}
   else if(S.ui.notice==='moved'){h+=`<div class="notice" role="status"><span class="ico blue" style="width:34px;height:34px;border-radius:10px;display:grid;place-items:center">${ic('map',18)}</span><span class="body"><b>Map updated</b><br><span class="muted">${esc(S.mapNews||'')}</span></span><button class="btn soft" style="height:36px;padding:0 12px;font-size:13px" data-a="tab" data-v="map">View</button></div>`}
   else if(S.ui.notice==='missed'){h+=`<div class="notice" role="status"><span class="ico blue" style="width:34px;height:34px;border-radius:10px;display:grid;place-items:center">${ic('bell',18)}</span><span class="body"><b>While notices were paused</b><br><span class="muted">${S.missedN} thing${S.missedN>1?'s':''} came up</span></span><button class="btn soft" style="height:36px;padding:0 12px;font-size:13px" data-a="tab" data-v="activity">Inbox</button></div>`}
   else if(S.ui.notice==='done'&&S.task&&S.task.done){h+=`<div class="notice" role="status"><span class="ico ok" style="width:34px;height:34px;border-radius:10px;display:grid;place-items:center">${ic('check',18)}</span><span class="body"><b>Cleaning finished</b><br><span class="muted">${esc(RESULTLABEL[S.task.result]||'Done')}</span></span><button class="btn soft" style="height:36px;padding:0 12px;font-size:13px" data-a="openReport" data-v="${S.task.id}">Report</button></div>`}
@@ -1677,7 +1692,7 @@ const A={
   lockOpen(v){S.ui.away=false;S.ui.modal=null;S.ui.stack=[];
     if(v==='done'&&S.task){S.ui.tab='activity';go('report',S.task.id);return}
     if(v==='moved'){A.tab('map');return}
-    if(v==='stuck'){A.tab('home');return}
+    if(v==='stuck'){A.tab('home');go('stuck');return}
     if(findEvent(v)){S.ui.tab='home';go('event',v);return}
     commit()},
   updateMap(){if(running()){flash('The map updates while the robot cleans.');return}
