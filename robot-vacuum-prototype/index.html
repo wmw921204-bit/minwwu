@@ -116,6 +116,7 @@ p{margin:0}
 .tile.on .ti,.tile.on span{color:var(--primary-ink)}
 .tile.warn b{color:var(--warn)}
 button.tile{font:inherit;width:100%}
+#needs-you{scroll-margin-top:72px}
 
 .status-kicker{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:700;color:var(--muted)}
 .live-dot{width:8px;height:8px;border-radius:50%;background:var(--ok);box-shadow:0 0 0 4px var(--ok-soft)}
@@ -1091,7 +1092,7 @@ function attention(){
   const all=visibleEvents();const auto=all.filter(e=>e.autonomous&&!e.changed);
   const evs=all.filter(e=>e.status!=='info'&&!(e.autonomous&&!e.changed));
   const open=evs.filter(e=>e.status==='needsReview'&&!e.later), prog=evs.filter(e=>e.status==='inProgress'), later=evs.filter(e=>e.status==='deferred'), done=evs.filter(e=>e.status==='resolved'||e.status==='skipped');
-  let h=`<div class="sec-h">Needs your call${open.length?`<small>${open.length}</small>`:''}</div>`;
+  let h=`<div class="sec-h" id="needs-you">Needs your call${open.length?`<small>${open.length}</small>`:''}</div>`;
   if(S.conn!=='connected')h+=`<div class="calm">${ic('wifi',20)}<span>Can’t check for new issues while the app is offline. Items below are from ${hhmm(S.snap.clock)}.</span></div>`;
   if(!open.length&&!prog.length&&!later.length&&!(pendingObjs().length&&S.task&&S.task.done)&&S.conn==='connected')h+=`<div class="calm">${ic('check',20)}<span>Nothing needs you right now. The robot will let you know if something comes up.</span></div>`;
   h+=open.concat(prog).map(evItem).join('');
@@ -1127,7 +1128,7 @@ function scrHome(){
   const tiles=`<div class="tiles">
     <div class="tile"><span class="ti">${ic('bolt',24)}</span><b data-live="battery">${LIVE.battery()}</b><span>Battery</span></div>
     <button class="tile ${active?'on':''}" data-a="${S.task?'openReport':'setup'}" data-v="${S.task?S.task.id:''}"><span class="ti">${ic('map',24)}</span><b>${active?`<span data-live="barText" style="display:inline;font:inherit;color:inherit;margin:0">${LIVE.bar()}</span>`:doneP!==null?doneP+'%':'—'}</b><span>${active?'Cleaned so far':S.task?'Last cleaning':'No cleaning yet'}</span></button>
-    <div class="tile ${nY+(S.task&&S.task.done?pendingObjs().length:0)?'warn':''}"><span class="ti">${ic(nY+(S.task&&S.task.done?pendingObjs().length:0)?'alert':'check',24)}</span><b>${nY+(S.task&&S.task.done?pendingObjs().length:0)}</b><span>Needs you</span></div>
+    <button class="tile ${nY+(S.task&&S.task.done?pendingObjs().length:0)?'warn':''}" data-a="toNeeds" aria-label="Jump to what needs you"><span class="ti">${ic(nY+(S.task&&S.task.done?pendingObjs().length:0)?'alert':'check',24)}</span><b>${nY+(S.task&&S.task.done?pendingObjs().length:0)}</b><span>Needs you</span></button>
   </div>`;
   return `<div class="hero-name"><b>Roborock</b><span>S6 MaxV</span></div><div class="hero-sub"><span class="live-dot ${off?'off':''}"></span>${off?'Offline':'Online'} · <button class="mode-pill" data-a="modeSheet" aria-label="Change how involved you are">${ic('robot',15)}${MODES[S.autonomy].name}${S.temp?' · '+esc(tempLabel()):''}<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button></div>
   ${hero}${tiles}
@@ -1699,6 +1700,7 @@ const A={
   objNone(){const o=S.objects.find(x=>x.id===S.ui.objId);S.objects=S.objects.filter(x=>x!==o);tl('you',`You said nothing was there (robot thought: ${OBJ[o.orig].n.toLowerCase()})`);objNext()},
   map3d(v){S.ui.map3d=v==='1';commit()},
   tab(v){S.ui.tab=v;S.ui.stack=[];commit(true)},
+  toNeeds(){const el=document.getElementById('needs-you');if(el)el.scrollIntoView({behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth',block:'start'})},
   go(v){go(v)},back(){back()},
   setup(){go('setup')},
   setupKind(v){S.ui.setup.kind=v;commit()},
