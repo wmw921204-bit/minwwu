@@ -7,36 +7,50 @@
 <style>
   :root { --o: #f0611f; --ink: #1f1f1f; --muted: #7b7b7b; }
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  html, body { width: 393px; height: 852px; overflow: hidden; background: #efefef; font-family: -apple-system, "SF Pro Text", Inter, system-ui, sans-serif; -webkit-font-smoothing: antialiased; }
-  #app { position: relative; width: 393px; height: 852px; overflow: hidden; background: #efefef; }
-  .scr { position: absolute; inset: 0; overflow-y: auto; overflow-x: hidden; scrollbar-width: none; background: #efefef; transition: transform .38s cubic-bezier(.3,.7,.2,1), opacity .3s; will-change: transform; }
-  .scr::-webkit-scrollbar { display: none; }
-  .scr { pointer-events: none; } .scr.is-cur { pointer-events: auto; }
-  .scr img { display: block; width: 393px; height: auto; user-select: none; -webkit-user-drag: none; pointer-events: none; }
-  .scr .wrap { position: relative; }
-  .hs { position: absolute; border: 0; background: transparent; cursor: pointer; border-radius: 14px; }
+  html, body { width: 393px; height: 852px; overflow: hidden; overscroll-behavior: none; background: #efefef; font-family: -apple-system, "SF Pro Text", Inter, system-ui, sans-serif; -webkit-font-smoothing: antialiased; }
+  #app { position: relative; width: 393px; height: 852px; overflow: hidden; background: #efefef; touch-action: pan-y; }
+  img { display: block; user-select: none; -webkit-user-drag: none; pointer-events: none; }
+  /* a screen: fixed base, an optional scrolling layer, then fixed layers (nav) on top */
+  .scr { position: absolute; inset: 0; overflow: hidden; background: #efefef; pointer-events: none; opacity: 0; transition: transform .34s cubic-bezier(.3,.7,.2,1), opacity .3s ease; }
+  .scr.is-cur { pointer-events: auto; opacity: 1; z-index: 2; }
+  .scr.is-prev { opacity: 1; z-index: 1; }
+  .scr > .base { position: absolute; left: 0; top: 0; width: 393px; }
+  .sc { position: absolute; overflow-x: hidden; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
+  .sc::-webkit-scrollbar { display: none; }
+  .sc .in { position: relative; }
+  .fx { position: absolute; left: 0; width: 393px; pointer-events: none; }
+  .fx .hs { pointer-events: auto; }
+  .fx .glass { position: absolute; top: 59px; width: 283px; height: 70px; border-radius: 20px; -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px); }
+  .hs { position: absolute; border: 0; background: transparent; cursor: pointer; border-radius: 14px; -webkit-tap-highlight-color: transparent; }
   .hs:focus-visible { outline: 3px solid var(--o); outline-offset: 2px; }
-  #app.is-hint .hs { animation: hint .7s ease-out; }
-  @keyframes hint { 0%, 100% { box-shadow: none; background: transparent; } 35% { box-shadow: 0 0 0 3px rgba(240,97,31,.65); background: rgba(240,97,31,.12); } }
-  .off-r { transform: translateX(100%); } .off-l { transform: translateX(-28%); } .fade { opacity: 0; }
+  .tg { position: absolute; cursor: pointer; }
+  .tg img { width: 100%; }
+  #app.is-hint .scr.is-cur .hs, #app.is-hint .scr.is-cur .tg { animation: hint .7s ease-out; }
+  @keyframes hint { 35% { box-shadow: 0 0 0 3px rgba(240,97,31,.6); background: rgba(240,97,31,.1); } }
+  .layer { position: absolute; pointer-events: none; }
   /* toast */
-  .toast { position: absolute; left: 50%; bottom: 112px; z-index: 30; transform: translate(-50%, 20px); opacity: 0; padding: 12px 18px; border-radius: 16px; background: rgba(30,30,30,.92); color: #fff; font-size: 14px; white-space: nowrap; transition: .3s; pointer-events: none; }
+  .toast { position: absolute; left: 50%; bottom: 118px; z-index: 40; transform: translate(-50%, 16px); opacity: 0; max-width: 340px; padding: 12px 18px; border-radius: 16px; background: rgba(28,28,28,.92); color: #fff; font-size: 14px; line-height: 1.35; text-align: center; transition: .3s; pointer-events: none; }
   .toast.is-on { transform: translate(-50%, 0); opacity: 1; }
-  /* bottom sheets and custom screens */
-  .veil { position: absolute; inset: 0; z-index: 20; background: rgba(0,0,0,.28); opacity: 0; transition: opacity .3s; }
+  /* sheets drawn in each version's style */
+  .veil { position: absolute; inset: 0; z-index: 30; background: rgba(0,0,0,.3); opacity: 0; transition: opacity .3s; }
   .veil.is-on { opacity: 1; }
-  .sheet { position: absolute; left: 10px; right: 10px; bottom: 10px; z-index: 21; padding: 26px 22px 22px; border-radius: 30px; transform: translateY(110%); transition: transform .4s cubic-bezier(.3,.7,.2,1); }
+  .sheet { position: absolute; left: 10px; right: 10px; bottom: 10px; z-index: 31; padding: 26px 22px 22px; border-radius: 30px; transform: translateY(110%); transition: transform .42s cubic-bezier(.3,.7,.2,1); }
   .sheet.is-on { transform: none; }
   .btn { display: block; width: 100%; margin-top: 18px; padding: 15px; border: 0; border-radius: 16px; background: var(--o); color: #fff; font-family: inherit; font-size: 17px; font-weight: 600; line-height: 1; cursor: pointer; }
-  /* v1 look: soft, embossed, orange */
+  .btn--ghost { background: transparent; color: var(--muted); margin-top: 6px; font-weight: 500; font-size: 15px; box-shadow: none !important; }
   .v1 .sheet { background: #ececec; box-shadow: 8px 8px 24px rgba(0,0,0,.18), -6px -6px 16px rgba(255,255,255,.8); }
   .v1 .sheet h3 { font-size: 20px; color: var(--o); }
   .v1 .sheet p { margin-top: 6px; font-size: 14px; color: var(--muted); }
-  .ring { position: relative; width: 170px; height: 170px; margin: 22px auto 4px; border-radius: 50%; background: #ececec; box-shadow: inset 6px 6px 14px rgba(0,0,0,.12), inset -6px -6px 14px rgba(255,255,255,.9); display: grid; place-items: center; }
-  .ring svg { position: absolute; inset: 10px; width: 150px; height: 150px; transform: rotate(-90deg); }
-  .ring b { font-size: 40px; color: var(--o); font-weight: 700; } .ring small { display: block; text-align: center; font-size: 14px; color: var(--muted); }
   .v1 .btn { box-shadow: 4px 6px 14px rgba(240,97,31,.35); }
-  /* v2 look: light, airy */
+  .dial { position: relative; width: 190px; height: 190px; margin: 20px auto 6px; border-radius: 50%; background: #ececec; box-shadow: inset 6px 6px 14px rgba(0,0,0,.12), inset -6px -6px 14px rgba(255,255,255,.9); display: grid; place-items: center; text-align: center; }
+  .dial b { display: block; font-size: 46px; color: var(--o); font-weight: 700; font-variant-numeric: tabular-nums; letter-spacing: -.02em; }
+  .dial small { font-size: 14px; color: var(--muted); }
+  .dial i { position: absolute; left: 50%; bottom: 30px; transform: translateX(-50%); font-style: normal; font-size: 12px; color: var(--muted); white-space: nowrap; transition: color .3s; }
+  .dial.is-stable i { color: #2f9e57; }
+  .dial svg { position: absolute; inset: 8px; width: 174px; height: 174px; }
+  .portion { display: flex; align-items: baseline; justify-content: center; gap: 12px; margin: 22px 0 4px; font-size: 18px; color: var(--muted); }
+  .portion b { font-size: 40px; color: var(--o); }
+  .portion s { color: #b5b5b5; }
   .v2 .sheet { background: #fff; box-shadow: 0 -10px 40px rgba(0,0,0,.12); }
   .v2 .sheet h3 { font-size: 22px; font-weight: 500; color: var(--ink); }
   .row { display: flex; align-items: center; gap: 12px; margin-top: 14px; padding: 14px; border-radius: 18px; background: #f3f3f3; font-size: 15px; }
@@ -45,160 +59,227 @@
   .row em.wait { color: var(--muted); }
   .spin { width: 16px; height: 16px; border: 2px solid #ccc; border-top-color: var(--o); border-radius: 50%; animation: s 1s linear infinite; display: inline-block; vertical-align: -3px; margin-right: 6px; }
   @keyframes s { to { transform: rotate(360deg); } }
-  /* v2 "logged" screen, drawn in the second iteration's style */
-  .sb { position: absolute; left: 0; top: 0; width: 393px; height: 52px; background: url(s/v2-plan.webp) 0 0 / 393px auto no-repeat; }
-  .logged { position: relative; padding: 58px 22px 0; }
-  .logged .x { width: 44px; height: 44px; border-radius: 50%; background: #fff; display: grid; place-items: center; font-size: 20px; border: 0; cursor: pointer; }
-  .logged .tick { width: 110px; height: 110px; margin: 52px auto 18px; border-radius: 50%; background: var(--o); display: grid; place-items: center; box-shadow: 0 18px 36px -12px rgba(240,97,31,.6); animation: pop .5s cubic-bezier(.2,1.5,.4,1); }
-  @keyframes pop { from { transform: scale(.4); opacity: 0; } }
-  .logged h2 { text-align: center; font-size: 30px; font-weight: 400; letter-spacing: -.01em; }
-  .logged .sub { text-align: center; margin-top: 8px; font-size: 14px; color: var(--muted); }
-  .card { margin-top: 30px; padding: 20px; border-radius: 26px; background: #fff; }
-  .card .l { display: flex; justify-content: space-between; align-items: baseline; padding: 10px 0; font-size: 15px; border-bottom: 1px solid #f0f0f0; }
-  .card .l:last-child { border: 0; }
-  .card .l b { font-weight: 600; } .card s { color: #b9b9b9; margin-right: 8px; } .card .o { color: var(--o); font-weight: 600; }
 </style>
 </head>
 <body>
 <div id="app"></div>
 <div class="toast" id="toast"></div>
 <script>
-/* Fitfido: the first app (?mode=before) and the second iteration (?mode=after), built from the real screens.
-   Hotspots are in the screens' own points (393 wide). A few screens the designs didn't include are drawn here
-   in each version's style (weigh-in, "logged", add device). Every screen carries data-testid so the case-study
-   page can explain where the visitor is. */
+/* Fitfido prototypes, wired the way the Figma prototype is: ?mode=before is the first app, ?mode=after the second.
+   Screens are layered exports from Figma (a fixed base, a scrolling layer, the fixed nav), all in the screen's own
+   points (393 x 852). Hotspots on a scrolling layer use that layer's coordinates. A few screens Figma didn't have
+   (weigh-in, adjust plan, add device) are drawn here in each version's style. Every screen carries data-testid
+   so the case-study page can explain where the visitor is. */
 const MODE = new URLSearchParams(location.search).get("mode") === "before" ? "before" : "after";
+const PRE = MODE === "before" ? "b-" : "a-";
 const app = document.getElementById("app");
 app.className = MODE === "before" ? "v1" : "v2";
+const S = (n) => "s/" + n + ".webp?v=2";
 
-const NAV1 = [["home", 33, 770, 100, 60], ["devices", 146, 770, 100, 60], ["settings", 259, 770, 100, 60]];
-const NAV2 = [["home1", 63, 766, 60, 56], ["device1", 132, 766, 60, 56], ["appt", 200, 766, 60, 56], ["profile", 269, 766, 60, 56]];
-const tab = (list) => list.map(([to, x, y, w, h]) => ({ x, y, w, h, tab: to }));
+/* ---------- screens ---------- */
+const NAV1 = [{ x: 21, y: 774, w: 117, h: 56, tab: "home" }, { x: 138, y: 774, w: 117, h: 56, tab: "feeder" }, { x: 255, y: 774, w: 116, h: 56, tab: "settings" }];
+const NAV2 = [{ x: 63, y: 765, w: 62, h: 58, tab: "home1" }, { x: 131, y: 765, w: 62, h: 58, tab: "device1" }, { x: 199, y: 765, w: 62, h: 58, tab: "appt" }, { x: 267, y: 765, w: 62, h: 58, tab: "profile" }];
+const nav2 = (img) => ({ img: S("v2-nav-" + img), y: 700, h: 152, hs: NAV2 });
 
 const SCREENS = MODE === "before" ? {
-  home: { img: "v1-home", hs: [
-    { x: 36, y: 700, w: 116, h: 34, act: "weigh" },
-    { x: 22, y: 650, w: 160, h: 46, go: "scale" },
-    { x: 198, y: 650, w: 175, h: 90, go: "feeder" },
-    { x: 238, y: 524, w: 110, h: 60, act: "plan" },
-    ...tab(NAV1)] },
-  devices: { img: "v1-devices", hs: [
-    { x: 225, y: 320, w: 125, h: 52, act: "weigh" },
-    { x: 18, y: 160, w: 357, h: 225, go: "scale" },
-    { x: 18, y: 420, w: 357, h: 240, go: "feeder" },
-    { x: 28, y: 698, w: 337, h: 56, act: "newdev" },
-    ...tab(NAV1)] },
-  feeder: { img: "v1-feeder", hs: [
-    { x: 38, y: 638, w: 175, h: 54, go: "upload" },
-    { x: 220, y: 638, w: 140, h: 54, go: "upload" },
-    ...tab(NAV1)] },
-  scale: { img: "v1-scale", hs: [{ x: 28, y: 698, w: 337, h: 56, act: "weigh" }, ...tab(NAV1)] },
-  upload: { img: "v1-upload", hs: [{ x: 18, y: 50, w: 50, h: 50, back: 1 }, { x: 160, y: 745, w: 74, h: 70, go: "food" }] },
-  food: { img: "v1-food", hs: [{ x: 18, y: 50, w: 50, h: 50, back: 1 }, { x: 28, y: 726, w: 337, h: 58, act: "adjust" }] },
-  settings: { img: "v1-settings", hs: [...tab(NAV1)] },
+  home: { base: S("v1-home"), ring: true, hs: [
+    { x: 236, y: 522, w: 112, h: 66, act: "adjust" },
+    { x: 34, y: 698, w: 120, h: 36, act: "weigh" },
+    { x: 26, y: 650, w: 160, h: 46, act: "weigh" },
+    { x: 200, y: 650, w: 170, h: 92, tab: "feeder" },
+    { x: 290, y: 418, w: 80, h: 26, tab: "feeder" },
+    ...NAV1] },
+  feeder: { base: S("v1-feeder"), mode: true, hs: [
+    { x: 40, y: 634, w: 150, h: 62, go: "upload" },
+    { x: 204, y: 634, w: 154, h: 62, go: "upload" },
+    ...NAV1] },
+  upload: { base: S("v1-upload"), hs: [{ x: 14, y: 50, w: 54, h: 54, back: 1 }, { x: 140, y: 724, w: 112, h: 112, go: "food" }] },
+  food: { base: S("v1-food"), hs: [{ x: 14, y: 50, w: 54, h: 54, back: 1 }, { x: 20, y: 725, w: 353, h: 62, act: "autoAdjust" }, { x: 110, y: 794, w: 172, h: 28, back: 1 }] },
+  settings: { base: S("v1-settings"), hs: [...NAV1] },
 } : {
-  onboarding: { img: "v2-onboarding", hs: [{ x: 205, y: 758, w: 112, h: 38, tab: "home1" }] },
-  home1: { img: "v2-home1", hs: [{ x: 95, y: 92, w: 68, h: 80, tab: "home2" }, { x: 160, y: 92, w: 40, h: 80, tab: "home3" }, { x: 205, y: 704, w: 165, h: 58, go: "camera" }, ...tab(NAV2)] },
-  home2: { img: "v2-home2", hs: [{ x: 12, y: 92, w: 58, h: 80, tab: "home1" }, { x: 140, y: 92, w: 60, h: 80, tab: "home3" }, { x: 205, y: 704, w: 165, h: 58, go: "camera" }, ...tab(NAV2)] },
-  home3: { img: "v2-home3", hs: [{ x: 12, y: 92, w: 30, h: 80, tab: "home1" }, { x: 45, y: 92, w: 66, h: 80, tab: "home2" }, { x: 205, y: 704, w: 165, h: 58, go: "camera" }, ...tab(NAV2)] },
-  device1: { img: "v2-device1", hs: [{ x: 112, y: 100, w: 52, h: 50, tab: "device2" }, { x: 180, y: 100, w: 52, h: 50, act: "adddev" }, { x: 28, y: 285, w: 300, h: 290, go: "feeder" }, ...tab(NAV2)] },
-  device2: { img: "v2-device2", hs: [{ x: 24, y: 100, w: 52, h: 50, tab: "device1" }, { x: 161, y: 100, w: 52, h: 50, act: "adddev" }, { x: 76, y: 285, w: 290, h: 290, go: "scale" }, ...tab(NAV2)] },
-  feeder: { img: "v2-feeder", hs: [{ x: 30, y: 60, w: 52, h: 52, back: 1 }, ...tab(NAV2)] },
-  scale: { img: "v2-scale", hs: [{ x: 30, y: 60, w: 52, h: 52, back: 1 }, ...tab(NAV2)] },
-  camera: { img: "v2-camera", hs: [{ x: 30, y: 58, w: 52, h: 52, back: 1 }, { x: 30, y: 750, w: 54, h: 54, go: "gallery1" }, { x: 162, y: 740, w: 72, h: 72, go: "captured" }] },
-  captured: { img: "v2-captured", hs: [{ x: 30, y: 58, w: 52, h: 52, back: 1 }, { x: 30, y: 750, w: 54, h: 54, go: "gallery1" }, { x: 162, y: 740, w: 72, h: 72, go: "plan" }] },
-  gallery1: { img: "v2-gallery1", hs: [{ x: 30, y: 58, w: 52, h: 52, back: 1 }, { x: 304, y: 316, w: 50, h: 50, back: 1 }, { x: 36, y: 384, w: 104, h: 104, swap: "gallery2" }] },
-  gallery2: { img: "v2-gallery2", hs: [{ x: 30, y: 58, w: 52, h: 52, back: 1 }, { x: 304, y: 316, w: 50, h: 50, back: 1 }, { x: 242, y: 316, w: 50, h: 50, go: "captured" }, { x: 36, y: 384, w: 104, h: 104, swap: "gallery1" }] },
-  plan: { img: "v2-plan", hs: [{ x: 30, y: 58, w: 52, h: 52, back: 1 }, { x: 58, y: 790, w: 100, h: 42, tab: "home1" }, { x: 176, y: 790, w: 128, h: 42, go: "logged" }] },
-  logged: { html: true },
-  appt: { img: "v2-appt", hs: [{ x: 312, y: 194, w: 54, h: 54, swap: "apptCancel" }, ...tab(NAV2)] },
-  apptCancel: { img: "v2-appt-cancel", hs: [{ x: 248, y: 196, w: 118, h: 50, swap: "apptNone" }, { x: 190, y: 196, w: 54, h: 50, swap: "appt" }, ...tab(NAV2)] },
-  apptNone: { img: "v2-appt-none", hs: [...tab(NAV2)] },
-  profile: { img: "v2-profile", hs: [{ x: 32, y: 360, w: 62, h: 85, tab: "home1" }, { x: 112, y: 360, w: 62, h: 85, tab: "home2" }, ...tab(NAV2)] },
+  onboarding: { base: S("v2-onboarding"), auto: { after: 1600, tab: "home1" }, hs: [{ x: 200, y: 754, w: 122, h: 46, tab: "home1" }] },
+  // Home: the card list scrolls; swipe or tap an avatar to switch pets
+  home1: { base: S("v2-home1-bg"), swipe: [null, "home2"], sc: { x: 13, y: 59, w: 368, h: 793, img: S("v2-home1-sc"), ch: 1004, hs: [
+    { x: 85, y: 12, w: 62, h: 90, tab: "home2", dir: 1 }, { x: 158, y: 12, w: 62, h: 90, tab: "home3", dir: 1 }, { x: 192, y: 640, w: 170, h: 70, go: "camera" }] }, fx: nav2("home") },
+  home2: { base: S("v2-home2-bg"), swipe: ["home1", "home3"], sc: { x: 13, y: 59, w: 368, h: 793, img: S("v2-home2-sc"), ch: 1004, hs: [
+    { x: 0, y: 12, w: 52, h: 90, tab: "home1", dir: -1 }, { x: 134, y: 12, w: 62, h: 90, tab: "home3", dir: 1 }, { x: 192, y: 640, w: 170, h: 70, go: "camera" }] }, fx: nav2("home") },
+  home3: { base: S("v2-home3-bg"), swipe: ["home2", null], sc: { x: 13, y: 59, w: 368, h: 793, img: S("v2-home3-sc"), ch: 1004, hs: [
+    { x: 0, y: 12, w: 28, h: 90, tab: "home1", dir: -1 }, { x: 36, y: 12, w: 62, h: 90, tab: "home2", dir: -1 }, { x: 192, y: 640, w: 170, h: 70, go: "camera" }] }, fx: nav2("home") },
+  // Devices: one card per device, swipe or tap the icons to switch; toggles work
+  device1: { base: S("v2-dev1-bg"), swipe: [null, "device2"], sc: { x: 0, y: 0, w: 393, h: 852, img: S("v2-dev1-sc"), ch: 1121,
+    tg: [{ x: 26, y: 436, w: 120, h: 64, a: "auto", on: 0 }, { x: 26, y: 496, w: 120, h: 64, a: "conn", on: 1 }],
+    hs: [{ x: 108, y: 68, w: 60, h: 84, tab: "device2", dir: 1 }, { x: 176, y: 96, w: 56, h: 56, act: "addDevice" }, { x: 13, y: 369, w: 340, h: 199, go: "feeder" }] }, fx: nav2("dev") },
+  device2: { base: S("v2-dev2-bg"), swipe: ["device1", null], sc: { x: 0, y: 0, w: 393, h: 852, img: S("v2-dev2-sc"), ch: 1121,
+    tg: [{ x: 80, y: 436, w: 120, h: 64, a: "auto", on: 1 }, { x: 80, y: 496, w: 120, h: 64, a: "conn", on: 1 }],
+    hs: [{ x: 16, y: 68, w: 66, h: 84, tab: "device1", dir: -1 }, { x: 156, y: 96, w: 56, h: 56, act: "addDevice" }, { x: 67, y: 369, w: 313, h: 199, go: "scale" }] }, fx: nav2("dev") },
+  // Device details: the feeder and scale pages sit side by side; swipe between them
+  feeder: { base: S("v2-det1-bg"), swipe: [null, "scale"], sc: { x: 0, y: 0, w: 393, h: 852, img: S("v2-det1-sc"), ch: 1127,
+    tg: [{ x: 223, y: 580, w: 103, h: 64, a: "sw", on: 1 }, { x: 224, y: 830, w: 103, h: 64, a: "sw", on: 0 }],
+    hs: [{ x: 27, y: 55, w: 60, h: 60, back: 1, to: "device1" }, { x: 124, y: 760, w: 111, h: 57, go: "camera" }] }, fx: nav2("det") },
+  scale: { base: S("v2-det2-bg"), swipe: ["feeder", null], sc: { x: 0, y: 0, w: 393, h: 852, img: S("v2-det2-sc"), ch: 1127,
+    tg: [{ x: 263, y: 822, w: 103, h: 64, a: "sw", on: 0 }],
+    hs: [{ x: 27, y: 55, w: 60, h: 60, back: 1, to: "device2" }, { x: 76, y: 553, w: 126, h: 56, act: "zero" }] }, fx: nav2("det") },
+  // Treat camera, gallery and the AI diet plan
+  camera: { base: S("v2-camera"), scan: true, hs: [{ x: 27, y: 55, w: 60, h: 60, back: 1 }, { x: 27, y: 745, w: 60, h: 60, go: "gallery1" }, { x: 156, y: 734, w: 82, h: 82, swap: "captured" }] },
+  captured: { base: S("v2-captured"), hs: [{ x: 27, y: 55, w: 60, h: 60, swap: "camera" }, { x: 27, y: 745, w: 60, h: 60, go: "gallery1" }, { x: 156, y: 734, w: 82, h: 82, go: "plan" }] },
+  gallery1: { base: S("v2-gallery1"), hs: [{ x: 27, y: 55, w: 60, h: 60, back: 1 }, { x: 299, y: 313, w: 60, h: 60, back: 1 }, { x: 37, y: 385, w: 100, h: 100, swap: "gallery2" }, { x: 156, y: 734, w: 82, h: 82, go: "captured" }] },
+  gallery2: { base: S("v2-gallery2"), hs: [{ x: 27, y: 55, w: 60, h: 60, back: 1 }, { x: 299, y: 313, w: 60, h: 60, back: 1 }, { x: 237, y: 313, w: 60, h: 60, go: "plan" }, { x: 37, y: 385, w: 100, h: 100, swap: "gallery1" }, { x: 156, y: 734, w: 82, h: 82, go: "captured" }] },
+  plan: { base: S("v2-plan"), hs: [{ x: 27, y: 55, w: 60, h: 60, back: 1 }, { x: 56, y: 781, w: 124, h: 57, back: 1 }, { x: 182, y: 781, w: 151, h: 57, act: "feedAndLog" }] },
+  // Health Care: the doctor sheet scrolls up under a fixed nav
+  appt: { sc: { x: 0, y: 0, w: 393, h: 852, img: S("v2-appt-sc"), ch: 1126, hs: [{ x: 310, y: 192, w: 59, h: 59, swap: "apptCancel" }] }, fx: nav2("appt") },
+  apptCancel: { sc: { x: 0, y: 0, w: 393, h: 852, img: S("v2-appt-cancel-sc"), ch: 1126, hs: [{ x: 246, y: 192, w: 123, h: 59, swap: "apptNone" }, { x: 13, y: 260, w: 368, h: 240, swap: "appt" }] }, fx: nav2("appt") },
+  apptNone: { base: S("v2-appt-none"), hs: [...NAV2] },
+  profile: { sc: { x: 0, y: 0, w: 393, h: 852, img: S("v2-profile-sc"), ch: 1024, hs: [
+    { x: 26, y: 362, w: 70, h: 96, tab: "home1" }, { x: 108, y: 362, w: 70, h: 96, tab: "home2" },
+    { x: 26, y: 786, w: 342, h: 50, tab: "device1" }, { x: 30, y: 911, w: 334, h: 50, tab: "onboarding" }] }, fx: nav2("profile") },
 };
-const PRE = MODE === "before" ? "b-" : "a-";
 const START = MODE === "before" ? "home" : "onboarding";
+const TOGGLES = { auto: ["v2-auto0", "v2-auto1"], conn: ["v2-conn0", "v2-conn1"], sw: ["v2-sw0", "v2-sw1"] };
 
-/* ---------- building screens ---------- */
+/* ---------- building ---------- */
 const els = {};
+const btn = (h, onClick) => {
+  const b = document.createElement("button");
+  b.className = "hs"; b.style.cssText = `left:${h.x}px;top:${h.y}px;width:${h.w}px;height:${h.h}px`;
+  b.setAttribute("aria-label", h.go || h.tab || h.swap || h.act || "back");
+  b.addEventListener("click", (e) => { e.stopPropagation(); if (!dragged) onClick(h); });
+  return b;
+};
 const make = (id) => {
   if (els[id]) return els[id];
   const s = SCREENS[id], el = document.createElement("div");
   el.className = "scr"; el.dataset.testid = PRE + id;
-  if (s.html) el.innerHTML = custom(id);
-  else {
-    el.innerHTML = `<div class="wrap"><img src="s/${s.img}.webp" alt="">${s.hs.map((h, i) => `<button class="hs" data-i="${i}" style="left:${h.x}px;top:${h.y}px;width:${h.w}px;height:${h.h}px" aria-label="${h.go || h.tab || h.swap || h.act || "back"}"></button>`).join("")}</div>`;
-    el.querySelectorAll(".hs").forEach((b) => b.addEventListener("click", (e) => { e.stopPropagation(); act(s.hs[+b.dataset.i]); }));
+  if (s.base) el.insertAdjacentHTML("beforeend", `<img class="base" src="${s.base}" alt="">`);
+  if (s.ring) el.insertAdjacentHTML("beforeend", `<svg class="layer" style="left:45px;top:140px;width:143px;height:143px" viewBox="0 0 143 143"><circle id="ring" cx="71.5" cy="71.5" r="71" fill="none" stroke="#f4f4f4" stroke-width="2.6" stroke-linecap="round" transform="rotate(-90 71.5 71.5)" pathLength="100" stroke-dasharray="0 100"/></svg>`);
+  if (s.mode) el.insertAdjacentHTML("beforeend", `<img class="layer" id="mode" src="${S("v1-mode-protein")}" style="left:23px;top:248px;width:351px;opacity:0;transition:opacity .25s" alt="">`);
+  if (s.scan) el.insertAdjacentHTML("beforeend", `<img class="layer" id="scan" src="${S("v2-scan0")}" style="left:0;top:134px;width:393px" alt="">`);
+  (s.hs || []).forEach((h) => el.append(btn(h, act)));
+  if (s.mode) [["ai", 133, 336, 120, 44], ["protein", 256, 336, 112, 44]].forEach(([m, x, y, w, hh]) => el.append(btn({ x, y, w, h: hh, act: "mode" }, () => setMode(el, m))));
+  if (s.sc) {
+    const sc = document.createElement("div"), inn = document.createElement("div");
+    sc.className = "sc"; sc.style.cssText = `left:${s.sc.x}px;top:${s.sc.y}px;width:${s.sc.w}px;height:${s.sc.h}px`;
+    inn.className = "in"; inn.style.height = s.sc.ch + "px";
+    inn.insertAdjacentHTML("beforeend", `<img src="${s.sc.img}" style="width:${s.sc.w}px" alt="">`);
+    (s.sc.hs || []).forEach((h) => inn.append(btn(h, act)));
+    (s.sc.tg || []).forEach((t) => {
+      const d = document.createElement("div"); d.className = "tg"; d.style.cssText = `left:${t.x}px;top:${t.y}px;width:${t.w}px;height:${t.h}px`;
+      const im = document.createElement("img"); im.src = S(TOGGLES[t.a][t.on]); im.alt = ""; d.append(im);
+      d.addEventListener("click", (e) => { e.stopPropagation(); if (dragged) return; t.on = 1 - t.on; im.src = S(TOGGLES[t.a][t.on]); });
+      inn.append(d);
+    });
+    sc.append(inn); el.append(sc);
+    sc.addEventListener("scroll", () => { el.toggleAttribute("data-scrolled", sc.scrollTop > 60); }, { passive: true });
+  }
+  if (s.fx) {
+    const fx = document.createElement("div"); fx.className = "fx"; fx.style.cssText = `top:${s.fx.y}px;height:${s.fx.h}px`;
+    fx.insertAdjacentHTML("beforeend", `<div class="glass" style="left:${s.fx.img.includes("det") ? 59 : 55}px"></div><img src="${s.fx.img}" style="position:relative;width:393px" alt="">`);
+    s.fx.hs.forEach((h) => fx.append(btn({ ...h, y: h.y - s.fx.y }, act)));
+    el.append(fx);
   }
   app.append(el); els[id] = el; return el;
 };
-const custom = (id) => id === "logged" ? `<div class="logged">
-    <button class="x" data-home aria-label="Close">✕</button>
-    <div class="tick"><svg width="54" height="54" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.2 4.2L19 7"/></svg></div>
-    <h2>Logged for Mercy</h2><p class="sub">The feeder will take care of the rest.</p>
-    <div class="card">
-      <div class="l"><span>Dried Beef</span><b>45 kcal</b></div>
-      <div class="l"><span>Tonight’s dinner</span><span><s>150g</s><span class="o">135g</span></span></div>
-      <div class="l"><span>Dispenses at</span><b>6:00 PM</b></div>
-      <div class="l"><span>Weight goal</span><b>Still on track</b></div>
-    </div>
-    <button class="btn" data-home>Back to Home</button></div>` : "";
+const setMode = (el, m) => { el.querySelector("#mode").style.opacity = m === "protein" ? 1 : 0; el.toggleAttribute("data-protein", m === "protein"); toast(m === "protein" ? "Protein+ on: more protein, 2% smaller portions" : "AI Recommend on"); };
 
-/* ---------- navigation ---------- */
-let cur = null, stack = [];
-const show = (id, how) => {
+/* ---------- navigation (Figma: smart animate ≈ a short dissolve; swipes slide) ---------- */
+let cur = null, stack = [], timers = [];
+const show = (id, how = "fade", dir = 1) => {
   const next = make(id), prev = cur && els[cur];
   if (prev === next) return;
-  next.scrollTop = 0;
-  next.style.transition = "none"; next.className = "scr " + (how === "push" ? "off-r" : how === "back" ? "off-l" : how === "fade" ? "fade" : "");
-  next.style.zIndex = how === "back" ? 1 : 2; if (prev) prev.style.zIndex = how === "back" ? 2 : 1;
-  void next.offsetWidth; next.style.transition = ""; next.className = "scr is-cur";
-  if (prev) { prev.className = "scr " + (how === "push" ? "off-l" : how === "back" ? "off-r" : how === "fade" ? "" : ""); if (how === "fade" || how === "swap") { const p = prev; setTimeout(() => { if (els[cur] !== p) p.className = "scr fade"; }, 320); } }
-  if (id === "logged") next.querySelectorAll("[data-home]").forEach((b) => (b.onclick = (e) => { e.stopPropagation(); stack = []; show("home1", "fade"); cur = "home1"; }));
-  Object.values(els).forEach((el) => el.classList.remove("is-cur")); next.classList.add("is-cur");
+  timers.forEach(clearTimeout); timers = [];
+  Object.values(els).forEach((e) => { if (e !== prev && e !== next) { e.className = "scr"; e.style.transform = ""; } });
+  const sc = next.querySelector(".sc"); if (sc && how !== "swap") sc.scrollTop = 0;
+  if (how !== "swap") next.removeAttribute("data-scrolled");
+  if (how === "slide") {
+    next.style.transition = "none"; next.style.transform = `translateX(${dir * 100}%)`; next.className = "scr is-cur"; void next.offsetWidth; next.style.transition = "";
+    next.style.transform = ""; if (prev) { prev.className = "scr is-prev"; prev.style.transform = `translateX(${-dir * 30}%)`; }
+  } else {
+    next.style.transform = ""; next.className = "scr is-cur";
+    if (how === "swap") { next.style.transition = "none"; void next.offsetWidth; next.style.transition = ""; }
+    if (prev) { prev.className = "scr is-prev"; prev.style.transform = ""; }
+  }
+  if (prev) { const p = prev; timers.push(setTimeout(() => { if (els[cur] !== p) { p.className = "scr"; p.style.transform = ""; } }, 360)); }
   cur = id;
-  Object.entries(els).forEach(([k, el]) => { if (k !== id && el !== prev) el.className = "scr fade"; });
-  next.classList.add("is-cur");
+  onShow(id, next);
 };
 const act = (h) => {
-  if (h.back) { const to = stack.pop() || START; show(to, "back"); return; }
-  if (h.go) { stack.push(cur); show(h.go, "push"); return; }
-  if (h.tab) { stack = []; show(h.tab, "fade"); return; }
+  if (h.back) { const to = stack.pop() || h.to || START; show(to); return; }
+  if (h.go) { stack.push(cur); show(h.go); return; }
+  if (h.tab) { stack = []; show(h.tab, h.dir ? "slide" : "fade", h.dir || 1); return; }
   if (h.swap) { show(h.swap, "swap"); return; }
-  if (h.act) actions[h.act]();
+  if (h.act) actions[h.act](h);
+};
+const onShow = (id, el) => {
+  const s = SCREENS[id];
+  if (s.auto) timers.push(setTimeout(() => { if (cur === id) act({ tab: s.auto.tab }); }, s.auto.after));
+  if (s.ring) { const r = el.querySelector("#ring"); r.style.transition = "none"; r.setAttribute("stroke-dasharray", "0 100"); requestAnimationFrame(() => requestAnimationFrame(() => { r.style.transition = "stroke-dasharray 1.6s cubic-bezier(.3,.6,.2,1)"; r.setAttribute("stroke-dasharray", "73 100"); })); }
+  if (s.scan) { let i = 0; const im = el.querySelector("#scan"); const step = () => { if (cur !== id) return; i = (i + 1) % 4; im.src = S("v2-scan" + i); timers.push(setTimeout(step, 300)); }; timers.push(setTimeout(step, 300)); }
 };
 
+/* ---------- swipe between sibling screens (Figma: drag) ---------- */
+let dragged = false, d0 = null;
+app.addEventListener("pointerdown", (e) => { d0 = { x: e.clientX, y: e.clientY }; dragged = false; });
+app.addEventListener("pointermove", (e) => { if (d0 && Math.abs(e.clientX - d0.x) > 12 && Math.abs(e.clientX - d0.x) > Math.abs(e.clientY - d0.y)) dragged = true; });
+app.addEventListener("pointerup", (e) => {
+  if (!d0) return; const dx = e.clientX - d0.x, dy = e.clientY - d0.y; d0 = null;
+  const sw = cur && SCREENS[cur].swipe;
+  if (sw && Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy) * 1.3) { const to = dx < 0 ? sw[1] : sw[0]; if (to) show(to, "slide", dx < 0 ? 1 : -1); }
+  setTimeout(() => (dragged = false), 0);
+});
+let wheelX = 0, wheelT = 0;
+app.addEventListener("wheel", (e) => {
+  if (Math.abs(e.deltaX) <= Math.abs(e.deltaY)) return;
+  const sw = cur && SCREENS[cur].swipe; if (!sw) return;
+  e.preventDefault(); const now = Date.now(); if (now - wheelT < 600) return;
+  wheelX += e.deltaX; if (Math.abs(wheelX) > 60) { const to = wheelX > 0 ? sw[1] : sw[0]; wheelX = 0; if (to) { wheelT = now; show(to, "slide", e.deltaX > 0 ? 1 : -1); } }
+}, { passive: false });
+
 /* ---------- small flows the designs didn't draw ---------- */
-const toast = (t) => { const el = document.getElementById("toast"); el.textContent = t; el.classList.add("is-on"); clearTimeout(toast.t); toast.t = setTimeout(() => el.classList.remove("is-on"), 2200); };
+const toast = (t) => { const el = document.getElementById("toast"); el.textContent = t; el.classList.add("is-on"); clearTimeout(toast.t); toast.t = setTimeout(() => el.classList.remove("is-on"), 2400); };
 const sheet = (html, id, onOpen) => {
   const veil = document.createElement("div"), sh = document.createElement("div");
   veil.className = "veil"; sh.className = "sheet"; sh.dataset.testid = PRE + "ov-" + id; sh.innerHTML = html;
   app.append(veil, sh); requestAnimationFrame(() => { veil.classList.add("is-on"); sh.classList.add("is-on"); });
-  const close = () => { veil.classList.remove("is-on"); sh.classList.remove("is-on"); delete sh.dataset.testid; setTimeout(() => { veil.remove(); sh.remove(); }, 400); };
-  veil.onclick = close; sh.querySelectorAll("[data-close]").forEach((b) => (b.onclick = close));
+  let done = false;
+  const close = () => { if (done) return; done = true; veil.classList.remove("is-on"); sh.classList.remove("is-on"); delete sh.dataset.testid; setTimeout(() => { veil.remove(); sh.remove(); }, 420); };
+  veil.onclick = (e) => { e.stopPropagation(); close(); };
+  sh.addEventListener("click", (e) => e.stopPropagation());
+  sh.querySelectorAll("[data-close]").forEach((b) => b.addEventListener("click", close));
   if (onOpen) onOpen(sh, close);
 };
 const actions = {
-  weigh: () => sheet(`<h3>Weighing Jelly</h3><p>Ask Jelly to stand still on the scale…</p>
-      <div class="ring"><svg viewBox="0 0 150 150"><circle cx="75" cy="75" r="66" fill="none" stroke="#f0611f" stroke-width="10" stroke-linecap="round" stroke-dasharray="415" stroke-dashoffset="415" id="arc"/></svg><div><b id="kg">0.0</b><small>kg</small></div></div>
-      <p id="msg" style="text-align:center">Measuring</p><button class="btn" data-close>Done</button>`, "weigh", (sh) => {
-      const t0 = performance.now(), arc = sh.querySelector("#arc"), kg = sh.querySelector("#kg");
-      const tick = (now) => { const k = Math.min(1, (now - t0) / 1800), e = 1 - Math.pow(1 - k, 3); kg.textContent = (12.5 * e).toFixed(1); arc.style.strokeDashoffset = 415 * (1 - e * .82); if (k < 1) requestAnimationFrame(tick); else sh.querySelector("#msg").textContent = "Saved to Health Monitoring"; };
+  // A scale reading wobbles while the dog shifts its weight, then settles
+  weigh: () => sheet(`<h3>Weighing Jelly</h3><p>Ask Jelly to stand still on the Smart Scale.</p>
+      <div class="dial"><svg viewBox="0 0 174 174"><circle cx="87" cy="87" r="80" fill="none" stroke="#f0611f" stroke-width="6" stroke-linecap="round" stroke-dasharray="0 503" id="arc" transform="rotate(-90 87 87)"/></svg><div><b id="kg">--.-</b><small>kg</small></div><i id="st">Measuring…</i></div>
+      <button class="btn" data-close>Done</button>`, "weigh", (sh) => {
+      const kg = sh.querySelector("#kg"), arc = sh.querySelector("#arc"), st = sh.querySelector("#st"), dial = sh.querySelector(".dial");
+      const t0 = performance.now() + 350, T = 2600;
+      const tick = (now) => {
+        if (!sh.isConnected) return;
+        if (now < t0) { requestAnimationFrame(tick); return; }
+        const k = Math.min(1, (now - t0) / T), amp = 0.8 * Math.pow(1 - k, 2);
+        const v = k < .1 ? 12.5 * (k / .1) : 12.5 + amp * Math.sin(now / 110) * Math.cos(now / 260);
+        kg.textContent = v.toFixed(1); arc.setAttribute("stroke-dasharray", `${503 * k} 503`);
+        if (k < 1) requestAnimationFrame(tick); else { kg.textContent = "12.5"; dial.classList.add("is-stable"); st.textContent = "✓ Stable · saved"; }
+      };
       requestAnimationFrame(tick); }),
-  plan: () => toast("Plan adjusted: 245 g → 230 g today"),
-  newdev: () => toast("Searching for devices nearby…"),
-  adjust: () => { toast("Feeder set to 2.5 cups/day"); stack = stack.filter((s) => s !== "upload"); const to = stack.pop() || "feeder"; show(to, "back"); },
-  adddev: () => sheet(`<h3>Add a device</h3>
-      <div class="row"><i>🍽️</i><span>Smart Feeder</span><em>Connected</em></div>
-      <div class="row"><i>⚖️</i><span>Smart Scale</span><em>Connected</em></div>
+  adjust: () => sheet(`<h3>Adjust today’s plan</h3><p>Jelly is 0.4 kg above target this week. Fitfido suggests a smaller portion.</p>
+      <div class="portion"><s>245 g</s>→<b>230 g</b></div>
+      <button class="btn" id="ok">Apply to feeder</button><button class="btn btn--ghost" data-close>Not now</button>`, "adjust", (sh, close) => {
+      sh.querySelector("#ok").onclick = () => { close(); toast("Feeder updated: 230 g today"); }; }),
+  autoAdjust: () => { stack = []; show("home"); toast("Feeder set to 2.5 cups/day for this food"); },
+  addDevice: () => sheet(`<h3>Add a device</h3>
+      <div class="row"><i>🍽️</i><span>Smart Feeder</span><em>Paired</em></div>
+      <div class="row"><i>⚖️</i><span>Smart Scale</span><em>Paired</em></div>
       <div class="row"><i>💧</i><span>Smart Fountain</span><em class="wait"><span class="spin"></span>Searching</em></div>
       <button class="btn" data-close>Done</button>`, "adddev"),
+  zero: () => toast("Scale zeroed"),
+  feedAndLog: () => { stack = ["device1"]; show("feeder"); toast("Logged. Tonight’s dinner is now 135 g."); },
 };
 
 /* tapping where nothing happens flashes the tappable areas, like a Figma prototype */
-app.addEventListener("click", () => { app.classList.remove("is-hint"); void app.offsetWidth; app.classList.add("is-hint"); });
+app.addEventListener("click", () => { if (dragged) return; app.classList.remove("is-hint"); void app.offsetWidth; app.classList.add("is-hint"); });
 // the case-study page can restart the prototype
-addEventListener("message", (e) => { if (e.data && e.data.type === "fitfido-restart") { stack = []; show(START, "fade"); } });
+addEventListener("message", (e) => { if (e.data && e.data.type === "fitfido-restart") { stack = []; show(START); } });
 show(START);
 </script>
 </body>

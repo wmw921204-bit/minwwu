@@ -16,7 +16,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&family=Poppins:wght@400;500;600&family=Sulphur+Point:wght@400&display=swap">
   <link rel="stylesheet" href="../styles.css?v=20261018a">
-  <link rel="stylesheet" href="../case.css?v=20261024t">
+  <link rel="stylesheet" href="../case.css?v=20261024u">
 </head>
 <body class="case">
   <a class="skip" href="#main">Skip to content</a>
@@ -272,7 +272,7 @@
       <div class="wrap">
         <div class="c-chapter"><span class="c-chapter__num">05</span><h2 class="c-kicker">Companion app · Two prototypes</h2></div>
         <p class="c-head reveal-mask">The app went through two rounds. Try both.</p>
-        <p class="c-text reveal">Both are clickable. Notes follow along.</p>
+        <p class="c-text reveal">Both are clickable and scroll like the real app. Notes follow along, and in the second one each change appears when you reach it.</p>
       </div>
       <div class="zoom-reveal" data-zoom-reveal>
         <div class="zoom-reveal__sticky">
@@ -285,34 +285,22 @@
         <p class="ff-try__tag"><b>Before</b> First prototype</p>
         <div class="fin-demo ff-demo">
           <div class="ff-phone__col">
-            <div class="ff-phone" data-proto-w="393"><iframe data-proto-frame src="../assets/projects/fitfido/app/?mode=before" title="Fitfido first prototype" loading="lazy"></iframe></div>
+            <div class="ff-phone" data-proto-w="393"><iframe data-proto-frame src="../assets/projects/fitfido/app/?mode=before&amp;v=2" title="Fitfido first prototype" loading="lazy"></iframe></div>
             <button class="ff-restart" data-proto-restart>Restart</button>
           </div>
           <aside class="fin-guide" data-proto-guide aria-live="polite">
             <p class="fin-guide__count"><span data-proto-count>01</span> / 06</p>
-            <div class="fin-step" data-step="home" data-group="0"><h3>One busy home</h3><p>Every number on one screen, with no clear first step.</p><p class="fin-try"><b>Try</b>Start Weighing or Adjust Plan.</p></div>
-            <div class="fin-step" data-step="weigh" data-group="1"><h3>Weighing is a chore</h3><p>A manual step that owners drop after a few weeks.</p><p class="fin-try"><b>Try</b>Done, then the Devices tab.</p></div>
-            <div class="fin-step" data-step="devices" data-group="2"><h3>Devices, twice</h3><p>The same cards as Home, in a second layout.</p><p class="fin-try"><b>Try</b>Open the feeder.</p></div>
-            <div class="fin-step" data-step="scale" data-group="2"><h3>Smart Scale</h3><p>Yet another Start Weighing button.</p><p class="fin-try"><b>Try</b>Open the feeder.</p></div>
-            <div class="fin-step" data-step="feeder" data-group="3"><h3>Scan, buried</h3><p>Food scanning hides inside the feeder page.</p><p class="fin-try"><b>Try</b>Scan Label.</p></div>
-            <div class="fin-step" data-step="scan" data-group="4"><h3>Scan the bag</h3><p>Reads the food bag only, not the treats.</p><p class="fin-try"><b>Try</b>Shutter, then Adjust Feeder.</p></div>
-            <div class="fin-step" data-step="settings" data-group="5"><h3>Settings for everything</h3><p>Pets, account and devices in one list. One dog only.</p></div>
-            <ol class="fin-guide__list"><li>Home</li><li>Weigh-in</li><li>Devices</li><li>Feeder</li><li>Food scan</li><li>Settings</li></ol>
+            <div class="fin-step" data-step="home" data-group="0"><h3>One busy home</h3><p>Weight, calories, tips and devices, all on one screen. The ring shows weight-loss progress.</p><p class="fin-try"><b>Try</b>Start Weighing or Adjust Plan.</p></div>
+            <div class="fin-step" data-step="weigh" data-group="1"><h3>Weighing is a chore</h3><p>Jelly has to stand still on a separate scale. Owners drop this after a few weeks.</p><p class="fin-try"><b>Try</b>Done, then Adjust Plan.</p></div>
+            <div class="fin-step" data-step="adjust" data-group="2"><h3>Adjusting by hand</h3><p>The app suggests a portion, but the owner has to apply it.</p><p class="fin-try"><b>Try</b>Apply, then the Devices tab.</p></div>
+            <div class="fin-step" data-step="feeder" data-group="3"><h3>The feeder page</h3><p>Feeding modes and food scanning live here, one level down.</p><p class="fin-try"><b>Try</b>Protein+, then Scan Label.</p></div>
+            <div class="fin-step" data-step="protein" data-group="3"><h3>Feeding modes</h3><p>Diet, AI Recommend or Protein+ change the daily portion.</p><p class="fin-try"><b>Try</b>Scan Label.</p></div>
+            <div class="fin-step" data-step="upload" data-group="4"><h3>Scan the food bag</h3><p>The camera only reads the bag, not treats.</p><p class="fin-try"><b>Try</b>Press the shutter.</p></div>
+            <div class="fin-step" data-step="food" data-group="4"><h3>Read the label</h3><p>Nutrition from the bag sets cups per day.</p><p class="fin-try"><b>Try</b>Automatically Adjust Feeder Setting.</p></div>
+            <div class="fin-step" data-step="settings" data-group="5"><h3>Settings</h3><p>Pet, account and devices in one list. One dog only.</p></div>
+            <ol class="fin-guide__list"><li>Home</li><li>Weigh-in</li><li>Adjust</li><li>Feeder</li><li>Food scan</li><li>Settings</li></ol>
           </aside>
-          <script type="application/json" data-proto-rules>{"fallback": "home", "rules": [{"id": "weigh", "sel": "[data-testid=b-ov-weigh]"}, {"id": "scan", "sel": ".is-cur[data-testid=b-upload],.is-cur[data-testid=b-food]"}, {"id": "feeder", "sel": ".is-cur[data-testid=b-feeder]"}, {"id": "scale", "sel": ".is-cur[data-testid=b-scale]"}, {"id": "devices", "sel": ".is-cur[data-testid=b-devices]"}, {"id": "settings", "sel": ".is-cur[data-testid=b-settings]"}]}</script>
-        </div>
-      </div>
-
-      <div class="wrap ff-iter">
-        <p class="c-head reveal-mask" style="font-size:clamp(24px,2.4vw,34px)">What changed, and why.</p>
-        <p class="c-text reveal">Six changes from round one to round two.</p>
-        <div class="ff-iter__grid reveal-stagger">
-          <article><span>01</span><h3>One dog → every pet</h3><p>Many homes have more than one pet.</p></article>
-          <article><span>02</span><h3>Weigh button → no step</h3><p>The feeder weighs at every meal.</p></article>
-          <article><span>03</span><h3>Bag scan → treat camera</h3><p>Treats are the calories owners miss.</p></article>
-          <article><span>04</span><h3>Number → dinner plan</h3><p>“45 kcal” meant nothing. Now it adjusts dinner.</p></article>
-          <article><span>05</span><h3>Settings → Health Care</h3><p>Weight goals work best when a vet sets them.</p></article>
-          <article><span>06</span><h3>Heavy → light</h3><p>One accent colour, only where it matters.</p></article>
+          <script type="application/json" data-proto-rules>{"fallback": "home", "rules": [{"id": "weigh", "sel": "[data-testid=b-ov-weigh]"}, {"id": "adjust", "sel": "[data-testid=b-ov-adjust]"}, {"id": "protein", "sel": ".is-cur[data-testid=b-feeder][data-protein]"}, {"id": "feeder", "sel": ".is-cur[data-testid=b-feeder]"}, {"id": "upload", "sel": ".is-cur[data-testid=b-upload]"}, {"id": "food", "sel": ".is-cur[data-testid=b-food]"}, {"id": "settings", "sel": ".is-cur[data-testid=b-settings]"}]}</script>
         </div>
       </div>
 
@@ -320,27 +308,28 @@
         <p class="ff-try__tag"><b>After</b> Second iteration</p>
         <div class="fin-demo ff-demo">
           <div class="ff-phone__col">
-            <div class="ff-phone" data-proto-w="393"><iframe data-proto-frame src="../assets/projects/fitfido/app/?mode=after" title="Fitfido second prototype" loading="lazy"></iframe></div>
+            <div class="ff-phone" data-proto-w="393"><iframe data-proto-frame src="../assets/projects/fitfido/app/?mode=after&amp;v=2" title="Fitfido second prototype" loading="lazy"></iframe></div>
             <button class="ff-restart" data-proto-restart>Restart</button>
           </div>
           <aside class="fin-guide" data-proto-guide aria-live="polite">
             <p class="fin-guide__count"><span data-proto-count>01</span> / 08</p>
-            <div class="fin-step" data-step="onboarding" data-group="0"><h3>A friendly start</h3><p>One brand, one action.</p><p class="fin-try"><b>Try</b>Register Now.</p></div>
-            <div class="fin-step" data-step="home" data-group="1"><h3>One pet at a time</h3><p>Switch pets at the top; each has its own goal.</p><p class="fin-try"><b>Try</b>Tap Hoppy, then Daily Calorie.</p></div>
-            <div class="fin-step" data-step="camera" data-group="2"><h3>Snap a treat</h3><p>Scanning moved to Home, and reads what the pet ate.</p><p class="fin-try"><b>Try</b>Shutter or gallery.</p></div>
-            <div class="fin-step" data-step="captured" data-group="2"><h3>Confirm the photo</h3><p>A quick check before logging.</p><p class="fin-try"><b>Try</b>Tap the tick.</p></div>
-            <div class="fin-step" data-step="plan" data-group="3"><h3>Diet impact</h3><p>Shows what the treat does to dinner: 150 g → 135 g.</p><p class="fin-try"><b>Try</b>Feed and Log.</p></div>
-            <div class="fin-step" data-step="logged" data-group="3"><h3>Done</h3><p>The feeder serves the smaller dinner.</p><p class="fin-try"><b>Try</b>Back to Home, then Devices.</p></div>
-            <div class="fin-step" data-step="devices" data-group="4"><h3>One page per device</h3><p>No weighing button: the feeder weighs at every meal.</p><p class="fin-try"><b>Try</b>Switch device or tap +.</p></div>
-            <div class="fin-step" data-step="adddev" data-group="4"><h3>Add a device</h3><p>Pair new devices from one sheet.</p></div>
-            <div class="fin-step" data-step="detail" data-group="5"><h3>Details</h3><p>One tap away.</p><p class="fin-try"><b>Try</b>Back, then Health Care.</p></div>
-            <div class="fin-step" data-step="appt" data-group="6"><h3>Health Care</h3><p>Vets and telehealth, because goals need a vet.</p><p class="fin-try"><b>Try</b>Cancel with ✕.</p></div>
+            <div class="fin-step" data-step="onboarding" data-group="0"><h3>A friendly start</h3><p>Opens straight into the app.</p><p class="ff-chg"><b>Changed</b>Colour: orange moved from every background to accents only, on a light grey canvas.</p></div>
+            <div class="fin-step" data-step="home" data-group="1"><h3>One pet at a time</h3><p>Swipe, or tap a pet at the top.</p><p class="ff-chg"><b>Changed</b>Before: one dog. After: every pet in the home, each with its own plan.</p><p class="fin-try"><b>Try</b>Swipe left, then scroll the card.</p></div>
+            <div class="fin-step" data-step="weight" data-group="1"><h3>Weight without a button</h3><p>Logged at every meal, against a goal the vet verified.</p><p class="ff-chg"><b>Changed</b>Before: Start Weighing appeared three times. After: no weighing step.</p><p class="fin-try"><b>Try</b>Tap Daily Calorie, or open Devices.</p></div>
+            <div class="fin-step" data-step="devices" data-group="2"><h3>One tab for devices</h3><p>One card per device. Swipe or tap the icons.</p><p class="ff-chg"><b>Changed</b>Before: device cards on Home plus a feeder page. After: one place.</p><p class="fin-try"><b>Try</b>Flip a toggle, or open the feeder.</p></div>
+            <div class="fin-step" data-step="adddev" data-group="2"><h3>Add a device</h3><p>Pair new devices from one sheet.</p></div>
+            <div class="fin-step" data-step="feeder" data-group="3"><h3>Device details</h3><p>Smart Feeding adjusts portions on its own.</p><p class="ff-chg"><b>Changed</b>Style: embossed neumorphic cards became flat white cards with real photos and more space.</p><p class="fin-try"><b>Try</b>Swipe to the scale, or press Adjust.</p></div>
+            <div class="fin-step" data-step="scale" data-group="3"><h3>Smart Scale</h3><p>Every weigh-in, by pet.</p><p class="fin-try"><b>Try</b>Zero Out, or swipe back.</p></div>
+            <div class="fin-step" data-step="camera" data-group="4"><h3>Snap a treat</h3><p>Photograph whatever the pet ate.</p><p class="ff-chg"><b>Changed</b>Before: scan the food bag only. After: treats too, the calories owners miss.</p><p class="fin-try"><b>Try</b>Shutter, or pick from the gallery.</p></div>
+            <div class="fin-step" data-step="captured" data-group="4"><h3>Check the photo</h3><p>A quick look before it counts.</p><p class="fin-try"><b>Try</b>Press the shutter to confirm.</p></div>
+            <div class="fin-step" data-step="plan" data-group="5"><h3>What it means for dinner</h3><p>The treat’s calories come off tonight’s meal.</p><p class="ff-chg"><b>Changed</b>Before: a cups-per-day number. After: tonight’s portion, 150 g → 135 g.</p><p class="fin-try"><b>Try</b>Feed and Log.</p></div>
+            <div class="fin-step" data-step="appt" data-group="6"><h3>Health Care</h3><p>Visits, telehealth and clinics.</p><p class="ff-chg"><b>Changed</b>New tab: weight goals work best when a vet sets them.</p><p class="fin-try"><b>Try</b>Scroll the doctor list, or cancel with ✕.</p></div>
             <div class="fin-step" data-step="cancel" data-group="6"><h3>Confirm in place</h3><p>No jump to another screen.</p><p class="fin-try"><b>Try</b>Confirm.</p></div>
-            <div class="fin-step" data-step="none" data-group="6"><h3>Nothing booked</h3><p>Find a doctor comes first.</p><p class="fin-try"><b>Try</b>Open Profile.</p></div>
-            <div class="fin-step" data-step="profile" data-group="7"><h3>Profile</h3><p>Pets, family and devices.</p><p class="fin-try"><b>Try</b>Tap a pet.</p></div>
-            <ol class="fin-guide__list"><li>Onboarding</li><li>Home</li><li>Treat camera</li><li>Diet impact</li><li>Devices</li><li>Details</li><li>Health care</li><li>Profile</li></ol>
+            <div class="fin-step" data-step="none" data-group="6"><h3>Nothing booked</h3><p>Finding a doctor comes first.</p></div>
+            <div class="fin-step" data-step="profile" data-group="7"><h3>Profile</h3><p>Pets, family sharing and devices.</p><p class="ff-chg"><b>Changed</b>Before: a Settings list. After: a Profile for the whole household.</p><p class="fin-try"><b>Try</b>Tap a pet, or Log Out.</p></div>
+            <ol class="fin-guide__list"><li>Start</li><li>Home</li><li>Devices</li><li>Details</li><li>Treat camera</li><li>Diet plan</li><li>Health care</li><li>Profile</li></ol>
           </aside>
-          <script type="application/json" data-proto-rules>{"fallback": "onboarding", "rules": [{"id": "adddev", "sel": "[data-testid=a-ov-adddev]"}, {"id": "home", "sel": ".is-cur[data-testid=a-home1],.is-cur[data-testid=a-home2],.is-cur[data-testid=a-home3]"}, {"id": "camera", "sel": ".is-cur[data-testid=a-camera],.is-cur[data-testid=a-gallery1],.is-cur[data-testid=a-gallery2]"}, {"id": "captured", "sel": ".is-cur[data-testid=a-captured]"}, {"id": "plan", "sel": ".is-cur[data-testid=a-plan]"}, {"id": "logged", "sel": ".is-cur[data-testid=a-logged]"}, {"id": "devices", "sel": ".is-cur[data-testid=a-device1],.is-cur[data-testid=a-device2]"}, {"id": "detail", "sel": ".is-cur[data-testid=a-feeder],.is-cur[data-testid=a-scale]"}, {"id": "cancel", "sel": ".is-cur[data-testid=a-apptCancel]"}, {"id": "none", "sel": ".is-cur[data-testid=a-apptNone]"}, {"id": "appt", "sel": ".is-cur[data-testid=a-appt]"}, {"id": "profile", "sel": ".is-cur[data-testid=a-profile]"}]}</script>
+          <script type="application/json" data-proto-rules>{"fallback": "onboarding", "rules": [{"id": "adddev", "sel": "[data-testid=a-ov-adddev]"}, {"id": "weight", "sel": ".is-cur[data-testid=a-home1][data-scrolled],.is-cur[data-testid=a-home2][data-scrolled],.is-cur[data-testid=a-home3][data-scrolled]"}, {"id": "home", "sel": ".is-cur[data-testid=a-home1],.is-cur[data-testid=a-home2],.is-cur[data-testid=a-home3]"}, {"id": "devices", "sel": ".is-cur[data-testid=a-device1],.is-cur[data-testid=a-device2]"}, {"id": "feeder", "sel": ".is-cur[data-testid=a-feeder]"}, {"id": "scale", "sel": ".is-cur[data-testid=a-scale]"}, {"id": "camera", "sel": ".is-cur[data-testid=a-camera],.is-cur[data-testid=a-gallery1],.is-cur[data-testid=a-gallery2]"}, {"id": "captured", "sel": ".is-cur[data-testid=a-captured]"}, {"id": "plan", "sel": ".is-cur[data-testid=a-plan]"}, {"id": "cancel", "sel": ".is-cur[data-testid=a-apptCancel]"}, {"id": "none", "sel": ".is-cur[data-testid=a-apptNone]"}, {"id": "appt", "sel": ".is-cur[data-testid=a-appt]"}, {"id": "profile", "sel": ".is-cur[data-testid=a-profile]"}]}</script>
         </div>
       </div>
     </section>
