@@ -224,12 +224,14 @@
   #study .st-done{font:700 24px/1 "Barlow Condensed",Manrope,sans-serif;color:var(--ok)}
   #study .st-tbl{overflow-x:auto}#study table{width:100%;border-collapse:collapse;margin-top:8px;font-size:12.5px;font-variant-numeric:tabular-nums}
   #study td,#study th{text-align:left;padding:4px;border-bottom:1px solid var(--line);vertical-align:top}#study th{color:var(--muted);font-weight:700}
+  #study button.st-r{background:var(--stop-soft);color:var(--stop)}
   #study .st-note{color:var(--ok);font-weight:700;min-height:1.4em;margin-top:8px}
   @media (max-width:760px){#study{top:auto;bottom:max(12px,env(safe-area-inset-bottom,0px));width:auto;right:max(12px,env(safe-area-inset-right,0px));max-height:55%}}`;
   document.head.appendChild(css);
   const h=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'})[c]);
   const box=document.createElement('div');box.id='study';box.hidden=true;box.setAttribute('aria-label','Study');document.body.appendChild(box);
   let msg='';const note=t=>{msg=t;draw();setTimeout(()=>{msg='';draw()},2000)};
+  let askDel=null; // a participant ID, or '*' for all, while a delete waits for confirmation
   // the published web version can't save files, so it offers copying only
   const dlBtn=()=>window.STUDY_NO_DOWNLOAD?'':'<button data-s="dl">Download CSV</button>';
   const exportRow=()=>`<div class="st-row">${dlBtn()}<button data-s="cp">Copy summary</button><button data-s="cpl">Copy taps</button></div>`;
@@ -246,8 +248,18 @@
       const last=D.last&&D.people[D.last];
       s+=`<div class="st-eyebrow">Usability session</div><div class="st-row" style="margin-top:8px"><input id="study-pid" value="P${Object.keys(D.people).length+1}" aria-label="Participant" autocomplete="off"><button class="st-p" data-s="new">Start</button></div>`;
       if(last)s+=`<div style="margin-top:18px;padding-top:14px;border-top:1px solid var(--line)">${results(D.last,last)}</div>`;
-      const n=Object.keys(D.people).length;
-      if(n)s+=`<p class="st-m" style="margin-top:10px">${n} session${n>1?'s':''} saved in this browser.</p>`+exportRow();
+      // saved sessions: view, delete one, or clear all (only here, never during a session)
+      const ids=Object.keys(D.people);
+      if(ids.length){
+        s+=`<div style="margin-top:18px;padding-top:14px;border-top:1px solid var(--line)"><div class="st-eyebrow">Saved in this browser · ${ids.length}</div>`;
+        ids.forEach(id=>{const q=D.people[id],when=q.started?new Date(q.started).toLocaleDateString():'';
+          s+=`<div class="st-row" style="margin-top:8px"><span style="flex:1;min-width:0"><b>${h(id)}</b> <span class="st-m">${h(q.mode||'')} · ${h(when)}</span></span>`+
+            (askDel===id?`<button class="st-r" data-s="delyes" data-v="${h(id)}">Delete ${h(id)}</button><button data-s="delno">Cancel</button>`
+              :`<button data-s="view" data-v="${h(id)}">${D.last===id?'Showing':'View'}</button><button class="st-quiet" data-s="del" data-v="${h(id)}" aria-label="Delete ${h(id)}">Delete</button>`)+`</div>`});
+        s+=exportRow();
+        s+=askDel==='*'?`<div class="st-row"><span class="st-m" style="flex:1">Delete all ${ids.length} sessions? This can’t be undone.</span><button class="st-r" data-s="clearyes">Delete all</button><button data-s="delno">Cancel</button></div>`
+          :`<div class="st-row"><button class="st-quiet" data-s="clear">Clear all data</button></div>`;
+        s+=`</div>`}
     }else if(p.phase==='explore'){
       s+=`<div class="st-eyebrow">Before you start</div><p class="st-text">${h(SCRIPT.background)}</p>
         <div class="st-eyebrow" style="margin-top:16px">Your task</div><div class="st-task">${h(SCRIPT.opening)}</div>
@@ -272,6 +284,12 @@
     if(k==='ok')endTask('ended');if(k==='skip')endTask('skipped');
     if(k==='stop'){const p=P();finish();if(P()===p){D.last=D.pid;D.pid=null;save();draw()}}
     if(k==='dl'){const d=new Date().toISOString().slice(0,10);download(`study-summary-${d}.csv`,summaryCSV());setTimeout(()=>download(`study-taps-${d}.csv`,logCSV()),400)}
+    if(k==='view'){D.last=b.dataset.v;save();draw()}
+    if(k==='del'){askDel=b.dataset.v;draw()}
+    if(k==='clear'){askDel='*';draw()}
+    if(k==='delno'){askDel=null;draw()}
+    if(k==='delyes'){const id=b.dataset.v;delete D.people[id];if(D.last===id)D.last=null;askDel=null;save();note('Deleted '+id)}
+    if(k==='clearyes'){D.people={};D.last=null;askDel=null;save();note('All sessions deleted')}
     if(k==='cp')copy(summaryCSV());
     if(k==='cpl')copy(logCSV());
   });

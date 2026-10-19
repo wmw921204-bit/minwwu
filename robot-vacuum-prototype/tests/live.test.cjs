@@ -311,3 +311,19 @@ test('Remember my choice saves the option they picked, and one-time choices are 
   assert.equal(app.run("S.rules.some(r=>r.key==='cable')"), false);
   app.close();
 });
+
+test('saved sessions can be viewed, deleted one by one or all at once, only between sessions', async () => {
+  const app = await boot(fakeBridge());
+  const tap = (sel) => app.run(`document.querySelector('${sel}').dispatchEvent(new MouseEvent('click',{bubbles:true}))`);
+  app.run("STUDY.toggle(true);STUDY.begin('A1')");
+  assert.equal(app.run("document.querySelector('#study [data-s=\"clear\"]')"), null); // nothing during a session
+  app.run("STUDY.finish()");
+  app.run("STUDY.data().pid=null;STUDY.begin('A2');STUDY.finish();STUDY.data().pid=null;STUDY.toggle(true)");
+  tap('#study [data-s="del"][data-v="A1"]');
+  tap('#study [data-s="delyes"][data-v="A1"]');
+  assert.deepEqual(JSON.parse(app.run('JSON.stringify(Object.keys(STUDY.data().people))')), ['A2']);
+  tap('#study [data-s="clear"]');
+  tap('#study [data-s="clearyes"]');
+  assert.equal(app.run('Object.keys(STUDY.data().people).length'), 0);
+  app.close();
+});
