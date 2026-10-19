@@ -1886,3 +1886,16 @@ img.is-zoomable { cursor: zoom-in; }
 .bs-map button.is-sel { box-shadow: 0 0 0 2px #5b47c9; }
 .bs-map button img { width: 100%; height: 100%; object-fit: cover; display: block; }
 @media (max-width: 700px) { .bs-map [data-band-map] { grid-template-columns: repeat(6, 30px); grid-auto-rows: 30px; } }
+/* grid map: in the stage's top-right corner on wide screens, above the scene boards on phones */
+.bs-main { position: relative; }
+.bs-map { position: absolute; z-index: 4; top: 12px; right: calc(204px + 18px + 12px); flex-direction: column; align-items: stretch; gap: 4px; padding: 6px 7px 7px; border-radius: 12px; background: rgba(255,255,255,.85); box-shadow: 0 6px 18px -10px rgba(0,0,0,.35); }
+.bs-map small { font-size: 9px; text-align: center; }
+.bs-map [data-band-map] { grid-template-columns: repeat(6, 18px); grid-auto-rows: 18px; gap: 2px; padding: 3px; border-radius: 7px; }
+.bs-map button { border-radius: 4px; font-size: 11px; }
+@media (max-width: 900px) {
+  .bs-map { position: static; order: 2; flex-direction: row; align-items: center; justify-content: center; gap: 10px; }
+  .bs-map small { font-size: 10px; }
+  .bs-map [data-band-map] { grid-template-columns: repeat(6, 30px); grid-auto-rows: 30px; gap: 3px; }
+  .bs-boards { order: 3; } .bs-tray { order: 4; }
+}
+.bs.is-on .bs-gate { pointer-events: none; }
