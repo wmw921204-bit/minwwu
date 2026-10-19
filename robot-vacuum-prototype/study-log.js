@@ -27,29 +27,45 @@
     background:'Imagine this robot vacuum is yours, and this is its app. The robot cleans on its own. Sometimes it decides things by itself, and sometimes it asks you. We’re testing the app, not you, so there are no wrong answers. Please think out loud as you go.',
     opening:'Set the app up the way you’d like, then start a cleaning. While it cleans, use the app however you naturally would. This part ends when the cleaning ends.'};
 
-  /* Goals noted while exploring. ask: the guided task wording. after: can be done once the cleaning is over, so it's
-     given as a guided task if not reached. ok: screens on the expected path (others count as detours). best: fewest taps.
-     can(): the app is in a state where the task makes sense. done(base,t): the goal is reached. */
+  /* Goals noted while exploring. A goal counts however they get there: done() checks only the end state, and
+     how() records the route or the choice made (for example whether Full auto was set for an hour, or for good).
+     ask: the guided task wording. after: can be done once the cleaning is over, so it's given as a guided task if not
+     reached. ok: screens on the most direct paths (others count as detours). best: fewest taps.
+     can(): the app is in a state where the task makes sense. */
+  const anyClick=(t,list)=>t.log.some(x=>x.type==='click'&&list.includes(x.action));
+  const lastClick=(t,list)=>[...t.log].reverse().find(x=>x.type==='click'&&list.includes(x.action));
+  const curEvent=()=>{const c=S.ui.stack[S.ui.stack.length-1];return c&&c.name==='event'?findEvent(c.id):null};
   const TASKS=[
-    {id:'T1',name:'First setup',best:3,done:()=>!S.onboarding},
-    {id:'T2',name:'Start a cleaning',best:2,base:()=>S.task&&S.task.id,done:b=>!!S.task&&S.task.id!==b},
+    {id:'T1',name:'First setup',best:3,done:()=>!S.onboarding,how:()=>'level: '+S.autonomy},
+    {id:'T2',name:'Start a cleaning',best:2,base:()=>S.task&&S.task.id,done:b=>!!S.task&&S.task.id!==b,how:()=>S.task.scopeLabel||''},
     {id:'T3',name:'Answer the robot',best:2,base:()=>(S.events||[]).filter(e=>e.lastAct).map(e=>e.id),
-      done:b=>(S.events||[]).some(e=>!b.includes(e.id)&&e.lastAct&&!(e.autonomous&&!e.changed))},
+      done:b=>(S.events||[]).some(e=>!b.includes(e.id)&&e.lastAct&&!(e.autonomous&&!e.changed)),
+      how:b=>{const e=(S.events||[]).find(e=>!b.includes(e.id)&&e.lastAct);return e?e.key+': '+e.lastAct:''}},
     {id:'T4',name:'Change a robot decision',ask:'The robot made some decisions on its own. Pick one you’d have done differently and change it.',best:3,after:true,ok:['home','event','map','activity','report','timeline'],
       can:()=>(S.events||[]).some(e=>e.autonomous&&!e.changed&&!e.archived),base:()=>(S.events||[]).filter(e=>e.changed).map(e=>e.id),
-      done:b=>(S.events||[]).some(e=>e.changed&&!b.includes(e.id))},
-    {id:'T5',name:'Undo a choice',best:2,done:(b,t)=>clicked(t,'undoAct')},
-    {id:'T6',name:'Retry keeps failing',best:4,done:()=>evs('bed').some(e=>(e.retryFails||0)>=2&&e.status!=='needsReview'&&e.status!=='inProgress')},
-    {id:'T7',name:'Stop the cleaning',best:2,base:()=>S.task&&S.task.id,done:b=>!!(S.task&&S.task.id!==b&&S.task.done&&S.task.endedEarly)},
-    {id:'T8',name:'Find what the robot did',ask:'Find out what the robot did on its own during the cleaning.',best:2,after:true,ok:['home','report','timeline','activity'],
-      done:()=>['report','timeline'].includes(screen().replace('+sheet',''))},
+      done:b=>(S.events||[]).some(e=>e.changed&&!b.includes(e.id)),
+      how:b=>{const e=(S.events||[]).find(e=>e.changed&&!b.includes(e.id));return e?e.key+': '+(e.autoChoice||'robot')+' → '+(e.lastAct||''):''}},
+    {id:'T5',name:'Undo a choice',best:2,done:(b,t)=>anyClick(t,['undoAct'])},
+    {id:'T6',name:'Retry keeps failing',best:4,done:()=>evs('bed').some(e=>(e.retryFails||0)>=2&&e.status!=='needsReview'&&e.status!=='inProgress'),
+      how:()=>{const e=evs('bed').find(e=>(e.retryFails||0)>=2);return e?'ended with: '+(e.lastAct||e.status):''}},
+    {id:'T7',name:'Stop the cleaning',best:2,base:()=>S.task&&S.task.id,
+      done:(b,t)=>!!(S.task&&S.task.id!==b&&!S.task.done&&S.device.status==='paused'&&anyClick(t,['pause']))||!!(S.task&&S.task.id!==b&&S.task.done&&S.task.endedEarly),
+      how:()=>S.task&&S.task.done?'ended and sent home':'paused'},
+    {id:'T8',name:'Find what the robot did',ask:'Find out what the robot did on its own during the cleaning.',best:2,after:true,ok:['home','report','timeline','activity','event'],
+      done:()=>{const sc=screen().replace('+sheet','');const e=curEvent();return ['report','timeline'].includes(sc)||!!(e&&e.autonomous)},
+      how:()=>{const sc=screen().replace('+sheet','');return sc==='event'?'opened a robot decision':sc}},
     {id:'T9',name:'Check found objects',ask:'Check the objects the robot wasn’t sure about.',best:2,after:true,ok:['home','map','activity','report'],
-      can:()=>pendingObjs().length>0,done:(b,t)=>{const n=pendingObjs().length;if(n&&S.task&&S.task.done)t.seen=true;return !!t.seen&&n===0}},
-    {id:'T10',name:'Full auto for an hour',ask:'Next time you’ll be in a meeting for an hour. Let the robot decide on its own until then.',best:4,after:true,ok:['home','settings','autonomy'],
-      done:()=>S.autonomy==='fullAuto'&&!!S.temp&&!S.temp.task},
+      can:()=>pendingObjs().length>0,done:(b,t)=>{const n=pendingObjs().length;if(n&&S.task&&S.task.done)t.seen=true;return !!t.seen&&n===0},
+      how:(b,t)=>[['groupOk','confirmed together'],['objSave','one by one'],['objNone','said nothing was there'],['groupIgnore','ignored for now']].filter(([a])=>anyClick(t,[a])).map(x=>x[1]).join(', ')},
+    {id:'T10',name:'Let the robot decide (meeting)',ask:'Next time you’ll be in a meeting for an hour. Let the robot decide on its own until then.',best:4,after:true,ok:['home','settings','autonomy'],
+      done:(b,t)=>S.autonomy==='fullAuto'&&anyClick(t,['sheetApply','setAutonomy']),
+      how:(b,t)=>{const c=lastClick(t,['sheetApply','setAutonomy']);const where=c&&c.action==='setAutonomy'?'in Settings':'from Home';
+        return 'Full auto '+(S.temp?(S.temp.task?'until this cleaning ends':'for 1 hour'):'until changed (no time limit)')+', '+where}},
     {id:'T11',name:'Find what needs you',ask:'Find everything that still needs you.',best:1,after:true,ok:['home','activity'],
-      done:(b,t)=>clicked(t,'toNeeds')||clicked(t,'tab','activity')},
+      done:(b,t)=>anyClick(t,['toNeeds'])||screen()==='activity',
+      how:(b,t)=>anyClick(t,['toNeeds'])?'Needs you tile on Home':'Inbox'},
   ];
+  const howOf=(T,b,t)=>{try{return T.how?T.how(b,t):''}catch(e){return ''}};
   const byId=id=>TASKS.find(x=>x.id===id);
 
   const screen=()=>{
@@ -105,7 +121,7 @@
       if(ex.achieved[T.id])return;
       const c=ex.ctx[T.id];c.log=log; // done() reads taps from here
       let ok=false;try{ok=T.done(c.base,c)}catch(e){}
-      if(ok){ex.achieved[T.id]={ms:exploreMs(p),clicks:log.filter(x=>x.type==='click').length,path:ex.path.slice(-8).join(' > ')};
+      if(ok){ex.achieved[T.id]={ms:exploreMs(p),clicks:log.filter(x=>x.type==='click').length,how:howOf(T,c.base,c),path:ex.path.slice(-8).join(' > ')};
         push({type:'mark',action:'achieved',value:T.id,label:T.name})}
     });
   }
@@ -145,7 +161,7 @@
     const T=byId(r.id);r.result=result;
     push({type:'mark',action:'end',value:result,label:T.name});
     const clicks=r.log.filter(x=>x.type==='click').length;
-    p.tasks.push({phase:'guided',task:r.id,name:T.name,result,seconds:secs(now()-r.start),clicks,best:T.best,extra:Math.max(0,clicks-T.best),
+    p.tasks.push({phase:'guided',task:r.id,name:T.name,result,how:result==='done (auto)'?howOf(T,r.base,r):'',seconds:secs(now()-r.start),clicks,best:T.best,extra:Math.max(0,clicks-T.best),
       detours:detours(r,result),backs:r.log.filter(x=>x.type==='click'&&['back','closeModal','closeModalBg'].includes(x.action)).length,
       dead:r.log.filter(x=>x.type==='tap').length,path:r.path.join(' > ')});
     p.queue.shift();p.run=null;save();
@@ -165,7 +181,7 @@
     const ex=p.explore;if(ex.since){ex.active+=now()-ex.since;ex.since=null}
     const log=exploreLog(p);
     const rows=[{phase:'explore',task:'',name:'Free exploration',result:'',seconds:secs(ex.active),clicks:log.filter(x=>x.type==='click').length,dead:log.filter(x=>x.type==='tap').length,path:''}];
-    TASKS.forEach(T=>{const a=ex.achieved[T.id];if(a)rows.push({phase:'explore',task:T.id,name:T.name,result:'reached on their own',seconds:secs(a.ms),clicks:a.clicks,best:T.best,path:a.path})});
+    TASKS.forEach(T=>{const a=ex.achieved[T.id];if(a)rows.push({phase:'explore',task:T.id,name:T.name,result:'reached on their own',how:a.how||'',seconds:secs(a.ms),clicks:a.clicks,best:T.best,path:a.path})});
     p.tasks=rows.concat(p.tasks);
   }
 
@@ -174,7 +190,7 @@
   const csv=(rows,cols)=>[cols.join(',')].concat(rows.map(r=>cols.map(c=>esc(r[c])).join(','))).join('\n');
   function summaryCSV(){
     const rows=[];Object.entries(D.people).forEach(([pid,p])=>(p.tasks||[]).forEach(t=>rows.push({participant:pid,mode:p.mode,...t})));
-    return csv(rows,['participant','mode','phase','task','name','result','seconds','clicks','best','extra','detours','backs','dead','path']);
+    return csv(rows,['participant','mode','phase','task','name','result','how','seconds','clicks','best','extra','detours','backs','dead','path']);
   }
   function logCSV(){
     const rows=[];Object.entries(D.people).forEach(([pid,p])=>(p.log||[]).forEach(x=>rows.push({participant:pid,time:new Date(x.t).toISOString(),...x})));
@@ -219,7 +235,7 @@
 
   /* results, shown only once a session is over */
   function results(pid,p){
-    const rows=p.tasks.map(t=>`<tr><td>${h(t.task||'—')}</td><td>${h(t.name)}</td><td>${h(t.result||'')}</td><td>${t.seconds!=null?t.seconds+'s':''}</td><td>${t.clicks??''}${t.best?' / '+t.best:''}</td><td>${t.detours??''}</td></tr>`).join('');
+    const rows=p.tasks.map(t=>`<tr><td>${h(t.task||'—')}</td><td>${h(t.name)}</td><td>${h(t.result||'')}${t.how?`<div class="st-m">${h(t.how)}</div>`:''}</td><td>${t.seconds!=null?t.seconds+'s':''}</td><td>${t.clicks??''}${t.best?' / '+t.best:''}</td><td>${t.detours??''}</td></tr>`).join('');
     return `<div class="st-eyebrow">Results · ${h(pid)} · ${h(p.mode)}</div>
       <div class="st-tbl"><table><thead><tr><th>#</th><th>Task</th><th>Result</th><th>Time</th><th>Taps / best</th><th>Detours</th></tr></thead><tbody>${rows}</tbody></table></div>`;
   }

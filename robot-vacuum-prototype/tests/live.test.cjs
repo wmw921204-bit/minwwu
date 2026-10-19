@@ -283,3 +283,14 @@ test('the study panel: start, exploration until the cleaning ends, guided after-
   assert.deepEqual(b.robotCommands(), []);
   app.close();
 });
+
+test('a goal counts whichever way they get there, and the way is recorded (Full auto from Settings)', async () => {
+  const app = await boot(fakeBridge());
+  const tap = sel => app.run(`document.querySelector('${sel}').dispatchEvent(new MouseEvent('click',{bubbles:true}))`);
+  app.run("STUDY.toggle(true);STUDY.begin('P0')");
+  app.run("go('autonomy');render()");
+  tap('[data-a="setAutonomy"][data-v="fullAuto"]');
+  await sleep(400);
+  assert.match(app.run('STUDY.data().people.P0.explore.achieved.T10.how'), /until changed.*in Settings/);
+  app.close();
+});

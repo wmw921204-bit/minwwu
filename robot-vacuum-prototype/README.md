@@ -117,4 +117,6 @@ A panel at the top left, beside the phone, that the participant uses during a se
 3. **Guided tasks after the cleaning**, one at a time, each with **Skip** and **End**: change a robot decision, find what the robot did, check found objects, Full auto for an hour, find what needs you. Only the ones they didn't reach on their own are shown, and only if they apply (no decisions to change → not shown). Each also ends by itself when its goal is reached.
 4. **Results.** After "That's everything. Thank you!", the panel shows the session's results for the researcher: every goal reached while exploring (with the time into exploration) and every guided task (result, seconds, taps against the fewest needed, detours). Download CSV gives a summary and a full tap and screen log; Copy summary and Copy taps put the same tables on the clipboard (the only option on the published web version, which can't save files). End session ends early.
 
+A goal counts however they get there: only the end state is checked (for example, Full auto counts whether it was set from Home or in Settings, for an hour or for good). The route and the choice are recorded in the `how` column, and the screens in `path`.
+
 Data stays in this browser until exported. Edit `SCRIPT` and `TASKS` in `study-log.js` to change the wording or the tasks. With the real robot, starting a cleaning moves the robot.
