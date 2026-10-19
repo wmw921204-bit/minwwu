@@ -1,0 +1,205 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=393, initial-scale=1">
+<title>Fitfido app prototype</title>
+<style>
+  :root { --o: #f0611f; --ink: #1f1f1f; --muted: #7b7b7b; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { width: 393px; height: 852px; overflow: hidden; background: #efefef; font-family: -apple-system, "SF Pro Text", Inter, system-ui, sans-serif; -webkit-font-smoothing: antialiased; }
+  #app { position: relative; width: 393px; height: 852px; overflow: hidden; background: #efefef; }
+  .scr { position: absolute; inset: 0; overflow-y: auto; overflow-x: hidden; scrollbar-width: none; background: #efefef; transition: transform .38s cubic-bezier(.3,.7,.2,1), opacity .3s; will-change: transform; }
+  .scr::-webkit-scrollbar { display: none; }
+  .scr { pointer-events: none; } .scr.is-cur { pointer-events: auto; }
+  .scr img { display: block; width: 393px; height: auto; user-select: none; -webkit-user-drag: none; pointer-events: none; }
+  .scr .wrap { position: relative; }
+  .hs { position: absolute; border: 0; background: transparent; cursor: pointer; border-radius: 14px; }
+  .hs:focus-visible { outline: 3px solid var(--o); outline-offset: 2px; }
+  #app.is-hint .hs { animation: hint .7s ease-out; }
+  @keyframes hint { 0%, 100% { box-shadow: none; background: transparent; } 35% { box-shadow: 0 0 0 3px rgba(240,97,31,.65); background: rgba(240,97,31,.12); } }
+  .off-r { transform: translateX(100%); } .off-l { transform: translateX(-28%); } .fade { opacity: 0; }
+  /* toast */
+  .toast { position: absolute; left: 50%; bottom: 112px; z-index: 30; transform: translate(-50%, 20px); opacity: 0; padding: 12px 18px; border-radius: 16px; background: rgba(30,30,30,.92); color: #fff; font-size: 14px; white-space: nowrap; transition: .3s; pointer-events: none; }
+  .toast.is-on { transform: translate(-50%, 0); opacity: 1; }
+  /* bottom sheets and custom screens */
+  .veil { position: absolute; inset: 0; z-index: 20; background: rgba(0,0,0,.28); opacity: 0; transition: opacity .3s; }
+  .veil.is-on { opacity: 1; }
+  .sheet { position: absolute; left: 10px; right: 10px; bottom: 10px; z-index: 21; padding: 26px 22px 22px; border-radius: 30px; transform: translateY(110%); transition: transform .4s cubic-bezier(.3,.7,.2,1); }
+  .sheet.is-on { transform: none; }
+  .btn { display: block; width: 100%; margin-top: 18px; padding: 15px; border: 0; border-radius: 16px; background: var(--o); color: #fff; font-family: inherit; font-size: 17px; font-weight: 600; line-height: 1; cursor: pointer; }
+  /* v1 look: soft, embossed, orange */
+  .v1 .sheet { background: #ececec; box-shadow: 8px 8px 24px rgba(0,0,0,.18), -6px -6px 16px rgba(255,255,255,.8); }
+  .v1 .sheet h3 { font-size: 20px; color: var(--o); }
+  .v1 .sheet p { margin-top: 6px; font-size: 14px; color: var(--muted); }
+  .ring { position: relative; width: 170px; height: 170px; margin: 22px auto 4px; border-radius: 50%; background: #ececec; box-shadow: inset 6px 6px 14px rgba(0,0,0,.12), inset -6px -6px 14px rgba(255,255,255,.9); display: grid; place-items: center; }
+  .ring svg { position: absolute; inset: 10px; width: 150px; height: 150px; transform: rotate(-90deg); }
+  .ring b { font-size: 40px; color: var(--o); font-weight: 700; } .ring small { display: block; text-align: center; font-size: 14px; color: var(--muted); }
+  .v1 .btn { box-shadow: 4px 6px 14px rgba(240,97,31,.35); }
+  /* v2 look: light, airy */
+  .v2 .sheet { background: #fff; box-shadow: 0 -10px 40px rgba(0,0,0,.12); }
+  .v2 .sheet h3 { font-size: 22px; font-weight: 500; color: var(--ink); }
+  .row { display: flex; align-items: center; gap: 12px; margin-top: 14px; padding: 14px; border-radius: 18px; background: #f3f3f3; font-size: 15px; }
+  .row i { width: 40px; height: 40px; border-radius: 50%; background: #fff; display: grid; place-items: center; font-style: normal; font-size: 18px; }
+  .row span { flex: 1; } .row em { font-style: normal; font-size: 13px; color: #34a853; }
+  .row em.wait { color: var(--muted); }
+  .spin { width: 16px; height: 16px; border: 2px solid #ccc; border-top-color: var(--o); border-radius: 50%; animation: s 1s linear infinite; display: inline-block; vertical-align: -3px; margin-right: 6px; }
+  @keyframes s { to { transform: rotate(360deg); } }
+  /* v2 "logged" screen, drawn in the second iteration's style */
+  .sb { position: absolute; left: 0; top: 0; width: 393px; height: 52px; background: url(s/v2-plan.webp) 0 0 / 393px auto no-repeat; }
+  .logged { position: relative; padding: 58px 22px 0; }
+  .logged .x { width: 44px; height: 44px; border-radius: 50%; background: #fff; display: grid; place-items: center; font-size: 20px; border: 0; cursor: pointer; }
+  .logged .tick { width: 110px; height: 110px; margin: 52px auto 18px; border-radius: 50%; background: var(--o); display: grid; place-items: center; box-shadow: 0 18px 36px -12px rgba(240,97,31,.6); animation: pop .5s cubic-bezier(.2,1.5,.4,1); }
+  @keyframes pop { from { transform: scale(.4); opacity: 0; } }
+  .logged h2 { text-align: center; font-size: 30px; font-weight: 400; letter-spacing: -.01em; }
+  .logged .sub { text-align: center; margin-top: 8px; font-size: 14px; color: var(--muted); }
+  .card { margin-top: 30px; padding: 20px; border-radius: 26px; background: #fff; }
+  .card .l { display: flex; justify-content: space-between; align-items: baseline; padding: 10px 0; font-size: 15px; border-bottom: 1px solid #f0f0f0; }
+  .card .l:last-child { border: 0; }
+  .card .l b { font-weight: 600; } .card s { color: #b9b9b9; margin-right: 8px; } .card .o { color: var(--o); font-weight: 600; }
+</style>
+</head>
+<body>
+<div id="app"></div>
+<div class="toast" id="toast"></div>
+<script>
+/* Fitfido: the first app (?mode=before) and the second iteration (?mode=after), built from the real screens.
+   Hotspots are in the screens' own points (393 wide). A few screens the designs didn't include are drawn here
+   in each version's style (weigh-in, "logged", add device). Every screen carries data-testid so the case-study
+   page can explain where the visitor is. */
+const MODE = new URLSearchParams(location.search).get("mode") === "before" ? "before" : "after";
+const app = document.getElementById("app");
+app.className = MODE === "before" ? "v1" : "v2";
+
+const NAV1 = [["home", 33, 770, 100, 60], ["devices", 146, 770, 100, 60], ["settings", 259, 770, 100, 60]];
+const NAV2 = [["home1", 63, 766, 60, 56], ["device1", 132, 766, 60, 56], ["appt", 200, 766, 60, 56], ["profile", 269, 766, 60, 56]];
+const tab = (list) => list.map(([to, x, y, w, h]) => ({ x, y, w, h, tab: to }));
+
+const SCREENS = MODE === "before" ? {
+  home: { img: "v1-home", hs: [
+    { x: 36, y: 700, w: 116, h: 34, act: "weigh" },
+    { x: 22, y: 650, w: 160, h: 46, go: "scale" },
+    { x: 198, y: 650, w: 175, h: 90, go: "feeder" },
+    { x: 238, y: 524, w: 110, h: 60, act: "plan" },
+    ...tab(NAV1)] },
+  devices: { img: "v1-devices", hs: [
+    { x: 225, y: 320, w: 125, h: 52, act: "weigh" },
+    { x: 18, y: 160, w: 357, h: 225, go: "scale" },
+    { x: 18, y: 420, w: 357, h: 240, go: "feeder" },
+    { x: 28, y: 698, w: 337, h: 56, act: "newdev" },
+    ...tab(NAV1)] },
+  feeder: { img: "v1-feeder", hs: [
+    { x: 38, y: 638, w: 175, h: 54, go: "upload" },
+    { x: 220, y: 638, w: 140, h: 54, go: "upload" },
+    ...tab(NAV1)] },
+  scale: { img: "v1-scale", hs: [{ x: 28, y: 698, w: 337, h: 56, act: "weigh" }, ...tab(NAV1)] },
+  upload: { img: "v1-upload", hs: [{ x: 18, y: 50, w: 50, h: 50, back: 1 }, { x: 160, y: 745, w: 74, h: 70, go: "food" }] },
+  food: { img: "v1-food", hs: [{ x: 18, y: 50, w: 50, h: 50, back: 1 }, { x: 28, y: 726, w: 337, h: 58, act: "adjust" }] },
+  settings: { img: "v1-settings", hs: [...tab(NAV1)] },
+} : {
+  onboarding: { img: "v2-onboarding", hs: [{ x: 205, y: 758, w: 112, h: 38, tab: "home1" }] },
+  home1: { img: "v2-home1", hs: [{ x: 95, y: 92, w: 68, h: 80, tab: "home2" }, { x: 160, y: 92, w: 40, h: 80, tab: "home3" }, { x: 205, y: 704, w: 165, h: 58, go: "camera" }, ...tab(NAV2)] },
+  home2: { img: "v2-home2", hs: [{ x: 12, y: 92, w: 58, h: 80, tab: "home1" }, { x: 140, y: 92, w: 60, h: 80, tab: "home3" }, { x: 205, y: 704, w: 165, h: 58, go: "camera" }, ...tab(NAV2)] },
+  home3: { img: "v2-home3", hs: [{ x: 12, y: 92, w: 30, h: 80, tab: "home1" }, { x: 45, y: 92, w: 66, h: 80, tab: "home2" }, { x: 205, y: 704, w: 165, h: 58, go: "camera" }, ...tab(NAV2)] },
+  device1: { img: "v2-device1", hs: [{ x: 112, y: 100, w: 52, h: 50, tab: "device2" }, { x: 180, y: 100, w: 52, h: 50, act: "adddev" }, { x: 28, y: 285, w: 300, h: 290, go: "feeder" }, ...tab(NAV2)] },
+  device2: { img: "v2-device2", hs: [{ x: 24, y: 100, w: 52, h: 50, tab: "device1" }, { x: 161, y: 100, w: 52, h: 50, act: "adddev" }, { x: 76, y: 285, w: 290, h: 290, go: "scale" }, ...tab(NAV2)] },
+  feeder: { img: "v2-feeder", hs: [{ x: 30, y: 60, w: 52, h: 52, back: 1 }, ...tab(NAV2)] },
+  scale: { img: "v2-scale", hs: [{ x: 30, y: 60, w: 52, h: 52, back: 1 }, ...tab(NAV2)] },
+  camera: { img: "v2-camera", hs: [{ x: 30, y: 58, w: 52, h: 52, back: 1 }, { x: 30, y: 750, w: 54, h: 54, go: "gallery1" }, { x: 162, y: 740, w: 72, h: 72, go: "captured" }] },
+  captured: { img: "v2-captured", hs: [{ x: 30, y: 58, w: 52, h: 52, back: 1 }, { x: 30, y: 750, w: 54, h: 54, go: "gallery1" }, { x: 162, y: 740, w: 72, h: 72, go: "plan" }] },
+  gallery1: { img: "v2-gallery1", hs: [{ x: 30, y: 58, w: 52, h: 52, back: 1 }, { x: 304, y: 316, w: 50, h: 50, back: 1 }, { x: 36, y: 384, w: 104, h: 104, swap: "gallery2" }] },
+  gallery2: { img: "v2-gallery2", hs: [{ x: 30, y: 58, w: 52, h: 52, back: 1 }, { x: 304, y: 316, w: 50, h: 50, back: 1 }, { x: 242, y: 316, w: 50, h: 50, go: "captured" }, { x: 36, y: 384, w: 104, h: 104, swap: "gallery1" }] },
+  plan: { img: "v2-plan", hs: [{ x: 30, y: 58, w: 52, h: 52, back: 1 }, { x: 58, y: 790, w: 100, h: 42, tab: "home1" }, { x: 176, y: 790, w: 128, h: 42, go: "logged" }] },
+  logged: { html: true },
+  appt: { img: "v2-appt", hs: [{ x: 312, y: 194, w: 54, h: 54, swap: "apptCancel" }, ...tab(NAV2)] },
+  apptCancel: { img: "v2-appt-cancel", hs: [{ x: 248, y: 196, w: 118, h: 50, swap: "apptNone" }, { x: 190, y: 196, w: 54, h: 50, swap: "appt" }, ...tab(NAV2)] },
+  apptNone: { img: "v2-appt-none", hs: [...tab(NAV2)] },
+  profile: { img: "v2-profile", hs: [{ x: 32, y: 360, w: 62, h: 85, tab: "home1" }, { x: 112, y: 360, w: 62, h: 85, tab: "home2" }, ...tab(NAV2)] },
+};
+const PRE = MODE === "before" ? "b-" : "a-";
+const START = MODE === "before" ? "home" : "onboarding";
+
+/* ---------- building screens ---------- */
+const els = {};
+const make = (id) => {
+  if (els[id]) return els[id];
+  const s = SCREENS[id], el = document.createElement("div");
+  el.className = "scr"; el.dataset.testid = PRE + id;
+  if (s.html) el.innerHTML = custom(id);
+  else {
+    el.innerHTML = `<div class="wrap"><img src="s/${s.img}.webp" alt="">${s.hs.map((h, i) => `<button class="hs" data-i="${i}" style="left:${h.x}px;top:${h.y}px;width:${h.w}px;height:${h.h}px" aria-label="${h.go || h.tab || h.swap || h.act || "back"}"></button>`).join("")}</div>`;
+    el.querySelectorAll(".hs").forEach((b) => b.addEventListener("click", (e) => { e.stopPropagation(); act(s.hs[+b.dataset.i]); }));
+  }
+  app.append(el); els[id] = el; return el;
+};
+const custom = (id) => id === "logged" ? `<div class="logged">
+    <button class="x" data-home aria-label="Close">✕</button>
+    <div class="tick"><svg width="54" height="54" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.2 4.2L19 7"/></svg></div>
+    <h2>Logged for Mercy</h2><p class="sub">The feeder will take care of the rest.</p>
+    <div class="card">
+      <div class="l"><span>Dried Beef</span><b>45 kcal</b></div>
+      <div class="l"><span>Tonight’s dinner</span><span><s>150g</s><span class="o">135g</span></span></div>
+      <div class="l"><span>Dispenses at</span><b>6:00 PM</b></div>
+      <div class="l"><span>Weight goal</span><b>Still on track</b></div>
+    </div>
+    <button class="btn" data-home>Back to Home</button></div>` : "";
+
+/* ---------- navigation ---------- */
+let cur = null, stack = [];
+const show = (id, how) => {
+  const next = make(id), prev = cur && els[cur];
+  if (prev === next) return;
+  next.scrollTop = 0;
+  next.style.transition = "none"; next.className = "scr " + (how === "push" ? "off-r" : how === "back" ? "off-l" : how === "fade" ? "fade" : "");
+  next.style.zIndex = how === "back" ? 1 : 2; if (prev) prev.style.zIndex = how === "back" ? 2 : 1;
+  void next.offsetWidth; next.style.transition = ""; next.className = "scr is-cur";
+  if (prev) { prev.className = "scr " + (how === "push" ? "off-l" : how === "back" ? "off-r" : how === "fade" ? "" : ""); if (how === "fade" || how === "swap") { const p = prev; setTimeout(() => { if (els[cur] !== p) p.className = "scr fade"; }, 320); } }
+  if (id === "logged") next.querySelectorAll("[data-home]").forEach((b) => (b.onclick = (e) => { e.stopPropagation(); stack = []; show("home1", "fade"); cur = "home1"; }));
+  Object.values(els).forEach((el) => el.classList.remove("is-cur")); next.classList.add("is-cur");
+  cur = id;
+  Object.entries(els).forEach(([k, el]) => { if (k !== id && el !== prev) el.className = "scr fade"; });
+  next.classList.add("is-cur");
+};
+const act = (h) => {
+  if (h.back) { const to = stack.pop() || START; show(to, "back"); return; }
+  if (h.go) { stack.push(cur); show(h.go, "push"); return; }
+  if (h.tab) { stack = []; show(h.tab, "fade"); return; }
+  if (h.swap) { show(h.swap, "swap"); return; }
+  if (h.act) actions[h.act]();
+};
+
+/* ---------- small flows the designs didn't draw ---------- */
+const toast = (t) => { const el = document.getElementById("toast"); el.textContent = t; el.classList.add("is-on"); clearTimeout(toast.t); toast.t = setTimeout(() => el.classList.remove("is-on"), 2200); };
+const sheet = (html, id, onOpen) => {
+  const veil = document.createElement("div"), sh = document.createElement("div");
+  veil.className = "veil"; sh.className = "sheet"; sh.dataset.testid = PRE + "ov-" + id; sh.innerHTML = html;
+  app.append(veil, sh); requestAnimationFrame(() => { veil.classList.add("is-on"); sh.classList.add("is-on"); });
+  const close = () => { veil.classList.remove("is-on"); sh.classList.remove("is-on"); delete sh.dataset.testid; setTimeout(() => { veil.remove(); sh.remove(); }, 400); };
+  veil.onclick = close; sh.querySelectorAll("[data-close]").forEach((b) => (b.onclick = close));
+  if (onOpen) onOpen(sh, close);
+};
+const actions = {
+  weigh: () => sheet(`<h3>Weighing Jelly</h3><p>Ask Jelly to stand still on the scale…</p>
+      <div class="ring"><svg viewBox="0 0 150 150"><circle cx="75" cy="75" r="66" fill="none" stroke="#f0611f" stroke-width="10" stroke-linecap="round" stroke-dasharray="415" stroke-dashoffset="415" id="arc"/></svg><div><b id="kg">0.0</b><small>kg</small></div></div>
+      <p id="msg" style="text-align:center">Measuring</p><button class="btn" data-close>Done</button>`, "weigh", (sh) => {
+      const t0 = performance.now(), arc = sh.querySelector("#arc"), kg = sh.querySelector("#kg");
+      const tick = (now) => { const k = Math.min(1, (now - t0) / 1800), e = 1 - Math.pow(1 - k, 3); kg.textContent = (12.5 * e).toFixed(1); arc.style.strokeDashoffset = 415 * (1 - e * .82); if (k < 1) requestAnimationFrame(tick); else sh.querySelector("#msg").textContent = "Saved to Health Monitoring"; };
+      requestAnimationFrame(tick); }),
+  plan: () => toast("Plan adjusted: 245 g → 230 g today"),
+  newdev: () => toast("Searching for devices nearby…"),
+  adjust: () => { toast("Feeder set to 2.5 cups/day"); stack = stack.filter((s) => s !== "upload"); const to = stack.pop() || "feeder"; show(to, "back"); },
+  adddev: () => sheet(`<h3>Add a device</h3>
+      <div class="row"><i>🍽️</i><span>Smart Feeder</span><em>Connected</em></div>
+      <div class="row"><i>⚖️</i><span>Smart Scale</span><em>Connected</em></div>
+      <div class="row"><i>💧</i><span>Smart Fountain</span><em class="wait"><span class="spin"></span>Searching</em></div>
+      <button class="btn" data-close>Done</button>`, "adddev"),
+};
+
+/* tapping where nothing happens flashes the tappable areas, like a Figma prototype */
+app.addEventListener("click", () => { app.classList.remove("is-hint"); void app.offsetWidth; app.classList.add("is-hint"); });
+// the case-study page can restart the prototype
+addEventListener("message", (e) => { if (e.data && e.data.type === "fitfido-restart") { stack = []; show(START, "fade"); } });
+show(START);
+</script>
+</body>
+</html>

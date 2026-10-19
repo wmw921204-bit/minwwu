@@ -1012,8 +1012,8 @@ $$("[data-proto-guide]").forEach((guide) => {
   };
   show(cfg.fallback);
   setInterval(check, 400);
-  // The app is a 1440 x 900 desktop layout, scaled to fit the browser frame
-  const fit = () => { if (view) view.style.setProperty("--fs", (view.clientWidth / 1440).toFixed(4)); };
+  // The app is laid out at a fixed width (1440 desktop, or a 393 phone) and scaled to fit its frame
+  const fit = () => { if (view) view.style.setProperty("--fs", (view.clientWidth / Number(view.dataset.protoW || 1440)).toFixed(4)); };
   fit();
   addEventListener("resize", fit);
   const restart = $("[data-proto-restart]", demo);
