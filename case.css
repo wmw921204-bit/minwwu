@@ -1908,3 +1908,6 @@ img.is-zoomable { cursor: zoom-in; }
   .bs-left { display: contents; }
   .bs-left .bs-map [data-band-map] { grid-template-columns: repeat(6, 30px); grid-auto-rows: 30px; }
 }
+/* nothing to edit until the band is started */
+.bs:not(.is-on) .bs-left, .bs:not(.is-on) .bs-tray, .bs:not(.is-on) .bs-bar { opacity: .45; pointer-events: none; filter: saturate(.6); transition: opacity .4s, filter .4s; }
+.bs-left, .bs-tray, .bs-bar { transition: opacity .4s, filter .4s; }

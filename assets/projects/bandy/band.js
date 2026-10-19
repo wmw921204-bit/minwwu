@@ -485,7 +485,7 @@
   };
   const map = root.querySelector("[data-band-map]");
   map.addEventListener("click", (e) => {
-    const b = e.target.closest("[data-map]"); if (!b) return;
+    const b = e.target.closest("[data-map]"); if (!b || !root.classList.contains("is-on")) return;
     e.stopPropagation();
     const i = +b.dataset.map;
     if (!slots[i]) slots[i] = randMember();
@@ -543,7 +543,9 @@
 
   /* tap: pick a block on the board, then a new one from the tray */
   let dragged = false;
+  const ready = () => root.classList.contains("is-on"); // nothing can be changed before "Start the band"
   root.addEventListener("click", (e) => {
+    if (!ready() && !e.target.closest("[data-band-start]")) return;
     if (dragged) { dragged = false; return; }
     const bl = e.target.closest("[data-block]"), pk = e.target.closest("[data-pick]"), a = e.target.closest("[data-add]"), r = e.target.closest("[data-remove]"), g = e.target.closest("[data-genre]");
     if (bl) { const i = +bl.dataset.i, kind = bl.dataset.block; sel = sel && sel.i === i && sel.kind === kind ? null : { i, kind }; render(); }
@@ -573,7 +575,7 @@
     return null;
   };
   root.addEventListener("pointerdown", (e) => {
-    if (e.button !== 0) return;
+    if (e.button !== 0 || !root.classList.contains("is-on")) return;
     const pk = e.target.closest("[data-pick]"), mem = e.target.closest("[data-member]");
     if (e.target.closest("[data-remove]")) return;
     if (pk) { const [kind, name] = pk.dataset.pick.split(":"); drag = { kind, name, x: e.clientX, y: e.clientY, html: `<img src="${src(kind, name)}" alt="">` }; }
