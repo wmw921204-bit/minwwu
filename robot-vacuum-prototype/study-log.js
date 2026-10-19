@@ -17,7 +17,7 @@
   /* The tasks from the test plan. ok: screens on the expected path (anything else counts as a detour).
      best: fewest taps. setup: puts the simulation in the right state (simulation only). done: the goal is reached. */
   const TASKS=[
-    {id:'T1',name:'First setup',ask:'You just got the robot. Set up the app.',best:3,ok:['onboarding'],
+    {id:'T1',name:'First setup',ask:'You just got the robot. Set up the app.',best:3,ok:['onboarding','home'],
       setup(){A.ctlRestart()},done:()=>!S.onboarding},
     {id:'T2',name:'Clean the living room',ask:'Clean only the living room.',best:4,ok:['home','setup'],
       done:()=>S.task&&!S.task.done&&/living/i.test(S.task.scopeLabel||'')},
