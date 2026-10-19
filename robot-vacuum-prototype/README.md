@@ -110,11 +110,11 @@ npm test
 
 ## Study log (for usability sessions)
 
-A facilitator panel that times tasks and records what participants tap. Open it with **Shift+S**, `?study` in the address, or Settings → Testing → Study log. Participants don't see it unless it's open.
+Runs a session the way a moderator would, and records what happens. Open the facilitator panel with **Shift+S**, `?study` in the address, or Settings → Testing → Study log. Participants don't see it unless it's open.
 
-1. Enter a participant ID and press Start.
-2. Press Start next to a task. In the simulation this also sets the task up (level, events). With the real robot, set tasks up by hand.
-3. The task ends by itself when its goal is reached (`done (auto)`), or press Success, Failed or Gave up.
-4. Download CSV gives two files: a summary (one row per task: seconds, taps, fewest taps, extra taps, detours, backs, dead taps, screen path) and every tap and screen with timestamps. Copy summary and Copy taps put the same two tables on the clipboard; the published web version only offers these, since it can't save files.
+1. **Begin** (the participant ID counts up: P1, P2, …). In the simulation this resets the app to onboarding and turns the study events on.
+2. **Free exploration.** The participant uses the app however they like. Whenever they reach one of the task goals on their own, it's noted with the time into exploration and the taps so far.
+3. **End exploration** when they're done. The phone then shows the tasks they didn't reach, one at a time. They press *Start task* (the clock starts and, in the simulation, the task is set up), and the task ends by itself when its goal is reached. They can also press *I'm done* or *Skip* on the strip at the top. You can override with Success, Failed or Skip.
+4. **Export.** Download CSV gives two files: a summary (one row per task and phase: seconds, taps, fewest taps, extra taps, detours, backs, dead taps, screen path) and every tap and screen with timestamps. Copy summary and Copy taps put the same tables on the clipboard; the published web version only offers these, since it can't save files.
 
-Data stays in this browser until exported. The tasks (T1–T10) follow the second-round test plan; edit `TASKS` in `study-log.js` to change them.
+Data stays in this browser until exported. The tasks (T1–T10) follow the second-round test plan; edit `TASKS` in `study-log.js` to change them. With the real robot, guided tasks aren't set up for you, and tasks that start a cleaning move the robot.

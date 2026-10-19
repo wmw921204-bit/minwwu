@@ -250,20 +250,27 @@ test('a robot decision shows a Change label in the list and on the banner', asyn
   app.close();
 });
 
-test('the study log times a task, records taps, and marks it done when the goal is reached', async () => {
+test('the study log notes tasks reached while exploring, then guides the participant through the rest', async () => {
   const app = await boot(fakeBridge());
-  app.run("STUDY.toggle(true);document.querySelector('#study-pid').value='P0';document.querySelector('[data-s=\"new\"]').click()");
-  app.run("document.querySelector('[data-s=\"go\"][data-v=\"T9\"]').click()");
-  await sleep(50);
-  app.run("render();document.querySelector('[data-a=\"toNeeds\"]').dispatchEvent(new MouseEvent('click',{bubbles:true}))");
+  const tap = sel => app.run(`document.querySelector('${sel}').dispatchEvent(new MouseEvent('click',{bubbles:true}))`);
+  app.run("STUDY.toggle(true);STUDY.begin('P0')");
+  assert.equal(app.run("STUDY.data().people.P0.phase"), 'explore');
+  app.run('render()');
+  tap('[data-a="toNeeds"]'); // reaches T9 on their own
   await sleep(400);
-  const t = app.run("JSON.stringify(STUDY.data().people.P0.tasks[0])");
-  const row = JSON.parse(t);
-  assert.equal(row.task, 'T9');
-  assert.equal(row.result, 'done (auto)');
-  assert.equal(row.clicks, 1);
-  assert.match(app.run('STUDY.summaryCSV()'), /^participant,mode,task/);
-  assert.match(app.run('STUDY.logCSV()'), /P0,.*,T9,.*click,toNeeds/);
+  assert.ok(app.run("!!STUDY.data().people.P0.explore.achieved.T9"));
+  app.run('STUDY.endExplore()');
+  assert.equal(app.run("STUDY.data().people.P0.phase"), 'guided');
+  assert.equal(app.run("STUDY.data().people.P0.queue.includes('T9')"), false);
+  assert.match(app.run("document.querySelector('#study-card').textContent"), /Task 1 of/);
+  tap('#study-card [data-sc="start"]');
+  assert.ok(app.run('STUDY.data().people.P0.run.start > 0'));
+  tap('#study-card [data-sc="skip"]');
+  const rows = JSON.parse(app.run('JSON.stringify(STUDY.data().people.P0.tasks)'));
+  assert.ok(rows.some(r => r.phase === 'explore' && r.task === 'T9' && r.result === 'achieved'));
+  assert.ok(rows.some(r => r.phase === 'guided' && r.result === 'skipped by participant'));
+  assert.match(app.run('STUDY.summaryCSV()'), /^participant,mode,phase,task/);
+  assert.match(app.run('STUDY.logCSV()'), /P0,.*,explore,.*click,toNeeds/);
   assert.deepEqual(app.bridge.robotCommands(), []);
   app.close();
 });
