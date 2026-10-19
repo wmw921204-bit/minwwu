@@ -869,28 +869,58 @@ $$("[data-rules]").forEach((rules) => {
   });
 });
 
-/* ---------- Bandy: build a member on the three layer cards ---------- */
-$$("[data-member-build]").forEach((sec) => {
-  const D = {
-    hat: [["monster", "Monster Hat", "Low pitch: a deeper, heavier sound, like a small monster voice."], ["elf", "Elf Hat", "High pitch: a higher, lighter sound, like a tiny fairy voice."], ["electric", "Electric Hat", "Buzz: a buzzing, zapping sound, as if powered by electricity."], ["glitch", "Glitch Hat", "Signal break: a broken, choppy sound, like a signal breaking into pixels."], ["bubble", "Bubble Hat", "Underwater: a soft, muffled sound, like music heard underwater."], ["robot", "Robot Hat", "Vocoder: a mechanical, digital voice, like a robot singing."]],
-    face: [["angry", "Angry Face", "Strong rhythm: heavy, punchy and powerful."], ["sleepy", "Sleepy Face", "Lazy rhythm: slow, loose and relaxed."], ["happy", "Happy Face", "Upbeat rhythm: bright, bouncy and cheerful."], ["laughing", "Laughing Face", "Playful rhythm: fast, lively and fun."], ["calm", "Calm Face", "Smooth rhythm: steady, soft and flowing."], ["sad", "Sad Face", "Slow rhythm: gentle, slower and softer."]],
-    outfit: [["guitar", "Guitar", "Plays the guitar."], ["singer", "Singer", "Sings the tune."], ["piano", "Piano", "Plays the piano."], ["bass", "Bass", "Holds down the low end."], ["violin", "Violin", "Plays the violin."], ["drum", "Drums", "Keeps the beat."]],
+/* ---------- Bandy: a band member that remixes itself; tap a block to change it ---------- */
+$$("[data-builder]").forEach((sec) => {
+  const data = JSON.parse($("[data-builder-data]", sec).textContent);
+  const base = "../assets/projects/bandy/blocks/";
+  const state = { hat: 1, face: 2, outfit: 0 };
+  const COLORS = ["#0e4a37", "#c0402a", "#5b47c9", "#e0b100", "#0b3a8c"];
+  const notes = $(".bd-notes", sec);
+  let pausedUntil = 0, order = 0;
+  const burst = () => {
+    if (reduceMotion) return;
+    for (let i = 0; i < 4; i++) {
+      const n = document.createElement("i");
+      n.textContent = ["♪", "♫", "♩", "♬"][i % 4];
+      n.style.setProperty("--dx", (Math.random() * 220 - 110) + "px");
+      n.style.setProperty("--r", (Math.random() * 40 - 20) + "deg");
+      n.style.setProperty("--n", COLORS[(Math.random() * COLORS.length) | 0]);
+      n.style.animationDelay = i * 0.12 + "s";
+      notes.appendChild(n);
+      setTimeout(() => n.remove(), 2400);
+    }
   };
-  const B = "../assets/projects/bandy/blocks/";
-  const st = { hat: 1, face: 2, outfit: 0 };
-  let pausedUntil = 0, order = 0, visible = false;
-  const show = (k, anim) => {
-    const [id, name, desc] = D[k][st[k]];
-    $$(`[data-mb-img="${k}"]`, sec).forEach((im) => { im.src = `${B}${k}-${id}.webp`; if (anim && !im.classList.contains("dim")) { im.classList.remove("is-swap"); void im.offsetWidth; im.classList.add("is-swap"); } });
-    $(`[data-mb-name="${k}"]`, sec).textContent = name;
-    $(`[data-mb-desc="${k}"]`, sec).textContent = desc;
-    if (anim) { const card = $(`[data-mb="${k}"]`, sec); card.classList.remove("is-new"); void card.offsetWidth; card.classList.add("is-new"); }
+  const show = (slot, animate) => {
+    const i = state[slot], item = data[slot][i];
+    const btn = $(`[data-slot="${slot}"]`, sec), img = $("img", btn);
+    img.src = base + slot + "-" + item[0] + ".webp"; img.alt = item[1];
+    const row = $(`[data-read="${slot}"]`, sec);
+    $("b", row).textContent = item[1];
+    $("span", row).textContent = slot === "outfit" ? "Plays the " + item[1].toLowerCase() + "." : item[2] + ": " + item[3];
+    $$(`[data-pick^="${slot}:"]`, sec).forEach((b) => b.classList.toggle("is-on", b.dataset.pick === slot + ":" + i));
+    if (animate) {
+      btn.classList.remove("is-swap"); void btn.offsetWidth; btn.classList.add("is-swap");
+      row.classList.add("is-new"); setTimeout(() => row.classList.remove("is-new"), 700);
+      burst();
+    }
   };
-  ["hat", "face", "outfit"].forEach((k) => show(k));
-  const next = (k, user) => { st[k] = (st[k] + 1) % 6; show(k, true); if (user) pausedUntil = Date.now() + 9000; };
-  $$("[data-mb]", sec).forEach((b) => b.addEventListener("click", () => next(b.dataset.mb, true)));
+  ["hat", "face", "outfit"].forEach((s) => show(s));
+  const next = (slot, user) => {
+    state[slot] = (state[slot] + 1) % data[slot].length;
+    show(slot, true);
+    if (user) pausedUntil = Date.now() + 9000;
+  };
+  $$("[data-slot]", sec).forEach((b) => b.addEventListener("click", () => next(b.dataset.slot, true)));
+  $$("[data-pick]", sec).forEach((b) => b.addEventListener("click", () => {
+    const [slot, i] = b.dataset.pick.split(":"); state[slot] = Number(i); show(slot, true); pausedUntil = Date.now() + 9000;
+  }));
+  // remix one layer at a time while it's on screen
+  let visible = false;
   new IntersectionObserver((es) => es.forEach((e) => { visible = e.isIntersecting; }), { threshold: 0.3 }).observe(sec);
-  setInterval(() => { if (visible && Date.now() > pausedUntil && !document.hidden && !reduceMotion) next(["hat", "face", "outfit"][order++ % 3]); }, 2200);
+  setInterval(() => {
+    if (!visible || Date.now() < pausedUntil || document.hidden || reduceMotion) return;
+    next(["hat", "face", "outfit"][order++ % 3]);
+  }, 2200);
 });
 
 // a small helper: cycle through items while visible, pause after a click
@@ -1148,7 +1178,7 @@ $$("[data-flip]").forEach((flip) => {
   if (!main) return;
   // backgrounds, icons and the hero stay decorative
   // interactive pieces (buttons, Bandy blocks, demos) keep their own clicks
-  const skip = ".c-hero, .vn__bg, .cine, .site-header, header, footer, .c-next, [aria-hidden='true'], button, [data-nozoom], [data-band], [data-member-build], [data-rules], [data-xray], .bd-start";
+  const skip = ".c-hero, .vn__bg, .cine, .site-header, header, footer, .c-next, [aria-hidden='true'], button, [data-nozoom], [data-band], [data-builder], [data-rules], [data-xray], .bd-start";
   const zoomable = (img) => !img.closest(skip) && !/icon-|logo/.test(img.src) && (+img.getAttribute("width") || 999) >= 300;
   const imgs = $$("img", main).filter(zoomable);
   if (!imgs.length) return;
