@@ -1769,3 +1769,23 @@ img.is-zoomable { cursor: zoom-in; }
 .bd-build--member .bd-read__row span { font-size: 15px; }
 .bd-gap__pair { align-items: start; }
 .bd-gap__pair > i { margin-top: clamp(44px, 4.6vw, 60px); }
+/* each layer's job, shown on the stack and in "now playing" */
+.bd-build--member [data-slot="hat"], .bd-build--member [data-read="hat"] { --role: #5b47c9; }
+.bd-build--member [data-slot="face"], .bd-build--member [data-read="face"] { --role: #e07a2a; }
+.bd-build--member [data-slot="outfit"], .bd-build--member [data-read="outfit"] { --role: #2a8fd0; }
+.bd-build--member .bd-block { position: relative; overflow: visible; }
+.bd-build--member .bd-block img { border-radius: 20px; }
+.bd-build--member .bd-block::after { content: attr(data-tag); position: absolute; right: calc(100% + 22px); top: 50%; transform: translateY(-50%); padding: 7px 14px; border-radius: 99px; background: var(--role); color: #fff; font: 700 15px var(--f-body); white-space: nowrap; }
+.bd-build--member .bd-block::before { content: ""; position: absolute; right: 100%; top: 50%; width: 22px; height: 2px; background: var(--role); }
+.bd-build--member .bd-read__row { border-left: 5px solid var(--role); }
+.bd-build--member .bd-read__row small { display: flex; align-items: center; gap: 8px; text-transform: none; letter-spacing: 0; font-size: 13px; }
+.bd-build--member .bd-read__row em { font-style: normal; padding: 3px 11px; border-radius: 99px; background: var(--role); color: #fff; font-weight: 700; font-size: 14px; }
+@media (max-width: 700px) {
+  .bd-build--member .bd-block::after { font-size: 12px; padding: 5px 10px; right: calc(100% + 14px); }
+  .bd-build--member .bd-block::before { width: 14px; }
+}
+.bd-build--member .bd-read__row em { white-space: nowrap; }
+@media (max-width: 900px) {
+  .bd-build--member .bd-build__grid { grid-template-columns: 1fr; }
+  .bd-build--member .bd-stage { padding-top: 10px; }
+}
