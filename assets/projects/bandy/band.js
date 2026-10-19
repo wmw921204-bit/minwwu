@@ -478,7 +478,34 @@
     root.classList.toggle("has-sel", !!sel);
     tray.querySelectorAll(".bs-tray__row").forEach((r) => r.classList.toggle("is-target", !!sel && r.dataset.kind === sel.kind));
     tray.querySelectorAll("[data-pick]").forEach((b) => { const [k, n] = b.dataset.pick.split(":"); b.classList.toggle("is-on", !!sel && sel.kind === k && slots[sel.i] && slots[sel.i][k] === n); });
+    applyPeek();
   };
+  /* reaching the back rows: the member you point at (or have selected) comes forward,
+     and the members standing in front of it in that column fade and let clicks through */
+  let hoverPeek = null;
+  function applyPeek() {
+    const i = hoverPeek != null ? hoverPeek : sel ? sel.i : null;
+    stage.querySelectorAll(".bs-pad").forEach((p) => {
+      const j = +p.dataset.slotI, front = i != null && j % COLS === i % COLS && Math.floor(j / COLS) > Math.floor(i / COLS) && slots[j];
+      p.classList.toggle("is-ghost", !!front);
+      p.classList.toggle("is-peek", i != null && j === i && slots.some((m, k) => m && k % COLS === i % COLS && Math.floor(k / COLS) > Math.floor(i / COLS)));
+    });
+  }
+  stage.addEventListener("pointerover", (e) => {
+    if (e.pointerType !== "mouse" || root.classList.contains("is-dragging")) return;
+    const mem = e.target.closest("[data-member]"); if (!mem) return;
+    const i = +mem.dataset.member;
+    if (hoverPeek !== i) { hoverPeek = i; applyPeek(); }
+  });
+  stage.addEventListener("pointermove", (e) => {
+    if (hoverPeek == null) return;
+    const el = stage.querySelector(`[data-member="${hoverPeek}"]`), r = el && el.getBoundingClientRect();
+    if (!r || e.clientX < r.left - 6 || e.clientX > r.right + 6 || e.clientY < r.top - 6 || e.clientY > r.bottom + 6) {
+      const over = document.elementFromPoint(e.clientX, e.clientY), mem = over && over.closest("[data-member]");
+      hoverPeek = mem ? +mem.dataset.member : null; applyPeek();
+    }
+  });
+  stage.addEventListener("pointerleave", () => { if (hoverPeek != null) { hoverPeek = null; applyPeek(); } });
 
   // the scene board: background and label
   const boards = (root.dataset.boards || "").split(" ");

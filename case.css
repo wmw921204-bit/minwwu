@@ -1872,3 +1872,7 @@ img.is-zoomable { cursor: zoom-in; }
   .bs-boards button { flex: 0 0 104px; }
   .bs-stage { order: 1; } .bs-tray { order: 3; }
 }
+/* reaching the back rows */
+.bs-pad.is-ghost { opacity: .28; pointer-events: none; transition: opacity .2s; }
+.bs-pad.is-peek { z-index: 9 !important; }
+.bs-pad { transition: opacity .2s; }
