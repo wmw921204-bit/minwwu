@@ -115,12 +115,12 @@
 
   /* ---------- AR ---------- */
   /* cover: product carousel, swipe up to explore */
-  .cv-panel { position: absolute; left: 0; top: 0; width: 402px; height: 748px; border-radius: 0 0 64px 64px; overflow: hidden; transition: background-color .5s; touch-action: none; cursor: grab; }
+  .cv-panel { position: absolute; left: 0; top: 0; width: 402px; height: 806px; border-radius: 0 0 64px 64px; overflow: hidden; transition: background-color .5s; touch-action: none; cursor: grab; }
   .cv-panel h1 { position: absolute; left: 23px; top: 78px; margin: 0; font-size: 34px; font-weight: 600; letter-spacing: -.01em; color: #fff; z-index: 2; pointer-events: none; }
   .cv-track { position: absolute; inset: 0; display: flex; transition: transform .55s cubic-bezier(.25,.8,.25,1); }
-  .cv-slide { position: relative; flex: none; width: 402px; height: 748px; }
-  .cv-slide > img { position: absolute; left: 0; top: 170px; width: 380px; height: 420px; object-fit: contain; object-position: 40% 100%; filter: drop-shadow(0 18px 18px rgba(0,0,0,.18)); transition: filter .4s; pointer-events: none; }
-  .cv-card { position: absolute; left: 177px; top: 455px; width: 190px; height: 178px; border-radius: 16px; border: 1px solid rgba(255,255,255,.55); background: rgba(255,255,255,.28); -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px); text-align: left; cursor: pointer; padding: 0; }
+  .cv-slide { position: relative; flex: none; width: 402px; height: 806px; }
+  .cv-slide > img { position: absolute; left: 0; top: 200px; width: 380px; height: 420px; object-fit: contain; object-position: 40% 100%; filter: drop-shadow(0 18px 18px rgba(0,0,0,.18)); transition: filter .4s; pointer-events: none; }
+  .cv-card { position: absolute; left: 177px; top: 492px; width: 190px; height: 178px; border-radius: 16px; border: 1px solid rgba(255,255,255,.55); background: rgba(255,255,255,.28); -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px); text-align: left; cursor: pointer; padding: 0; }
   .cv-card b { position: absolute; left: 14px; top: 20px; font-size: 19px; font-weight: 600; color: var(--ink); white-space: nowrap; }
   .cv-card .chipw { position: absolute; left: 13px; top: 58px; padding: 5px 9px; border: 1px solid rgba(255,255,255,.85); border-radius: 10px; font-size: 11px; color: #fff; }
   .cv-card .dots { position: absolute; left: 14px; top: 98px; display: flex; gap: 12px; }
@@ -130,14 +130,14 @@
   .cv-card .pr { position: absolute; left: 14px; top: 136px; font-size: 16px; font-weight: 600; color: var(--ink); }
   .cv-card .go { position: absolute; right: 14px; bottom: 14px; width: 40px; height: 40px; border-radius: 50%; background: #fff; display: grid; place-items: center; }
   .cv-card .go svg { transform: rotate(-45deg); }
-  .cv-ind { position: absolute; left: 0; right: 0; top: 700px; display: flex; justify-content: center; gap: 4px; z-index: 2; }
+  .cv-ind { position: absolute; left: 0; right: 0; top: 752px; display: flex; justify-content: center; gap: 4px; z-index: 2; }
   .cv-ind button { border: 0; background: none; padding: 6px 4px; cursor: pointer; }
   .cv-ind i { display: block; width: 8px; height: 8px; border-radius: 4px; background: #fff; opacity: .55; transition: width .3s, opacity .3s; }
   .cv-ind .on i { width: 20px; opacity: 1; }
-  .cv-hint { position: absolute; left: 50%; top: 772px; transform: translateX(-50%); border: 0; background: none; display: flex; flex-direction: column; align-items: center; gap: 4px; font-size: 13px; color: var(--muted); cursor: pointer; }
+  .cv-hint { position: absolute; left: 50%; top: 818px; transform: translateX(-50%); border: 0; background: none; display: flex; flex-direction: column; align-items: center; gap: 4px; font-size: 13px; color: var(--muted); cursor: pointer; }
   .cv-hint svg { animation: nudge 1.6s ease-in-out infinite; }
   @keyframes nudge { 0%, 100% { transform: translateY(0); opacity: .6; } 50% { transform: translateY(-6px); opacity: 1; } }
-  .cv-bag { position: absolute; left: 50%; top: 772px; width: 52px; height: 52px; margin-left: -26px; border-radius: 50%; background: var(--bar); display: grid; place-items: center; box-shadow: 0 8px 20px rgba(63,44,31,.35); transform: translateY(40px) scale(.6); opacity: 0; transition: transform .45s cubic-bezier(.3,1.5,.5,1), opacity .3s; z-index: 6; pointer-events: none; }
+  .cv-bag { position: absolute; left: 50%; top: 814px; width: 52px; height: 52px; margin-left: -26px; border-radius: 50%; background: var(--bar); display: grid; place-items: center; box-shadow: 0 8px 20px rgba(63,44,31,.35); transform: translateY(40px) scale(.6); opacity: 0; transition: transform .45s cubic-bezier(.3,1.5,.5,1), opacity .3s; z-index: 6; pointer-events: none; }
   .cv-bag .badge { left: 30px; top: 4px; }
   .cover-bag .cv-bag { transform: none; opacity: 1; }
   .cover-bag .cv-hint { opacity: 0; }
