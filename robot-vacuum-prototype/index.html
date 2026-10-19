@@ -1407,7 +1407,7 @@ function scrHelp(){
 /* ============ onboarding ============ */
 function obScreen(){
   const o=S.onboarding;
-  const heroMap=`<div style="border-radius:22px;background:var(--surface);padding:10px;margin-top:8px">${mapSVG({cells:demoHeroCells(),robot:false,noEvents:true})}</div>`;
+  const heroMap=`<div class="map-wrap" style="margin-top:8px">${mapSVG({cells:demoHeroCells(),robot:false,noEvents:true})}</div>`;
   if(o==='intro')return `<div class="ob"><div class="hero-name" style="margin-top:4px"><b>Roborock</b><span>S6 MaxV</span></div><div class="hero">${isoRobot()}</div><h1 style="font-size:32px">The robot handles routine cleaning. You stay informed and step in when needed.</h1><p class="lead">See what it’s doing, why it made a call, and fix only the part that needs you.</p><div class="grow"></div><button class="btn primary block" data-a="ob" data-v="mapping">Get started</button></div>`;
   if(o==='mapping')return `<div class="ob"><h1 style="margin-top:6px;font-size:34px">This is your home’s map</h1>${heroMap}<p class="lead" style="margin-top:14px">The robot made it on its first cleaning by scanning each room with its laser. It keeps updating the map as it cleans, so moved furniture shows up next time.</p><div class="grow"></div><button class="btn primary block" data-a="ob" data-v="mode">Next</button></div>`;
   if(o==='mode')return `<div class="ob"><h1 style="margin-top:6px;font-size:34px">How involved do you want to be?</h1><p class="lead" style="margin-bottom:12px;font-size:14.5px">You can change this any time in Settings.</p>${levelPicker(S.ui.obMode,'obMode')}<div class="grow" style="min-height:14px"></div><button class="btn primary block" data-a="obDone">Go to home</button></div>`;
