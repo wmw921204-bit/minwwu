@@ -135,6 +135,8 @@
   const box=document.createElement('div');box.id='study';box.hidden=true;box.setAttribute('aria-label','Study log');document.body.appendChild(box);
   let msg='';const note=t=>{msg=t;draw();setTimeout(()=>{msg='';draw()},2000)};
   const h=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'})[c]);
+  // the published web version can't save files, so it offers copying only
+  const dlBtn=()=>window.STUDY_NO_DOWNLOAD?'':'<button data-s="dl">Download CSV</button>';
   const mmss=ms=>{const s=Math.floor(ms/1000);return String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0')};
   function drawClock(){const c=box.querySelector('.st-clock');const r=cur_t();if(c&&r.start)c.textContent=mmss(rel())}
   function draw(){
@@ -143,7 +145,7 @@
     if(!p){
       s+=`<div class="st-row"><input id="study-pid" placeholder="Participant, e.g. P8" autocomplete="off"><button class="st-p" data-s="new">Start</button></div>`;
       const n=Object.keys(D.people).length;
-      if(n)s+=`<p class="st-m" style="margin-top:8px">${n} participant${n>1?'s':''} saved in this browser.</p><div class="st-row"><button data-s="dl">Download CSV</button><button data-s="cp">Copy summary</button></div>`;
+      if(n)s+=`<p class="st-m" style="margin-top:8px">${n} participant${n>1?'s':''} saved in this browser.</p><div class="st-row">${dlBtn()}<button data-s="cp">Copy summary</button><button data-s="cpl">Copy taps</button></div>`;
     }else{
       const r=p.run;
       s+=`<div class="st-row" style="margin-top:6px"><b>${h(D.pid)}</b><span class="st-m">· ${live()?'Real robot':'Simulation'}</span><span style="flex:1"></span><button data-s="end">End session</button></div>`;
@@ -155,7 +157,7 @@
         const res=last?`<span class="${/fail|gave/.test(last.result)?'st-f':'st-d'}">${last.seconds}s</span>`:'';
         return `<span title="${h(T.ask)}">${T.id} ${h(T.name)} ${res}</span><button ${r&&r.id===T.id?'disabled':''} data-s="go" data-v="${T.id}">${last?'Again':'Start'}</button>`}).join('')}</div>`;
       if(live())s+=`<p class="st-m" style="margin-top:8px">Real robot: set each task up by hand. Tasks that start a cleaning move the robot.</p>`;
-      s+=`<div class="st-row"><button data-s="dl">Download CSV</button><button data-s="cp">Copy summary</button></div>`;
+      s+=`<div class="st-row">${dlBtn()}<button data-s="cp">Copy summary</button><button data-s="cpl">Copy taps</button></div>`;
     }
     s+=`<div class="st-note" role="status">${h(msg)}</div>`;
     const keep=document.activeElement&&document.activeElement.id==='study-pid'?document.activeElement.value:null;
@@ -171,6 +173,7 @@
     if(k==='ok')finish('success');if(k==='fail')finish('failed');if(k==='gave')finish('gave up');
     if(k==='dl'){const d=new Date().toISOString().slice(0,10);download(`study-summary-${d}.csv`,summaryCSV());setTimeout(()=>download(`study-taps-${d}.csv`,logCSV()),400)}
     if(k==='cp')copy(summaryCSV());
+    if(k==='cpl')copy(logCSV());
   });
   box.addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target.id==='study-pid'){e.preventDefault();box.querySelector('[data-s="new"]').click()}});
   function toggle(on){box.hidden=on===undefined?!box.hidden:!on;try{localStorage.setItem(KEY+'-open',box.hidden?'':'1')}catch(e){}draw()}
