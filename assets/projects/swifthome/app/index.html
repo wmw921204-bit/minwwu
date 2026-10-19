@@ -115,10 +115,10 @@
 
   /* ---------- AR ---------- */
   /* cover: product carousel, swipe up to explore */
-  .cv-panel { position: absolute; left: 0; top: 0; width: 402px; height: 806px; border-radius: 0 0 64px 64px; overflow: hidden; transition: background-color .5s; touch-action: none; cursor: grab; }
+  .cv-panel { position: absolute; left: 0; top: 0; width: 402px; height: 874px; overflow: hidden; transition: background-color .5s; touch-action: none; cursor: grab; }
   .cv-panel h1 { position: absolute; left: 23px; top: 78px; margin: 0; font-size: 34px; font-weight: 600; letter-spacing: -.01em; color: #fff; z-index: 2; pointer-events: none; }
   .cv-track { position: absolute; inset: 0; display: flex; transition: transform .55s cubic-bezier(.25,.8,.25,1); }
-  .cv-slide { position: relative; flex: none; width: 402px; height: 806px; }
+  .cv-slide { position: relative; flex: none; width: 402px; height: 874px; }
   .cv-slide > img { position: absolute; left: 0; top: 200px; width: 380px; height: 420px; object-fit: contain; object-position: 40% 100%; filter: drop-shadow(0 18px 18px rgba(0,0,0,.18)); transition: filter .4s; pointer-events: none; }
   .cv-card { position: absolute; left: 177px; top: 492px; width: 190px; height: 178px; border-radius: 16px; border: 1px solid rgba(255,255,255,.55); background: rgba(255,255,255,.28); -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px); text-align: left; cursor: pointer; padding: 0; }
   .cv-card b { position: absolute; left: 14px; top: 20px; font-size: 19px; font-weight: 600; color: var(--ink); white-space: nowrap; }
@@ -134,10 +134,10 @@
   .cv-ind button { border: 0; background: none; padding: 6px 4px; cursor: pointer; }
   .cv-ind i { display: block; width: 8px; height: 8px; border-radius: 4px; background: #fff; opacity: .55; transition: width .3s, opacity .3s; }
   .cv-ind .on i { width: 20px; opacity: 1; }
-  .cv-hint { position: absolute; left: 50%; top: 818px; transform: translateX(-50%); border: 0; background: none; display: flex; flex-direction: column; align-items: center; gap: 4px; font-size: 13px; color: var(--muted); cursor: pointer; }
+  .cv-hint { position: absolute; left: 50%; top: 806px; transform: translateX(-50%); border: 0; background: none; display: flex; flex-direction: column; align-items: center; gap: 4px; font-size: 13px; color: rgba(255,255,255,.9); cursor: pointer; z-index: 3; transition: opacity .3s; }
   .cv-hint svg { animation: nudge 1.6s ease-in-out infinite; }
   @keyframes nudge { 0%, 100% { transform: translateY(0); opacity: .6; } 50% { transform: translateY(-6px); opacity: 1; } }
-  .cv-bag { position: absolute; left: 50%; top: 814px; width: 52px; height: 52px; margin-left: -26px; border-radius: 50%; background: var(--bar); display: grid; place-items: center; box-shadow: 0 8px 20px rgba(63,44,31,.35); transform: translateY(40px) scale(.6); opacity: 0; transition: transform .45s cubic-bezier(.3,1.5,.5,1), opacity .3s; z-index: 6; pointer-events: none; }
+  .cv-bag { position: absolute; left: 50%; top: 800px; width: 52px; height: 52px; margin-left: -26px; border-radius: 50%; background: var(--bar); display: grid; place-items: center; box-shadow: 0 8px 20px rgba(63,44,31,.35); transform: translateY(40px) scale(.6); opacity: 0; transition: transform .45s cubic-bezier(.3,1.5,.5,1), opacity .3s; z-index: 6; pointer-events: none; }
   .cv-bag .badge { left: 30px; top: 4px; }
   .cover-bag .cv-bag { transform: none; opacity: 1; }
   .cover-bag .cv-hint { opacity: 0; }
@@ -750,7 +750,7 @@ PAGES.cover = () => { const v = state.cover.view;
           <span class="dots">${c.dots.map((d, j) => `<i class="${j === k ? "on" : ""}" data-cvtint="${j}" style="background:${d}"></i>`).join("")}</span>
           <span class="pr">${money(it.price)}/mo</span><span class="go">${ICON.arrow}</span></button></div>`; }).join("")}</div>
     <div class="cv-ind">${COVER.map((_, i) => `<button class="${i === v ? "on" : ""}" data-cvview="${i}" aria-label="Item ${i + 1}"><i></i></button>`).join("")}</div></div>
-    <button class="cv-hint" data-go="explore" aria-label="Swipe up to explore"><svg width="20" height="12" viewBox="0 0 20 12" fill="none"><path d="M2 10l8-7 8 7" stroke="#8a8079" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>Swipe up to explore</button>
+    <button class="cv-hint" data-go="explore" aria-label="Swipe up to explore"><svg width="20" height="12" viewBox="0 0 20 12" fill="none"><path d="M2 10l8-7 8 7" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>Swipe up to explore</button>
     <div class="cv-bag"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M5 8h14l-1 12H6L5 8z" stroke="#fff" stroke-width="1.8" stroke-linejoin="round"/><path d="M9 8V6a3 3 0 016 0v2" stroke="#fff" stroke-width="1.8" stroke-linecap="round"/></svg><span class="badge">${count()}</span></div>`; };
 const coverView = (v) => { const w = els.cover; state.cover.view = v;
   w.querySelector(".cv-track").style.transform = `translateX(${-402 * v}px)`; w.querySelector(".cv-panel").style.backgroundColor = COVER[v].bg;
