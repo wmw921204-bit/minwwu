@@ -240,7 +240,7 @@ const SCREENS = MODE === "before" ? {
   notif: { html: "notif1" },
   weight: { html: "weight1" },
 } : {
-  onboarding: { base: S("v2-onboarding"), auto: { after: 1600, tab: "home1" }, hs: [{ x: 200, y: 754, w: 122, h: 46, tab: "home1" }] },
+  onboarding: { base: S("v2-onboarding"), hs: [{ x: 200, y: 754, w: 122, h: 46, tab: "home1" }] },
   home1: { base: S("v2-home1-bg"), swipe: [null, "home2"], strip: true, sc: { x: 13, y: 59, w: 368, h: 793, img: S("v2-home1-sc"), ch: 1004,
     hs: homeHs([{ x: 85, y: 12, w: 62, h: 90, tab: "home2", dir: 1 }, { x: 158, y: 12, w: 50, h: 90, tab: "home3", dir: 1 }]) }, fx: nav2("home") },
   home2: { base: S("v2-home2-bg"), swipe: ["home1", "home3"], strip: true, sc: { x: 13, y: 59, w: 368, h: 793, img: S("v2-home2-sc"), ch: 1004,
