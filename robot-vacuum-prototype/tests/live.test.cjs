@@ -250,33 +250,35 @@ test('a robot decision shows a Change label in the list and on the banner', asyn
   app.close();
 });
 
-test('the study log: intro, exploration until the cleaning ends, then guided after-cleaning tasks with End and Skip', async () => {
+test('the study panel: start, exploration until the cleaning ends, guided after-cleaning tasks with Skip and End, then results', async () => {
   const b = fakeBridge();
   const app = await boot(b);
   const tap = sel => app.run(`document.querySelector('${sel}').dispatchEvent(new MouseEvent('click',{bubbles:true}))`);
+  const panel = () => app.run("document.querySelector('#study').textContent");
   const p = path => app.run(`STUDY.data().people.P0.${path}`);
-  app.run("STUDY.toggle(true);STUDY.begin('P0')");
-  assert.equal(p('phase'), 'intro');
-  assert.match(app.run("document.querySelector('#study-card').textContent"), /Before we start[\s\S]*Your first task/);
-  tap('#study-card [data-sc="begin"]');
+  app.run("STUDY.toggle(true);document.querySelector('#study-pid').value='P0'");
+  tap('#study [data-s="new"]');
   assert.equal(p('phase'), 'explore');
-  b.st.vacuum = 'cleaning'; b.st.detail = 'cleaning'; // a cleaning starts
+  assert.match(panel(), /Before you start[\s\S]*Your task/);
+  assert.equal(app.run("document.querySelector('.phone #study-card')"), null); // nothing on the phone
+  b.st.vacuum = 'cleaning'; b.st.detail = 'cleaning';
   await app.poll(); await sleep(400);
   assert.ok(p('explore.achieved.T2'));
-  b.st.vacuum = 'docked'; b.st.detail = 'charging'; // and ends
-  await app.poll(); await sleep(400);
-  assert.equal(p('explore.since'), null); // clock paused
-  await sleep(2800);
-  assert.match(app.run("document.querySelector('#study-card').textContent"), /The cleaning is done/);
-  tap('#study-card [data-sc="go"]');
+  b.st.vacuum = 'docked'; b.st.detail = 'charging'; // the cleaning ends: so does exploration
+  await app.poll(); await sleep(500);
   assert.equal(p('phase'), 'guided');
-  assert.ok(!app.run("STUDY.data().people.P0.queue.some(id=>['T3','T5','T6','T7'].includes(id))")); // nothing that needs a running cleaning
+  assert.match(panel(), /The cleaning is done · Task 1 of/);
+  assert.doesNotMatch(panel(), /taps|detour/i); // no data while the participant is using it
   const first = p('run.id');
-  tap('#study-card [data-sc="start"]');
-  tap('#study [data-s="ok"]'); // facilitator ends it
+  tap('#study [data-s="skip"]');
+  tap('#study [data-s="ok"]');
   const rows = JSON.parse(app.run('JSON.stringify(STUDY.data().people.P0.tasks)'));
-  assert.ok(rows.some(r => r.task === first && r.result === 'done (facilitator)'));
-  assert.ok(rows.some(r => r.task === 'T4' && r.result === 'not available')); // no robot decisions to change
+  assert.ok(rows.some(r => r.task === first && r.result === 'skipped'));
+  assert.ok(rows.some(r => r.result === 'ended'));
+  app.run("document.querySelector('#study [data-s=\"stop\"]')&&document.querySelector('#study [data-s=\"stop\"]').dispatchEvent(new MouseEvent('click',{bubbles:true}))");
+  assert.equal(p('phase'), 'done');
+  assert.match(panel(), /Results · P0/);
+  assert.ok(JSON.parse(app.run('JSON.stringify(STUDY.data().people.P0.tasks)')).some(r => r.phase === 'explore' && r.task === 'T2'));
   assert.match(app.run('STUDY.summaryCSV()'), /^participant,mode,phase,task/);
   assert.deepEqual(b.robotCommands(), []);
   app.close();

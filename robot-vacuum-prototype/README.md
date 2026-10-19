@@ -108,14 +108,13 @@ npm test
 - After the robot's map changes (or comes back after having none), the app asks you to check rooms, zones, no-go zones and alignment.
 - Phone access over Wi-Fi with a PIN (above), and end-to-end tests for live mode.
 
-## Study log (for usability sessions)
+## Study panel (for usability sessions)
 
-Runs a session the way a moderator would, and records what happens. Open the facilitator panel with **Shift+S**, `?study` in the address, or Settings → Testing → Study log. Participants don't see it unless it's open.
+A panel at the top left, beside the phone, that the participant uses during a session. Nothing appears inside the app itself. Open it with `?study` in the address, **Shift+S**, or Settings → Testing → Study log.
 
-1. **Participant and Begin.** Type the ID (it counts up: P1, P2, …) and press Begin. In the simulation this resets the app to onboarding and turns the study events on.
-2. **Intro.** The phone shows the background and the opening task (also in the panel, to read out). The clock starts when they tap Start (or you press Start now).
-3. **Free exploration = one cleaning.** They set up, start a cleaning (any kind) and use the app however they like. Every task goal they reach on their own is noted with the time. When the cleaning ends (finished or stopped), the clock pauses; if they start another cleaning, it carries on. End this part ends it by hand if the end wasn't picked up.
-4. **Guided tasks.** The phone then shows the after-cleaning tasks they didn't reach (change a robot decision, find what the robot did, check found objects, Full auto for an hour, find what needs you), one at a time. A task that doesn't apply (no decisions to change, no objects to check) is recorded as not available. Each ends by itself when its goal is reached; the participant can tap I'm done or Skip, and the panel has End task and Skip for each one.
-5. **Export.** Download CSV gives two files: a summary (one row per task and phase: seconds, taps, fewest taps, extra taps, detours, backs, dead taps, screen path) and every tap and screen with timestamps. Copy summary and Copy taps put the same tables on the clipboard; the published web version only offers these, since it can't save files.
+1. **Participant and Start.** In the simulation, Start resets the app to onboarding and turns the study events on.
+2. **Background and opening task**, with **End**. This part is one cleaning: they set up, start a cleaning (any kind) and use the app however they like. It ends by itself when the cleaning ends (finished or stopped). If they start another cleaning before doing anything in the next part, it carries on. End is there in case the end isn't picked up.
+3. **Guided tasks after the cleaning**, one at a time, each with **Skip** and **End**: change a robot decision, find what the robot did, check found objects, Full auto for an hour, find what needs you. Only the ones they didn't reach on their own are shown, and only if they apply (no decisions to change → not shown). Each also ends by itself when its goal is reached.
+4. **Results.** After "That's everything. Thank you!", the panel shows the session's results for the researcher: every goal reached while exploring (with the time into exploration) and every guided task (result, seconds, taps against the fewest needed, detours). Download CSV gives a summary and a full tap and screen log; Copy summary and Copy taps put the same tables on the clipboard (the only option on the published web version, which can't save files). End session ends early.
 
 Data stays in this browser until exported. Edit `SCRIPT` and `TASKS` in `study-log.js` to change the wording or the tasks. With the real robot, starting a cleaning moves the robot.
