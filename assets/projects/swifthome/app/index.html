@@ -52,9 +52,12 @@
   .toast.is-on { transform: translate(-50%, 0); opacity: 1; }
 
   /* the product page bottom bar: dynamic white pill on top of the exported bar */
-  .pill { position: absolute; left: 169px; height: 37px; width: 206px; border: 0; border-radius: 18.5px; background: #fff; display: flex; align-items: center; justify-content: center; gap: 6px; cursor: pointer; overflow: hidden; }
+  .cbar { position: absolute; left: 22px; top: 26px; width: 358px; height: 54px; border-radius: 27px; background: var(--bar); box-shadow: 0 10px 24px rgba(63,44,31,.3); pointer-events: none; }
+  .cbar-bag { position: absolute; left: 8px; top: 7px; width: 40px; height: 40px; border-radius: 50%; background: rgba(255,255,255,.1); display: grid; place-items: center; color: #fff; }
+  .cbar-bag svg { width: 19px; height: 20px; }
+  .pill { position: absolute; left: 80px; height: 37px; width: 292px; border: 0; border-radius: 18.5px; background: #fff; display: flex; align-items: center; justify-content: center; gap: 6px; cursor: pointer; overflow: hidden; }
   .pill b { font-size: 17px; font-weight: 700; letter-spacing: -.01em; }
-  .pill small { font-size: 9px; color: var(--ink); }
+  .pill small { font-size: 11px; color: var(--ink); }
   .pill svg { flex: none; }
   .pill .saved { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; gap: 6px; background: #fff; font-size: 18px; font-weight: 700; transform: translateY(100%); transition: transform .35s cubic-bezier(.3,1.4,.5,1); }
   .pill.is-saved .saved { transform: none; }
@@ -111,6 +114,33 @@
   .gallery img { width: 100%; height: 100%; object-fit: cover; transition: opacity .4s; }
 
   /* ---------- AR ---------- */
+  /* cover: product carousel, swipe up to explore */
+  .cv-panel { position: absolute; left: 0; top: 0; width: 402px; height: 748px; border-radius: 0 0 64px 64px; overflow: hidden; transition: background-color .5s; touch-action: none; cursor: grab; }
+  .cv-panel h1 { position: absolute; left: 23px; top: 78px; margin: 0; font-size: 34px; font-weight: 600; letter-spacing: -.01em; color: #fff; z-index: 2; pointer-events: none; }
+  .cv-track { position: absolute; inset: 0; display: flex; transition: transform .55s cubic-bezier(.25,.8,.25,1); }
+  .cv-slide { position: relative; flex: none; width: 402px; height: 748px; }
+  .cv-slide > img { position: absolute; left: 0; top: 170px; width: 380px; height: 420px; object-fit: contain; object-position: 40% 100%; filter: drop-shadow(0 18px 18px rgba(0,0,0,.18)); transition: filter .4s; pointer-events: none; }
+  .cv-card { position: absolute; left: 177px; top: 455px; width: 190px; height: 178px; border-radius: 16px; border: 1px solid rgba(255,255,255,.55); background: rgba(255,255,255,.28); -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px); text-align: left; cursor: pointer; padding: 0; }
+  .cv-card b { position: absolute; left: 14px; top: 20px; font-size: 19px; font-weight: 600; color: var(--ink); white-space: nowrap; }
+  .cv-card .chipw { position: absolute; left: 13px; top: 58px; padding: 5px 9px; border: 1px solid rgba(255,255,255,.85); border-radius: 10px; font-size: 11px; color: #fff; }
+  .cv-card .dots { position: absolute; left: 14px; top: 98px; display: flex; gap: 12px; }
+  .cv-card .dots i { position: relative; width: 18px; height: 18px; border-radius: 50%; transition: box-shadow .25s; }
+  .cv-card .dots i::after { content: ""; position: absolute; inset: -6px; }
+  .cv-card .dots i.on { box-shadow: 0 0 0 2px #fff, 0 0 0 3.5px rgba(58,39,26,.55); }
+  .cv-card .pr { position: absolute; left: 14px; top: 136px; font-size: 16px; font-weight: 600; color: var(--ink); }
+  .cv-card .go { position: absolute; right: 14px; bottom: 14px; width: 40px; height: 40px; border-radius: 50%; background: #fff; display: grid; place-items: center; }
+  .cv-card .go svg { transform: rotate(-45deg); }
+  .cv-ind { position: absolute; left: 0; right: 0; top: 700px; display: flex; justify-content: center; gap: 4px; z-index: 2; }
+  .cv-ind button { border: 0; background: none; padding: 6px 4px; cursor: pointer; }
+  .cv-ind i { display: block; width: 8px; height: 8px; border-radius: 4px; background: #fff; opacity: .55; transition: width .3s, opacity .3s; }
+  .cv-ind .on i { width: 20px; opacity: 1; }
+  .cv-hint { position: absolute; left: 50%; top: 772px; transform: translateX(-50%); border: 0; background: none; display: flex; flex-direction: column; align-items: center; gap: 4px; font-size: 13px; color: var(--muted); cursor: pointer; }
+  .cv-hint svg { animation: nudge 1.6s ease-in-out infinite; }
+  @keyframes nudge { 0%, 100% { transform: translateY(0); opacity: .6; } 50% { transform: translateY(-6px); opacity: 1; } }
+  .cv-bag { position: absolute; left: 50%; top: 772px; width: 52px; height: 52px; margin-left: -26px; border-radius: 50%; background: var(--bar); display: grid; place-items: center; box-shadow: 0 8px 20px rgba(63,44,31,.35); transform: translateY(40px) scale(.6); opacity: 0; transition: transform .45s cubic-bezier(.3,1.5,.5,1), opacity .3s; z-index: 6; pointer-events: none; }
+  .cv-bag .badge { left: 30px; top: 4px; }
+  .cover-bag .cv-bag { transform: none; opacity: 1; }
+  .cover-bag .cv-hint { opacity: 0; }
   .ar-bg { position: absolute; inset: 0; width: 402px; height: 874px; object-fit: cover; transition: opacity .5s; }
   .ar-studio { position: absolute; inset: 0; pointer-events: none; background: radial-gradient(120% 80% at 50% 60%, #f6f1ea 0%, #e7ddd1 70%, #d8cabb 100%); opacity: 0; transition: opacity .5s; }
   .ar.studio .ar-studio { opacity: 1; }
@@ -223,7 +253,7 @@
   .sheet p { margin-top: 4px; font-size: 13px; color: var(--muted); line-height: 1.45; }
   .sheet .btn { margin-top: 18px; }
   .qv-img { position: relative; height: 230px; margin: 4px -4px 14px; border-radius: 20px; display: grid; place-items: center; overflow: hidden; }
-  .qv-img img { max-width: 80%; max-height: 92%; transition: filter .4s; }
+  .qv-img img { width: 86%; height: 206px; object-fit: contain; transition: filter .4s; }
   .qv-img.cover img { max-width: none; max-height: none; width: 100%; height: 100%; object-fit: cover; }
   .qv-price { display: flex; align-items: baseline; justify-content: space-between; margin-top: 2px; }
   .qv-price b { font-size: 22px; font-weight: 700; }
@@ -300,6 +330,7 @@ const state = {
   cz: [{ n: "Chair", img: "set_chair", p: 30, c: 0, s: 1, q: 1 }, { n: "Sofa", img: "set_sofa", p: 40, c: 0, s: 1, q: 1 }, { n: "Bedside Table", img: "set_bedside", p: 10, c: 0, s: 2, q: 1 }, { n: "Coffee Table", img: "set_table", p: 20, c: 0, s: 1, q: 1 }],
   czSaved: false,
   ar: { mode: "home", color: "green", x: 0, y: 0, s: 1, r: 0 },
+  cover: { view: 0, tint: [0, 0, 0, 0] },
   md: { months: 12, renew: false, day: 2, thumb: 0 },
   card: "5688", address: "River House, PMB 145778, 22 E. Lathrop Ave, Savannah, GA, 31415",
   catTab: 0,
@@ -313,17 +344,12 @@ const total = () => monthly() * 12;
 const NAVH = (img, active) => ({ img: S(img), y: 760, h: 114, badge: [205, 812], hs: [
   { x: 64, y: 806, w: 110, h: 52, tab: "explore" }, { x: 188, y: 806, w: 46, h: 52, tab: "cart" },
   { x: 240, y: 806, w: 46, h: 52, tab: "favs" }, { x: 294, y: 806, w: 46, h: 52, tab: "profile" }] });
-const BAR = (img) => ({ img: S(img), y: 760, h: 114, badge: [80, 799], hs: [
-  { x: 26, y: 794, w: 32, h: 38, tab: "explore" }, { x: 58, y: 794, w: 32, h: 38, tab: "cart" },
-  { x: 88, y: 794, w: 32, h: 38, tab: "favs" }, { x: 120, y: 794, w: 32, h: 38, tab: "profile" }] });
+// product, set, AR and customize: a compact bar, just the bag (with its count) and the Add to Cart pill
+const BAR = () => ({ compact: true, y: 760, h: 114, badge: [60, 789], hs: [{ x: 30, y: 793, w: 40, h: 40, tab: "cart" }] });
 const qv = (id) => ({ act: "quick", id });
 const SCREENS = {
   splash: { base: S("splash"), kenburns: true, hs: [{ x: 288, y: 390, w: 76, h: 78, go: "cover", how: "fade" }] },
-  cover: { base: S("cover"), swipeUp: "explore", hs: [
-    { x: 177, y: 449, w: 175, h: 105, act: "quick", id: "rattan" }, { x: 182, y: 548, w: 26, h: 26, act: "rattanDot", i: 0 }, { x: 222, y: 548, w: 26, h: 26, act: "rattanDot", i: 1 }, { x: 253, y: 548, w: 26, h: 26, act: "rattanDot", i: 2 },
-    { x: 290, y: 576, w: 62, h: 50, act: "quick", id: "rattan" }, { x: 30, y: 748, w: 298, h: 42, go: "search" }, { x: 342, y: 744, w: 40, h: 40, act: "filter" },
-    { x: 150, y: 680, w: 100, h: 30, go: "explore", how: "up" }],
-    fx: { ...NAVH("nav_home"), y: 760 } },
+  cover: { html: "cover" },
   explore: { base: S("F3_base"), hs: [{ x: 24, y: 136, w: 300, h: 45, go: "search" }, { x: 338, y: 138, w: 40, h: 40, act: "filter" }],
     sc: { x: 20, y: 210, w: 375, h: 664, img: S("F3_scroll"), ix: -20, iy: -16, iw: 400, ch: 1112, hs: [
       { x: 0, y: 0, w: 360, h: 195, go: "sets" }, { x: 314, y: 219, w: 51, h: 40, go: "categories" },
@@ -348,10 +374,10 @@ const SCREENS = {
       { x: 0, y: 0, w: 360, h: 195, ...qv("simplicity") }, { x: 8, y: 339, w: 347, h: 205, go: "set", zoom: true },
       { x: 15, y: 576, w: 95, h: 205, ...qv("simplicity") }, { x: 125, y: 576, w: 230, h: 205, ...qv("simplicity") }, { x: 8, y: 809, w: 347, h: 205, ...qv("modern") }] },
     fx: NAVH("nav_sets") },
-  set: { html: "setPage", fx: { ...BAR("bar_set"), pill: "set" } },
-  customize: { html: "customize", fx: { ...BAR("bar_set"), pill: "cz" } },
-  product: { html: "product", fx: { ...BAR("bar_product"), pill: "pd" } },
-  ar: { html: "ar", fx: { ...BAR("bar_product"), pill: "pd" } },
+  set: { html: "setPage", fx: { ...BAR(), pill: "set" } },
+  customize: { html: "customize", fx: { ...BAR(), pill: "cz" } },
+  product: { html: "product", fx: { ...BAR(), pill: "pd" } },
+  ar: { html: "ar", fx: { ...BAR(), pill: "pd" } },
   cart: { html: "cart", fx: { img: S("nav_cart"), y: 760, h: 114, hs: [
     { x: 62, y: 808, w: 50, h: 46, tab: "explore" }, { x: 112, y: 808, w: 100, h: 46, tab: "cart" }, { x: 216, y: 808, w: 54, h: 46, tab: "favs" }, { x: 274, y: 808, w: 66, h: 46, tab: "profile" }] } },
   checkout: { base: S("checkout"), patch: "checkout", hs: [{ x: 14, y: 74, w: 54, h: 46, back: 1 }, { x: 288, y: 388, w: 74, h: 36, act: "payment" }, { x: 288, y: 628, w: 64, h: 30, act: "address" }, { x: 34, y: 478, w: 335, h: 148, act: "address" }, { x: 84, y: 796, w: 230, h: 45, act: "placeOrder" }] },
@@ -402,7 +428,7 @@ const make = (id) => {
   if (s.html) el.insertAdjacentHTML("beforeend", `<div class="pgwrap"></div>`);
   if (s.fx) {
     const fx = document.createElement("div"); fx.className = "fx"; fx.style.cssText = `top:${s.fx.y}px;height:${s.fx.h}px`;
-    fx.insertAdjacentHTML("beforeend", `<img src="${s.fx.img}" alt="">`);
+    fx.insertAdjacentHTML("beforeend", s.fx.compact ? `<div class="cbar"><i class="cbar-bag">${ICON.bag}</i></div>` : `<img src="${s.fx.img}" alt="">`);
     s.fx.hs.forEach((h) => fx.append(btn({ ...h, y: h.y - s.fx.y })));
     if (s.fx.pill) { const p = document.createElement("button"); p.className = "pill"; p.style.top = (794 - s.fx.y) + "px"; p.dataset.k = s.fx.pill; p.addEventListener("click", (e) => { e.stopPropagation(); addFrom(s.fx.pill, p); }); fx.append(p); }
     if (s.fx.badge) fx.insertAdjacentHTML("beforeend", `<span class="badge" style="left:${s.fx.badge[0]}px;top:${s.fx.badge[1] - s.fx.y}px"></span>`);
@@ -509,12 +535,12 @@ const PAGES = {
     const s = state.set, fav = state.fav.has("natural");
     return `<div class="pg"><div style="position:relative;height:955px">
       <img src="${S("set_content")}" style="position:absolute;left:0;top:0;width:402px" alt="">
-      <div style="position:absolute;left:0;top:0;width:402px;height:305px;overflow:hidden"><img id="sethero" src="${S("set_hero")}" style="position:absolute;left:-58px;top:0;width:489px;height:305px;transition:transform .7s cubic-bezier(.25,.8,.25,1);transform:translateX(${[0, 40, -40][s.view]}px) scale(${[1, 1.12, 1.12][s.view]})" alt="Natural Cozy Set"></div>
+      <div class="setcar" style="position:absolute;left:0;top:0;width:402px;height:305px;overflow:hidden;touch-action:pan-y;cursor:grab"><div class="setcar-t" style="display:flex;height:305px;transform:translateX(${-402 * s.view}px);transition:transform .45s cubic-bezier(.25,.8,.25,1)">${["set_hero", "set_view2", "set_view3"].map((k, i) => `<img ${i ? "" : 'id="sethero"'} src="${S(k)}" draggable="false" style="flex:none;width:402px;height:305px;object-fit:cover;${i ? "" : "object-position:67% 50%"}" alt="${["Natural Cozy Set in a living room", "The lounge chair and stool", "The chaise, side table and rug"][i]}">`).join("")}</div></div>
       <div class="chip-rate" style="top:68px;left:70px;background:rgba(255,255,255,.82);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)">4.7 / 5.0 ${ICON.star}</div>
       <button class="back glass" data-back aria-label="Back" style="top:60px">${ICON.back}</button>
       <button class="heart ${fav ? "on" : ""}" data-act="favSet" style="top:66px">${ICON.heart(fav)}<span class="burst">${[0, 60, 120, 180, 240, 300].map((a) => `<i style="--a:${a}deg"></i>`).join("")}</span></button>
       <button class="hs" data-act="setPrev" style="left:16px;top:150px;width:36px;height:54px" aria-label="Previous view"></button><button class="hs" data-act="setNext" style="left:348px;top:150px;width:36px;height:54px" aria-label="Next view"></button>
-      <div style="position:absolute;left:174px;top:283px;display:flex;gap:9px">${[0, 1, 2].map((i) => `<i style="width:${i === s.view ? 16 : 6}px;height:6px;border-radius:3px;background:#fff;opacity:${i === s.view ? 1 : .6};transition:width .3s"></i>`).join("")}</div>
+      <div class="setdots" style="position:absolute;left:166px;top:276px;display:flex;align-items:center;gap:3px">${[0, 1, 2].map((i) => `<button data-setview="${i}" aria-label="View ${i + 1}" style="border:0;background:none;padding:7px 3px;cursor:pointer"><i style="display:block;width:${i === s.view ? 16 : 6}px;height:6px;border-radius:3px;background:#fff;opacity:${i === s.view ? 1 : .6};transition:width .3s,opacity .3s"></i></button>`).join("")}</div>
       <div style="position:absolute;left:0;top:443px;width:402px;height:52px;background:#fff">${rentHTML(s.months)}</div>
       <button class="hs" data-act="setMore" style="left:310px;top:378px;width:66px;height:20px" aria-label="Read more"></button>
       <button class="hs" data-go="customize" style="left:300px;top:520px;width:80px;height:34px" aria-label="Customize"></button>
@@ -580,6 +606,8 @@ const bindPage = (w, id) => {
   w.querySelectorAll("[data-open]").forEach((b) => b.addEventListener("click", (e) => { e.stopPropagation(); openItem(b.dataset.open, b); }));
   w.querySelectorAll("[data-rent]").forEach((r) => bindRent(r, id));
   if (id === "product") bindProduct(w);
+  if (id === "set") bindSetCar(w);
+  if (id === "cover") bindCover(w);
   if (id === "customize") bindCustomize(w);
   if (id === "cart") bindCart(w);
   if (id === "modify") bindModify(w);
@@ -609,6 +637,21 @@ const bindRent = (r, id) => {
 };
 
 /* product page */
+/* set hero: a swipeable three-photo carousel (drag, dots or the edge arrows) */
+const setView = (v) => { state.set.view = v; const w = els.set; w.querySelector(".setcar-t").style.transform = `translateX(${-402 * v}px)`;
+  w.querySelectorAll(".setdots i").forEach((d, i) => { d.style.width = (i === v ? 16 : 6) + "px"; d.style.opacity = i === v ? 1 : .6; }); };
+const bindSetCar = (w) => {
+  const car = w.querySelector(".setcar"), t = w.querySelector(".setcar-t"); if (!car) return;
+  let d = null;
+  car.addEventListener("pointerdown", (e) => { d = { x: e.clientX, y: e.clientY, on: false }; });
+  car.addEventListener("pointermove", (e) => { if (!d) return; const dx = e.clientX - d.x;
+    if (!d.on && Math.abs(dx) > 6 && Math.abs(dx) > Math.abs(e.clientY - d.y)) { d.on = true; car.setPointerCapture(e.pointerId); t.style.transition = "none"; car.style.cursor = "grabbing"; }
+    if (d.on) { const v = state.set.view, edge = (v === 0 && dx > 0) || (v === 2 && dx < 0); t.style.transform = `translateX(${-402 * v + (edge ? dx / 3 : dx)}px)`; } });
+  const end = (e) => { if (!d) return; const dx = e.clientX - d.x, on = d.on; d = null; car.style.cursor = ""; t.style.transition = "transform .45s cubic-bezier(.25,.8,.25,1)";
+    if (on) setView(Math.max(0, Math.min(2, state.set.view + (dx < -50 ? 1 : dx > 50 ? -1 : 0)))); };
+  car.addEventListener("pointerup", end); car.addEventListener("pointercancel", end);
+  w.querySelectorAll("[data-setview]").forEach((b) => b.addEventListener("click", (e) => { e.stopPropagation(); setView(+b.dataset.setview); }));
+};
 const bindProduct = (w) => {
   const p = state.pd;
   w.querySelectorAll("[data-thumb]").forEach((b) => b.addEventListener("click", (e) => { e.stopPropagation(); p.thumb = +b.dataset.thumb; w.querySelector("#pdimg").style.transform = ZOOM[p.thumb]; w.querySelectorAll("[data-thumb]").forEach((x) => x.classList.toggle("on", x === b)); }));
@@ -644,6 +687,7 @@ const addToCart = (id, price, extra = {}) => {
   if (line) line.qty++; else state.cart.push({ id, color: extra.color || "natural", size: extra.size || "Regular", lease: extra.lease || 12, qty: 1, price });
 };
 const fly = (src, fromEl) => {
+  coverBag();
   const a = app.getBoundingClientRect(), f = fromEl.getBoundingClientRect(), badge = els[cur].querySelector(".badge");
   const t = badge ? badge.getBoundingClientRect() : { left: a.left + 75, top: a.top + 812, width: 10, height: 10 };
   const im = document.createElement("img"); im.className = "fly"; im.src = src;
@@ -689,6 +733,52 @@ const bindSearch = (w) => {
   q.addEventListener("input", run); w.querySelectorAll("[data-term]").forEach((b) => b.addEventListener("click", (e) => { e.stopPropagation(); q.value = b.dataset.term; run(); }));
   run(); setTimeout(() => q.focus({ preventScroll: true }), 450);
 };
+
+/* ---------- cover: swipe between featured pieces, tap the card for a quick view, swipe up to explore ---------- */
+const COVER = [
+  { id: "rattan", bg: "#c3a186", dots: ["#b68b6a", "#ece6e0", "#6b6058"] },
+  { id: "brown", bg: "#ab9d93", dots: ["#5a4235", "#cdbcad", "#2e2a28"] },
+  { id: "dining", bg: "#a9b293", dots: ["#5f7d3c", "#d9d0c2", "#3d3936"] },
+  { id: "sofa", img: "hero_green", bg: "#c3c28e", dots: ["#b2b15e", "#fff6ef", "#b68b6a"] },
+];
+const TINT = ["", "brightness(1.25) saturate(.55)", "brightness(.72) saturate(1.1)"];
+PAGES.cover = () => { const v = state.cover.view;
+  return `<div class="cv-panel" style="background-color:${COVER[v].bg}"><h1>Explore Furniture</h1>
+    <div class="cv-track" style="transform:translateX(${-402 * v}px)">${COVER.map((c, i) => { const it = CATALOG[c.id], k = state.cover.tint[i];
+      return `<div class="cv-slide"><img src="${S(c.img || it.img)}" style="filter:drop-shadow(0 18px 18px rgba(0,0,0,.18)) ${TINT[k]}" alt="${it.name}">
+        <button class="cv-card" data-cvopen="${i}" aria-label="${it.name} quick view"><b>${it.name}</b><span class="chipw">Available Color</span>
+          <span class="dots">${c.dots.map((d, j) => `<i class="${j === k ? "on" : ""}" data-cvtint="${j}" style="background:${d}"></i>`).join("")}</span>
+          <span class="pr">${money(it.price)}/mo</span><span class="go">${ICON.arrow}</span></button></div>`; }).join("")}</div>
+    <div class="cv-ind">${COVER.map((_, i) => `<button class="${i === v ? "on" : ""}" data-cvview="${i}" aria-label="Item ${i + 1}"><i></i></button>`).join("")}</div></div>
+    <button class="cv-hint" data-go="explore" aria-label="Swipe up to explore"><svg width="20" height="12" viewBox="0 0 20 12" fill="none"><path d="M2 10l8-7 8 7" stroke="#8a8079" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>Swipe up to explore</button>
+    <div class="cv-bag"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M5 8h14l-1 12H6L5 8z" stroke="#fff" stroke-width="1.8" stroke-linejoin="round"/><path d="M9 8V6a3 3 0 016 0v2" stroke="#fff" stroke-width="1.8" stroke-linecap="round"/></svg><span class="badge">${count()}</span></div>`; };
+const coverView = (v) => { const w = els.cover; state.cover.view = v;
+  w.querySelector(".cv-track").style.transform = `translateX(${-402 * v}px)`; w.querySelector(".cv-panel").style.backgroundColor = COVER[v].bg;
+  w.querySelectorAll("[data-cvview]").forEach((b, i) => b.classList.toggle("on", i === v)); };
+const bindCover = (w) => {
+  const panel = w.querySelector(".cv-panel"), t = w.querySelector(".cv-track");
+  let d = null;
+  panel.addEventListener("pointerdown", (e) => { d = { x: e.clientX, y: e.clientY, ax: null, moved: false }; });
+  panel.addEventListener("pointermove", (e) => { if (!d) return; const dx = e.clientX - d.x, dy = e.clientY - d.y;
+    if (!d.ax && Math.hypot(dx, dy) > 8) { d.ax = Math.abs(dx) > Math.abs(dy) ? "x" : "y"; d.moved = true; panel.setPointerCapture(e.pointerId); t.style.transition = "none"; }
+    if (d.ax === "x") { const v = state.cover.view, edge = (v === 0 && dx > 0) || (v === COVER.length - 1 && dx < 0); t.style.transform = `translateX(${-402 * v + (edge ? dx / 3 : dx)}px)`; }
+    if (d.ax === "y") panel.style.transform = `translateY(${Math.min(0, dy) / 4}px)`; });
+  const end = (e) => { if (!d) return; const dx = e.clientX - d.x, dy = e.clientY - d.y, ax = d.ax; d = null;
+    t.style.transition = ""; panel.style.transform = "";
+    if (ax === "x") coverView(Math.max(0, Math.min(COVER.length - 1, state.cover.view + (dx < -50 ? 1 : dx > 50 ? -1 : 0))));
+    if (ax === "y" && dy < -60) act({ go: "explore", how: "up" });
+    if (ax) { const stop = (ev) => { ev.stopPropagation(); ev.preventDefault(); }; panel.addEventListener("click", stop, { capture: true, once: true }); setTimeout(() => panel.removeEventListener("click", stop, { capture: true }), 50); } };
+  panel.addEventListener("pointerup", end); panel.addEventListener("pointercancel", end);
+  w.addEventListener("wheel", (e) => { if (cur !== "cover") return; if (e.deltaY > 20) act({ go: "explore", how: "up" }); else if (Math.abs(e.deltaX) > 25 && !w._wx) { w._wx = 1; setTimeout(() => (w._wx = 0), 500); coverView(Math.max(0, Math.min(COVER.length - 1, state.cover.view + Math.sign(e.deltaX)))); } }, { passive: true });
+  w.querySelectorAll("[data-cvview]").forEach((b) => b.addEventListener("click", (e) => { e.stopPropagation(); coverView(+b.dataset.cvview); }));
+  w.querySelectorAll("[data-cvtint]").forEach((dot) => dot.addEventListener("click", (e) => { e.stopPropagation(); const i = state.cover.view, k = +dot.dataset.cvtint; state.cover.tint[i] = k;
+    dot.parentNode.querySelectorAll("i").forEach((x, j) => x.classList.toggle("on", j === k)); dot.closest(".cv-slide").querySelector("img").style.filter = `drop-shadow(0 18px 18px rgba(0,0,0,.18)) ${TINT[k]}`;
+    if (COVER[i].id === "sofa") state.pd.color = Object.keys(COLORS)[k]; }));
+  w.querySelectorAll("[data-cvopen]").forEach((b) => b.addEventListener("click", (e) => { e.stopPropagation(); const c = COVER[+b.dataset.cvopen];
+    if (c.id === "sofa") { stack.push("cover"); show("product"); } else act({ act: "quick", id: c.id }); }));
+};
+// adding to cart from the cover: a bag pops up where the hint is, takes the item, then slips away
+const coverBag = () => { const w = els.cover; if (cur !== "cover" || !w) return; w.classList.add("cover-bag"); clearTimeout(w._bag); w._bag = setTimeout(() => w.classList.remove("cover-bag"), 2200); };
 
 /* ---------- AR: In your home (drag, scale, rotate) and View in 3D (spin) ---------- */
 PAGES.ar = () => { const a = state.ar, c = COLORS[a.color];
@@ -769,11 +859,11 @@ const sheet = (html, id, onOpen) => {
 };
 const actions = {
   quick: (h) => {
-    const it = CATALOG[h.id]; let color = 0;
-    sheet(`<div class="qv-img ${it.cover ? "cover" : ""}" style="background:${it.bg}"><img src="${S(it.img)}" alt=""></div>
+    const it = CATALOG[h.id], ci = cur === "cover" ? COVER.findIndex((c) => c.id === h.id) : -1; let color = ci >= 0 ? state.cover.tint[ci] : 0;
+    sheet(`<div class="qv-img ${it.cover ? "cover" : ""}" style="background:${it.bg}"><img src="${S(it.img)}" style="filter:${TINT[color]}" alt=""></div>
       <h3>${it.name}</h3><p>${it.desc}</p>
       <div class="qv-price"><b>${it.was ? `<s style="font-size:14px;color:#b5aaa0;font-weight:400">$${it.was}</s> ` : ""}${money(it.price)}<small>/mo</small></b><span style="font-size:12px;color:#8a8079">★ 4.${6 + (it.name.length % 3)} · free delivery</span></div>
-      ${it.set ? "" : `<p class="lbl">Color</p><div class="chips">${["Natural", "Light", "Dark"].map((c, i) => `<button class="chip ${i === 0 ? "on" : ""}" data-col="${i}">${c}</button>`).join("")}</div>`}
+      ${it.set ? "" : `<p class="lbl">Color</p><div class="chips">${["Natural", "Light", "Dark"].map((c, i) => `<button class="chip ${i === color ? "on" : ""}" data-col="${i}">${c}</button>`).join("")}</div>`}
       <p class="lbl">Lease term</p><div class="chips">${[6, 12, 24].map((m, i) => `<button class="chip ${i === 1 ? "on" : ""}">${m} months</button>`).join("")}</div>
       <button class="btn" id="add">Add to Cart</button>${h.id === "natural" ? `<button class="btn ghost" id="more" style="margin-top:10px">View set details</button>` : ""}`, "quick", (sh, close) => {
       sh.querySelectorAll("[data-col]").forEach((b) => b.addEventListener("click", () => { sh.querySelector(".qv-img img").style.filter = ["", "brightness(1.18) saturate(.7)", "brightness(.72) saturate(1.1)"][+b.dataset.col]; color = +b.dataset.col; }));
@@ -781,7 +871,6 @@ const actions = {
       const m = sh.querySelector("#more"); if (m) m.onclick = () => { close(); stack.push(cur); show("set"); };
     });
   },
-  rattanDot: (h) => { const ring = els.cover.querySelector(".rring") || els.cover.appendChild(Object.assign(document.createElement("i"), { className: "rring" })); ring.style.cssText = `position:absolute;top:551px;left:${[187, 227, 258][h.i]}px;width:18px;height:18px;border-radius:50%;box-shadow:0 0 0 2px #fff,0 0 0 3.5px #8a5f40;pointer-events:none;transition:left .3s cubic-bezier(.3,1.3,.5,1)`; },
   catTab: (h) => { state.catTab = h.t; stack.push(cur); show("catlist"); },
   openCat: (h) => { state.catTab = h.t; stack.push(cur); show("catlist"); },
   filter: () => sheet(`<h3>Filter</h3><p class="lbl">Monthly price</p><div class="chips">${["Under $15", "$15–25", "$25–50", "$50+"].map((c, i) => `<button class="chip ${i === 1 ? "on" : ""}">${c}</button>`).join("")}</div>
@@ -793,8 +882,8 @@ const actions = {
   favSet: (h, b) => { const on = !state.fav.has("natural"); on ? state.fav.add("natural") : state.fav.delete("natural"); b.classList.toggle("on", on); b.querySelector("svg").outerHTML = ICON.heart(on); toast(on ? "Saved to favourites" : "Removed from favourites"); },
   more: (h, b) => { state.pd.more = !state.pd.more; const d = els.product.querySelector(".pd-desc"); d.classList.toggle("open", state.pd.more); b.textContent = state.pd.more ? "Hide" : "Read more"; },
   setMore: () => sheet(`<h3>Natural Cozy Set</h3><p>Everything for a calm living room: a sculpted lounge chair, a three-seat leather sofa, a white bedside table and a round oak coffee table. Delivered and assembled together; swap any piece once a lease year.</p><button class="btn" data-close>Close</button>`, "setinfo"),
-  setPrev: () => { state.set.view = (state.set.view + 2) % 3; const sc = els.set.querySelector(".pg").scrollTop; render("set"); els.set.querySelector(".pg").scrollTop = sc; },
-  setNext: () => { state.set.view = (state.set.view + 1) % 3; const sc = els.set.querySelector(".pg").scrollTop; render("set"); els.set.querySelector(".pg").scrollTop = sc; },
+  setPrev: () => setView((state.set.view + 2) % 3),
+  setNext: () => setView((state.set.view + 1) % 3),
   payment: () => sheet(`<h3>Payment</h3><p>Monthly rent is charged on the 6th.</p>${[["5688", "VISA", "#1a1f71"], ["2041", "MC", "#eb5f1a"], ["Apple Pay", "", "#111"]].map(([n, b, c]) => `<button class="card-opt ${n === state.card ? "on" : ""}" data-card="${n}"><i style="background:${c}">${b || ""}</i>${n === "Apple Pay" ? "Apple Pay" : "•••• •••• •••• " + n}</button>`).join("")}
       <button class="btn" id="ok">Use this card</button>`, "payment", (sh, close) => {
       let pick = state.card; sh.querySelectorAll("[data-card]").forEach((b) => b.addEventListener("click", () => { pick = b.dataset.card; sh.querySelectorAll("[data-card]").forEach((x) => x.classList.toggle("on", x === b)); }));

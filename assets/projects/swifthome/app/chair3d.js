@@ -1,85 +1,109 @@
-// A real-time 3D model of the Single Sofa Chair for the AR screen: a tufted velvet tub chair
-// built from code (shell, cushion, plinth, splayed legs with brass caps), lit softly with a
-// contact shadow. Exposes window.Chair3D.create(host) -> { setColor, setView, setAuto, drag, release, spin, reset, resume, el }.
+// A real-time 3D model of the Single Sofa Chair for the AR screen: a tufted velvet barrel chair
+// built from code, lit softly with a contact shadow. Modelled on the product photos: barrel back with diamond button tufting, piped cushion
+// on a deep base band, dark ring and tapered legs with brass tips. Exposes window.Chair3D.create(host) -> { setColor, setView, setAuto, drag, release, spin, reset, resume, el }.
 import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js";
 
-const COLORS = { green: 0x8c973a, cream: 0xeee4d4, taupe: 0xa88d78 };
+const COLORS = { green: 0x98a23c, cream: 0xeee4d4, taupe: 0xa88d78 };
 
-function velvet(hex) {
+function velvet(hex, extra = {}) {
   const c = new THREE.Color(hex);
   return new THREE.MeshPhysicalMaterial({
-    color: c, roughness: 0.82, metalness: 0,
-    sheen: 1, sheenRoughness: 0.45, sheenColor: c.clone().lerp(new THREE.Color(0xffffff), 0.45),
+    color: c, roughness: 0.86, metalness: 0,
+    sheen: 1, sheenRoughness: 0.5, sheenColor: c.clone().lerp(new THREE.Color(0xffffff), 0.35), ...extra,
   });
 }
 
-function buildChair(mat) {
-  const chair = new THREE.Group();
-  const darkWood = new THREE.MeshStandardMaterial({ color: 0x1d1a18, roughness: 0.45, metalness: 0.1 });
-  const brass = new THREE.MeshStandardMaterial({ color: 0xc8a46a, roughness: 0.3, metalness: 0.9 });
+// diamond button tufting, drawn once: a puffy pillow per diamond, creases along the diagonals,
+// a button at every crossing. Used as both a shading map and a bump map on the inner back.
+function tuftTextures() {
+  const W = 1024, H = 512, cols = 14, rows = 3.6, v0 = 0.25, v1 = 0.64;
+  const c = document.createElement("canvas"); c.width = W; c.height = H;
+  const b = document.createElement("canvas"); b.width = W; b.height = H;
+  const cx = c.getContext("2d"), bx = b.getContext("2d");
+  const ci = cx.createImageData(W, H), bi = bx.createImageData(W, H);
+  const smooth = (e0, e1, x) => { const t = Math.min(1, Math.max(0, (x - e0) / (e1 - e0))); return t * t * (3 - 2 * t); };
+  for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
+    const v = y / H, k = (y * W + x) * 4;
+    let shade = 1, hgt = 0.5;
+    if (v > v0 && v < v1) {
+      const p = (x / W) * cols, q = ((v - v0) / (v1 - v0)) * rows;
+      const d1 = Math.abs((p + q) - Math.round(p + q)), d2 = Math.abs((p - q) - Math.round(p - q));
+      const m = Math.min(d1, d2), bd = Math.hypot(d1, d2), btn = 1 - smooth(0.045, 0.085, bd);
+      const edge = smooth(0, 0.03, v - v0) * smooth(0, 0.03, v1 - v);
+      const puff = Math.sqrt(Math.min(1, m * 2));
+      hgt = 0.5 + edge * (puff * 0.6 - 0.3 - btn * 0.15);
+      shade = 1 - edge * (0.13 * (1 - smooth(0, 0.25, m)) + 0.1 * (1 - smooth(0, 0.015, m)) + btn * 0.45);
+    }
+    const s8 = Math.round(shade * 255), h8 = Math.round(hgt * 255);
+    ci.data.set([s8, s8, s8, 255], k); bi.data.set([h8, h8, h8, 255], k);
+  }
+  cx.putImageData(ci, 0, 0); bx.putImageData(bi, 0, 0);
+  const map = new THREE.CanvasTexture(c); map.colorSpace = THREE.SRGBColorSpace; map.anisotropy = 8;
+  const bump = new THREE.CanvasTexture(b); bump.anisotropy = 8;
+  return { map, bump };
+}
 
-  // shell: a rounded cross-section swept around the seat (smooth, indexed), low at the arms,
-  // tall at the back, pinched closed at the arm ends so they read as rolled arms
-  const R = 0.47, r = 0.35, open = 0.95, base = 0.2; // open: half-angle of the front gap
+// a smooth rounded band (lathe profile) used for the seat base and the cushion
+const lathe = (pts, seg = 96) => new THREE.LatheGeometry(pts.map(([x, y]) => new THREE.Vector2(x, y)), seg);
+const ring = (rad, y, tube, mat) => { const m = new THREE.Mesh(new THREE.TorusGeometry(rad, tube, 8, 160), mat); m.rotation.x = Math.PI / 2; m.position.y = y; return m; };
+
+function buildChair(mats) {
+  const chair = new THREE.Group(), body = new THREE.Group();
+  body.scale.x = 1.24; body.position.y = 0.07; // the seat is an oval, wider than deep
+  chair.add(body);
+  const darkWood = new THREE.MeshStandardMaterial({ color: 0x1b1816, roughness: 0.5, metalness: 0.05 });
+  const brass = new THREE.MeshStandardMaterial({ color: 0xc9a76b, roughness: 0.28, metalness: 0.95 });
+  const add = (m) => { m.castShadow = true; m.receiveShadow = true; body.add(m); return m; };
+
+  // barrel back: a rounded section swept around the seat, tall at the back and sloping down to
+  // the front corners, where each arm rolls over and closes
+  const R = 0.47, r = 0.385, open = 0.78, base = 0.3;
   const rc = (R + r) / 2, w = (R - r) / 2;
-  const height = (phi) => { const back = (1 - Math.cos(phi)) / 2; return 0.24 + 0.3 * Math.pow(back, 1.2); };
-  const NP = 120, NU = 40, cap = 0.32, P = 0.45;
-  const vs = [], idx = [];
+  const height = (phi) => { const back = (1 - Math.cos(phi)) / 2; return 0.34 + 0.32 * Math.pow(back, 0.6); };
+  const NP = 160, NU = 48, cap = 0.2, P = 0.5;
+  const vs = [], uv = [], idx = [];
   for (let i = 0; i <= NP; i++) {
     const t = i / NP, phi = open + (2 * Math.PI - 2 * open) * t;
     const dEnd = Math.min(phi - open, 2 * Math.PI - open - phi) / cap;
     const sc = dEnd >= 1 ? 1 : Math.sqrt(Math.max(0, 1 - (1 - dEnd) * (1 - dEnd)));
     const h = height(phi), hh = h / 2;
-    for (let j = 0; j < NU; j++) {
+    for (let j = 0; j <= NU; j++) {
       const u = (j / NU) * 2 * Math.PI, cu = Math.cos(u), su = Math.sin(u);
-      const rad = rc + w * sc * Math.sign(cu) * Math.pow(Math.abs(cu), P);
-      const y = base + (hh + hh * Math.sign(su) * Math.pow(Math.abs(su), P)) * (0.15 + 0.85 * sc);
-      const belly = 1 + 0.03 * Math.sin(Math.PI * Math.min(1, (y - base) / h)) * (cu > 0 ? 1 : 0);
-      vs.push(Math.sin(phi) * rad * belly, y, Math.cos(phi) * rad * belly);
+      const rad = rc + w * Math.max(0.35, sc) * Math.sign(cu) * Math.pow(Math.abs(cu), P);
+      const y = base + (hh + hh * Math.sign(su) * Math.pow(Math.abs(su), P)) * (0.2 + 0.8 * sc);
+      vs.push(Math.sin(phi) * rad, y, Math.cos(phi) * rad);
+      // on the inner face, v follows the real height so the tufts keep their shape
+      const inner = j >= NU / 4 && j <= (3 * NU) / 4;
+      uv.push(t, inner ? 0.25 + 0.5 * (1 - (y - base) / (h * (0.2 + 0.8 * sc))) : 1 - j / NU);
     }
   }
   for (let i = 0; i < NP; i++) for (let j = 0; j < NU; j++) {
-    const a1 = i * NU + j, b1 = i * NU + (j + 1) % NU, c1 = (i + 1) * NU + j, d1 = (i + 1) * NU + (j + 1) % NU;
+    const a1 = i * (NU + 1) + j, b1 = a1 + 1, c1 = a1 + NU + 1, d1 = c1 + 1;
     idx.push(a1, c1, b1, b1, c1, d1);
   }
   const g = new THREE.BufferGeometry();
-  g.setAttribute("position", new THREE.Float32BufferAttribute(vs, 3)); g.setIndex(idx); g.computeVertexNormals();
-  const shell = new THREE.Mesh(g, mat); shell.castShadow = true; shell.receiveShadow = true;
-  chair.add(shell);
+  g.setAttribute("position", new THREE.Float32BufferAttribute(vs, 3)); g.setAttribute("uv", new THREE.Float32BufferAttribute(uv, 2));
+  g.setIndex(idx); g.computeVertexNormals();
+  add(new THREE.Mesh(g, mats.tufted));
 
-  // tufting buttons pressed into the inside of the back
-  const btnGeo = new THREE.SphereGeometry(0.009, 12, 8);
-  const btnMat = mat.clone(); btnMat.color = mat.color.clone().multiplyScalar(0.5);
-  for (let row = 0; row < 2; row++) {
-    for (let j = -4; j <= 4; j++) {
-      const phi = Math.PI + (j + (row ? 0.5 : 0)) * 0.26;
-      if (Math.abs(Math.PI - phi) > 1.1) continue;
-      const y = base + 0.14 + (height(phi) - 0.14) * (0.45 + row * 0.25);
-      const b = new THREE.Mesh(btnGeo, btnMat); b.position.set(Math.sin(phi) * (r - 0.006), y, Math.cos(phi) * (r - 0.006)); chair.add(b);
-    }
-  }
+  // deep base band under the cushion, piped along its top
+  add(new THREE.Mesh(lathe([[0, 0.2], [0.45, 0.2], [0.47, 0.212], [0.478, 0.25], [0.48, 0.38], [0.476, 0.42], [0.464, 0.443], [0.43, 0.458], [0.3, 0.468], [0, 0.472]]), mats.plain));
+  body.add(ring(0.465, 0.443, 0.0055, mats.welt), ring(0.462, 0.205, 0.005, mats.welt));
 
-  // seat cushion: a puffy disc
-  const prof = [[0, 0.19], [0.28, 0.19], [0.36, 0.2], [0.392, 0.225], [0.398, 0.26], [0.385, 0.29], [0.34, 0.31], [0.2, 0.322], [0, 0.326]].map(([x, y]) => new THREE.Vector2(x, y));
-  const cushion = new THREE.Mesh(new THREE.LatheGeometry(prof, 72), mat);
-  cushion.castShadow = true; cushion.receiveShadow = true; chair.add(cushion);
+  // dark ring underneath
+  const plinth = new THREE.Mesh(lathe([[0, 0.168], [0.45, 0.168], [0.462, 0.178], [0.462, 0.196], [0.45, 0.204], [0, 0.204]]), darkWood);
+  plinth.castShadow = true; body.add(plinth);
 
-  // dark plinth under the seat
-  const plinth = new THREE.Mesh(new THREE.CylinderGeometry(0.4, 0.38, 0.04, 72), darkWood);
-  plinth.position.y = 0.175; plinth.castShadow = true; chair.add(plinth);
-
-  // four splayed legs with brass caps
-  for (const a of [Math.PI / 4, 3 * Math.PI / 4, 5 * Math.PI / 4, 7 * Math.PI / 4]) {
-    const leg = new THREE.Group();
-    const L = 0.17;
-    const wood = new THREE.Mesh(new THREE.CylinderGeometry(0.016, 0.011, L, 16), darkWood); wood.position.y = -L / 2; wood.castShadow = true;
-    const cap = new THREE.Mesh(new THREE.CylinderGeometry(0.0115, 0.0105, 0.035, 16), brass); cap.position.y = -L + 0.012;
-    leg.add(wood, cap);
-    leg.position.set(Math.sin(a) * 0.33, 0.16, Math.cos(a) * 0.33);
-    leg.rotation.set(Math.cos(a) * 0.14, 0, -Math.sin(a) * 0.14);
+  // four tapered, splayed legs with brass tips
+  for (const a of [0.62, Math.PI - 0.62, Math.PI + 0.62, -0.62]) {
+    const leg = new THREE.Group(), L = 0.27;
+    const wood = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.012, L, 20), darkWood); wood.position.y = -L / 2; wood.castShadow = true;
+    const tip = new THREE.Mesh(new THREE.CylinderGeometry(0.0118, 0.0108, 0.04, 20), brass); tip.position.y = -L + 0.016;
+    leg.add(wood, tip);
+    leg.position.set(Math.sin(a) * 0.4 * 1.24, 0.26, Math.cos(a) * 0.36);
+    leg.rotation.set(Math.cos(a) * 0.16, 0, -Math.sin(a) * 0.16);
     chair.add(leg);
   }
-  chair.position.y = -0.01;
   return chair;
 }
 
@@ -103,7 +127,7 @@ function create(host, { color = "green", auto = false } = {}) {
 
   const scene = new THREE.Scene();
   const cam = new THREE.PerspectiveCamera(28, 1, 0.1, 20);
-  cam.position.set(0, 0.95, 2.55); cam.lookAt(0, 0.33, 0);
+  cam.position.set(0, 0.95, 2.75); cam.lookAt(0, 0.4, 0);
   scene.add(new THREE.HemisphereLight(0xfff6ea, 0x6f6152, 1.05));
   const key = new THREE.DirectionalLight(0xfff1dc, 2.1); key.position.set(0.7, 3.4, 1.4); key.castShadow = true;
   key.shadow.mapSize.set(1024, 1024); key.shadow.radius = 6; key.shadow.bias = -0.0005;
@@ -113,8 +137,12 @@ function create(host, { color = "green", auto = false } = {}) {
   const floor = new THREE.Mesh(new THREE.PlaneGeometry(4, 4), new THREE.ShadowMaterial({ opacity: 0.22 }));
   floor.rotation.x = -Math.PI / 2; floor.receiveShadow = true; scene.add(floor, contactShadow());
 
-  let mat = velvet(COLORS[color] || COLORS.green);
-  let chair = buildChair(mat); scene.add(chair);
+  const tex = tuftTextures();
+  const mats = { tufted: velvet(COLORS.green, { map: tex.map, bumpMap: tex.bump, bumpScale: 1.4 }), plain: velvet(COLORS.green), welt: velvet(COLORS.green, { roughness: 0.7 }) };
+  const paint = (name) => { const c = new THREE.Color(COLORS[name] || COLORS.green);
+    for (const [k, m] of Object.entries(mats)) { const cc = k === "welt" ? c.clone().multiplyScalar(0.86) : c; m.color.copy(cc); m.sheenColor.copy(cc.clone().lerp(new THREE.Color(0xffffff), 0.35)); } };
+  paint(color);
+  const chair = buildChair(mats); scene.add(chair);
 
   let yaw = 0, vel = 0, target = null, autoSpin = auto, dragging = false;
   const resize = () => { const w = host.clientWidth || 300, h = host.clientHeight || 300; renderer.setSize(w, h, false); cam.aspect = w / h; cam.updateProjectionMatrix(); };
@@ -131,10 +159,10 @@ function create(host, { color = "green", auto = false } = {}) {
   let running = true; requestAnimationFrame(tick);
   const api = {
     el,
-    setColor(name) { const m = velvet(COLORS[name] || COLORS.green); chair.traverse((o) => { if (o.material === mat) o.material = m; else if (o.material && o.material.sheen && o.material !== m) { o.material = m.clone(); o.material.color = m.color.clone().multiplyScalar(0.55); } }); mat = m; },
+    setColor(name) { paint(name); },
     setAuto(on) { autoSpin = on; },
     // studio: an eye-level product shot; home: looking down at the floor like the room photo
-    setView(mode) { if (mode === "studio") { cam.position.set(0, 0.85, 2.6); cam.lookAt(0, 0.36, 0); } else { cam.position.set(0, 1.7, 2.6); cam.lookAt(0, 0.28, 0); } },
+    setView(mode) { if (mode === "studio") { cam.position.set(0, 1.0, 3.1); cam.lookAt(0, 0.5, 0); } else { cam.position.set(0, 1.8, 3.0); cam.lookAt(0, 0.36, 0); } },
     drag(dx) { dragging = true; target = null; yaw += dx * 0.012; vel = dx * 0.012 * 60; },
     release() { dragging = false; },
     spin(rad) { target = (target ?? yaw) + rad; },
