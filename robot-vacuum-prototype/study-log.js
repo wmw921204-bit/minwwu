@@ -11,6 +11,10 @@
   const now=()=>Date.now();
   const load=()=>{try{return JSON.parse(localStorage.getItem(KEY))||{}}catch(e){return {}}};
   let D=load();D.people=D.people||{};
+  // sessions saved by an earlier version of this log: keep them for export, but closed
+  Object.values(D.people).forEach(p=>{if(!p.explore){p.explore={start:null,active:0,since:null,cleaning:false,end:null,log:[],path:[],achieved:{},ctx:{}};p.phase='done';p.queue=[];p.run=null}
+    p.tasks=p.tasks||[];p.log=(p.log||[]).concat(p.free||[]);delete p.free});
+  if(D.pid&&(!D.people[D.pid]||D.people[D.pid].phase==='done'))D.pid=null;
   const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(D))}catch(e){}};
   const P=()=>D.people[D.pid];
   const evs=k=>(S.events||[]).filter(e=>e.key===k);
