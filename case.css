@@ -1911,3 +1911,7 @@ img.is-zoomable { cursor: zoom-in; }
 /* nothing to edit until the band is started */
 .bs:not(.is-on) .bs-left, .bs:not(.is-on) .bs-tray, .bs:not(.is-on) .bs-bar { opacity: .45; pointer-events: none; filter: saturate(.6); transition: opacity .4s, filter .4s; }
 .bs-left, .bs-tray, .bs-bar { transition: opacity .4s, filter .4s; }
+/* a block that changes turns like a real cube (built by window.__cubeTurn) */
+.cturn { position: absolute; inset: 0; z-index: 3; perspective: 1500px; pointer-events: none; }
+.cturn__c { position: absolute; inset: 0; transform-style: preserve-3d; }
+.cturn__f { position: absolute; inset: 0; background-size: cover; background-position: center; border-radius: 12%; backface-visibility: hidden; }

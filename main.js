@@ -869,6 +869,27 @@ $$("[data-rules]").forEach((rules) => {
   });
 });
 
+/* ---------- Bandy: a block that changes turns like a real cube (six faces, lit from above) ---------- */
+window.__cubeTurn = (host, fromSrc, toSrc, dur = 560) => {
+  if (reduceMotion || !host || !host.animate || !fromSrc || fromSrc === toSrc) return;
+  const w = host.offsetWidth, h = w / 2, img = host.querySelector("img");
+  const o = document.createElement("div");
+  o.className = "cturn"; o.setAttribute("aria-hidden", "true");
+  const face = (cls, tf, src, light) => `<i class="cturn__f ${cls}" style="transform:${tf} translateZ(${h}px);background-image:url('${src}');filter:brightness(${light})"></i>`;
+  o.innerHTML = `<div class="cturn__c">${face("fr", "", fromSrc, 1)}${face("rt", "rotateY(90deg)", toSrc, 0.55)}${face("lf", "rotateY(-90deg)", fromSrc, 0.62)}${face("bk", "rotateY(180deg)", fromSrc, 0.5)}${face("tp", "rotateX(90deg)", fromSrc, 1.12)}${face("bt", "rotateX(-90deg)", fromSrc, 0.42)}</div>`;
+  if (getComputedStyle(host).position === "static") host.style.position = "relative";
+  host.append(o);
+  if (img) img.style.visibility = "hidden";
+  const c = o.firstChild, ease = "cubic-bezier(.45,.05,.35,1)";
+  c.animate([
+    { transform: `translateZ(${-h}px) rotateX(0deg) rotateY(0deg)` },
+    { transform: `translateZ(${-h}px) rotateY(-45deg)` },   // about the vertical axis only: a stacked block can't tip without hitting its neighbours
+    { transform: `translateZ(${-h}px) rotateX(0deg) rotateY(-90deg)` },
+  ], { duration: dur, easing: ease }).onfinish = () => { o.remove(); if (img) img.style.visibility = ""; };
+  $(".fr", o).animate([{ filter: "brightness(1)" }, { filter: "brightness(.55)" }], { duration: dur, easing: ease });
+  $(".rt", o).animate([{ filter: "brightness(.55)" }, { filter: "brightness(1)" }], { duration: dur, easing: ease });
+};
+
 /* ---------- Bandy: a band member that remixes itself; tap a block to change it ---------- */
 $$("[data-builder]").forEach((sec) => {
   const data = JSON.parse($("[data-builder-data]", sec).textContent);
@@ -892,14 +913,15 @@ $$("[data-builder]").forEach((sec) => {
   };
   const show = (slot, animate) => {
     const i = state[slot], item = data[slot][i];
-    const btn = $(`[data-slot="${slot}"]`, sec), img = $("img", btn);
+    const btn = $(`[data-slot="${slot}"]`, sec), img = $("img", btn), was = img.src;
     img.src = base + slot + "-" + item[0] + ".webp"; img.alt = item[1];
+    if (animate) window.__cubeTurn(btn, was, img.src);
     const row = $(`[data-read="${slot}"]`, sec);
     $("b", row).textContent = item[1];
     $("span", row).textContent = slot === "outfit" ? "Plays the " + item[1].toLowerCase() + "." : item[2] + ": " + item[3];
     $$(`[data-pick^="${slot}:"]`, sec).forEach((b) => b.classList.toggle("is-on", b.dataset.pick === slot + ":" + i));
     if (animate) {
-      btn.classList.remove("is-swap"); void btn.offsetWidth; btn.classList.add("is-swap");
+
       row.classList.add("is-new"); setTimeout(() => row.classList.remove("is-new"), 700);
       burst();
     }

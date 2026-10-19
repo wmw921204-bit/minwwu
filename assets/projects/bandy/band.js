@@ -472,7 +472,7 @@
 
   const render = (flash) => {
     stage.innerHTML = slots.map((m, i) => { const { row, col } = posOf(i), [x, y] = cellAnchor(row, col); return `<div class="bs-pad${m ? " is-full" : ""}${col === nowCol ? " is-now" : ""}" data-slot-i="${i}" style="--x:${x.toFixed(2)};--y:${y.toFixed(2)};--b:${blockSize(row)};z-index:${row + 2}">${m
-      ? `<div class="bs-member" data-member="${i}">${["hat", "face", "outfit"].map((k) => `<button type="button" class="bs-block${sel && sel.i === i && sel.kind === k ? " is-sel" : ""}${flash && flash.i === i && flash.kind === k ? " is-swap" : ""}" data-block="${k}" data-i="${i}" aria-label="${NAMES[m[k]]}: change it"><img src="${src(k, m[k])}" alt="" draggable="false"></button>`).join("")}<button type="button" class="bs-remove" data-remove="${i}" aria-label="Take this member off">×</button></div>`
+      ? `<div class="bs-member" data-member="${i}">${["hat", "face", "outfit"].map((k) => `<button type="button" class="bs-block${sel && sel.i === i && sel.kind === k ? " is-sel" : ""}${flash && !flash.from && flash.i === i && flash.kind === k ? " is-swap" : ""}" data-block="${k}" data-i="${i}" aria-label="${NAMES[m[k]]}: change it"><img src="${src(k, m[k])}" alt="" draggable="false"></button>`).join("")}<button type="button" class="bs-remove" data-remove="${i}" aria-label="Take this member off">×</button></div>`
       : `<button type="button" class="bs-add" data-add="${i}" aria-label="Add a member: ${POS[i]}"><span>+</span></button>`}</div>`; }).join("");
     const n = slots.filter(Boolean).length;
     readout.textContent = n ? `${n} of 6 · ` + slots.map((m, i) => m && `${NAMES[m.outfit]} (${POS[i]})`).filter(Boolean).join(", ") : "No members yet: only the scene is playing.";
@@ -480,6 +480,7 @@
     tray.querySelectorAll(".bs-tray__row").forEach((r) => r.classList.toggle("is-target", !!sel && r.dataset.kind === sel.kind));
     tray.querySelectorAll("[data-pick]").forEach((b) => { const [k, n] = b.dataset.pick.split(":"); b.classList.toggle("is-on", !!sel && sel.kind === k && slots[sel.i] && slots[sel.i][k] === n); });
     applyPeek();
+    if (flash && flash.from && window.__cubeTurn) window.__cubeTurn(stage.querySelector(`[data-slot-i="${flash.i}"] [data-block="${flash.kind}"]`), src(flash.kind, flash.from), src(flash.kind, slots[flash.i][flash.kind]), 480);
     // the grid from above: every cell reachable, front row at the bottom
     map.innerHTML = slots.map((m, i) => `<button type="button" data-map="${i}" data-mcol="${i % COLS}" class="${m ? "is-full" : ""}${sel && sel.i === i ? " is-sel" : ""}${i % COLS === nowCol ? " is-now" : ""}" aria-label="${m ? NAMES[m.outfit] + ", " + POS[i] : "Add a member: " + POS[i]}">${m ? `<img src="${src("hat", m.hat)}" alt="">` : "+"}</button>`).join("");
   };
@@ -534,8 +535,10 @@
   const randMember = () => ({ hat: rand(HATS), face: rand(FACES), outfit: rand(OUTFITS) });
   // a new block is placed at once and the choice is done: nothing stays selected
   const putBlock = (i, kind, name) => {
-    if (!slots[i]) slots[i] = randMember();
-    slots[i][kind] = name; sel = null; render({ i, kind });
+    const fresh = !slots[i];
+    if (fresh) slots[i] = randMember();
+    const from = fresh ? null : slots[i][kind];
+    slots[i][kind] = name; sel = null; render({ i, kind, from });
   };
   // clicking anywhere outside the demo cancels a selection (a click that re-drew the band is not "outside")
   document.addEventListener("click", (e) => { if (sel && e.target.isConnected && !root.contains(e.target)) { sel = null; render(); } });
