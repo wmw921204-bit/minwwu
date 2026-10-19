@@ -1959,3 +1959,10 @@ img.is-zoomable { cursor: zoom-in; }
   .ff-demo { grid-template-columns: 1fr; }
   .ff-phone { --ph: min(600px, calc(100svh - 240px)); }
 }
+
+/* SwiftHome prototype: a 402 x 874 phone and the guide in the brand's browns */
+.sh-phone { width: calc(var(--ph) * 402 / 874); border-radius: calc(var(--ph) * .07); }
+.sh-phone iframe { width: 402px; height: 874px; }
+.sh-demo .fin-guide__count span, .sh-demo .fin-try b { color: #a5734f; }
+.sh-demo .fin-guide__list li.is-active { background: #3f2c1f; border-color: #3f2c1f; color: #fff; }
+.sh-demo .fin-guide__list li.is-done { border-color: rgba(63,44,31,.45); color: #3f2c1f; }

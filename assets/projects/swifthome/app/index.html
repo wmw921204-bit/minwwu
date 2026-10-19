@@ -1,0 +1,776 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=402, initial-scale=1">
+<title>SwiftHome app prototype</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap">
+<style>
+  :root { --ink: #3a271a; --bar: #3f2c1f; --acc: #b68b6a; --soft: #f7f7f7; --line: #c6c3bd; --muted: #8a8079; --f: "Instrument Sans", -apple-system, system-ui, sans-serif; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { width: 402px; height: 874px; overflow: hidden; overscroll-behavior: none; background: #fff; font-family: var(--f); color: var(--ink); -webkit-font-smoothing: antialiased; }
+  button, input { font-family: inherit; color: inherit; }
+  #app { position: relative; width: 402px; height: 874px; overflow: hidden; background: #fff; touch-action: pan-y; }
+  img { display: block; user-select: none; -webkit-user-drag: none; }
+  .scr img { pointer-events: none; }
+  /* screens */
+  .scr { position: absolute; inset: 0; overflow: hidden; background: #fff; pointer-events: none; visibility: hidden; transition: transform .42s cubic-bezier(.25,.8,.25,1), opacity .32s ease; }
+  .scr.is-cur { pointer-events: auto; visibility: visible; z-index: 2; }
+  .scr.is-prev { visibility: visible; z-index: 1; }
+  .scr > .base { position: absolute; left: 0; top: 0; width: 402px; }
+  .sc { position: absolute; overflow-x: hidden; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: none; scroll-behavior: smooth; }
+  .sc::-webkit-scrollbar, .pg::-webkit-scrollbar { display: none; }
+  .sc .in { position: relative; }
+  .fx { position: absolute; left: 0; width: 402px; pointer-events: none; z-index: 5; }
+  .fx > * { pointer-events: auto; }
+  .fx > img { pointer-events: none; width: 402px; }
+  .hs { position: absolute; border: 0; background: transparent; cursor: pointer; border-radius: 14px; -webkit-tap-highlight-color: transparent; }
+  .hs:focus-visible { outline: 2px solid var(--acc); outline-offset: 2px; }
+  .pg { position: absolute; inset: 0; overflow-y: auto; overflow-x: hidden; overscroll-behavior: contain; scrollbar-width: none; }
+  .tap { cursor: pointer; }
+  /* cart badge on every bar */
+  .badge { position: absolute; min-width: 17px; height: 17px; padding: 0 4px; border-radius: 9px; background: #e2b48f; color: #3f2c1f; font-size: 10px; font-weight: 700; line-height: 17px; text-align: center; pointer-events: none; box-shadow: 0 0 0 2px #3f2c1f; transition: transform .2s; }
+  .badge.bump { animation: bump .5s cubic-bezier(.3,1.6,.5,1); }
+  @keyframes bump { 40% { transform: scale(1.5); } }
+  /* toast */
+  .toast { position: absolute; left: 50%; bottom: 112px; z-index: 80; transform: translate(-50%, 14px); opacity: 0; width: max-content; max-width: 340px; padding: 11px 18px; border-radius: 22px; background: rgba(58,39,26,.94); color: #fff; font-size: 13px; line-height: 1.35; text-align: center; transition: .3s; pointer-events: none; }
+  .toast.is-on { transform: translate(-50%, 0); opacity: 1; }
+
+  /* the product page bottom bar: dynamic white pill on top of the exported bar */
+  .pill { position: absolute; left: 169px; height: 37px; width: 206px; border: 0; border-radius: 18.5px; background: #fff; display: flex; align-items: center; justify-content: center; gap: 6px; cursor: pointer; overflow: hidden; }
+  .pill b { font-size: 17px; font-weight: 700; letter-spacing: -.01em; }
+  .pill small { font-size: 9px; color: var(--ink); }
+  .pill svg { flex: none; }
+  .pill .saved { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; gap: 6px; background: #fff; font-size: 18px; font-weight: 700; transform: translateY(100%); transition: transform .35s cubic-bezier(.3,1.4,.5,1); }
+  .pill.is-saved .saved { transform: none; }
+
+  /* ---------- product detail ---------- */
+  .pd-hero { position: absolute; left: 0; top: 0; width: 402px; height: 421px; transition: background .5s; overflow: hidden; }
+  .pd-img { position: absolute; left: 39px; top: 65px; width: 338px; height: 342px; overflow: hidden; }
+  .pd-img img { position: absolute; inset: 0; width: 100%; height: 100%; transition: transform .6s cubic-bezier(.25,.8,.25,1), opacity .35s, filter .4s; }
+  .pd-img img.out { opacity: 0; }
+  .chip-rate { position: absolute; left: 65px; top: 70px; width: 84px; height: 25px; border-radius: 21.5px; border: 1px solid #61534a; background: rgba(255,255,255,.28); box-shadow: 0 4px 8.6px rgba(0,0,0,.27); font-size: 13px; font-weight: 700; color: #61534a; display: flex; align-items: center; justify-content: center; gap: 4px; }
+  .link360 { position: absolute; left: 277px; top: 62px; height: 34px; border: 0; background: none; font-size: 13px; color: #61534a; display: flex; align-items: center; gap: 6px; cursor: pointer; }
+  .back { position: absolute; left: 22px; top: 62px; width: 40px; height: 40px; border: 0; background: none; cursor: pointer; display: grid; place-items: center; }
+  .heart { position: absolute; left: 344px; top: 104px; width: 42px; height: 42px; border: 0; background: none; cursor: pointer; display: grid; place-items: center; }
+  .heart svg path { transition: fill .25s, stroke .25s; }
+  .heart.on svg { animation: pop .45s cubic-bezier(.3,1.7,.5,1); }
+  .heart .burst { position: absolute; inset: 0; pointer-events: none; }
+  .heart .burst i { position: absolute; left: 50%; top: 50%; width: 5px; height: 5px; margin: -2.5px; border-radius: 50%; background: #dc0c0c; opacity: 0; }
+  .heart.on .burst i { animation: burst .6s ease-out; }
+  @keyframes pop { 30% { transform: scale(.7); } 60% { transform: scale(1.25); } }
+  @keyframes burst { 0% { opacity: 1; transform: rotate(var(--a)) translateY(0); } 100% { opacity: 0; transform: rotate(var(--a)) translateY(-22px); } }
+  .thumbs { position: absolute; left: 35px; top: 365px; display: flex; gap: 13px; }
+  .thumb { width: 42px; height: 42px; border: 0; border-radius: 7px; background: #fff; padding: 2px; cursor: pointer; opacity: .62; transition: opacity .2s, box-shadow .2s, transform .2s; overflow: hidden; }
+  .thumb.on { opacity: 1; box-shadow: 0 0 0 1.5px var(--acc), 0 4px 10px rgba(0,0,0,.12); transform: translateY(-2px); }
+  .thumb div { width: 38px; height: 38px; border-radius: 6px; overflow: hidden; position: relative; }
+  .thumb img { position: absolute; inset: 0; width: 100%; height: 100%; }
+  .vline { position: absolute; left: 259px; top: 365px; width: 1px; height: 42px; background: var(--line); }
+  .dots { position: absolute; left: 277px; top: 377px; display: flex; gap: 19px; }
+  .dot { width: 17px; height: 17px; border-radius: 50%; border: 0; cursor: pointer; box-shadow: 0 0 0 0 #fff; transition: box-shadow .2s, transform .2s; }
+  .dot.on { box-shadow: 0 0 0 2px #fff, 0 2px 6px rgba(0,0,0,.25); transform: scale(1.08); }
+  .pd-body { position: absolute; left: 0; top: 421px; width: 402px; background: #fff; }
+  .pd-title { height: 55px; padding-left: 35px; font-size: 24px; font-weight: 600; line-height: 70px; white-space: nowrap; }
+  .pd-desc { position: relative; margin-left: 37px; width: 329px; font-size: 10px; line-height: 12px; max-height: 24px; overflow: hidden; transition: max-height .45s cubic-bezier(.25,.8,.25,1); }
+  .pd-desc.open { max-height: 120px; }
+  .pd-more { display: block; margin: 2px 0 0 300px; border: 0; background: none; font-size: 8px; color: #c2b59a; cursor: pointer; }
+  .pd-hr { margin: 6px 36px 0; height: 0; border-top: .7px solid rgba(198,195,189,.6); }
+  .pd-h { display: flex; align-items: center; gap: 12px; height: 35px; margin-top: 4px; padding-left: 36px; font-size: 15px; font-weight: 700; }
+  .pd-h em { font-style: italic; font-weight: 400; font-size: 8px; color: #b88f6f; border: .7px solid #b88f6f; border-radius: 20px; padding: 1px 6px; }
+  .rent { position: relative; height: 55px; margin: 0 29px 0 39px; }
+  .rent .track { position: absolute; left: 0; top: 0; width: 334px; height: 9px; border-radius: 20px; background: rgba(217,217,217,.58); }
+  .rent .fill { position: absolute; left: 0; top: 0; height: 9px; border-radius: 20px; background: linear-gradient(90deg, #e6d6c6, #d3b49a); transition: width .25s; }
+  .rent .tick { position: absolute; top: 0; width: 1px; height: 9px; background: var(--line); }
+  .rent .knob { position: absolute; top: -4px; width: 17px; height: 17px; margin-left: -8.5px; border-radius: 50%; background: var(--acc); box-shadow: 0 2px 6px rgba(0,0,0,.25); cursor: grab; transition: left .25s cubic-bezier(.3,1.3,.5,1); touch-action: none; }
+  .rent .knob.drag { transition: none; cursor: grabbing; transform: scale(1.2); }
+  .rent .lab { position: absolute; top: 18px; font-size: 10px; cursor: pointer; color: var(--ink); transition: color .2s, font-weight .2s; }
+  .rent .lab.on { font-weight: 700; color: var(--acc); }
+  .rent .hit { position: absolute; left: -10px; right: -10px; top: -12px; height: 34px; cursor: pointer; }
+  .sizes { position: relative; display: flex; height: 48px; margin: 4px 29px 0 35px; border-radius: 10px; background: var(--soft); }
+  .sizes button { position: relative; z-index: 1; flex: 1; border: 0; background: none; cursor: pointer; text-align: center; font-size: 13px; font-weight: 600; line-height: 16px; }
+  .sizes button small { display: block; font-size: 10px; font-weight: 400; line-height: 12px; }
+  .sizes .sel { position: absolute; top: 0; height: 48px; border-radius: 24px; background: #fff; box-shadow: 4px 4px 10px rgba(0,0,0,.18); transition: left .35s cubic-bezier(.3,1.2,.5,1), width .35s; }
+  .gallery { margin: 9px 29px 0 36px; height: 475px; border-radius: 10px; overflow: hidden; }
+  .gallery img { width: 100%; height: 100%; object-fit: cover; transition: opacity .4s; }
+
+  /* ---------- AR ---------- */
+  .ar-bg { position: absolute; inset: 0; width: 402px; height: 874px; object-fit: cover; transition: opacity .5s; }
+  .ar-studio { position: absolute; inset: 0; background: radial-gradient(120% 80% at 50% 60%, #f6f1ea 0%, #e7ddd1 70%, #d8cabb 100%); opacity: 0; transition: opacity .5s; }
+  .ar.studio .ar-studio { opacity: 1; }
+  .ar-chair { position: absolute; left: 12px; top: 418px; width: 309px; height: 312px; cursor: grab; touch-action: none; transform-origin: 50% 85%; }
+  .ar-chair img { width: 100%; height: 100%; transition: filter .4s; }
+  .ar-chair .shadow { position: absolute; left: 12%; right: 12%; bottom: 3%; height: 9%; border-radius: 50%; background: radial-gradient(closest-side, rgba(0,0,0,.35), transparent); z-index: -1; }
+  .ar-ring { position: absolute; left: 71px; top: 623px; width: 210px; height: 169px; opacity: .9; pointer-events: none; transition: opacity .3s; }
+  .ar.studio .ar-ring { opacity: 0; }
+  .ar-seg { position: absolute; left: 101px; top: 66px; width: 199px; height: 33px; border-radius: 17px; background: rgba(255,255,255,.55); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); display: flex; }
+  .ar-seg i { position: absolute; top: 0; height: 33px; width: 111px; border-radius: 17px; background: #fff; box-shadow: 0 2px 8px rgba(0,0,0,.12); transition: left .35s cubic-bezier(.3,1.2,.5,1), width .35s; }
+  .ar-seg button { position: relative; z-index: 1; border: 0; background: none; font-size: 12px; cursor: pointer; }
+  .ar-dots { position: absolute; left: 358px; top: 171px; display: flex; flex-direction: column; gap: 19px; }
+  .ar-hint { position: absolute; left: 0; right: 0; top: 118px; text-align: center; font-size: 12px; color: #fff; text-shadow: 0 1px 4px rgba(0,0,0,.4); transition: opacity .4s; }
+  .ar.studio .ar-hint { color: var(--muted); text-shadow: none; }
+  .ar-btn { position: absolute; left: 345px; width: 40px; height: 40px; border-radius: 50%; border: 0; background: rgba(255,255,255,.8); -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); display: grid; place-items: center; cursor: pointer; box-shadow: 0 2px 8px rgba(0,0,0,.12); }
+
+  /* ---------- drawn pages (cart, customize, modify, search, favourites, success) ---------- */
+  .pg-head { position: relative; height: 102px; padding: 62px 0 0 80px; font-size: 32px; font-weight: 600; letter-spacing: -.01em; line-height: 40px; }
+  .pg-head.no-back { padding-left: 23px; }
+  .pg-head .back { top: 66px; left: 18px; }
+  .pg-sub { padding-left: 23px; margin-top: -6px; font-size: 12px; color: var(--muted); }
+  .items { padding: 22px 25px 140px; }
+  .item { position: relative; display: flex; height: 122px; margin-bottom: 23px; border-radius: 14px; background: #fff; box-shadow: 0 4px 14px rgba(0,0,0,.08); overflow: hidden; transition: transform .35s cubic-bezier(.25,.8,.25,1), height .35s, margin .35s, opacity .3s; touch-action: pan-y; }
+  .item .ph { flex: none; width: 122px; height: 122px; display: grid; place-items: center; cursor: pointer; }
+  .item .ph img { max-width: 92%; max-height: 92%; }
+  .item .meta { flex: 1; padding: 6px 0 0 20px; font-size: 9px; line-height: 20px; color: #6f6259; }
+  .item .meta b { display: block; font-size: 13px; font-weight: 600; line-height: 26px; color: var(--ink); }
+  .item .meta .pr { font-size: 12px; font-weight: 700; color: var(--ink); }
+  .qty { position: absolute; right: 25px; top: 52px; display: flex; align-items: center; gap: 8px; font-size: 13px; }
+  .qty button { width: 19px; height: 19px; border-radius: 50%; border: 1px solid #b9b2ab; background: #fff; font-size: 13px; line-height: 15px; color: #6f6259; cursor: pointer; }
+  .qty b { min-width: 10px; text-align: center; font-weight: 500; }
+  .item .del { position: absolute; right: -86px; top: 0; width: 86px; height: 122px; border: 0; background: #c0533e; color: #fff; font-size: 13px; font-weight: 600; cursor: pointer; }
+  .item.swiped { transform: translateX(-86px); overflow: visible; }
+  .item.gone { height: 0; margin-bottom: 0; opacity: 0; }
+  .totalbar { position: absolute; left: 25px; top: 749px; width: 352px; height: 45px; border-radius: 10px; background: var(--bar); color: #fff; display: flex; align-items: center; z-index: 4; cursor: pointer; border: 0; }
+  .totalbar b { flex: 1; text-align: center; font-size: 16px; font-weight: 600; }
+  .totalbar i { width: 1px; height: 100%; background: rgba(255,255,255,.35); }
+  .totalbar span { width: 72px; display: grid; place-items: center; }
+  .item.cz .qty { top: auto; bottom: 14px; }
+  .cz-row { display: flex; align-items: center; gap: 8px; font-size: 9px; color: #6f6259; }
+  .cz-dot { width: 9px; height: 9px; border-radius: 50%; border: 0; cursor: pointer; transition: box-shadow .2s; }
+  .cz-dot.on { box-shadow: 0 0 0 1.5px #fff, 0 0 0 2.5px var(--acc); }
+  .cz-size { border: 0; background: none; font-size: 9px; color: #9a918a; cursor: pointer; display: inline-flex; align-items: center; gap: 3px; }
+  .cz-size::before { content: ""; width: 7px; height: 7px; border-radius: 50%; border: 1px solid #b9b2ab; }
+  .cz-size.on { color: var(--ink); font-weight: 600; }
+  .cz-size.on::before { border-color: var(--acc); background: var(--acc); }
+  .barwrap { position: absolute; left: 0; top: 760px; width: 402px; height: 114px; z-index: 5; }
+  .barwrap img { width: 402px; }
+  .md-hero { position: relative; height: 342px; margin: 10px 30px 0 34px; overflow: hidden; }
+  .md-hero img { width: 100%; height: 100%; transition: transform .6s cubic-bezier(.25,.8,.25,1); }
+  .md-thumbs { display: flex; gap: 29px; margin: 6px 0 0 66px; }
+  .row-opt { display: flex; align-items: center; gap: 14px; margin: 14px 57px 0 46px; padding: 0 16px; height: 50px; border-radius: 10px; background: #f3ece4; font-size: 13px; cursor: pointer; border: 0; width: calc(100% - 103px); text-align: left; transition: background .25s, box-shadow .25s; }
+  .row-opt.on { background: #ead9c6; box-shadow: inset 0 0 0 1.5px var(--acc); }
+  .row-opt b { font-weight: 700; }
+  .cal { margin: 14px 57px 0 46px; padding: 16px; border-radius: 14px; border: 1.5px solid var(--ink); }
+  .cal h4 { display: flex; justify-content: space-between; align-items: center; font-size: 13px; font-weight: 600; }
+  .cal h4 span { font-weight: 400; color: var(--muted); }
+  .cal-g { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; margin-top: 10px; text-align: center; }
+  .cal-g span { font-size: 9px; color: var(--muted); padding-bottom: 4px; }
+  .cal-g button { height: 30px; border: 0; border-radius: 50%; background: none; font-size: 12px; cursor: pointer; transition: background .2s, color .2s; }
+  .cal-g button.on { background: var(--bar); color: #fff; }
+  .cal-g button.mute { color: #c9c2bb; pointer-events: none; }
+  .save-bar { position: absolute; left: 84px; top: 796px; width: 230px; height: 45px; border-radius: 23px; border: 0; background: var(--bar); color: #fff; display: flex; align-items: center; justify-content: center; gap: 8px; cursor: pointer; z-index: 5; box-shadow: 0 6px 16px rgba(63,44,31,.35); }
+  .save-bar b { font-size: 20px; font-weight: 700; }
+  .save-bar small { font-size: 11px; }
+  .search-in { display: flex; align-items: center; gap: 10px; margin: 0 25px; height: 44px; padding: 0 16px; border-radius: 22px; background: #f2f2f2; }
+  .search-in input { flex: 1; border: 0; background: none; font-size: 14px; outline: none; }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; }
+  .chip { padding: 9px 15px; border: 0; border-radius: 99px; background: #f3ece4; font-size: 13px; cursor: pointer; transition: background .2s, color .2s; }
+  .chip.on { background: var(--bar); color: #fff; }
+  .lbl { margin: 22px 25px 10px; font-size: 13px; font-weight: 700; }
+  .res { display: flex; align-items: center; gap: 14px; margin: 0 25px 12px; padding: 10px; border: 0; border-radius: 14px; background: #fff; box-shadow: 0 3px 12px rgba(0,0,0,.07); width: calc(100% - 50px); text-align: left; cursor: pointer; }
+  .res .ph { width: 64px; height: 64px; border-radius: 10px; display: grid; place-items: center; flex: none; overflow: hidden; }
+  .res .ph img { max-width: 92%; max-height: 92%; }
+  .res span { flex: 1; font-size: 14px; font-weight: 600; } .res span small { display: block; font-size: 12px; font-weight: 400; color: var(--muted); margin-top: 2px; }
+  .empty { margin: 120px 40px 0; text-align: center; color: var(--muted); font-size: 14px; line-height: 1.5; }
+  .empty svg { margin: 0 auto 16px; display: block; }
+  .btn { display: block; width: 100%; padding: 15px; border: 0; border-radius: 26px; background: var(--bar); color: #fff; font-size: 16px; font-weight: 600; cursor: pointer; }
+  .btn.ghost { background: transparent; color: var(--ink); box-shadow: inset 0 0 0 1.5px #d9cfc6; }
+  .ok-ring { display: block; width: 120px; height: 120px; margin: 120px auto 0; }
+  .ok-ring circle { stroke-dasharray: 340; stroke-dashoffset: 340; animation: draw .8s .1s cubic-bezier(.6,0,.3,1) forwards; }
+  .ok-ring path { stroke-dasharray: 80; stroke-dashoffset: 80; animation: draw .45s .75s ease-out forwards; }
+  @keyframes draw { to { stroke-dashoffset: 0; } }
+  .ok h2 { margin-top: 26px; text-align: center; font-size: 28px; font-weight: 600; opacity: 0; animation: up .5s 1s forwards; }
+  .ok p.sub { margin-top: 6px; text-align: center; font-size: 13px; color: var(--muted); opacity: 0; animation: up .5s 1.1s forwards; }
+  .tl { margin: 34px 40px 0; }
+  .tl div { position: relative; padding: 0 0 22px 30px; font-size: 14px; font-weight: 600; opacity: 0; animation: up .5s forwards; }
+  .tl div small { display: block; font-size: 12px; font-weight: 400; color: var(--muted); margin-top: 2px; }
+  .tl div::before { content: ""; position: absolute; left: 0; top: 3px; width: 13px; height: 13px; border-radius: 50%; border: 2px solid #d9cfc6; background: #fff; }
+  .tl div.done::before { border-color: var(--bar); background: var(--bar); }
+  .tl div::after { content: ""; position: absolute; left: 7px; top: 19px; bottom: 2px; width: 2px; background: #eee6de; }
+  .tl div:last-child::after { display: none; }
+  @keyframes up { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+  .confetti { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
+  .confetti i { position: absolute; top: -10px; width: 7px; height: 11px; border-radius: 2px; animation: fall 2.4s cubic-bezier(.2,.6,.4,1) forwards; }
+  @keyframes fall { to { transform: translate(var(--dx), 900px) rotate(var(--r)); opacity: .2; } }
+
+  /* sheets */
+  .veil { position: absolute; inset: 0; z-index: 60; background: rgba(30,20,12,.35); opacity: 0; transition: opacity .3s; }
+  .veil.is-on { opacity: 1; }
+  .sheet { position: absolute; left: 0; right: 0; bottom: 0; z-index: 61; max-height: 800px; overflow-y: auto; scrollbar-width: none; padding: 14px 24px 28px; border-radius: 28px 28px 0 0; background: #fff; transform: translateY(105%); transition: transform .45s cubic-bezier(.25,.8,.25,1); }
+  .sheet::-webkit-scrollbar { display: none; }
+  .sheet.is-on { transform: none; }
+  .sheet .grab { width: 40px; height: 5px; margin: 0 auto 16px; border-radius: 3px; background: #e2dbd4; }
+  .sheet h3 { font-size: 22px; font-weight: 600; }
+  .sheet p { margin-top: 4px; font-size: 13px; color: var(--muted); line-height: 1.45; }
+  .sheet .btn { margin-top: 18px; }
+  .qv-img { position: relative; height: 230px; margin: 4px -4px 14px; border-radius: 20px; display: grid; place-items: center; overflow: hidden; }
+  .qv-img img { max-width: 80%; max-height: 92%; transition: filter .4s; }
+  .qv-img.cover img { max-width: none; max-height: none; width: 100%; height: 100%; object-fit: cover; }
+  .qv-price { display: flex; align-items: baseline; justify-content: space-between; margin-top: 2px; }
+  .qv-price b { font-size: 22px; font-weight: 700; }
+  .qv-price b small { font-size: 12px; font-weight: 400; color: var(--muted); }
+  .sheet .lbl { margin: 16px 0 8px; }
+  .opt { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 14px 0; border-bottom: 1px solid #f1ebe5; font-size: 14px; }
+  .opt:last-of-type { border: 0; }
+  .sw { position: relative; flex: none; width: 46px; height: 28px; border-radius: 14px; border: 0; background: #ddd5ce; cursor: pointer; transition: background .25s; }
+  .sw::after { content: ""; position: absolute; left: 3px; top: 3px; width: 22px; height: 22px; border-radius: 50%; background: #fff; box-shadow: 0 2px 5px rgba(0,0,0,.2); transition: left .25s; }
+  .sw.on { background: var(--bar); } .sw.on::after { left: 21px; }
+  .card-opt { display: flex; align-items: center; gap: 12px; width: 100%; margin-top: 10px; padding: 14px; border: 1.5px solid #eee6de; border-radius: 14px; background: #fff; font-size: 14px; text-align: left; cursor: pointer; transition: border-color .2s; }
+  .card-opt.on { border-color: var(--bar); }
+  .card-opt i { width: 36px; height: 24px; border-radius: 5px; display: grid; place-items: center; font-style: normal; font-size: 9px; font-weight: 700; color: #fff; }
+  .field { width: 100%; margin-top: 10px; padding: 14px 16px; border: 0; border-radius: 14px; background: #f5f1ed; font-size: 14px; outline: none; }
+  .fly { position: absolute; z-index: 90; pointer-events: none; border-radius: 12px; object-fit: contain; }
+  .zoomer { position: absolute; z-index: 70; pointer-events: none; overflow: hidden; }
+  .zoomer img { width: 100%; height: 100%; object-fit: contain; }
+</style>
+</head>
+<body>
+<div id="app"></div>
+<div class="toast" id="toast"></div>
+<script>
+/* SwiftHome rental app prototype, wired as in the Figma prototype plus the links a real app needs.
+   Browsing screens are layered Figma exports (base, scrolling layer, fixed nav) in the screen's own points
+   (402 x 874). The product, cart, customize, checkout totals, AR, modify and the screens Figma didn't have
+   are built here so every state can combine. Screens and sheets carry data-testid for the case-study guide. */
+const app = document.getElementById("app");
+const S = (n) => "s/" + n + ".webp?v=1";
+const money = (n) => "$" + n.toFixed(2);
+const ICON = {
+  back: '<svg width="24" height="14" viewBox="0 0 24 14" fill="none"><path d="M23 7H2M7 1L1 7l6 6" stroke="#61534a" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+  bag: '<svg width="16" height="17" viewBox="0 0 16 17" fill="none"><path d="M3 5.5h10l-.8 10H3.8z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M5.5 5.5V4a2.5 2.5 0 015 0v1.5" stroke="currentColor" stroke-width="1.6"/></svg>',
+  heart: (on) => `<svg width="28" height="24" viewBox="0 0 24 21"><path d="M12 19.6S1.6 13.6 1.6 6.9A5 5 0 0112 4.4a5 5 0 0110.4 2.5c0 6.7-10.4 12.7-10.4 12.7z" fill="${on ? "#dc0c0c" : "none"}" stroke="${on ? "#dc0c0c" : "#fff"}" stroke-width="1.7" stroke-linejoin="round"/></svg>`,
+  star: '<svg width="11" height="11" viewBox="0 0 24 24"><path d="M12 2l3 7 7 .6-5.4 4.8 1.7 7.1L12 17.8 5.7 21.5l1.7-7.1L2 9.6 9 9z" fill="#61534a"/></svg>',
+  arrow: '<svg width="16" height="8" viewBox="0 0 16 8" fill="none"><path d="M0 4h14M11 1l3 3-3 3" stroke="#61534a" stroke-width="1.5"/></svg>',
+  cartok: '<svg width="26" height="24" viewBox="0 0 26 24" fill="none"><path d="M2 3h3l2.6 12h12.6L23 7H8" stroke="#fff" stroke-width="1.8" stroke-linejoin="round"/><circle cx="9.5" cy="20" r="1.6" fill="#fff"/><circle cx="18.5" cy="20" r="1.6" fill="#fff"/><path d="M12 10l2 2 4-4" stroke="#fff" stroke-width="1.8"/></svg>',
+};
+
+/* ---------- catalog and state ---------- */
+const CATALOG = {
+  sofa:     { name: "Single Sofa Chair", price: 17, img: "cart_sofachair", bg: "#dbdbbb", desc: "Oversized velvet lounge chair with tufted back.", detail: true },
+  armchair: { name: "Armchair", price: 15, img: "cart_armchair", bg: "#dcd9d2", desc: "Mid-century frame, linen cushions." },
+  bed:      { name: "King Bed", price: 25, img: "cart_bed", bg: "#decabb", desc: "Upholstered headboard, oak frame." },
+  bedside:  { name: "Bedside Table", price: 10, img: "cart_bedside", bg: "#efe0bc", desc: "Walnut with a two-tone drawer." },
+  brown:    { name: "Sofa Chair", price: 17, img: "qv_sofachair", bg: "#c3bebaff", desc: "Pleated velvet in chocolate brown." },
+  dining:   { name: "Dining Chair", price: 10, img: "qv_dining", bg: "#c7cfbb", desc: "Curved walnut frame, moss seat." },
+  rattan:   { name: "Rattan Chair", price: 10, img: "qv_rattan", bg: "#d6b597", desc: "Hand-woven rattan with a linen cushion.", cover: true },
+  natural:  { name: "Natural Cozy Set", price: 100, img: "set_hero", bg: "#ddd", desc: "Chair, sofa, bedside table and coffee table.", cover: true, set: true },
+  simplicity: { name: "Simplicity Suit", price: 70, was: 100, img: "qv_simplicity", bg: "#ddd", desc: "Grey sofa, coffee table and rug. Lease term 24 months.", cover: true, set: true },
+  modern:   { name: "Modern Set", price: 100, img: "qv_modern", bg: "#ddd", desc: "Sectional, lounge chair and coffee table. Lease term 12 months.", cover: true, set: true },
+};
+const COLORS = { green: { dot: "#b2b15e", bg: "#dbdbbb", img: "hero_green", gal: "gallery_green", name: "green", filter: "" },
+  cream: { dot: "#fff6ef", bg: "#f2ece3", img: "hero_green", gal: "gallery_green", name: "cream", filter: "grayscale(1) sepia(.18) brightness(1.55) contrast(.82)" },
+  taupe: { dot: "#b68b6a", bg: "#f0ebe0", img: "hero_taupe", gal: "gallery_taupe", name: "taupe", filter: "" } };
+const MONTHS = [1, 6, 12, 18, 24];
+const PRICE = { sofa: { 1: 29, 6: 23, 12: 19, 18: 17, 24: 15 }, natural: { 1: 160, 6: 130, 12: 112, 18: 100, 24: 90 } };
+const ZOOM = ["scale(1)", "scale(1.7) translate(-4%, 14%)", "scale(2.1) translate(0, -6%)", "scale(1.9) translate(-12%, -20%)"];
+const state = {
+  cart: [
+    { id: "armchair", color: "gray", size: "Regular", lease: 12, qty: 1 },
+    { id: "bed", color: "green", size: "Regular", lease: 12, qty: 1 },
+    { id: "bedside", color: "brown", size: "small", lease: 12, qty: 2 },
+    { id: "sofa", color: "green", size: "Regular", lease: 12, qty: 1 },
+  ],
+  fav: new Set(),
+  pd: { color: "green", thumb: 0, months: 18, size: 1, more: false, saved: false },
+  set: { months: 18, saved: false, view: 0 },
+  cz: [{ n: "Chair", img: "set_chair", p: 30, c: 0, s: 1, q: 1 }, { n: "Sofa", img: "set_sofa", p: 40, c: 0, s: 1, q: 1 }, { n: "Bedside Table", img: "set_bedside", p: 10, c: 0, s: 2, q: 1 }, { n: "Coffee Table", img: "set_table", p: 20, c: 0, s: 1, q: 1 }],
+  czSaved: false,
+  ar: { mode: "home", color: "green", x: 0, y: 0, s: 1, r: 0 },
+  md: { months: 12, renew: false, day: 2, thumb: 0 },
+  card: "5688", address: "River House, PMB 145778, 22 E. Lathrop Ave, Savannah, GA, 31415",
+  catTab: 0,
+};
+const count = () => state.cart.reduce((a, c) => a + c.qty, 0);
+const unitPrice = (c) => c.price ?? CATALOG[c.id].price;
+const monthly = () => state.cart.reduce((a, c) => a + unitPrice(c) * c.qty, 0);
+const total = () => monthly() * 12;
+
+/* ---------- screens ---------- */
+const NAVH = (img, active) => ({ img: S(img), y: 760, h: 114, badge: [205, 812], hs: [
+  { x: 64, y: 806, w: 110, h: 52, tab: "explore" }, { x: 188, y: 806, w: 46, h: 52, tab: "cart" },
+  { x: 240, y: 806, w: 46, h: 52, tab: "favs" }, { x: 294, y: 806, w: 46, h: 52, tab: "profile" }] });
+const BAR = (img) => ({ img: S(img), y: 760, h: 114, badge: [80, 799], hs: [
+  { x: 26, y: 794, w: 32, h: 38, tab: "explore" }, { x: 58, y: 794, w: 32, h: 38, tab: "cart" },
+  { x: 88, y: 794, w: 32, h: 38, tab: "favs" }, { x: 120, y: 794, w: 32, h: 38, tab: "profile" }] });
+const qv = (id) => ({ act: "quick", id });
+const SCREENS = {
+  splash: { base: S("splash"), kenburns: true, hs: [{ x: 288, y: 390, w: 76, h: 78, go: "cover", how: "fade" }] },
+  cover: { base: S("cover"), swipeUp: "explore", hs: [
+    { x: 177, y: 449, w: 175, h: 105, act: "quick", id: "rattan" }, { x: 182, y: 548, w: 26, h: 26, act: "rattanDot", i: 0 }, { x: 222, y: 548, w: 26, h: 26, act: "rattanDot", i: 1 }, { x: 253, y: 548, w: 26, h: 26, act: "rattanDot", i: 2 },
+    { x: 290, y: 576, w: 62, h: 50, act: "quick", id: "rattan" }, { x: 30, y: 748, w: 298, h: 42, go: "search" }, { x: 342, y: 744, w: 40, h: 40, act: "filter" },
+    { x: 150, y: 680, w: 100, h: 30, go: "explore", how: "up" }],
+    fx: { ...NAVH("nav_home"), y: 760 } },
+  explore: { base: S("F3_base"), hs: [{ x: 24, y: 136, w: 300, h: 45, go: "search" }, { x: 338, y: 138, w: 40, h: 40, act: "filter" }],
+    sc: { x: 20, y: 210, w: 375, h: 664, img: S("F3_scroll"), ix: -20, iy: -16, iw: 400, ch: 1112, hs: [
+      { x: 0, y: 0, w: 360, h: 195, go: "sets" }, { x: 314, y: 219, w: 51, h: 40, go: "categories" },
+      { x: 5, y: 274, w: 115, h: 35, act: "catTab", t: 0 }, { x: 130, y: 274, w: 105, h: 35, act: "catTab", t: 1 }, { x: 245, y: 274, w: 105, h: 35, act: "catTab", t: 2 },
+      { x: 10, y: 339, w: 145, h: 185, ...qv("armchair") }, { x: 200, y: 339, w: 150, h: 185, ...qv("bed") },
+      { x: 10, y: 569, w: 145, h: 185, ...qv("bedside") }, { x: 200, y: 569, w: 150, h: 185, ...qv("brown") },
+      { x: 10, y: 824, w: 145, h: 165, ...qv("dining") }, { x: 200, y: 824, w: 150, h: 165, go: "product", zoom: true }] },
+    fx: NAVH("nav_home") },
+  categories: { base: S("F5_base"), hs: [{ x: 14, y: 74, w: 54, h: 42, back: 1 }],
+    sc: { x: 8, y: 111, w: 371, h: 763, img: S("F5_scroll"), ix: -13, iy: -19, iw: 407, ch: 933, hs: [
+      { x: 27, y: 66, w: 200, h: 177, go: "sets" }, { x: 234, y: 66, w: 121, h: 143, act: "openCat", t: 0 }, { x: 234, y: 216, w: 121, h: 200, act: "openCat", t: 2 },
+      { x: 29, y: 251, w: 196, h: 165, act: "openCat", t: 1 },
+      { x: 29, y: 478, w: 146, h: 155, act: "openCat", t: 2 }, { x: 185, y: 478, w: 170, h: 155, act: "openCat", t: 0 },
+      { x: 29, y: 641, w: 118, h: 158, act: "openCat", t: 0 }, { x: 152, y: 641, w: 203, h: 158, act: "openCat", t: 1 }] },
+    fx: NAVH("nav_home") },
+  catlist: { base: S("F11_base"), tabs: true, hs: [{ x: 14, y: 74, w: 54, h: 46, back: 1 }, { x: 26, y: 151, w: 296, h: 42, go: "search" }, { x: 340, y: 152, w: 40, h: 40, act: "filter" }],
+    sc: { x: 18, y: 291, w: 375, h: 551, img: S("F11_scroll"), ix: -11, iy: 0, iw: 386, ch: 781, hs: [
+      { x: 12, y: 5, w: 145, h: 190, ...qv("armchair") }, { x: 200, y: 5, w: 150, h: 190, ...qv("bed") },
+      { x: 12, y: 235, w: 145, h: 190, ...qv("bedside") }, { x: 200, y: 235, w: 150, h: 190, ...qv("brown") },
+      { x: 12, y: 485, w: 145, h: 170, ...qv("dining") }, { x: 200, y: 485, w: 150, h: 170, go: "product", zoom: true }] },
+    fx: NAVH("nav_home") },
+  sets: { base: S("F21_base"), hs: [{ x: 24, y: 136, w: 300, h: 45, go: "search" }, { x: 338, y: 138, w: 40, h: 40, act: "filter" }],
+    sc: { x: 20, y: 216, w: 375, h: 659, img: S("F21_scroll"), ix: -20, iy: -16, iw: 400, ch: 1147, hs: [
+      { x: 0, y: 0, w: 360, h: 195, ...qv("simplicity") }, { x: 8, y: 339, w: 347, h: 205, go: "set", zoom: true },
+      { x: 15, y: 576, w: 95, h: 205, ...qv("simplicity") }, { x: 125, y: 576, w: 230, h: 205, ...qv("simplicity") }, { x: 8, y: 809, w: 347, h: 205, ...qv("modern") }] },
+    fx: NAVH("nav_sets") },
+  set: { html: "setPage", fx: { ...BAR("bar_set"), pill: "set" } },
+  customize: { html: "customize", fx: { ...BAR("bar_set"), pill: "cz" } },
+  product: { html: "product", fx: { ...BAR("bar_product"), pill: "pd" } },
+  ar: { html: "ar", fx: { ...BAR("bar_product"), pill: "pd" } },
+  cart: { html: "cart", fx: { img: S("nav_cart"), y: 760, h: 114, hs: [
+    { x: 62, y: 808, w: 50, h: 46, tab: "explore" }, { x: 112, y: 808, w: 100, h: 46, tab: "cart" }, { x: 216, y: 808, w: 54, h: 46, tab: "favs" }, { x: 274, y: 808, w: 66, h: 46, tab: "profile" }] } },
+  checkout: { base: S("checkout"), patch: "checkout", hs: [{ x: 14, y: 74, w: 54, h: 46, back: 1 }, { x: 288, y: 388, w: 74, h: 36, act: "payment" }, { x: 288, y: 628, w: 64, h: 30, act: "address" }, { x: 34, y: 478, w: 335, h: 148, act: "address" }, { x: 84, y: 796, w: 230, h: 45, act: "placeOrder" }] },
+  success: { html: "success" },
+  profile: { sc: { x: 0, y: 0, w: 402, h: 874, img: S("profile_content"), ix: 0, iy: 0, iw: 402, ch: 1029, hs: [
+    { x: 14, y: 74, w: 54, h: 46, back: 1, to: "explore" }, { x: 36, y: 285, w: 103, h: 90, act: "addressSheet" }, { x: 153, y: 285, w: 104, h: 90, act: "payment" }, { x: 273, y: 285, w: 103, h: 90, act: "help" },
+    { x: 24, y: 437, w: 352, h: 115, act: "rental", id: "armchair" }, { x: 24, y: 556, w: 352, h: 121, act: "rental", id: "bed" }, { x: 24, y: 694, w: 352, h: 108, act: "rental", id: "bedside" },
+    { x: 25, y: 806, w: 352, h: 119, go: "modify" }] }, fx: NAVH("nav_profile") },
+  modify: { html: "modify" },
+  favs: { html: "favs", fx: NAVH("nav_home") },
+  search: { html: "search" },
+};
+const START = "splash";
+
+/* ---------- building ---------- */
+const els = {};
+let dragged = false;
+const btn = (h) => {
+  const b = document.createElement("button");
+  b.className = "hs"; b.style.cssText = `left:${h.x}px;top:${h.y}px;width:${h.w}px;height:${h.h}px`;
+  b.setAttribute("aria-label", h.go || h.tab || h.act || "back");
+  b.addEventListener("click", (e) => { e.stopPropagation(); if (!dragged) act(h, b); });
+  return b;
+};
+const make = (id) => {
+  if (els[id]) return els[id];
+  const s = SCREENS[id], el = document.createElement("div");
+  el.className = "scr"; el.dataset.testid = "sh-" + id;
+  if (s.base) el.insertAdjacentHTML("beforeend", `<img class="base" src="${s.base}" alt="">`);
+  if (s.kenburns) { const b = el.querySelector(".base"); b.animate([{ transform: "scale(1.08) translate(1.5%, 1%)" }, { transform: "scale(1)" }], { duration: 9000, easing: "ease-out", fill: "forwards" }); }
+  (s.hs || []).forEach((h) => el.append(btn(h)));
+  if (s.sc) {
+    const sc = document.createElement("div"), inn = document.createElement("div");
+    sc.className = "sc"; sc.style.cssText = `left:${s.sc.x}px;top:${s.sc.y}px;width:${s.sc.w}px;height:${s.sc.h}px`;
+    inn.className = "in"; inn.style.height = s.sc.ch + "px";
+    inn.insertAdjacentHTML("beforeend", `<img src="${s.sc.img}" style="position:absolute;left:${s.sc.ix}px;top:${s.sc.iy}px;width:${s.sc.iw}px" alt="">`);
+    (s.sc.hs || []).forEach((h) => inn.append(btn(h)));
+    sc.append(inn); el.append(sc);
+    if (s.swipeUp) sc.addEventListener("scroll", () => { if (sc.scrollTop > 40 && cur === id) act({ go: s.swipeUp, how: "up" }); });
+  }
+  if (s.swipeUp) el.addEventListener("wheel", (e) => { if (e.deltaY > 20 && cur === id) act({ go: s.swipeUp, how: "up" }); }, { passive: true });
+  if (s.tabs) buildTabs(el);
+  if (s.patch === "checkout") el.insertAdjacentHTML("beforeend", `<div id="co"></div>`);
+  if (s.html) el.insertAdjacentHTML("beforeend", `<div class="pgwrap"></div>`);
+  if (s.fx) {
+    const fx = document.createElement("div"); fx.className = "fx"; fx.style.cssText = `top:${s.fx.y}px;height:${s.fx.h}px`;
+    fx.insertAdjacentHTML("beforeend", `<img src="${s.fx.img}" alt="">`);
+    s.fx.hs.forEach((h) => fx.append(btn({ ...h, y: h.y - s.fx.y })));
+    if (s.fx.pill) { const p = document.createElement("button"); p.className = "pill"; p.style.top = (794 - s.fx.y) + "px"; p.dataset.k = s.fx.pill; p.addEventListener("click", (e) => { e.stopPropagation(); addFrom(s.fx.pill, p); }); fx.append(p); }
+    if (s.fx.badge) fx.insertAdjacentHTML("beforeend", `<span class="badge" style="left:${s.fx.badge[0]}px;top:${s.fx.badge[1] - s.fx.y}px"></span>`);
+    el.append(fx);
+  }
+  app.append(el); els[id] = el; return el;
+};
+const render = (id) => {
+  const s = SCREENS[id], el = els[id];
+  if (s.html) { const w = el.querySelector(".pgwrap"); w.innerHTML = PAGES[s.html](); bindPage(w, id); }
+  if (s.patch === "checkout") renderCheckout(el);
+  if (s.tabs) renderTabs(el);
+  el.querySelectorAll(".badge").forEach((b) => { b.textContent = count(); b.style.display = count() ? "" : "none"; });
+  el.querySelectorAll(".pill").forEach(renderPill);
+};
+
+/* ---------- navigation: iOS-style push/pop, fades for tabs, zoom from a card ---------- */
+let cur = null, stack = [];
+const show = (id, how = "push") => {
+  const next = make(id), prev = cur && els[cur];
+  if (prev === next) return;
+  render(id);
+  const sc = next.querySelector(".sc,.pg"); if (sc && how !== "none") { sc.style.scrollBehavior = "auto"; sc.scrollTop = 0; sc.style.scrollBehavior = ""; }
+  Object.values(els).forEach((e) => { if (e !== prev && e !== next) { e.className = "scr"; e.style.transform = ""; e.style.opacity = ""; } });
+  const from = { push: ["translateX(100%)", "translateX(-28%)"], pop: ["translateX(-28%)", "translateX(100%)"], up: ["translateY(100%)", "translateY(-18%)"], fade: ["", ""], zoom: ["", ""], none: ["", ""] }[how] || ["", ""];
+  next.style.transition = "none"; next.style.transform = from[0]; next.style.opacity = how === "fade" || how === "zoom" ? 0 : 1; next.className = "scr is-cur";
+  void next.offsetWidth; next.style.transition = ""; next.style.transform = ""; next.style.opacity = 1;
+  if (how === "pop") next.style.zIndex = 1, prev && (prev.style.zIndex = 3);
+  else next.style.zIndex = "", prev && (prev.style.zIndex = "");
+  if (prev) { prev.className = "scr is-prev"; prev.style.transform = from[1]; if (how === "fade") prev.style.opacity = 0;
+    const p = prev; setTimeout(() => { if (els[cur] !== p) { p.className = "scr"; p.style.transform = ""; p.style.opacity = ""; p.style.zIndex = ""; } }, 450); }
+  cur = id;
+  onShow(id, next);
+};
+const act = (h, srcEl) => {
+  if (h.back) { show(stack.pop() || h.to || "explore", "pop"); return; }
+  if (h.go) { stack.push(cur); if (h.zoom && srcEl) zoomFrom(srcEl, h.go); else show(h.go, h.how || "push"); return; }
+  if (h.tab) { stack = []; show(h.tab, "fade"); return; }
+  if (h.act) actions[h.act](h, srcEl);
+};
+const zoomFrom = (src, to) => {
+  const r = src.getBoundingClientRect(), ar = app.getBoundingClientRect();
+  const img = to === "set" ? S("set_hero") : S("hero_" + COLORS[state.pd.color].name.replace("cream", "green"));
+  const target = to === "set" ? { x: 0, y: 0, w: 402, h: 305 } : { x: 39, y: 65, w: 338, h: 342 };
+  const z = document.createElement("div"); z.className = "zoomer";
+  z.style.cssText = `left:${r.left - ar.left}px;top:${r.top - ar.top}px;width:${r.width}px;height:${r.height}px;border-radius:14px;background:${to === "set" ? "#ddd" : COLORS[state.pd.color].bg}`;
+  z.innerHTML = `<img src="${img}" style="object-fit:${to === "set" ? "cover" : "contain"}" alt="">`;
+  app.append(z);
+  const bgFull = to === "product";
+  z.animate([{ }, { left: (bgFull ? 0 : target.x) + "px", top: (bgFull ? 0 : target.y) + "px", width: (bgFull ? 402 : target.w) + "px", height: (bgFull ? 421 : target.h) + "px", borderRadius: "0px" }], { duration: 480, easing: "cubic-bezier(.25,.8,.25,1)", fill: "forwards" });
+  if (bgFull) z.querySelector("img").animate([{ padding: "0" }, { padding: "65px 25px 14px 39px" }], { duration: 480, easing: "cubic-bezier(.25,.8,.25,1)", fill: "forwards" });
+  setTimeout(() => { show(to, "zoom"); setTimeout(() => z.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 220, fill: "forwards" }).onfinish = () => z.remove(), 120); }, 420);
+};
+const onShow = (id, el) => {
+  if (id === "success") confetti(el);
+};
+
+/* ---------- tabs on the category list (redrawn so they can switch) ---------- */
+const TABS = ["Bedroom", "Dining Room", "Living Room"];
+const buildTabs = (el) => {
+  el.insertAdjacentHTML("beforeend", `<div class="tabs" style="position:absolute;left:23px;top:222px;width:351px;height:47px;border-radius:24px;background:#f6f6f6"><i style="position:absolute;top:5px;height:41px;width:112px;border-radius:21px;background:#fff;box-shadow:0 4px 10px rgba(0,0,0,.14);transition:left .35s cubic-bezier(.3,1.2,.5,1)"></i>${TABS.map((t, i) => `<button data-t="${i}" style="position:absolute;top:0;left:${[3, 117, 233][i]}px;width:112px;height:47px;border:0;background:none;font:600 11.5px var(--f);cursor:pointer;transition:color .25s">${t}</button>`).join("")}</div>`);
+  el.querySelectorAll("[data-t]").forEach((b) => b.addEventListener("click", (e) => { e.stopPropagation(); state.catTab = +b.dataset.t; renderTabs(el); const sc = el.querySelector(".sc"); sc.animate([{ opacity: .2, transform: "translateY(10px)" }, { opacity: 1, transform: "none" }], { duration: 380, easing: "ease-out" }); sc.scrollTop = 0; }));
+};
+const renderTabs = (el) => { el.querySelector(".tabs i").style.left = [3, 117, 233][state.catTab] + "px"; el.querySelectorAll("[data-t]").forEach((b) => (b.style.color = +b.dataset.t === state.catTab ? "#4d4d4d" : "#b5b5b5")); };
+
+/* ---------- pages built in HTML ---------- */
+const backBtn = '<button class="back" data-back aria-label="Back">' + ICON.back + '</button>';
+const PAGES = {
+  product: () => {
+    const p = state.pd, c = COLORS[p.color], fav = state.fav.has("sofa");
+    return `<div class="pg" id="pdpg"><div style="position:relative;height:1299px">
+      <div class="pd-hero" style="background:${c.bg}">
+        <div class="pd-img"><img id="pdimg" src="${S(c.img)}" style="transform:${ZOOM[p.thumb]};filter:${c.filter}" alt="Single Sofa Chair"></div>
+        ${backBtn}
+        <div class="chip-rate">4.7 / 5.0 ${ICON.star}</div>
+        <button class="link360" data-go="ar">360° Virtual ${ICON.arrow}</button>
+        <button class="heart ${fav ? "on" : ""}" data-act="fav" aria-label="Favourite">${ICON.heart(fav)}<span class="burst">${[0, 45, 90, 135, 180, 225, 270, 315].map((a) => `<i style="--a:${a}deg"></i>`).join("")}</span></button>
+        <div class="thumbs">${ZOOM.map((z, i) => `<button class="thumb ${i === p.thumb ? "on" : ""}" data-thumb="${i}" aria-label="View ${i + 1}"><div style="background:${c.bg}"><img src="${S(c.img)}" style="transform:${z};filter:${c.filter}" alt=""></div></button>`).join("")}</div>
+        <i class="vline"></i>
+        <div class="dots">${Object.entries(COLORS).map(([k, v]) => `<button class="dot ${k === p.color ? "on" : ""}" data-color="${k}" style="background:${v.dot}" aria-label="${v.name}"></button>`).join("")}</div>
+      </div>
+      <div class="pd-body">
+        <div class="pd-title">Single Sofa Chair</div>
+        <div class="pd-desc ${p.more ? "open" : ""}">MAXYOYO Giant ${c.name === "taupe" ? "Oat" : c.name === "cream" ? "Ivory" : "Green"} Velvet Sofa Chair, Oversized Bean Bag Couch for Adults and Kids, Faux Fur Shell-Shaped Large Chair with Filler, Stuffed Big Accent Sofa Lounge Floor Sofa for Gaming, Reading. Solid wood legs, removable cover, fits rooms from 120 sq ft. Delivered assembled; swap or return at the end of your lease.</div>
+        <button class="pd-more" data-act="more">${p.more ? "Hide" : "Read more"}</button>
+        <div class="pd-hr"></div>
+        <div class="pd-h">Rent <em>More time, less cost!</em></div>
+        ${rentHTML(p.months)}
+        <div class="pd-h" style="margin-top:-6px">Size</div>
+        <div class="sizes"><i class="sel" style="left:${[0, 117, 226][p.size]}px;width:${[117, 108, 112][p.size]}px"></i>${["Small", "Regular", "Large"].map((n, i) => `<button data-size="${i}">${n}<small>${["31.5’’x 39.4’’x 28.3’’", "35.4’’x 43.3’’x 31.5’’", "39.4’’x 47.2’’x 33.5’’"][i]}</small></button>`).join("")}</div>
+        <div class="pd-h" style="margin-top:9px">Product Gallery</div>
+        <div class="gallery"><img src="${S(c.gal)}" style="filter:${c.filter}" alt="The chair in a living room"></div>
+      </div></div></div>`;
+  },
+  setPage: () => {
+    const s = state.set, fav = state.fav.has("natural");
+    return `<div class="pg"><div style="position:relative;height:955px">
+      <img src="${S("set_content")}" style="position:absolute;left:0;top:0;width:402px" alt="">
+      <div style="position:absolute;left:0;top:0;width:402px;height:305px;overflow:hidden"><img id="sethero" src="${S("set_hero")}" style="position:absolute;left:-58px;top:0;width:489px;height:305px;transition:transform .7s cubic-bezier(.25,.8,.25,1);transform:translateX(${[0, 40, -40][s.view]}px) scale(${[1, 1.12, 1.12][s.view]})" alt="Natural Cozy Set"></div>
+      <div class="chip-rate" style="top:70px">4.7 / 5.0 ${ICON.star}</div>
+      ${backBtn.replace('class="back"', 'class="back" style="top:62px;filter:invert(1) brightness(2)"')}
+      <button class="heart ${fav ? "on" : ""}" data-act="favSet" style="top:66px">${ICON.heart(fav)}<span class="burst">${[0, 60, 120, 180, 240, 300].map((a) => `<i style="--a:${a}deg"></i>`).join("")}</span></button>
+      <button class="hs" data-act="setPrev" style="left:16px;top:150px;width:36px;height:54px" aria-label="Previous view"></button><button class="hs" data-act="setNext" style="left:348px;top:150px;width:36px;height:54px" aria-label="Next view"></button>
+      <div style="position:absolute;left:174px;top:283px;display:flex;gap:9px">${[0, 1, 2].map((i) => `<i style="width:${i === s.view ? 16 : 6}px;height:6px;border-radius:3px;background:#fff;opacity:${i === s.view ? 1 : .6};transition:width .3s"></i>`).join("")}</div>
+      <div style="position:absolute;left:30px;top:443px;width:350px;height:50px;background:#fff">${rentHTML(s.months)}</div>
+      <button class="hs" data-act="setMore" style="left:310px;top:378px;width:66px;height:20px" aria-label="Read more"></button>
+      <button class="hs" data-go="customize" style="left:300px;top:520px;width:80px;height:34px" aria-label="Customize"></button>
+      <button class="hs" data-qv="armchair" style="left:36px;top:564px;width:122px;height:122px" aria-label="Chair"></button>
+      <button class="hs" data-qv="brown" style="left:169px;top:564px;width:204px;height:122px" aria-label="Sofa"></button>
+      <button class="hs" data-qv="bedside" style="left:35px;top:707px;width:161px;height:122px" aria-label="Bedside table"></button>
+      <button class="hs" data-qv="dining" style="left:205px;top:707px;width:164px;height:122px" aria-label="Coffee table"></button>
+      </div></div>`;
+  },
+  customize: () => `<div class="pg"><div class="pg-head">${backBtn}Customize</div><div class="pg-sub">4 items · tune each piece of the set</div>
+    <div class="items">${state.cz.map((it, i) => `<div class="item cz"><div class="ph" style="background:${["#efe7dc", "#efe7dc", "#f5f5f5", "#efe7dc"][i]}"><img src="${S(it.img)}" alt=""></div>
+      <div class="meta"><b>${it.n}</b>
+        <div class="cz-row">Color: ${["#c9a27e", "#e9e2d8", "#5b4a3e"].map((c, j) => `<button class="cz-dot ${j === it.c ? "on" : ""}" data-cz="${i}" data-c="${j}" style="background:${c}" aria-label="Colour ${j + 1}"></button>`).join("")}</div>
+        <div class="cz-row" style="margin-top:4px">Size: ${["small", "regular", "large"].map((s, j) => `<button class="cz-size ${j === it.s ? "on" : ""}" data-cz="${i}" data-s="${j}">${s}</button>`).join("")}</div>
+        <div class="pr" style="margin-top:2px">${money(czLine(it))}/mo</div></div>
+      <div class="qty"><button data-cz="${i}" data-q="-1" aria-label="Less">−</button><b>${it.q}</b><button data-cz="${i}" data-q="1" aria-label="More">+</button></div></div>`).join("")}</div></div>`,
+  cart: () => `<div class="pg"><div class="pg-head no-back">My cart</div><div class="pg-sub">${count()} item${count() === 1 ? "" : "s"} · swipe left to remove</div>
+    <div class="items">${state.cart.length ? state.cart.map((c, i) => { const it = CATALOG[c.id]; return `<div class="item" data-i="${i}"><div class="ph" data-open="${c.id}" style="background:${it.bg}"><img src="${S(it.img)}" alt="" ${it.cover ? 'style="max-width:none;max-height:none;width:100%;height:100%;object-fit:cover"' : ""}></div>
+      <div class="meta"><b>${it.name}</b>Color: ${c.color}<br>Size: ${c.size}<br>Lease term: ${c.lease} mo<div class="pr">${money(unitPrice(c))}/mo</div></div>
+      <div class="qty"><button data-q="-1" data-i="${i}" aria-label="Less">−</button><b>${c.qty}</b><button data-q="1" data-i="${i}" aria-label="More">+</button></div>
+      <button class="del" data-del="${i}">Remove</button></div>`; }).join("") : `<div class="empty"><svg width="60" height="56" viewBox="0 0 26 24" fill="none"><path d="M2 3h3l2.6 12h12.6L23 7H8" stroke="#c9bdb2" stroke-width="1.4" stroke-linejoin="round"/><circle cx="9.5" cy="20" r="1.4" fill="#c9bdb2"/><circle cx="18.5" cy="20" r="1.4" fill="#c9bdb2"/></svg>Your cart is empty.<br>Rent a piece and it shows up here.<button class="btn" data-tab="explore" style="margin-top:22px">Explore furniture</button></div>`}</div></div>
+    ${state.cart.length ? `<button class="totalbar" data-go="checkout"><b>Total: ${money(total())}</b><i></i><span>${ICON.cartok}</span></button>` : ""}`,
+  success: () => `<div class="pg ok"><svg class="ok-ring" viewBox="0 0 120 120" fill="none"><circle cx="60" cy="60" r="54" stroke="#3f2c1f" stroke-width="4"/><path d="M38 61l15 15 30-32" stroke="#3f2c1f" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    <h2>Order placed</h2><p class="sub">${money(total())} · ${count()} item${count() === 1 ? "" : "s"} on a 12-month lease</p>
+    <div class="tl">${[["Order confirmed", "Just now", 1], ["Preparing your pieces", "Cleaned, checked and packed", 0], ["Out for delivery", "Jun 2, 2025", 0], ["Delivered and assembled", "Jun 3, 2025 · we take the boxes", 0]].map(([t, s, d], i) => `<div class="${d ? "done" : ""}" style="animation-delay:${1.2 + i * .12}s">${t}<small>${s}</small></div>`).join("")}</div>
+    <div style="margin:10px 40px 0;display:grid;gap:10px;opacity:0;animation:up .5s 1.8s forwards"><button class="btn" data-act="toRentals">View my rentals</button><button class="btn ghost" data-act="toHome">Back to home</button></div></div>`,
+  modify: () => {
+    const m = state.md, price = PRICE.sofa[m.months] * (m.renew ? .9 : 1);
+    return `<div class="pg"><div class="pg-head">${backBtn}Modify</div>
+      <div class="md-hero"><img id="mdimg" src="${S("hero_green")}" style="transform:${ZOOM[m.thumb]}" alt="Single Sofa Chair"></div>
+      <div class="md-thumbs">${ZOOM.map((z, i) => `<button class="thumb ${i === m.thumb ? "on" : ""}" data-mthumb="${i}"><div style="background:#fff"><img src="${S("hero_green")}" style="transform:${z}" alt=""></div></button>`).join("")}</div>
+      <div class="pd-title" style="padding-left:30px;height:50px">Single Sofa Chair</div>
+      <div class="pd-desc" style="margin-left:32px">Rented since May 6, 2025 · 366 E Duffy Street, Apt B · Lease ends May 6, 2026</div>
+      <div class="pd-hr" style="margin:14px 34px 0 31px"></div>
+      <div class="pd-h" style="padding-left:31px">Rent <em>More time, less cost!</em></div>
+      <div style="margin-left:-5px">${rentHTML(m.months)}</div>
+      <button class="row-opt ${m.renew ? "on" : ""}" data-act="renew"><svg width="26" height="26" viewBox="0 0 24 24"><path d="M3 12V4a1 1 0 011-1h8l9 9-9 9z" fill="#3f2c1f"/><circle cx="8" cy="8" r="1.6" fill="#fff"/></svg><span><b>Renew</b> with <b>10% OFF</b> discount!</span><span style="margin-left:auto">${m.renew ? "✓" : ""}</span></button>
+      <div class="cal"><h4>Recycling Date <span>June 2025</span></h4><div class="cal-g">${["S", "M", "T", "W", "T", "F", "S"].map((d) => `<span>${d}</span>`).join("")}${[...Array(30)].map((_, i) => `<button class="${i + 1 === m.day ? "on" : ""} ${i + 1 < 2 ? "mute" : ""}" data-day="${i + 1}">${i + 1}</button>`).join("")}</div></div>
+      <div style="height:130px"></div></div>
+      <button class="save-bar" data-act="saveModify"><b>$${Math.round(price)} /mo</b><small>Save Change</small></button>`;
+  },
+  favs: () => {
+    const ids = [...state.fav];
+    return `<div class="pg"><div class="pg-head no-back">Favourites</div><div class="pg-sub">${ids.length} saved</div><div style="height:16px"></div>
+      ${ids.length ? ids.map((id) => resHTML(id)).join("") : `<div class="empty"><svg width="56" height="50" viewBox="0 0 24 21"><path d="M12 19.6S1.6 13.6 1.6 6.9A5 5 0 0112 4.4a5 5 0 0110.4 2.5c0 6.7-10.4 12.7-10.4 12.7z" fill="none" stroke="#c9bdb2" stroke-width="1.3"/></svg>Nothing saved yet.<br>Tap ♡ on anything you like.<button class="btn" data-tab="explore" style="margin-top:22px">Explore furniture</button></div>`}<div style="height:120px"></div></div>`;
+  },
+  search: () => `<div class="pg"><div class="pg-head">${backBtn}Search</div><div class="search-in"><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="7" stroke="#8a8079" stroke-width="2"/><path d="M16.5 16.5L21 21" stroke="#8a8079" stroke-width="2" stroke-linecap="round"/></svg><input id="q" placeholder="Search for furniture" autocomplete="off"></div>
+    <p class="lbl">Popular</p><div class="chips" style="margin:0 25px">${["chair", "bed", "set", "table", "sofa"].map((t) => `<button class="chip" data-term="${t}">${t}</button>`).join("")}</div>
+    <p class="lbl" id="rl">All furniture</p><div id="res"></div><div style="height:60px"></div></div>`,
+};
+const rentHTML = (months) => { const xs = { 1: 9, 6: 82, 12: 162, 18: 242, 24: 325 }; return `<div class="rent" data-rent><div class="track"></div><div class="fill" style="width:${xs[months]}px"></div>${[82, 162, 242].map((x) => `<i class="tick" style="left:${x}px"></i>`).join("")}<div class="hit"></div><div class="knob" style="left:${xs[months]}px"></div>${MONTHS.map((m) => `<span class="lab ${m === months ? "on" : ""}" data-m="${m}" style="left:${xs[m] - (m < 10 ? 5 : 8)}px">${m}m</span>`).join("")}</div>`; };
+const resHTML = (id) => { const it = CATALOG[id]; return `<button class="res" data-open="${id}"><div class="ph" style="background:${it.bg}"><img src="${S(it.img)}" alt="" ${it.cover ? 'style="max-width:none;max-height:none;width:100%;height:100%;object-fit:cover"' : ""}></div><span>${it.name}<small>${it.was ? `<s>$${it.was}</s> ` : ""}${money(it.price)}/mo</small></span>${ICON.arrow}</button>`; };
+const czLine = (it) => it.p * [.85, 1, 1.2][it.s] * it.q;
+const czTotal = () => state.cz.reduce((a, it) => a + czLine(it), 0);
+
+/* bind controls inside drawn pages */
+const bindPage = (w, id) => {
+  w.querySelectorAll("[data-back]").forEach((b) => b.addEventListener("click", (e) => { e.stopPropagation(); act({ back: 1, to: id === "modify" ? "profile" : "explore" }); }));
+  w.querySelectorAll("[data-go]").forEach((b) => b.addEventListener("click", (e) => { e.stopPropagation(); act({ go: b.dataset.go }); }));
+  w.querySelectorAll("[data-tab]").forEach((b) => b.addEventListener("click", (e) => { e.stopPropagation(); act({ tab: b.dataset.tab }); }));
+  w.querySelectorAll("[data-act]").forEach((b) => b.addEventListener("click", (e) => { e.stopPropagation(); actions[b.dataset.act]({}, b); }));
+  w.querySelectorAll("[data-qv]").forEach((b) => b.addEventListener("click", (e) => { e.stopPropagation(); actions.quick({ id: b.dataset.qv }); }));
+  w.querySelectorAll("[data-open]").forEach((b) => b.addEventListener("click", (e) => { e.stopPropagation(); openItem(b.dataset.open, b); }));
+  w.querySelectorAll("[data-rent]").forEach((r) => bindRent(r, id));
+  if (id === "product") bindProduct(w);
+  if (id === "customize") bindCustomize(w);
+  if (id === "cart") bindCart(w);
+  if (id === "modify") bindModify(w);
+  if (id === "search") bindSearch(w);
+  if (id === "ar") bindAR(w);
+};
+const openItem = (id, srcEl) => { if (id === "sofa") { stack.push(cur); show("product"); } else if (id === "natural") { stack.push(cur); show("set"); } else actions.quick({ id }); };
+
+/* rent slider: drag or tap a month; snaps to the five lease terms */
+const bindRent = (r, id) => {
+  const xs = { 1: 9, 6: 82, 12: 162, 18: 242, 24: 325 };
+  const set = (m) => {
+    if (id === "product") state.pd.months = m; else if (id === "set") state.set.months = m; else state.md.months = m;
+    r.querySelector(".knob").style.left = xs[m] + "px"; r.querySelector(".fill").style.width = xs[m] + "px";
+    r.querySelectorAll(".lab").forEach((l) => l.classList.toggle("on", +l.dataset.m === m));
+    if (id === "modify") { const b = els.modify.querySelector(".save-bar b"); b.textContent = "$" + Math.round(PRICE.sofa[m] * (state.md.renew ? .9 : 1)) + " /mo"; b.animate([{ transform: "scale(1.15)" }, { transform: "none" }], { duration: 300 }); }
+    else { if (id === "product") state.pd.saved = false; else state.set.saved = false; els[id].querySelectorAll(".pill").forEach(renderPill); }
+  };
+  const near = (x) => MONTHS.reduce((a, m) => (Math.abs(xs[m] - x) < Math.abs(xs[a] - x) ? m : a), 1);
+  const knob = r.querySelector(".knob");
+  const pos = (e) => e.clientX - r.getBoundingClientRect().left;
+  knob.addEventListener("pointerdown", (e) => { e.stopPropagation(); e.preventDefault(); knob.setPointerCapture(e.pointerId); knob.classList.add("drag"); });
+  knob.addEventListener("pointermove", (e) => { if (!knob.classList.contains("drag")) return; const x = Math.max(9, Math.min(325, pos(e))); knob.style.left = x + "px"; r.querySelector(".fill").style.width = x + "px"; dragged = true; });
+  knob.addEventListener("pointerup", (e) => { knob.classList.remove("drag"); set(near(pos(e))); setTimeout(() => (dragged = false), 0); });
+  r.querySelector(".hit").addEventListener("click", (e) => { e.stopPropagation(); set(near(pos(e))); });
+  r.querySelectorAll(".lab").forEach((l) => l.addEventListener("click", (e) => { e.stopPropagation(); set(+l.dataset.m); }));
+};
+
+/* product page */
+const bindProduct = (w) => {
+  const p = state.pd;
+  w.querySelectorAll("[data-thumb]").forEach((b) => b.addEventListener("click", (e) => { e.stopPropagation(); p.thumb = +b.dataset.thumb; w.querySelector("#pdimg").style.transform = ZOOM[p.thumb]; w.querySelectorAll("[data-thumb]").forEach((x) => x.classList.toggle("on", x === b)); }));
+  w.querySelectorAll("[data-color]").forEach((b) => b.addEventListener("click", (e) => {
+    e.stopPropagation(); if (p.color === b.dataset.color) return; p.color = b.dataset.color; p.saved = false;
+    const c = COLORS[p.color], img = w.querySelector("#pdimg");
+    w.querySelector(".pd-hero").style.background = c.bg; img.classList.add("out");
+    setTimeout(() => { const sc = w.querySelector(".pg").scrollTop; render("product"); els.product.querySelector(".pg").scrollTop = sc; const ni = els.product.querySelector("#pdimg"); ni.classList.add("out"); requestAnimationFrame(() => requestAnimationFrame(() => ni.classList.remove("out"))); }, 220);
+  }));
+  w.querySelectorAll("[data-size]").forEach((b) => b.addEventListener("click", (e) => { e.stopPropagation(); p.size = +b.dataset.size; p.saved = false; const sel = w.querySelector(".sizes .sel"); sel.style.left = [0, 117, 226][p.size] + "px"; sel.style.width = [117, 108, 112][p.size] + "px"; els.product.querySelectorAll(".pill").forEach(renderPill); }));
+};
+const renderPill = (pl) => {
+  const k = pl.dataset.k;
+  const price = k === "pd" ? PRICE.sofa[state.pd.months] : k === "set" ? PRICE.natural[state.set.months] : czTotal();
+  const saved = k === "pd" ? state.pd.saved : k === "set" ? state.set.saved : state.czSaved;
+  pl.innerHTML = `${ICON.bag}<b>${money(price)}</b><small>/mo Add to Cart</small><span class="saved">${ICON.bag} Choice Saved!</span>`;
+  pl.classList.toggle("is-saved", saved); pl.setAttribute("aria-label", saved ? "Choice saved, open cart" : "Add to cart");
+};
+/* adding to the cart: the item flies into the bag icon, the badge bumps, the pill flips to "Choice Saved!" */
+const addFrom = (k, pill) => {
+  const saved = k === "pd" ? state.pd.saved : k === "set" ? state.set.saved : state.czSaved;
+  if (saved) { stack.push(cur); show("cart"); return; }
+  let id, img, price, extra = {};
+  if (k === "pd") { id = "sofa"; img = S(COLORS[state.pd.color].img); price = PRICE.sofa[state.pd.months]; extra = { color: COLORS[state.pd.color].name, size: ["Small", "Regular", "Large"][state.pd.size], lease: state.pd.months }; state.pd.saved = true; }
+  else if (k === "set") { id = "natural"; img = S("set_hero"); price = PRICE.natural[state.set.months]; extra = { color: "natural", size: "Set", lease: state.set.months }; state.set.saved = true; }
+  else { id = "natural"; img = S("set_sofa"); price = czTotal(); extra = { color: "custom", size: "Custom set", lease: 12 }; state.czSaved = true; }
+  addToCart(id, price, extra);
+  fly(img, (cur === "ar" ? els.ar.querySelector("#archair") : null) || els[cur].querySelector("#pdimg") || els[cur].querySelector("#sethero") || pill);
+  renderPill(pill);
+};
+const addToCart = (id, price, extra = {}) => {
+  const line = state.cart.find((c) => c.id === id && c.color === extra.color && c.size === extra.size);
+  if (line) line.qty++; else state.cart.push({ id, color: extra.color || "natural", size: extra.size || "Regular", lease: extra.lease || 12, qty: 1, price });
+};
+const fly = (src, fromEl) => {
+  const a = app.getBoundingClientRect(), f = fromEl.getBoundingClientRect(), badge = els[cur].querySelector(".badge");
+  const t = badge ? badge.getBoundingClientRect() : { left: a.left + 75, top: a.top + 812, width: 10, height: 10 };
+  const im = document.createElement("img"); im.className = "fly"; im.src = src;
+  const s = Math.min(f.width, 160);
+  im.style.cssText = `left:${f.left - a.left + f.width / 2 - s / 2}px;top:${f.top - a.top + f.height / 2 - s / 2}px;width:${s}px;height:${s}px`;
+  app.append(im);
+  const dx = t.left - (f.left + f.width / 2 - s / 2) + t.width / 2 - s / 2, dy = t.top - (f.top + f.height / 2 - s / 2) + t.height / 2 - s / 2;
+  im.animate([{ transform: "none", opacity: 1 }, { transform: `translate(${dx * .45}px, ${dy * .2 - 80}px) scale(.55)`, opacity: 1, offset: .45 }, { transform: `translate(${dx}px, ${dy}px) scale(.08)`, opacity: .6 }],
+    { duration: 820, easing: "cubic-bezier(.45,0,.3,1)" }).onfinish = () => { im.remove(); Object.values(els).forEach((el) => el.querySelectorAll(".badge").forEach((b) => { b.textContent = count(); b.style.display = ""; b.classList.remove("bump"); void b.offsetWidth; b.classList.add("bump"); })); };
+};
+
+/* customize */
+const bindCustomize = (w) => {
+  const rer = () => { state.czSaved = false; const sc = w.querySelector(".pg").scrollTop; render("customize"); els.customize.querySelector(".pg").scrollTop = sc; };
+  w.querySelectorAll("[data-c]").forEach((b) => b.addEventListener("click", (e) => { e.stopPropagation(); state.cz[+b.dataset.cz].c = +b.dataset.c; rer(); }));
+  w.querySelectorAll("[data-s]").forEach((b) => b.addEventListener("click", (e) => { e.stopPropagation(); state.cz[+b.dataset.cz].s = +b.dataset.s; rer(); }));
+  w.querySelectorAll("[data-q]").forEach((b) => b.addEventListener("click", (e) => { e.stopPropagation(); const it = state.cz[+b.dataset.cz]; it.q = Math.max(0, Math.min(4, it.q + +b.dataset.q)); rer(); }));
+};
+/* cart: steppers update totals; swipe left (or drag) to reveal Remove */
+const bindCart = (w) => {
+  const rer = () => { const sc = w.querySelector(".pg").scrollTop; render("cart"); els.cart.querySelector(".pg").scrollTop = sc; };
+  w.querySelectorAll("[data-q]").forEach((b) => b.addEventListener("click", (e) => { e.stopPropagation(); const c = state.cart[+b.dataset.i]; c.qty = Math.max(1, Math.min(9, c.qty + +b.dataset.q)); rer(); }));
+  w.querySelectorAll("[data-del]").forEach((b) => b.addEventListener("click", (e) => { e.stopPropagation(); const it = b.closest(".item"); it.classList.add("gone"); setTimeout(() => { const c = state.cart.splice(+b.dataset.del, 1)[0]; rer(); toast(`${CATALOG[c.id].name} removed`); }, 320); }));
+  w.querySelectorAll(".item").forEach((it) => {
+    let x0 = null;
+    it.addEventListener("pointerdown", (e) => { x0 = e.clientX; });
+    it.addEventListener("pointerup", (e) => { if (x0 === null) return; const dx = e.clientX - x0; x0 = null; if (dx < -40) { w.querySelectorAll(".item.swiped").forEach((o) => o !== it && o.classList.remove("swiped")); it.classList.add("swiped"); } else if (dx > 30) it.classList.remove("swiped"); });
+    it.addEventListener("wheel", (e) => { if (Math.abs(e.deltaX) > Math.abs(e.deltaY) && Math.abs(e.deltaX) > 8) { e.preventDefault(); it.classList.toggle("swiped", e.deltaX > 0); } }, { passive: false });
+  });
+};
+/* modify */
+const bindModify = (w) => {
+  w.querySelectorAll("[data-mthumb]").forEach((b) => b.addEventListener("click", (e) => { e.stopPropagation(); state.md.thumb = +b.dataset.mthumb; w.querySelector("#mdimg").style.transform = ZOOM[state.md.thumb]; w.querySelectorAll("[data-mthumb]").forEach((x) => x.classList.toggle("on", x === b)); }));
+  w.querySelectorAll("[data-day]").forEach((b) => b.addEventListener("click", (e) => { e.stopPropagation(); state.md.day = +b.dataset.day; w.querySelectorAll("[data-day]").forEach((x) => x.classList.toggle("on", x === b)); toast(`Recycling date: Jun ${state.md.day}, 2025`); }));
+};
+/* search */
+const bindSearch = (w) => {
+  const q = w.querySelector("#q"), res = w.querySelector("#res"), rl = w.querySelector("#rl");
+  const run = () => { const t = q.value.trim().toLowerCase(); const ids = Object.keys(CATALOG).filter((id) => !t || (CATALOG[id].name + " " + CATALOG[id].desc).toLowerCase().includes(t));
+    rl.textContent = t ? `${ids.length} result${ids.length === 1 ? "" : "s"} for “${q.value.trim()}”` : "All furniture";
+    res.innerHTML = ids.length ? ids.map(resHTML).join("") : `<p class="empty" style="margin-top:40px">No match. Try “chair” or “set”.</p>`;
+    res.querySelectorAll("[data-open]").forEach((b) => b.addEventListener("click", (e) => { e.stopPropagation(); openItem(b.dataset.open, b); })); };
+  q.addEventListener("input", run); w.querySelectorAll("[data-term]").forEach((b) => b.addEventListener("click", (e) => { e.stopPropagation(); q.value = b.dataset.term; run(); }));
+  run(); setTimeout(() => q.focus({ preventScroll: true }), 450);
+};
+
+/* ---------- AR: In your home (drag, scale, rotate) and View in 3D (spin) ---------- */
+PAGES.ar = () => { const a = state.ar, c = COLORS[a.color];
+  return `<div class="ar ${a.mode === "studio" ? "studio" : ""}" style="position:absolute;inset:0">
+    <img class="ar-bg" src="${S("ar_bg")}" alt=""><div class="ar-studio"></div>
+    <img class="ar-ring" src="${S("ar_rotate")}" alt="">
+    <div class="ar-chair" id="archair" style="transform:translate(${a.x}px,${a.y}px) scale(${a.s}) perspective(800px) rotateY(${a.r}deg)"><i class="shadow"></i><img src="${S(c.img)}" style="filter:${c.filter}" alt="Single Sofa Chair"></div>
+    <button class="back" data-back aria-label="Back" style="filter:invert(1) brightness(1.8)">${ICON.back}</button>
+    <div class="ar-seg"><i style="left:${a.mode === "studio" ? 0 : 88}px;width:${a.mode === "studio" ? 96 : 111}px"></i><button data-mode="studio" style="width:88px;color:${a.mode === "studio" ? "#3a271a" : "#61534a"}">View in 3D</button><button data-mode="home" style="width:111px;font-weight:${a.mode === "home" ? 700 : 400}">In your home</button></div>
+    <p class="ar-hint">${a.mode === "studio" ? "Drag to spin the chair" : "Drag to place · scroll or pinch to resize"}</p>
+    <div class="ar-dots">${Object.entries(COLORS).map(([k, v]) => `<button class="dot ${k === a.color ? "on" : ""}" data-arcolor="${k}" style="background:${v.dot}" aria-label="${v.name}"></button>`).join("")}</div>
+    <button class="ar-btn" data-arspin style="top:279px" aria-label="Rotate"><img src="${S("ar_360")}" style="width:24px" alt=""></button>
+    <button class="ar-btn" data-arreset style="top:329px" aria-label="Reset"><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M4 12a8 8 0 108-8H7M7 1L4 4l3 3" stroke="#3a271a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+  </div>`; };
+const bindAR = (w) => {
+  const a = state.ar, ch = w.querySelector("#archair");
+  const apply = (anim) => { ch.style.transition = anim ? "transform .5s cubic-bezier(.3,1.2,.5,1)" : "none"; ch.style.transform = `translate(${a.x}px,${a.y}px) scale(${a.s}) perspective(800px) rotateY(${a.r}deg)`; };
+  let d = null;
+  ch.addEventListener("pointerdown", (e) => { e.stopPropagation(); ch.setPointerCapture(e.pointerId); d = { x: e.clientX, y: e.clientY, ax: a.x, ay: a.y, r: a.r }; ch.style.cursor = "grabbing"; });
+  ch.addEventListener("pointermove", (e) => { if (!d) return; const dx = e.clientX - d.x, dy = e.clientY - d.y;
+    if (a.mode === "studio") a.r = d.r + dx * .8; else { a.x = Math.max(-40, Math.min(110, d.ax + dx)); a.y = Math.max(-260, Math.min(40, d.ay + dy)); a.s = Math.max(.45, Math.min(1.4, a.s)); }
+    apply(false); });
+  ch.addEventListener("pointerup", () => { d = null; ch.style.cursor = ""; });
+  w.querySelector(".ar").addEventListener("wheel", (e) => { e.preventDefault(); if (a.mode === "studio") a.r += e.deltaX * .5 + e.deltaY * .3; else a.s = Math.max(.45, Math.min(1.4, a.s - e.deltaY * .0015)); apply(false); }, { passive: false });
+  w.querySelectorAll("[data-mode]").forEach((b) => b.addEventListener("click", (e) => { e.stopPropagation(); a.mode = b.dataset.mode; if (a.mode === "studio") { a.x = 35; a.y = -150; a.s = 1.05; } else { a.x = 0; a.y = 0; a.s = 1; a.r = 0; } render("ar"); const n = els.ar.querySelector("#archair"); n.style.transition = "none"; n.animate([{ opacity: 0, transform: n.style.transform + " translateY(20px)" }, { opacity: 1, transform: n.style.transform }], { duration: 450, easing: "cubic-bezier(.25,.8,.25,1)" }); }));
+  w.querySelectorAll("[data-arcolor]").forEach((b) => b.addEventListener("click", (e) => { e.stopPropagation(); a.color = b.dataset.arcolor; state.pd.color = a.color; state.pd.saved = false; render("ar"); }));
+  w.querySelector("[data-arspin]").addEventListener("click", (e) => { e.stopPropagation(); a.r += 180; apply(true); });
+  w.querySelector("[data-arreset]").addEventListener("click", (e) => { e.stopPropagation(); if (a.mode === "studio") { a.r = 0; a.s = 1.05; } else { a.x = 0; a.y = 0; a.s = 1; a.r = 0; } apply(true); });
+};
+
+/* ---------- checkout totals follow the cart ---------- */
+const renderCheckout = (el) => {
+  const t = total(), box = (x, y, w, h, html, extra = "") => `<div style="position:absolute;left:${x}px;top:${y}px;width:${w}px;height:${h}px;background:#fff;display:flex;align-items:center;justify-content:flex-end;font-size:12px;${extra}">${html}</div>`;
+  el.querySelector("#co").innerHTML = box(230, 155, 92, 18, money(t)) + box(226, 278, 98, 19, money(t), "font-weight:700;font-size:13px") +
+    `<div style="position:absolute;left:146px;top:396px;width:40px;height:18px;background:#fff;font-size:12px;line-height:18px">${state.card}</div>` +
+    `<div style="position:absolute;left:54px;top:662px;width:300px;height:16px;background:#fff;font-size:8.6px;line-height:16px;white-space:nowrap;overflow:hidden">${state.address}</div>`;
+};
+
+/* ---------- sheets ---------- */
+const toast = (t) => { const el = document.getElementById("toast"); el.textContent = t; el.classList.add("is-on"); clearTimeout(toast.t); toast.t = setTimeout(() => el.classList.remove("is-on"), 2400); };
+const sheet = (html, id, onOpen) => {
+  app.querySelectorAll(".sheet,.veil").forEach((n) => n.remove());
+  const veil = document.createElement("div"), sh = document.createElement("div");
+  veil.className = "veil"; sh.className = "sheet"; sh.dataset.testid = "sh-ov-" + id; sh.innerHTML = `<div class="grab"></div>` + html;
+  app.append(veil, sh); requestAnimationFrame(() => { veil.classList.add("is-on"); sh.classList.add("is-on"); });
+  let done = false;
+  const close = () => { if (done) return; done = true; veil.classList.remove("is-on"); sh.classList.remove("is-on"); delete sh.dataset.testid; setTimeout(() => { veil.remove(); sh.remove(); }, 450); };
+  veil.onclick = (e) => { e.stopPropagation(); close(); };
+  sh.addEventListener("click", (e) => e.stopPropagation());
+  sh.querySelectorAll("[data-close]").forEach((b) => b.addEventListener("click", close));
+  sh.querySelectorAll(".chips").forEach((g) => g.addEventListener("click", (e) => { const c = e.target.closest(".chip"); if (!c) return; if (g.dataset.multi) c.classList.toggle("on"); else g.querySelectorAll(".chip").forEach((x) => x.classList.toggle("on", x === c)); }));
+  sh.querySelectorAll(".sw").forEach((t) => t.addEventListener("click", () => t.classList.toggle("on")));
+  // drag the handle down to dismiss
+  let y0 = null; sh.addEventListener("pointerdown", (e) => { if (sh.scrollTop <= 0 && e.target.closest(".grab,h3")) y0 = e.clientY; });
+  sh.addEventListener("pointerup", (e) => { if (y0 !== null && e.clientY - y0 > 60) close(); y0 = null; });
+  if (onOpen) onOpen(sh, close);
+  return sh;
+};
+const actions = {
+  quick: (h) => {
+    const it = CATALOG[h.id]; let color = 0;
+    sheet(`<div class="qv-img ${it.cover ? "cover" : ""}" style="background:${it.bg}"><img src="${S(it.img)}" alt=""></div>
+      <h3>${it.name}</h3><p>${it.desc}</p>
+      <div class="qv-price"><b>${it.was ? `<s style="font-size:14px;color:#b5aaa0;font-weight:400">$${it.was}</s> ` : ""}${money(it.price)}<small>/mo</small></b><span style="font-size:12px;color:#8a8079">★ 4.${6 + (it.name.length % 3)} · free delivery</span></div>
+      ${it.set ? "" : `<p class="lbl">Color</p><div class="chips">${["Natural", "Light", "Dark"].map((c, i) => `<button class="chip ${i === 0 ? "on" : ""}" data-col="${i}">${c}</button>`).join("")}</div>`}
+      <p class="lbl">Lease term</p><div class="chips">${[6, 12, 24].map((m, i) => `<button class="chip ${i === 1 ? "on" : ""}">${m} months</button>`).join("")}</div>
+      <button class="btn" id="add">Add to Cart</button>${h.id === "natural" ? `<button class="btn ghost" id="more" style="margin-top:10px">View set details</button>` : ""}`, "quick", (sh, close) => {
+      sh.querySelectorAll("[data-col]").forEach((b) => b.addEventListener("click", () => { sh.querySelector(".qv-img img").style.filter = ["", "brightness(1.18) saturate(.7)", "brightness(.72) saturate(1.1)"][+b.dataset.col]; color = +b.dataset.col; }));
+      sh.querySelector("#add").onclick = () => { const lease = parseInt(sh.querySelector(".chips:last-of-type .chip.on").textContent); addToCart(h.id, it.price, { color: ["natural", "light", "dark"][color], size: it.set ? "Set" : "Regular", lease }); fly(S(it.img), sh.querySelector(".qv-img")); close(); toast(`${it.name} added to your cart`); };
+      const m = sh.querySelector("#more"); if (m) m.onclick = () => { close(); stack.push(cur); show("set"); };
+    });
+  },
+  rattanDot: (h) => { const ring = els.cover.querySelector(".rring") || els.cover.appendChild(Object.assign(document.createElement("i"), { className: "rring" })); ring.style.cssText = `position:absolute;top:551px;left:${[187, 227, 258][h.i]}px;width:18px;height:18px;border-radius:50%;box-shadow:0 0 0 2px #fff,0 0 0 3.5px #8a5f40;pointer-events:none;transition:left .3s cubic-bezier(.3,1.3,.5,1)`; },
+  catTab: (h) => { state.catTab = h.t; stack.push(cur); show("catlist"); },
+  openCat: (h) => { state.catTab = h.t; stack.push(cur); show("catlist"); },
+  filter: () => sheet(`<h3>Filter</h3><p class="lbl">Monthly price</p><div class="chips">${["Under $15", "$15–25", "$25–50", "$50+"].map((c, i) => `<button class="chip ${i === 1 ? "on" : ""}">${c}</button>`).join("")}</div>
+      <p class="lbl">Lease term</p><div class="chips">${["1 month", "6 months", "12 months", "24 months"].map((c, i) => `<button class="chip ${i === 2 ? "on" : ""}">${c}</button>`).join("")}</div>
+      <p class="lbl">Style</p><div class="chips" data-multi="1">${["Mid-century", "Natural wood", "Velvet", "Minimal", "Rattan"].map((c, i) => `<button class="chip ${i < 2 ? "on" : ""}">${c}</button>`).join("")}</div>
+      <div class="opt" style="margin-top:12px"><span>Free assembly only</span><button class="sw on" aria-label="Free assembly only"></button></div>
+      <button class="btn" id="go">Show 18 pieces</button>`, "filter", (sh, close) => { sh.querySelector("#go").onclick = () => { close(); toast("Showing 18 pieces that match"); }; }),
+  fav: (h, b) => { const on = !state.fav.has("sofa"); on ? state.fav.add("sofa") : state.fav.delete("sofa"); b.classList.toggle("on", on); b.querySelector("svg").outerHTML = ICON.heart(on); toast(on ? "Saved to favourites" : "Removed from favourites"); },
+  favSet: (h, b) => { const on = !state.fav.has("natural"); on ? state.fav.add("natural") : state.fav.delete("natural"); b.classList.toggle("on", on); b.querySelector("svg").outerHTML = ICON.heart(on); toast(on ? "Saved to favourites" : "Removed from favourites"); },
+  more: (h, b) => { state.pd.more = !state.pd.more; const d = els.product.querySelector(".pd-desc"); d.classList.toggle("open", state.pd.more); b.textContent = state.pd.more ? "Hide" : "Read more"; },
+  setMore: () => sheet(`<h3>Natural Cozy Set</h3><p>Everything for a calm living room: a sculpted lounge chair, a three-seat leather sofa, a white bedside table and a round oak coffee table. Delivered and assembled together; swap any piece once a lease year.</p><button class="btn" data-close>Close</button>`, "setinfo"),
+  setPrev: () => { state.set.view = (state.set.view + 2) % 3; const sc = els.set.querySelector(".pg").scrollTop; render("set"); els.set.querySelector(".pg").scrollTop = sc; },
+  setNext: () => { state.set.view = (state.set.view + 1) % 3; const sc = els.set.querySelector(".pg").scrollTop; render("set"); els.set.querySelector(".pg").scrollTop = sc; },
+  payment: () => sheet(`<h3>Payment</h3><p>Monthly rent is charged on the 6th.</p>${[["5688", "VISA", "#1a1f71"], ["2041", "MC", "#eb5f1a"], ["Apple Pay", "", "#111"]].map(([n, b, c]) => `<button class="card-opt ${n === state.card ? "on" : ""}" data-card="${n}"><i style="background:${c}">${b || ""}</i>${n === "Apple Pay" ? "Apple Pay" : "•••• •••• •••• " + n}</button>`).join("")}
+      <button class="btn" id="ok">Use this card</button>`, "payment", (sh, close) => {
+      let pick = state.card; sh.querySelectorAll("[data-card]").forEach((b) => b.addEventListener("click", () => { pick = b.dataset.card; sh.querySelectorAll("[data-card]").forEach((x) => x.classList.toggle("on", x === b)); }));
+      sh.querySelector("#ok").onclick = () => { state.card = pick === "Apple Pay" ? " Pay" : pick; close(); if (els.checkout) renderCheckout(els.checkout); toast("Payment method updated"); }; }),
+  address: () => sheet(`<h3>Delivery address</h3><input class="field" id="a1" value="22 E. Lathrop Ave"><input class="field" id="a2" value="River House, PMB 145778"><input class="field" id="a3" value="Savannah, GA 31415">
+      <div class="opt" style="margin-top:8px"><span>Leave at the front desk</span><button class="sw" aria-label="Leave at the front desk"></button></div><button class="btn" id="ok">Save address</button>`, "address", (sh, close) => {
+      sh.querySelector("#ok").onclick = () => { state.address = `${sh.querySelector("#a2").value}, ${sh.querySelector("#a1").value}, ${sh.querySelector("#a3").value}`; close(); if (els.checkout) renderCheckout(els.checkout); toast("Address saved"); }; }),
+  addressSheet: () => actions.address(),
+  help: () => sheet(`<h3>Help Center</h3>${[["Swap a piece", "Trade any item once per lease year"], ["Schedule a pickup", "We collect, clean and recycle"], ["Damage & wear", "Normal wear is covered"], ["Chat with us", "Replies in about 5 minutes"]].map(([t, s]) => `<div class="opt"><span>${t}<br><small style="color:#8a8079;font-size:12px">${s}</small></span>${ICON.arrow}</div>`).join("")}<button class="btn" data-close>Done</button>`, "help"),
+  rental: (h) => { const it = CATALOG[h.id];
+    sheet(`<div class="qv-img" style="background:${it.bg};height:170px"><img src="${S(it.img)}" alt=""></div><h3>${it.name}</h3><p>Rented May 6, 2025 · ${money(it.price)}/mo · 366 E Duffy Street, Apt B</p>
+      <div class="opt"><span>Auto-renew with 10% off</span><button class="sw" aria-label="Auto-renew"></button></div>
+      <div class="opt"><span>Schedule pickup and recycling</span>${ICON.arrow}</div>
+      <button class="btn" id="ok">Save</button>`, "rental", (sh, close) => { sh.querySelector("#ok").onclick = () => { close(); toast("Rental updated"); }; }); },
+  placeOrder: () => { show("success", "up"); stack = []; },
+  toRentals: () => { state.cart = []; stack = []; show("profile", "fade"); },
+  toHome: () => { state.cart = []; stack = []; show("explore", "fade"); },
+  renew: (h, b) => { state.md.renew = !state.md.renew; b.classList.toggle("on", state.md.renew); b.lastElementChild.textContent = state.md.renew ? "✓" : ""; const sb = els.modify.querySelector(".save-bar b"); sb.textContent = "$" + Math.round(PRICE.sofa[state.md.months] * (state.md.renew ? .9 : 1)) + " /mo"; },
+  saveModify: () => { stack = []; show("profile", "pop"); toast(`Saved: ${state.md.months}-month lease${state.md.renew ? ", renewing at 10% off" : ""}, recycling Jun ${state.md.day}`); },
+};
+const confetti = (el) => {
+  el.querySelectorAll(".confetti").forEach((c) => c.remove());
+  const c = document.createElement("div"); c.className = "confetti";
+  c.innerHTML = [...Array(40)].map(() => `<i style="left:${Math.random() * 100}%;background:${["#3f2c1f", "#b68b6a", "#dbdbbb", "#e2b48f", "#c3bebaff"][Math.floor(Math.random() * 5)]};--dx:${(Math.random() - .5) * 160}px;--r:${Math.random() * 720}deg;animation-delay:${.9 + Math.random() * .6}s"></i>`).join("");
+  el.append(c);
+};
+
+// the case-study page can restart the prototype
+addEventListener("message", (e) => { if (e.data && e.data.type === "swifthome-restart") { stack = []; show(START, "fade"); } });
+show(START, "none");
+</script>
+</body>
+</html>
