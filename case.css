@@ -1837,3 +1837,21 @@ img.is-zoomable { cursor: zoom-in; }
 .bd-gap__src:hover { text-decoration: underline; }
 @media (max-width: 900px) { .bd-pr { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @media (max-width: 520px) { .bd-pr { grid-template-columns: 1fr; } .bd-gap__src { position: static; display: block; margin: -6px 0 10px; } }
+.bs-song { display: none; align-items: baseline; gap: 8px; margin: 0; font-size: 14px; }
+.bs.is-playing .bs-song { display: inline-flex; }
+.bs-song span { font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--c-muted); }
+.bs-song b { font-weight: 700; }
+/* build a member, larger: still one screen */
+.bd-mb__grid { --bs: clamp(104px, 18.5vh, 190px); column-gap: clamp(32px, 4vw, 64px); }
+.bd-mb .bd-read__row { padding-left: 18px; max-width: 420px; }
+.bd-mb .bd-read__row b { font-size: clamp(22px, 2vw, 28px); }
+.bd-mb .bd-read__row span { font-size: 16px; }
+.bd-build--member .bd-block::after { font-size: 16px; padding: 8px 16px; right: calc(100% + 30px); }
+.bd-build--member .bd-block::before { width: 30px; }
+.bd-build--member .bd-shelf { margin-top: 18px; }
+.bd-build--member .c-sec { padding-top: 24px; padding-bottom: 20px; }
+@media (max-width: 700px) {
+  .bd-mb__grid { --bs: 96px; }
+  .bd-mb .bd-read__row b { font-size: 19px; }
+  .bd-mb .bd-read__row span { font-size: 14px; }
+}

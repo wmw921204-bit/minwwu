@@ -30,21 +30,82 @@
   const NOTE = ["C", "Db", "D", "Eb", "E", "F", "Gb", "G", "Ab", "A", "Bb", "B"];
   const noteName = (m) => NOTE[m % 12] + (Math.floor(m / 12) - 1);
 
-  /* Genres, from what defines each style:
-     country    ~96–112 bpm, I–IV–V in a major key, "boom-chick" bass, brushed backbeat, strummed steel-string guitar
-     rock       ~116–136 bpm, i–bVII–bVI loops, loud snare on 2 and 4, driving eighth-note bass, distorted power chords
-     classical  ~72–88 bpm, no drums, functional harmony, Alberti-bass piano and sustained strings, legato
-     jazz       ~112–138 bpm swung, ii–V–I with seventh chords, walking bass, ride cymbal, comping off the beat
-     electronic ~120–128 bpm, four-on-the-floor kick, off-beat hats, sidechain-pumping pads, synth bass
-     One pass of the grid is 3 bars (6 columns of half a bar), so each song is a 3-chord loop. */
+  /* Genres: how each style is played (see the backing grooves below)
+     country    boom-chick bass, brushed backbeat, strummed steel-string guitar, fiddle lead
+     rock       loud snare on 2 and 4, driving eighth-note bass, distorted power chords and lead
+     classical  no drums, Alberti-bass piano, sustained strings, violin lead
+     jazz       swung, walking bass, ride cymbal, piano comping off the beat
+     electronic four-on-the-floor kick, off-beat hats, sidechain-pumping pads, synth bass and lead */
   const GENRES = {
-    country: { bpm: [96, 112], swing: 0.06, root: 55, scale: [0, 2, 4, 7, 9], kit: "acoustic", progs: [["I", "IV", "V"], ["I", "V", "IV"], ["IV", "I", "V"], ["I", "vi", "V"], ["vi", "IV", "V"], ["I", "ii", "V"]], inst: { guitar: "acoustic_guitar_steel", bass: "acoustic_bass" } },
-    rock: { bpm: [116, 136], swing: 0, root: 52, scale: [0, 3, 5, 7, 10], kit: "acoustic", progs: [["i", "bVII", "bVI"], ["I", "bVII", "IV"], ["i", "bVI", "bVII"], ["I", "V", "IV"], ["i", "iv", "bVII"], ["bVI", "bVII", "i"]], inst: { guitar: "distortion_guitar", bass: "electric_bass_finger" } },
-    classical: { bpm: [72, 88], swing: 0, root: 60, scale: [0, 2, 4, 5, 7, 9, 11], kit: null, progs: [["I", "IV", "V"], ["I", "vi", "V"], ["vi", "IV", "V"], ["I", "ii", "V"], ["IV", "V", "vi"], ["ii", "V", "I"]], inst: { guitar: "acoustic_guitar_steel", bass: "acoustic_bass" } },
-    jazz: { bpm: [112, 138], swing: 0.3, root: 53, scale: [0, 2, 3, 5, 7, 9, 10], kit: "acoustic", progs: [["ii7", "V7", "Imaj7"], ["vi7", "ii7", "V7"], ["Imaj7", "vi7", "V7"], ["iii7", "VI7", "ii7"], ["ii7", "V7", "vi7"], ["Imaj7", "ii7", "V7"]], inst: { guitar: "electric_guitar_jazz", bass: "acoustic_bass" } },
-    electronic: { bpm: [120, 128], swing: 0, root: 57, scale: [0, 2, 3, 5, 7, 8, 10], kit: "techno", progs: [["i", "bVI", "bVII"], ["i", "bVII", "bVI"], ["i", "iv", "bVII"], ["bVI", "bVII", "i"], ["bVI", "bIII", "bVII"], ["i", "bIII", "bVII"]], inst: { guitar: null, bass: "synth_bass_1" } },
+    country: { swing: 0.06, kit: "acoustic", lead: "violin", inst: { guitar: "acoustic_guitar_steel", bass: "acoustic_bass" } },
+    rock: { swing: 0, kit: "acoustic", lead: "distortion_guitar", inst: { guitar: "distortion_guitar", bass: "electric_bass_finger" } },
+    classical: { swing: 0, kit: null, lead: "violin", inst: { guitar: "acoustic_guitar_steel", bass: "acoustic_bass" } },
+    jazz: { swing: 0.3, kit: "acoustic", lead: "acoustic_grand_piano", inst: { guitar: "electric_guitar_jazz", bass: "acoustic_bass" } },
+    electronic: { swing: 0, kit: "techno", lead: null, inst: { guitar: null, bass: "synth_bass_1" } },
   };
-  const CHORD = { I: [0, "maj"], ii: [2, "min"], iii: [4, "min"], IV: [5, "maj"], iv: [5, "min"], V: [7, "maj"], vi: [9, "min"], i: [0, "min"], bIII: [3, "maj"], bVI: [8, "maj"], bVII: [10, "maj"], ii7: [2, "min7"], iii7: [4, "min7"], vi7: [9, "min7"], V7: [7, "dom7"], VI7: [9, "dom7"], Imaj7: [0, "maj7"] };
+  const MAJ = [0, 2, 4, 5, 7, 9, 11], MIN = [0, 2, 3, 5, 7, 8, 10], DOR = [0, 2, 3, 5, 7, 9, 10];
+  /* The songs: public-domain tunes (plus two originals), written as scale degrees.
+     A bar is 16 steps: "5:2" is degree 5 for two steps, "-7" is an octave down, "#4" raised, "b2" lowered, "r" a rest.
+     "V.I" splits a bar between two chords. Every song plays intro → A (verse) → B (chorus) → A → B → outro,
+     and each genre steps through its list, so coming back to a scene plays the next song. */
+  const SONGS = {
+    country: [
+      { name: "Oh! Susanna", key: 55, mode: MAJ, bpm: 104,
+        A: { c: ["I", "I.V", "I", "V.I"], m: ["3:2 5:2 5:3 6:1 5:2 3:2 1:3 2:1", "3:2 3:2 2:2 1:2 2:8", "3:2 5:2 5:3 6:1 5:2 3:2 1:3 2:1", "3:2 3:2 2:2 2:2 1:8"] },
+        B: { c: ["IV", "I.V", "I", "V.I"], m: ["4:4 4:4 6:4 6:4", "5:2 5:2 3:2 1:2 2:8", "3:2 5:2 5:3 6:1 5:2 3:2 1:3 2:1", "3:2 3:2 2:2 2:2 1:8"] } },
+      { name: "Camptown Races", key: 55, mode: MAJ, bpm: 112,
+        A: { c: ["I", "V", "I", "V.I"], m: ["5:2 5:2 3:2 5:2 6:2 5:2 3:4", "3:2 2:6 3:2 2:6", "5:2 5:2 3:2 5:2 6:2 5:2 3:4", "2:2 2:2 3:2 2:2 1:8"] },
+        B: { c: ["I", "IV.I", "I", "V.I"], m: ["1:3 1:1 3:2 5:2 8:8", "6:3 6:1 8:2 6:2 5:8", "5:2 5:2 3:2 3:2 5:2 5:2 3:4", "2:2 3:2 4:2 3:2 2:2 2:2 1:4"] } },
+      { name: "Yankee Doodle", key: 55, mode: MAJ, bpm: 116,
+        A: { c: ["I", "V", "I.IV", "V.I"], m: ["1:2 1:2 2:2 3:2 1:2 3:2 2:4", "1:2 1:2 2:2 3:2 1:4 -7:4", "1:2 1:2 2:2 3:2 4:2 3:2 2:2 1:2", "-7:2 -5:2 -6:2 -7:2 1:4 1:4"] },
+        B: { c: ["IV", "I", "IV", "V.I"], m: ["6:2 7:2 6:2 5:2 6:2 7:2 8:4", "5:2 6:2 5:2 4:2 3:4 5:4", "6:2 7:2 6:2 5:2 6:2 7:2 8:2 6:2", "5:2 8:2 7:2 9:2 8:4 8:4"] } },
+    ],
+    rock: [
+      { name: "In the Hall of the Mountain King", key: 52, mode: MIN, bpm: 128,
+        A: { c: ["i", "II7.iv", "i", "bVII"], m: ["1:2 2:2 3:2 4:2 5:2 3:2 5:4", "#4:2 2:2 #4:4 4:2 b2:2 4:4", "1:2 2:2 3:2 4:2 5:2 3:2 5:2 8:2", "7:2 5:2 3:2 5:2 7:8"] },
+        B: { up: 12, c: ["i", "II7.iv", "i", "bVII"], m: ["1:2 2:2 3:2 4:2 5:2 3:2 5:4", "#4:2 2:2 #4:4 4:2 b2:2 4:4", "1:2 2:2 3:2 4:2 5:2 3:2 5:2 8:2", "7:2 5:2 3:2 5:2 7:8"] } },
+      { name: "Drunken Sailor", key: 50, mode: DOR, bpm: 132,
+        A: { c: ["i", "bVII", "i", "bVII.i"], m: ["5:2 5:1 5:1 5:2 5:1 5:1 5:2 1:2 3:2 5:2", "4:2 4:1 4:1 4:2 4:1 4:1 4:2 -7:2 2:2 4:2", "5:2 5:1 5:1 5:2 5:1 5:1 5:2 6:2 7:2 8:2", "7:2 5:2 4:2 2:2 1:4 1:4"] },
+        B: { c: ["i", "bVII", "i", "bVII.i"], m: ["5:4 5:4 5:2 5:2 1:2 3:2", "4:4 4:4 4:2 4:2 -7:2 2:2", "5:4 5:4 5:2 6:2 7:2 8:2", "7:2 5:2 4:2 2:2 1:4 1:4"] } },
+      { name: "Block Party (original)", key: 52, mode: MIN, bpm: 124,
+        A: { c: ["i", "bVI", "bIII", "bVII"], m: ["1:2 1:2 3:2 1:2 4:4 3:4", "1:2 1:2 3:2 1:2 6:4 5:4", "3:2 3:2 5:2 3:2 7:4 5:4", "4:4 3:2 2:2 1:8"] },
+        B: { c: ["bVI", "bVII", "i", "i"], m: ["8:4 7:2 6:2 5:4 3:4", "7:4 6:2 5:2 4:4 5:4", "8:2 8:2 7:2 8:2 10:4 8:4", "7:4 5:4 8:8"] } },
+    ],
+    classical: [
+      { name: "Ode to Joy", key: 60, mode: MAJ, bpm: 100,
+        A: { c: ["I", "V", "I", "V", "I", "V", "I", "V.I"], m: ["3:4 3:4 4:4 5:4", "5:4 4:4 3:4 2:4", "1:4 1:4 2:4 3:4", "3:6 2:2 2:8", "3:4 3:4 4:4 5:4", "5:4 4:4 3:4 2:4", "1:4 1:4 2:4 3:4", "2:6 1:2 1:8"] },
+        B: { c: ["V", "V.I", "V.I", "V", "I", "V", "I", "V.I"], m: ["2:4 2:4 3:4 1:4", "2:4 3:2 4:2 3:4 1:4", "2:4 3:2 4:2 3:4 2:4", "1:4 2:4 -5:8", "3:4 3:4 4:4 5:4", "5:4 4:4 3:4 2:4", "1:4 1:4 2:4 3:4", "2:6 1:2 1:8"] } },
+      { name: "Canon in D", key: 62, mode: MAJ, bpm: 76,
+        A: { c: ["I.V", "vi.iii", "IV.I", "IV.V"], m: ["10:8 9:8", "8:8 7:8", "6:8 5:8", "6:8 7:8"] },
+        B: { c: ["I.V", "vi.iii", "IV.I", "IV.V"], m: ["8:4 10:4 9:4 7:4", "8:4 6:4 7:4 5:4", "6:4 4:4 5:4 8:4", "6:4 4:4 5:4 7:4"] } },
+      { name: "Eine kleine Nachtmusik", key: 55, mode: MAJ, bpm: 120,
+        A: { c: ["I", "I", "V7", "V7"], m: ["1:4 r:2 -5:2 1:4 r:2 -5:2", "1:2 -5:2 1:2 3:2 5:8", "4:4 r:2 2:2 4:4 r:2 2:2", "4:2 2:2 -7:2 2:2 -5:8"] },
+        B: { c: ["I", "V7", "I", "V.I"], m: ["5:2 5:2 5:2 4:2 3:4 3:4", "4:2 4:2 4:2 3:2 2:4 2:4", "3:2 3:2 3:2 2:2 1:4 3:4", "2:4 -7:4 1:8"] } },
+    ],
+    jazz: [
+      { name: "When the Saints Go Marching In", key: 53, mode: MAJ, bpm: 132,
+        A: { c: ["I", "I", "I", "I", "I", "I", "V", "V"], m: ["r:4 1:4 3:4 4:4", "5:16", "r:4 1:4 3:4 4:4", "5:16", "r:4 1:4 3:4 4:4", "5:8 3:4 1:4", "3:8 2:8", "2:16"] },
+        B: { c: ["I", "I7", "IV", "IV", "I", "I.V", "V", "I"], m: ["r:4 3:4 3:4 2:4", "1:12 1:4", "3:8 5:8", "5:4 4:12", "r:4 3:4 4:4 5:4", "3:8 1:8", "2:16", "1:16"] } },
+      { name: "Jingle Bells", key: 53, mode: MAJ, bpm: 140,
+        A: { c: ["I", "I", "I", "IV", "IV", "V", "V", "I"], m: ["5:4 3:4 2:4 1:4", "5:12 5:2 5:2", "5:4 3:4 2:4 1:4", "6:16", "6:4 4:4 3:4 2:4", "-7:16", "5:4 5:4 4:4 2:4", "3:16"] },
+        B: { c: ["I", "I", "I", "I", "IV", "I", "V", "I"], m: ["3:4 3:4 3:8", "3:4 3:4 3:8", "3:4 5:4 1:6 2:2", "3:16", "4:4 4:4 4:6 4:2", "4:4 3:4 3:4 3:2 3:2", "5:4 5:4 4:4 2:4", "1:16"] } },
+      { name: "Frère Jacques (minor swing)", key: 50, mode: MIN, bpm: 120,
+        A: { c: ["i7", "i7", "iv7", "i7"], m: ["1:4 2:4 3:4 1:4", "1:4 2:4 3:4 1:4", "3:4 4:4 5:8", "3:4 4:4 5:8"] },
+        B: { c: ["i7", "iv7", "V7", "i7"], m: ["5:3 6:1 5:2 4:2 3:4 1:4", "5:3 6:1 5:2 4:2 3:4 1:4", "1:4 -5:4 1:8", "1:4 -5:4 1:8"] } },
+    ],
+    electronic: [
+      { name: "Korobeiniki", key: 57, mode: MIN, bpm: 126,
+        A: { c: ["i", "i", "V", "i"], m: ["5:4 2:2 3:2 4:4 3:2 2:2", "1:4 1:2 3:2 5:4 4:2 3:2", "2:6 3:2 4:4 5:4", "3:4 1:4 1:8"] },
+        B: { c: ["iv", "i", "V", "i"], m: ["r:2 4:4 6:2 8:4 7:2 6:2", "5:6 3:2 5:4 4:2 3:2", "2:4 2:2 3:2 4:4 5:4", "3:4 1:4 1:8"] } },
+      { name: "Twinkle Twinkle", key: 60, mode: MAJ, bpm: 124,
+        A: { c: ["I", "IV.I", "IV.I", "V.I"], m: ["1:4 1:4 5:4 5:4", "6:4 6:4 5:8", "4:4 4:4 3:4 3:4", "2:4 2:4 1:8"] },
+        B: { c: ["I.IV", "I.V", "I.IV", "I.V"], m: ["5:4 5:4 4:4 4:4", "3:4 3:4 2:8", "5:4 5:4 4:4 4:4", "3:4 3:4 2:8"] } },
+      { name: "Neon Blocks (original)", key: 57, mode: MIN, bpm: 126,
+        A: { c: ["i", "bVI", "bIII", "bVII"], m: ["1:2 3:2 5:2 3:2 8:4 7:4", "6:2 5:2 3:2 5:2 6:8", "5:2 7:2 10:2 7:2 5:4 3:4", "4:2 5:2 7:2 5:2 4:4 2:4"] },
+        B: { c: ["bVI", "bVII", "i", "i"], m: ["8:4 8:2 7:2 6:4 5:4", "7:4 7:2 6:2 5:4 4:4", "5:2 8:2 10:2 8:2 12:4 10:4", "8:16"] } },
+    ],
+  };
+  const CHORD = { I: [0, "maj"], ii: [2, "min"], iii: [4, "min"], IV: [5, "maj"], iv: [5, "min"], V: [7, "maj"], vi: [9, "min"], i: [0, "min"], bIII: [3, "maj"], bVI: [8, "maj"], bVII: [10, "maj"], ii7: [2, "min7"], iii7: [4, "min7"], vi7: [9, "min7"], V7: [7, "dom7"], VI7: [9, "dom7"], Imaj7: [0, "maj7"], i7: [0, "min7"], iv7: [5, "min7"], I7: [0, "dom7"], II7: [2, "dom7"], IV7: [5, "dom7"] };
   const SHAPES = { maj: [0, 4, 7], min: [0, 3, 7], maj7: [0, 4, 7, 11], min7: [0, 3, 7, 10], dom7: [0, 4, 7, 10] };
 
   // Faces decide when a member plays (16 steps per bar) and how hard
@@ -57,8 +118,6 @@
     sad: { steps: [0, 6, 12], accent: [0], vel: 0.55, len: 5 },
   };
   // melodic shapes (scale degrees) that read as tunes rather than random notes
-  const MOTIFS = [[0, 2, 4, 2, 1, 2, 0, -1], [4, 3, 2, 1, 2, 0, 1, 2], [0, 0, 4, 4, 5, 5, 4, 2], [2, 4, 5, 4, 2, 1, 0, 1], [0, 1, 2, 4, 2, 1, 0, 0], [4, 2, 0, 2, 4, 5, 4, 2], [0, 2, 1, 3, 2, 4, 3, 1], [7, 6, 4, 5, 4, 2, 3, 2]];
-
   // the base is a 3 × 6 grid like the prototype: index = row * 6 + col; row 0 is the back
   const ROWS = 3, COLS = 6;
   const slots = Array(ROWS * COLS).fill(null);
@@ -69,23 +128,43 @@
 
   let ctx = null, master = null, verb = null, band = null, back = null, duck = null, playing = false, genre = "country";
   let step = 0, bar = 0, nextTime = 0, timer = 0;
-  // a fresh song each start and each scene change: key, progression, tempo, groove and every member's tune
-  const song = { key: 0, prog: 0, progB: 1, bpm: 110, groove: 0, form: "AABA", hook: 0 };
-  const FORMS = ["AABA", "ABAB", "AABB", "ABAA"];
   const rnd = (a, b) => a + Math.random() * (b - a);
   const pick = (arr) => arr[(Math.random() * arr.length) | 0];
-  let tunes = new WeakMap();
-  const otherProg = (n, not) => { let k; do { k = Math.random() * n | 0; } while (k === not && n > 1); return k; };
-  const newSong = () => {
-    const n = GENRES[genre].progs.length;
-    song.key = (Math.random() * 5 | 0) - 2; song.prog = Math.random() * n | 0; song.progB = otherProg(n, song.prog);
-    song.bpm = Math.round(rnd(...GENRES[genre].bpm)); song.groove = Math.random() * 3 | 0; song.form = pick(FORMS); song.hook = Math.random() * MOTIFS.length | 0;
-    tunes = new WeakMap();
+
+  /* ---------- songs ---------- */
+  const parseBar = (str, mode, up = 0) => {
+    let at = 0; const out = [];
+    str.trim().split(/\s+/).forEach((tok) => {
+      const [p, d] = tok.split(":"), len = +d;
+      if (p !== "r") {
+        let s = p, oct = 0, acc = 0;
+        if (s[0] === "-") { oct = -12; s = s.slice(1); } else if (s[0] === "+") { oct = 12; s = s.slice(1); }
+        if (s[0] === "#") { acc = 1; s = s.slice(1); } else if (s[0] === "b") { acc = -1; s = s.slice(1); }
+        const n = +s - 1;
+        out.push({ at, len, semi: mode[n % 7] + 12 * Math.floor(n / 7) + acc + oct + up });
+      }
+      at += len;
+    });
+    return out;
   };
-  // each member gets two 16-note phrases (for the A and B sections), built from two motifs and a variation
-  const phrase = () => { const a = pick(MOTIFS), b = pick(MOTIFS), lift = pick([1, 2, -1]); return a.concat(b.map((d, i) => (i > 5 ? d : d + lift))); };
-  const tuneOf = (m) => { if (!tunes.has(m)) tunes.set(m, { A: phrase(), B: phrase(), n: 0 }); return tunes.get(m); };
-  const section = (barN) => song.form[Math.floor(barN / 3) % song.form.length];
+  // a song becomes a list of bars: section, energy (0 intro, 1 verse, 2 chorus), chords and melody notes
+  const build = (S) => {
+    const tl = [], tonic = S.mode === MAJ ? "I" : "i";
+    const add = (sec, part, e, withTune = true) => part.c.forEach((c, i) => tl.push({ sec, e, c: c.split("."), m: withTune ? parseBar(part.m[i], S.mode, part.up || 0) : [] }));
+    add("intro", { c: S.A.c.slice(0, 4) }, 0, false);
+    add("A", S.A, 1); add("B", S.B, 2); add("A", S.A, 1); add("B", S.B, 2);
+    tl.push({ sec: "outro", e: 0.5, c: [tonic], m: [] }, { sec: "outro", e: 0.4, c: [tonic], m: [] });
+    return tl;
+  };
+  const order = {};
+  const song = { S: null, tl: [], bpm: 110, key: 60, groove: 0 };
+  const nextSong = (g) => { const n = SONGS[g].length; order[g] = order[g] == null ? (Math.random() * n | 0) : (order[g] + 1) % n; return SONGS[g][order[g]]; };
+  const newSong = () => {
+    const S = nextSong(genre);
+    song.S = S; song.tl = build(S); song.bpm = S.bpm + Math.round(rnd(-3, 3)); song.key = S.key + ((Math.random() * 3 | 0) - 1); song.groove = Math.random() * 3 | 0;
+    bar = 0;
+    const el = root.querySelector("[data-band-song]"); if (el) el.textContent = S.name;
+  };
 
   /* ---------- loading the recordings ---------- */
   const raw = new Map(), buffers = new Map();
@@ -169,118 +248,130 @@
 
   /* ---------- harmony ---------- */
   const G = () => GENRES[genre];
-  const chordAt = (barN) => { const p = G().progs[section(barN) === "A" ? song.prog : song.progB], [off, q] = CHORD[p[barN % p.length]]; return { root: G().root + song.key + off, tones: SHAPES[q] }; };
-  const degMidi = (deg, base) => { const sc = G().scale, n = sc.length, o = Math.floor(deg / n); return base + sc[((deg % n) + n) % n] + 12 * o; };
+  const cur = (barN) => song.tl[((barN % song.tl.length) + song.tl.length) % song.tl.length];
+  const chordAt = (barN, b = 0) => { const c = cur(barN).c, [off, q] = CHORD[c[c.length > 1 && b >= 8 ? 1 : 0]]; return { root: song.key + off, tones: SHAPES[q] }; };
   const snap = (midi, ch) => { let best = midi, bd = 99; for (let d = -2; d <= 2; d++) { const pc = (((midi + d - ch.root) % 12) + 12) % 12; if (ch.tones.some((x) => x % 12 === pc) && Math.abs(d) < bd) { bd = Math.abs(d); best = midi + d; } } return best; };
   const voicing = (ch, low) => ch.tones.map((x) => { let m = ch.root + x; while (m < low) m += 12; while (m >= low + 12) m -= 12; return m; }).sort((a, b) => a - b);
   const stepDur = () => 60 / song.bpm / 4;
 
-  /* ---------- the scene's own band (three grooves per genre, picked at random) ---------- */
+  /* ---------- the scene's own band: groove by genre, louder and fuller in the chorus ---------- */
   const backing = (s, t) => {
-    const b = s % 16, d = back, ch = chordAt(bar), sd = stepDur(), gv = song.groove, I = G().inst;
+    const b = s % 16, d = back, c = cur(bar), e = c.e, ch = chordAt(bar, b), sd = stepDur(), I = G().inst;
+    const chorus = e >= 2, drumsOn = e >= 1, dv = chorus ? 1.1 : 0.8;
+    const intoChorus = cur(bar + 1).e === 2 && !chorus, firstChorus = chorus && cur(bar - 1).e !== 2;
+    const gv = chorus ? (song.groove + 1) % 3 : song.groove;
     const bassNote = (m, len, v = 0.8) => note(I.bass, m, t, len, v, d, { release: 0.12 });
-    const lowRoot = ((ch.root - 12 - 28) % 12 + 12) % 12 + 28 + 12;
+    const lowRoot = ((ch.root - 40) % 12 + 12) % 12 + 40;
+    if (firstChorus && b === 0 && G().kit) { const s2 = ctx.createBufferSource(); s2.buffer = NOISE; const hp = ctx.createBiquadFilter(); hp.type = "highpass"; hp.frequency.value = 5000; const g2 = ctx.createGain(); g2.gain.setValueAtTime(0.16, t); g2.gain.exponentialRampToValueAtTime(0.0001, t + 1.6); s2.connect(hp).connect(g2).connect(d); s2.start(t); s2.stop(t + 1.7); }
+    if (c.sec === "outro") { if (b === 0) { voicing(ch, 55).forEach((m) => note("string_ensemble_1", m, t, sd * 15, 0.45 * e * 2, d, { attack: 0.1, release: 0.8 })); bassNote(lowRoot, sd * 14, 0.6); if (G().kit) drum("kick", t, 0.5, d); } return; }
     if (genre === "country") {
-      if (b === 0 || b === 8) drum("kick", t, 0.55, d);
-      if (b === 4 || b === 12) brush(t, 1.2, d);
-      if (gv !== 1 && b % 2 === 0) drum("hihat", t, 0.07, d, 1, 0.05);
+      if (drumsOn && (b === 0 || b === 8)) drum("kick", t, 0.55 * dv, d);
+      if (drumsOn && (b === 4 || b === 12)) brush(t, 1.2 * dv, d);
+      if (chorus && b % 2 === 0) drum("hihat", t, 0.08, d, 1, 0.05);
       if (b === 0) bassNote(lowRoot, sd * 3.5); if (b === 8) bassNote(lowRoot + 7, sd * 3.5, 0.7);
-      if (gv === 2 && (b === 6 || b === 14)) bassNote(lowRoot + (b === 6 ? 4 : 5), sd * 1.5, 0.5);
-      const strum = (v, up) => voicing(ch, 52).concat(ch.root + 12 + ch.tones[0] < 70 ? [ch.root + 12] : []).forEach((m, n, arr) => note("acoustic_guitar_steel", m, t + (up ? arr.length - n : n) * 0.014, sd * 1.6, v, d));
-      if (gv === 0 && (b === 4 || b === 12)) strum(0.45);
-      if (gv === 1 && [0, 4, 6, 10, 12, 14].includes(b)) strum(b % 4 === 2 ? 0.3 : 0.42, b % 4 === 2);
-      if (gv === 2 && b % 2 === 0) { const v = voicing(ch, 55); note("acoustic_guitar_steel", v[(b / 2) % v.length], t, sd * 3, 0.38, d); } // fingerpicked
+      const strum = (v, up) => voicing(ch, 52).concat([voicing(ch, 52)[0] + 12]).forEach((m, n, arr) => note("acoustic_guitar_steel", m, t + (up ? arr.length - n : n) * 0.014, sd * 1.6, v, d));
+      if (e === 0 && b % 4 === 0) { const v = voicing(ch, 55); note("acoustic_guitar_steel", v[(b / 4) % v.length], t, sd * 4, 0.38, d); }
+      else if (gv === 0 && (b === 4 || b === 12)) strum(0.45);
+      else if (gv === 1 && [0, 4, 6, 10, 12, 14].includes(b)) strum(b % 4 === 2 ? 0.3 : 0.42, b % 4 === 2);
+      else if (gv === 2 && b % 2 === 0) { const v = voicing(ch, 55); note("acoustic_guitar_steel", v[(b / 2) % v.length], t, sd * 3, 0.38, d); }
     }
     if (genre === "rock") {
-      if (b === 0 || b === 8 || (gv === 1 && b === 10) || (gv === 2 && (b === 3 || b === 11))) drum("kick", t, 0.85, d);
-      if (b === 4 || b === 12) drum("snare", t, 0.75, d);
-      if (b % 2 === 0) drum("hihat", t, b % 4 ? 0.12 : 0.2, d, 1, 0.08);
-      if (b % 2 === 0) bassNote(lowRoot, sd * 1.7, 0.75);
-      const pc = [ch.root - 12, ch.root - 5]; // power chord: root + fifth
-      if ((gv === 0 && b === 0) || (gv === 1 && (b === 0 || b === 6 || b === 10)) || (gv === 2 && b % 4 === 0)) pc.forEach((m) => note("distortion_guitar", m + 12, t, gv === 0 ? sd * 14 : sd * 3, 0.5, d));
+      if (drumsOn && (b === 0 || b === 8 || (chorus && (b === 6 || b === 10)))) drum("kick", t, 0.85 * dv, d);
+      if (drumsOn && (b === 4 || b === 12)) drum("snare", t, 0.75 * dv, d);
+      if (b % 2 === 0) drum("hihat", t, (b % 4 ? 0.1 : 0.18) * (drumsOn ? 1 : 0.6), d, 1, 0.08);
+      if (intoChorus && b >= 8) drum("snare", t, 0.3 + (b - 8) * 0.06, d);
+      if (drumsOn && b % 2 === 0) bassNote(lowRoot, sd * 1.7, 0.75);
+      const pc = [ch.root - 12, ch.root - 5];
+      if ((e === 0 && b === 0) || (!chorus && drumsOn && (b === 0 || b === 10)) || (chorus && b % 4 === 0)) pc.forEach((m) => note("distortion_guitar", m + 12, t, chorus ? sd * 3.5 : sd * (e === 0 ? 14 : 6), 0.45, d));
     }
     if (genre === "classical") {
       const v = voicing(ch, 48);
       if (gv === 0 && b % 2 === 0) note("acoustic_grand_piano", [v[0], v[2], v[1], v[2]][(b / 2) % 4], t, sd * 2, 0.32, d); // Alberti bass
       if (gv === 1 && b % 4 === 0) [v[0] - 12, ...v].forEach((m, n) => note("acoustic_grand_piano", m, t + n * 0.03, sd * 3.5, 0.28, d)); // rolled chords
       if (gv === 2 && b % 2 === 0) note("acoustic_grand_piano", [v[0], v[1], v[2], v[1] + 12][(b / 2) % 4], t, sd * 2, 0.3, d);
-      if (b === 0) voicing(ch, 55).forEach((m) => note("string_ensemble_1", m, t, sd * 15, 0.5, d, { attack: 0.35, release: 0.6 }));
-      if (b === 0) note("acoustic_bass", lowRoot, t, sd * 14, 0.6, d, { attack: 0.08, release: 0.4 });
+      if (b === 0 || (b === 8 && cur(bar).c.length > 1)) voicing(ch, chorus ? 60 : 55).forEach((m) => note("string_ensemble_1", m, t, sd * 7.5, chorus ? 0.55 : 0.4, d, { attack: 0.3, release: 0.5 }));
+      if (b === 0 || (b === 8 && cur(bar).c.length > 1)) note("acoustic_bass", lowRoot, t, sd * 7, 0.6, d, { attack: 0.08, release: 0.3 });
     }
     if (genre === "jazz") {
-      if ([0, 4, 8, 12].includes(b) || (b === 6 || b === 14)) ride(t, b % 4 ? 0.7 : 1, d);
-      if (b === 4 || b === 12) drum("hihat", t, 0.12, d, 1, 0.05);
-      if (gv === 2 && b === 0) drum("kick", t, 0.25, d);
-      if (b % 4 === 0) { // walking bass: root, a chord tone, the fifth, an approach note into the next chord
-        const nx = chordAt(bar + 1).root, q = b / 4, m = [lowRoot, lowRoot + ch.tones[1], lowRoot + 7, ((nx - 28) % 12 + 12) % 12 + 40 + (Math.random() < 0.5 ? 1 : -1)][q];
+      if ([0, 4, 8, 12, 6, 14].includes(b)) ride(t, (b % 4 ? 0.7 : 1) * (drumsOn ? dv : 0.5), d);
+      if (drumsOn && (b === 4 || b === 12)) drum("hihat", t, 0.12, d, 1, 0.05);
+      if (chorus && (b === 0 || b === 10)) drum("kick", t, 0.3, d);
+      if (drumsOn && b % 4 === 0) { // walking bass: root, a chord tone, the fifth, an approach note into the next chord
+        const nx = chordAt(bar + (b === 12 ? 1 : 0), b === 12 ? 0 : b + 4).root, q = b / 4, m = [lowRoot, lowRoot + ch.tones[1], lowRoot + 7, ((nx - 40) % 12 + 12) % 12 + 40 + (Math.random() < 0.5 ? 1 : -1)][q];
         bassNote(m, sd * 3.6, 0.85);
-      }
+      } else if (!drumsOn && b === 0) bassNote(lowRoot, sd * 8, 0.6);
       const comp = gv === 0 ? [6, 14] : gv === 1 ? [3, 10] : [0, 7];
       if (comp.includes(b)) voicing(ch, 55).forEach((m) => note("acoustic_grand_piano", m, t, sd * 1.5, 0.26, d));
     }
     if (genre === "electronic") {
-      if (b % 4 === 0) { drum("kick", t, 0.95, d); duck.gain.cancelScheduledValues(t); duck.gain.setValueAtTime(0.25, t); duck.gain.linearRampToValueAtTime(1, t + sd * 3); }
-      if (b === 4 || b === 12) drum("snare", t, 0.45, d);
-      if (b % 4 === 2) drum("hihat", t, 0.28, d, 1, 0.12);
-      if (gv !== 0 && b % 2 === 1) drum("hihat", t, 0.08, d, 1.2, 0.03);
-      if (b % 4 === 2 || (gv === 2 && b % 4 === 3)) bassNote(lowRoot, sd * 1.2, 0.7);
-      if (b === 0) voicing(ch, 57).forEach((m) => note("string_ensemble_1", m, t, sd * 15, 0.55, duck, { attack: 0.05, release: 0.3 }));
-      if (gv === 1 && b % 2 === 0) { const v = voicing(ch, 69); synth(hz(v[(b / 2) % v.length]), t, sd, 0.6, d); }
+      if (drumsOn && b % 4 === 0) { drum("kick", t, 0.95 * dv, d); duck.gain.cancelScheduledValues(t); duck.gain.setValueAtTime(0.25, t); duck.gain.linearRampToValueAtTime(1, t + sd * 3); }
+      if (chorus && (b === 4 || b === 12)) drum("snare", t, 0.45, d);
+      if (b % 4 === 2) drum("hihat", t, drumsOn ? 0.28 : 0.12, d, 1, 0.12);
+      if (chorus && b % 2 === 1) drum("hihat", t, 0.08, d, 1.2, 0.03);
+      if (intoChorus && b >= 8) drum("snare", t, 0.2 + (b - 8) * 0.05, d); // build-up roll into the drop
+      if (drumsOn && (b % 4 === 2 || (chorus && b % 4 === 3))) bassNote(lowRoot, sd * 1.2, 0.7);
+      if (b === 0) voicing(ch, 57).forEach((m) => note("string_ensemble_1", m, t, sd * 15, 0.55, drumsOn ? duck : d, { attack: drumsOn ? 0.05 : 0.6, release: 0.3 }));
+      if ((chorus || gv === 1) && b % 2 === 0) { const v = voicing(ch, 69); synth(hz(v[(b / 2) % v.length]), t, sd, chorus ? 0.5 : 0.35, d); }
     }
   };
 
-  /* the scene's lead line: plays in some sections only, so the song breathes */
-  const HOOK = { country: "violin", rock: "distortion_guitar", classical: "violin", jazz: "acoustic_grand_piano", electronic: null };
-  const HOOK_STEPS = [[0, 3, 6, 8, 10, 12], [0, 2, 4, 7, 10, 12, 14], [0, 4, 6, 8, 12]];
-  const hookAndFill = (s, t) => {
-    const b = s % 16, pass = Math.floor(bar / 3), sec = section(bar), sd = stepDur(), d = back;
-    const plays = sec === "B" || pass % 4 === 3;
-    const steps = HOOK_STEPS[song.groove % HOOK_STEPS.length];
-    if (plays && steps.includes(b)) {
-      const line = MOTIFS[(song.hook + (sec === "B" ? 3 : 0)) % MOTIFS.length], k = (bar % 3) * steps.length + steps.indexOf(b);
-      let midi = degMidi(line[k % line.length] + (bar % 3 === 2 && b > 8 ? -1 : 0), 67 + (G().root - 57) + song.key);
-      if (b % 4 === 0) midi = snap(midi, chordAt(bar));
-      const inst = HOOK[genre];
-      if (inst) note(inst, inst === "distortion_guitar" ? midi - 12 : midi, t, sd * 1.8, inst === "acoustic_grand_piano" ? 0.35 : 0.3, d, { attack: inst === "violin" ? 0.04 : 0.004, release: 0.2 });
-      else synth(hz(midi + 12), t, sd * 1.5, 0.5, d);
-    }
-    // a drum fill closes every section
-    if (G().kit && bar % 3 === 2 && b >= 12) { const toms = ["tom1", "tom1", "tom2", "tom3"]; if (genre === "electronic") drum("snare", t, 0.25 + (b - 12) * 0.08, d); else drum(toms[b - 12], t, 0.45, d); }
+  /* the tune itself, played by the scene's lead instrument (quieter while a singer has it) */
+  let singerNow = false;
+  const tune = (s, t) => {
+    const b = s % 16, c = cur(bar), sd = stepDur();
+    c.m.forEach((n) => {
+      if (n.at !== b) return;
+      const midi = song.key + 12 + n.semi, dur = n.len * sd, lead = G().lead, v = (c.e >= 2 ? 0.42 : 0.32) * (singerNow ? 0.45 : 1);
+      if (lead) note(lead, lead === "distortion_guitar" ? midi - 12 : midi, t, dur * 0.95, v, back, { attack: lead === "violin" ? 0.03 : 0.004, release: 0.18 });
+      else synth(hz(midi), t, dur, v * 1.4, back);
+      if (c.e >= 2 && genre !== "rock") note("string_ensemble_1", midi - 12, t, dur, 0.22, back, { attack: 0.05, release: 0.2 });
+    });
   };
 
   /* ---------- members on the grid ----------
      Columns are time: left to right, each column plays for half a bar, then the loop starts again (3 bars).
-     Members in the same column play together. Rows are pitch: the back row plays high, the front row low. */
-  const STEPS = COLS * 8;
-  const REG = { guitar: 55, piano: 60, violin: 67, singer: 64, bass: 40 };
+     Members in the same column play together. Rows are pitch: the back row plays high, the front row low.
+     Players accompany the song (strums, broken chords, bass lines, counter-melodies); a singer sings the tune. */
   const posOf = (i) => ({ row: Math.floor(i / COLS), col: i % COLS });
   const memberPlay = (m, i, s, t) => {
     const r = RHYTHM[m.face], b = s % 16, { row, col } = posOf(i);
     if (col !== Math.floor(s / 8)) return;
-    if (!r.steps.includes(b)) return;
-    const acc = r.accent.includes(b) ? 1 : 0.72, v = r.vel * acc;
-    const tt = t + (r.lag || 0), sd = stepDur();
-    const dur = sd * r.len;
-    const dest = fxChain(m.hat, tt, dur);
-    if (m.outfit === "drum") { // rows are pitch for drums too: back = cymbals, middle = snare, front = kick and toms
-      const p = m.hat === "monster" ? 0.8 : m.hat === "elf" ? 1.25 : 1;
-      if (row === 0) { if (genre === "jazz") ride(tt, v, dest); else drum("hihat", tt, 0.3 * v, dest, p, b % 4 === 2 ? 0.3 : 0.08); }
-      else if (row === 1) { if (genre === "country" || genre === "jazz") brush(tt, v * 1.5, dest); else drum("snare", tt, 0.6 * v, dest, p); }
-      else drum(b % 4 === 0 ? "kick" : pick(["tom1", "tom2", "tom3"]), tt, 0.8 * v, dest, p);
+    const c = cur(bar), ch = chordAt(bar, b), sd = stepDur(), boost = c.e >= 2 ? 1.1 : c.e < 1 ? 0.8 : 1;
+    const oct = [12, 0, -12][row] + hatShift(m.hat);
+    let tt = t;
+    if (m.outfit === "singer") {
+      // sings the song's own phrases, held and joined up; with no tune (intro, outro) it hums the chord
+      const notes = c.m.filter((n) => n.at === b);
+      const fold = (x) => { while (x < 57) x += 12; while (x > 82) x -= 12; return x; };
+      const sing = (midi, len, v) => { const dest = fxChain(m.hat, t, len); note("voice", fold(midi), t, len, v, dest, { attack: 0.06, release: 0.35 }); };
+      if (notes.length) notes.forEach((n) => sing(song.key + 12 + n.semi + (oct > 0 ? 12 : oct < 0 ? -12 : 0), n.len * sd * 1.08, 0.9 * boost * (r.vel + 0.2)));
+      else if (b % 8 === 0 && !c.m.length) sing(voicing(ch, 64)[1], sd * 7.5, 0.6 * boost);
+      else return;
     } else {
-      const ch = chordAt(bar), tu = tuneOf(m), line = tu[section(bar)], k = tu.n++;
-      let midi = degMidi(line[k % line.length], REG[m.outfit] + (G().root - 57) + song.key) + [12, 0, -12][row] + hatShift(m.hat);
-      if (b % 4 === 0 || m.outfit === "bass") midi = snap(midi, ch);
-      const I = G().inst;
-      if (m.outfit === "bass") { midi = Math.max(28, Math.min(55, midi - 12)); note(I.bass, midi, tt, dur, v, dest, { release: 0.15 }); }
-      else if (m.outfit === "guitar") {
-        if (!I.guitar) synth(hz(midi + 12), tt, dur, v, dest);
-        else if (genre === "rock") [0, 7].forEach((x) => note(I.guitar, midi - 12 + x, tt, dur, 0.7 * v, dest)); // power chord
-        else note(I.guitar, midi, tt, Math.max(dur, sd * 2), v, dest);
+      if (!r.steps.includes(b)) return;
+      const acc = r.accent.includes(b) ? 1 : 0.72, v = r.vel * acc * boost, k = r.steps.indexOf(b);
+      tt = t + (r.lag || 0);
+      const dur = sd * r.len, dest = fxChain(m.hat, tt, dur), I = G().inst;
+      if (m.outfit === "drum") { // rows are pitch for drums too: back = cymbals, middle = snare, front = kick and toms
+        const p = m.hat === "monster" ? 0.8 : m.hat === "elf" ? 1.25 : 1;
+        if (row === 0) { if (genre === "jazz") ride(tt, v, dest); else drum("hihat", tt, 0.3 * v, dest, p, b % 4 === 2 ? 0.3 : 0.08); }
+        else if (row === 1) { if (genre === "country" || genre === "jazz") brush(tt, v * 1.5, dest); else drum("snare", tt, 0.6 * v, dest, p); }
+        else drum(b % 4 === 0 ? "kick" : pick(["tom1", "tom2", "tom3"]), tt, 0.8 * v, dest, p);
+      } else if (m.outfit === "guitar") {
+        if (!I.guitar) voicing(ch, 60 + oct).forEach((x) => synth(hz(x), tt, Math.max(dur, sd), v * 0.8, dest));
+        else if (genre === "rock") [0, 7, 12].forEach((x) => note(I.guitar, ch.root - 12 + oct + x + 12, tt, Math.max(dur, sd * 1.5), 0.6 * v, dest));
+        else voicing(ch, 52 + oct).concat([voicing(ch, 52 + oct)[0] + 12]).forEach((x, n) => note(I.guitar, x, tt + n * 0.013, Math.max(dur, sd * 2), 0.7 * v, dest)); // a strum
+      } else if (m.outfit === "piano") {
+        const vv = voicing(ch, 60 + oct);
+        note("acoustic_grand_piano", vv[k % vv.length], tt, Math.max(dur, sd * 2), v, dest);
+        if (r.accent.includes(b)) note("acoustic_grand_piano", vv[(k + 1) % vv.length], tt, Math.max(dur, sd * 2), 0.7 * v, dest);
+      } else if (m.outfit === "bass") {
+        const root = ((ch.root - 40) % 12 + 12) % 12 + 40 + (oct > 0 ? 12 : oct < 0 ? -12 : 0);
+        note(I.bass, Math.max(28, r.accent.includes(b) ? root : root + 7), tt, Math.max(dur, sd * 1.5), v, dest, { release: 0.15 });
+      } else if (m.outfit === "violin") { // a counter-melody on the third and fifth
+        const vv = voicing(ch, 67 + oct);
+        note("violin", Math.max(55, vv[1 + (k % 2)]), tt, Math.max(dur, sd * 3), 0.85 * v, dest, { attack: 0.06, release: 0.3 });
       }
-      else if (m.outfit === "piano") { note("acoustic_grand_piano", midi, tt, Math.max(dur, sd * 2), v, dest); if (b % 8 === 0) note("acoustic_grand_piano", snap(midi - 4, ch), tt, sd * 2, 0.6 * v, dest); }
-      else if (m.outfit === "violin") note("violin", Math.max(55, midi), tt, Math.max(dur, sd * 1.5), v, dest, { attack: 0.05, release: 0.3 });
-      else if (m.outfit === "singer") { let vm = midi; while (vm < 57) vm += 12; while (vm > 82) vm -= 12; note("voice", vm, tt, Math.max(dur, sd * 2.5), v, dest, { attack: 0.04, release: 0.3 }); }
     }
     // light up the member on screen in time with its note
     const el = root.querySelector(`[data-slot-i="${i}"] .bs-member`);
@@ -288,14 +379,16 @@
   };
   const schedule = () => {
     while (nextTime < ctx.currentTime + 0.12) {
-      const swing = step % 2 ? G().swing * stepDur() * 2 : 0;
-      backing(step, nextTime + swing); hookAndFill(step, nextTime + swing);
-      slots.forEach((m, i) => m && memberPlay(m, i, step, nextTime + swing));
-      if (step % 8 === 0) { const col = step / 8; setTimeout(() => showCol(col), Math.max(0, (nextTime - ctx.currentTime) * 1000)); }
+      const swing = step % 2 ? G().swing * stepDur() * 2 : 0, t = nextTime + swing, col = Math.floor(step / 8);
+      singerNow = slots.some((m, i) => m && m.outfit === "singer" && i % COLS === col);
+      backing(step, t); tune(step, t);
+      slots.forEach((m, i) => m && memberPlay(m, i, step, t));
+      if (step % 8 === 0) setTimeout(() => showCol(col), Math.max(0, (nextTime - ctx.currentTime) * 1000));
       nextTime += stepDur(); step = (step + 1) % STEPS;
-      if (step % 16 === 0) { bar++; if (bar % (3 * song.form.length) === 0) { song.progB = otherProg(G().progs.length, song.prog); song.hook = (song.hook + 1) % MOTIFS.length; tunes = new WeakMap(); } }
+      if (step % 16 === 0) { bar++; if (bar >= song.tl.length) newSong(); } // the song ended: on to the next one
     }
   };
+  const STEPS = COLS * 8;
   let loading = false;
   const start = async () => {
     if (!ctx) init();
@@ -305,7 +398,7 @@
     await load(genre);
     loading = false; root.classList.remove("is-loading");
     newSong();
-    playing = true; step = 0; bar = 0; nextTime = ctx.currentTime + 0.08;
+    playing = true; step = 0; nextTime = ctx.currentTime + 0.08;
     clearInterval(timer); timer = setInterval(schedule, 25);
     root.classList.add("is-playing");
   };
@@ -319,12 +412,12 @@
     root.querySelectorAll("[data-col]").forEach((t) => t.classList.toggle("is-now", +t.dataset.col === c));
     root.querySelectorAll("[data-cell-col]").forEach((t) => t.classList.toggle("is-now", +t.dataset.cellCol === c));
   };
-  // a new scene board is a new song in that genre (its sounds load first)
+  // a new scene board starts the next song in that genre (its sounds load first)
   const onGenre = async () => {
-    if (!ctx || !playing) { newSong(); return; }
+    if (!ctx || !playing) { const el = root.querySelector("[data-band-song]"); if (el) el.textContent = ""; return; }
     clearInterval(timer); root.classList.add("is-loading");
     await load(genre); root.classList.remove("is-loading");
-    newSong(); step = 0; bar = 0; nextTime = ctx.currentTime + 0.08;
+    newSong(); step = 0; nextTime = ctx.currentTime + 0.08;
     if (playing) timer = setInterval(schedule, 25);
   };
 
@@ -399,10 +492,12 @@
   };
   const rand = (arr) => arr[(Math.random() * arr.length) | 0];
   const randMember = () => ({ hat: rand(HATS), face: rand(FACES), outfit: rand(OUTFITS) });
+  // a new block is placed at once and the choice is done: nothing stays selected
   const putBlock = (i, kind, name) => {
     if (!slots[i]) slots[i] = randMember();
-    slots[i][kind] = name; render({ i, kind });
+    slots[i][kind] = name; sel = null; render({ i, kind });
   };
+  document.addEventListener("click", (e) => { if (sel && !root.contains(e.target)) { sel = null; render(); } });
   const move = (from, to) => { if (from === to) return; [slots[from], slots[to]] = [slots[to], slots[from]]; sel = null; render(); };
 
   /* tap: pick a block on the board, then a new one from the tray */
