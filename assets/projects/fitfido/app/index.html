@@ -94,6 +94,8 @@
   .p2-card i { flex: none; width: 44px; height: 44px; border-radius: 50%; background: #f3f3f3; display: grid; place-items: center; font-style: normal; font-size: 19px; }
   .p2-card span { flex: 1; } .p2-card span small { display: block; margin-top: 3px; color: var(--muted); font-size: 13px; }
   .p2-card em { font-style: normal; font-size: 12px; color: var(--muted); align-self: flex-start; }
+  .tr-head { display: flex; align-items: center; gap: 14px; }
+  .tr-head i { flex: none; width: 56px; height: 56px; border-radius: 50%; background: #f3f3f3; display: grid; place-items: center; font-style: normal; font-size: 26px; }
   .p2-sub { font-size: 14px; color: var(--muted); }
   .p2-sum { margin-top: 20px; padding: 20px; border-radius: 24px; background: #fff; }
   .p2-sum div { display: flex; align-items: baseline; gap: 8px; }
@@ -316,7 +318,7 @@ const PAGES = {
     return `<div class="pg"><button class="p2-back" data-back aria-label="Back">←</button><h2 class="p2-title" style="margin-bottom:6px">Daily Calorie</h2><p class="p2-sub">${state.pet} · Fri, Jan 29</p>
     <div class="p2-sum"><div><b>${eaten.toLocaleString()}</b><span>of ${target.toLocaleString()} kcal</span></div><i><u style="width:${Math.min(100, eaten / target * 100)}%"></u></i><p>${left} kcal left for dinner</p></div>
     <p class="p2-h">Today</p>
-    ${state.log.map((r, i) => `<button class="p2-card" ${r[5] === "feeder" ? 'data-go="feeder"' : r[5] === "plan" ? `data-row="${i}"` : ""}><i>${r[0]}</i><span>${r[1]}<small>${r[2]} · ${r[3]}</small></span><em class="kc">${r[4]} kcal</em></button>`).join("")}
+    ${state.log.map((r, i) => `<button class="p2-card" ${r[5] === "feeder" ? 'data-go="feeder"' : `data-row="${i}"`}><i>${r[0]}</i><span>${r[1]}<small>${r[2]} · ${r[3]}${r[6] ? " · edited" : ""}</small></span><em class="kc">${r[4]} kcal</em></button>`).join("")}
     <div class="p2-card is-later"><i>🕕</i><span>Dinner<small>Feeder · scheduled 6:00 PM</small></span><em class="kc">${left} kcal</em></div>
     <button class="p2-cta" data-go="camera">📷  Log a treat</button></div>`;
   },
@@ -344,7 +346,7 @@ const bindPage = (root) => root.querySelectorAll("[data-back],[data-go],[data-ta
 }));
 const renderPage = (el, s) => {
   el.innerHTML = PAGES[s.html](); bindPage(el);
-  el.querySelectorAll("[data-row]").forEach((b) => b.addEventListener("click", (e) => { e.stopPropagation(); state.fromRow = true; act({ go: "plan" }); }));
+  el.querySelectorAll("[data-row]").forEach((b) => b.addEventListener("click", (e) => { e.stopPropagation(); actions.treat(+b.dataset.row); }));
 };
 const make = (id) => {
   if (els[id]) return els[id];
@@ -593,6 +595,24 @@ const actions = {
       const tot = () => { const g = [...sh.querySelectorAll(".step")].reduce((a, r) => a + +r.dataset.v, 0); sh.querySelector("#tot").textContent = Math.round(g * 580 / 440) + " kcal"; };
       stepper(sh, ".step", 10, 0, 300, tot);
       sh.querySelector("#s").onclick = () => { close(); toast(`Feeder updated: ${sh.querySelector("#tot").textContent} a day`); }; });
+  },
+  treat: (i) => {
+    const r = state.log[i], est = r[7] || r[4];
+    sheet(`<div class="tr-head"><i>${r[0]}</i><div><h3>${r[1]}</h3><p style="margin:2px 0 0">${r[2]} · ${r[3]}</p></div></div>
+      <div class="sum" style="margin-top:18px"><span>${r[5] === "plan" ? "Estimated from the photo" : "Estimated by Fitfido"}</span><b>${est} kcal</b></div>
+      <p class="lbl">Know the exact number? Set it here.</p>
+      <div class="row"><span>Calories</span><div class="step" data-v="${r[4]}" data-u=" kcal"><button>−</button><b>${r[4]} kcal</b><button>+</button></div></div>
+      <input class="field" id="kc" type="number" inputmode="numeric" placeholder="Or type it, e.g. from the label" min="0" max="2000">
+      ${r[5] === "plan" ? '<button class="row tap" id="impact" style="margin-top:12px"><i>📊</i><span>See its effect on dinner<small>AI Diet Impact</small></span></button>' : ""}
+      <button class="btn" id="s">Save</button><button class="btn btn--ghost" id="del">Remove from today</button>`, "treat", (sh, close) => {
+      const st = sh.querySelector(".step"), kc = sh.querySelector("#kc");
+      stepper(sh, ".step", 5, 0, 2000, () => (kc.value = ""));
+      kc.addEventListener("input", () => { const v = Math.max(0, Math.min(2000, Math.round(+kc.value || 0))); if (kc.value !== "") { st.dataset.v = v; st.querySelector("b").textContent = v + " kcal"; } });
+      const rerender = () => { if (cur === "calories") renderPage(els.calories, SCREENS.calories); };
+      sh.querySelector("#s").onclick = () => { const v = +st.dataset.v; if (!r[7]) r[7] = r[4]; if (v !== r[4]) { r[4] = v; r[6] = v !== r[7]; } close(); rerender(); toast(`${r[1]}: ${v} kcal saved. Dinner adjusts to match.`); };
+      sh.querySelector("#del").onclick = () => { state.log.splice(i, 1); close(); rerender(); toast(`${r[1]} removed`); };
+      const imp = sh.querySelector("#impact"); if (imp) imp.onclick = () => { close(); state.fromRow = true; act({ go: "plan" }); };
+    });
   },
   synced: () => toast("Synced just now"),
   zero: () => toast("Scale zeroed"),
