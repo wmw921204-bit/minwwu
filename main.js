@@ -1336,18 +1336,31 @@ $$("[data-flip]").forEach((flip) => {
   addEventListener("resize", () => { if (lb.classList.contains("is-open")) { clampPan(); apply(false); } });
 
   // hook the page images up
+  // images that sit inside another interaction (drag galleries) don't zoom on click;
+  // an Enlarge button outside the images opens the one in view instead
+  const dragBox = ".gallery__track";
   imgs.forEach((img) => {
     if (img.closest("[data-deck], [data-flip]")) return; // decks and books open from their own button
+    if (img.closest(dragBox)) return;
     img.classList.add("is-zoomable");
-    const inDrag = img.closest(".gallery__track");
-    if (!inDrag && !img.closest("[data-cursor]")) img.dataset.cursor = "View";
-    let sx = 0;
-    img.addEventListener("pointerdown", (e) => { sx = e.clientX; });
-    img.addEventListener("click", (e) => {
-      if (inDrag && Math.abs(e.clientX - sx) > 6) return; // that was a drag, not a click
-      e.preventDefault();
-      open(img);
+    if (!img.closest("[data-cursor]")) img.dataset.cursor = "View";
+    img.addEventListener("click", (e) => { e.preventDefault(); open(img); });
+  });
+  $$(dragBox).forEach((track) => {
+    const inside = imgs.filter((i) => track.contains(i));
+    if (!inside.length) return;
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "gallery__zoom";
+    btn.setAttribute("aria-label", "Enlarge the image in view");
+    btn.innerHTML = `<svg viewBox="0 0 20 20" aria-hidden="true"><path d="M12 3h5v5M8 17H3v-5M17 3l-6 6M3 17l6-6" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Enlarge</span>`;
+    btn.addEventListener("click", () => {
+      const r = track.getBoundingClientRect(), mid = r.left + r.width / 2;
+      const best = inside.reduce((a, i) => { const b = i.getBoundingClientRect(); return Math.abs(b.left + b.width / 2 - mid) < Math.abs(a.r.left + a.r.width / 2 - mid) ? { i, r: b } : a; }, { i: inside[0], r: inside[0].getBoundingClientRect() });
+      open(best.i);
     });
+    const bar = document.createElement("div"); bar.className = "gallery__bar wrap"; bar.append(btn);
+    track.after(bar);
   });
   $$("[data-deck]").forEach((deck) => {
     const btn = document.createElement("button");
@@ -1369,14 +1382,21 @@ if (!reduceMotion && matchMedia("(hover: hover) and (pointer: fine)").matches &&
   cursor.className = "cursor";
   cursor.setAttribute("aria-hidden", "true");
   document.body.append(cursor);
-  let tx = 0, ty = 0, cx = 0, cy = 0;
+  let tx = 0, ty = 0, cx = 0, cy = 0, off = 0;
+  // scrolling moves the page under a still pointer: hide the label until the pointer moves again
+  const hide = () => cursor.classList.remove("is-on");
+  addEventListener("wheel", hide, { passive: true });
+  addEventListener("scroll", hide, { passive: true });
   addEventListener("pointermove", (e) => {
     tx = e.clientX; ty = e.clientY;
     const host = e.target.closest("[data-cursor]");
     cursor.classList.toggle("is-on", !!host);
     if (host) {
       cursor.textContent = host.dataset.cursor;
-      cursor.classList.toggle("is-sm", host.dataset.cursorSize === "sm");
+      // over a picture the label is small and sits beside the pointer, so it never covers what you're looking at
+      const onImage = host.dataset.cursor === "View";
+      off = onImage ? 44 : 0;
+      cursor.classList.toggle("is-sm", onImage || host.dataset.cursorSize === "sm");
       // links can tint the cursor (e.g. "Next" takes the next project's colour)
       const cs = getComputedStyle(host);
       cursor.style.setProperty("--cursor-bg", cs.getPropertyValue("--next-bg").trim() || "");
@@ -1387,7 +1407,7 @@ if (!reduceMotion && matchMedia("(hover: hover) and (pointer: fine)").matches &&
   const follow = () => {
     cx += (tx - cx) * 0.18;
     cy += (ty - cy) * 0.18;
-    cursor.style.transform = `translate3d(${cx.toFixed(1)}px, ${cy.toFixed(1)}px, 0) translate(-50%, -50%)`;
+    cursor.style.transform = `translate3d(${(cx + off).toFixed(1)}px, ${(cy + off).toFixed(1)}px, 0) translate(-50%, -50%)`;
     requestAnimationFrame(follow);
   };
   requestAnimationFrame(follow);

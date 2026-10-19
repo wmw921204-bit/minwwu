@@ -1966,3 +1966,9 @@ img.is-zoomable { cursor: zoom-in; }
 .sh-demo .fin-guide__count span, .sh-demo .fin-try b { color: #a5734f; }
 .sh-demo .fin-guide__list li.is-active { background: #3f2c1f; border-color: #3f2c1f; color: #fff; }
 .sh-demo .fin-guide__list li.is-done { border-color: rgba(63,44,31,.45); color: #3f2c1f; }
+
+/* Enlarge button under drag galleries (the images themselves keep the drag) */
+.gallery__bar { display: flex; justify-content: flex-end; margin-top: 14px; }
+.gallery__zoom { display: inline-flex; align-items: center; gap: 8px; padding: 9px 16px; border: 1px solid var(--c-line); border-radius: 99px; background: transparent; color: var(--c-fg); font: 500 13px var(--f-body); cursor: pointer; transition: background .2s, border-color .2s; }
+.gallery__zoom:hover { background: var(--c-soft); border-color: var(--c-fg); }
+.gallery__zoom svg { width: 15px; height: 15px; }

@@ -31,6 +31,19 @@
   .pg { position: absolute; inset: 0; overflow-y: auto; overflow-x: hidden; overscroll-behavior: contain; scrollbar-width: none; }
   .tap { cursor: pointer; }
   /* cart badge on every bar */
+  /* rebuilt category grid */
+  .cg { position: absolute; width: 150px; height: 190px; border: 0; border-radius: 16px; background: var(--bg); box-shadow: 0 6px 14px rgba(0,0,0,.08); cursor: pointer; text-align: left; overflow: visible; animation: cgIn .45s cubic-bezier(.25,.8,.25,1) both; }
+  .cg:nth-child(2) { animation-delay: .05s; } .cg:nth-child(3) { animation-delay: .1s; } .cg:nth-child(4) { animation-delay: .15s; } .cg:nth-child(5) { animation-delay: .2s; } .cg:nth-child(6) { animation-delay: .25s; }
+  @keyframes cgIn { from { opacity: 0; transform: translateY(14px); } }
+  .cg-ph { position: absolute; left: 6px; right: 6px; top: -14px; height: 140px; display: grid; place-items: center; }
+  .cg-ph img { max-width: 100%; max-height: 100%; filter: drop-shadow(0 8px 10px rgba(0,0,0,.15)); }
+  /* cards cut from the design: the chair pops out above the card, as in the original */
+  .cg.baked { background: linear-gradient(to bottom, transparent var(--top), var(--bg) var(--top)); box-shadow: none; }
+  .cg-ph.full { left: 0; right: 0; top: 0; height: auto; display: block; }
+  .cg-ph.full img { width: 150px; max-width: none; max-height: none; filter: none; }
+  .cg small { position: absolute; left: 16px; top: 138px; font-size: 8px; color: #7a6f66; }
+  .cg b { position: absolute; left: 16px; top: 156px; font-size: 13px; font-weight: 700; } .cg b i { font-style: normal; font-weight: 600; }
+  .cg em { position: absolute; right: 14px; top: 162px; display: flex; gap: 3px; } .cg em u { width: 4px; height: 4px; border-radius: 50%; background: #fff; } .cg em u:nth-child(2) { background: #d7b597; } .cg em u:nth-child(3) { background: #555; }
   .badge { position: absolute; min-width: 17px; height: 17px; padding: 0 4px; border-radius: 9px; background: #e2b48f; color: #3f2c1f; font-size: 10px; font-weight: 700; line-height: 17px; text-align: center; pointer-events: none; box-shadow: 0 0 0 2px #3f2c1f; transition: transform .2s; }
   .badge.bump { animation: bump .5s cubic-bezier(.3,1.6,.5,1); }
   @keyframes bump { 40% { transform: scale(1.5); } }
@@ -54,6 +67,8 @@
   .chip-rate { position: absolute; left: 65px; top: 70px; width: 84px; height: 25px; border-radius: 21.5px; border: 1px solid #61534a; background: rgba(255,255,255,.28); box-shadow: 0 4px 8.6px rgba(0,0,0,.27); font-size: 13px; font-weight: 700; color: #61534a; display: flex; align-items: center; justify-content: center; gap: 4px; }
   .link360 { position: absolute; left: 277px; top: 62px; height: 34px; border: 0; background: none; font-size: 13px; color: #61534a; display: flex; align-items: center; gap: 6px; cursor: pointer; }
   .back { position: absolute; left: 22px; top: 62px; width: 40px; height: 40px; border: 0; background: none; cursor: pointer; display: grid; place-items: center; }
+  .back.glass { left: 16px; width: 44px; height: 44px; border-radius: 50%; background: rgba(255,255,255,.82); -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); box-shadow: 0 2px 10px rgba(0,0,0,.15); }
+  .back.glass svg { width: 18px; }
   .heart { position: absolute; left: 344px; top: 104px; width: 42px; height: 42px; border: 0; background: none; cursor: pointer; display: grid; place-items: center; }
   .heart svg path { transition: fill .25s, stroke .25s; }
   .heart.on svg { animation: pop .45s cubic-bezier(.3,1.7,.5,1); }
@@ -97,19 +112,23 @@
 
   /* ---------- AR ---------- */
   .ar-bg { position: absolute; inset: 0; width: 402px; height: 874px; object-fit: cover; transition: opacity .5s; }
-  .ar-studio { position: absolute; inset: 0; background: radial-gradient(120% 80% at 50% 60%, #f6f1ea 0%, #e7ddd1 70%, #d8cabb 100%); opacity: 0; transition: opacity .5s; }
+  .ar-studio { position: absolute; inset: 0; pointer-events: none; background: radial-gradient(120% 80% at 50% 60%, #f6f1ea 0%, #e7ddd1 70%, #d8cabb 100%); opacity: 0; transition: opacity .5s; }
   .ar.studio .ar-studio { opacity: 1; }
   .ar-chair { position: absolute; left: 12px; top: 418px; width: 309px; height: 312px; cursor: grab; touch-action: none; transform-origin: 50% 85%; }
   .ar-chair img { width: 100%; height: 100%; transition: filter .4s; }
+  .ar-chair.is3d img, .ar-chair.is3d .shadow { display: none; }
+  .ar-3d { position: absolute; inset: -40px -30px 0; pointer-events: none; }
+  .ar:not(.studio) .ar-3d { inset: 30px -30px -70px; }
   .ar-chair .shadow { position: absolute; left: 12%; right: 12%; bottom: 3%; height: 9%; border-radius: 50%; background: radial-gradient(closest-side, rgba(0,0,0,.35), transparent); z-index: -1; }
-  .ar-ring { position: absolute; left: 71px; top: 623px; width: 210px; height: 169px; opacity: .9; pointer-events: none; transition: opacity .3s; }
-  .ar.studio .ar-ring { opacity: 0; }
+  .ar-ring { position: absolute; left: 71px; top: 623px; width: 210px; height: 169px; opacity: .9; cursor: ew-resize; touch-action: none; transform-origin: 95px 60px; }
+  .scr .ar-ring { pointer-events: auto; }
+  .scr .ar.studio .ar-ring { opacity: 0; pointer-events: none; }
   .ar-seg { position: absolute; left: 101px; top: 66px; width: 199px; height: 33px; border-radius: 17px; background: rgba(255,255,255,.55); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); display: flex; }
   .ar-seg i { position: absolute; top: 0; height: 33px; width: 111px; border-radius: 17px; background: #fff; box-shadow: 0 2px 8px rgba(0,0,0,.12); transition: left .35s cubic-bezier(.3,1.2,.5,1), width .35s; }
   .ar-seg button { position: relative; z-index: 1; border: 0; background: none; font-size: 12px; cursor: pointer; }
   .ar-dots { position: absolute; left: 358px; top: 171px; display: flex; flex-direction: column; gap: 19px; }
-  .ar-hint { position: absolute; left: 0; right: 0; top: 118px; text-align: center; font-size: 12px; color: #fff; text-shadow: 0 1px 4px rgba(0,0,0,.4); transition: opacity .4s; }
-  .ar.studio .ar-hint { color: var(--muted); text-shadow: none; }
+  .ar-hint { position: absolute; left: 50%; top: 112px; transform: translateX(-50%); white-space: nowrap; padding: 6px 12px; border-radius: 99px; background: rgba(40,28,20,.55); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); text-align: center; font-size: 11px; color: #fff; transition: opacity .4s; }
+  .ar.studio .ar-hint { background: rgba(255,255,255,.7); color: var(--ink); }
   .ar-btn { position: absolute; left: 345px; width: 40px; height: 40px; border-radius: 50%; border: 0; background: rgba(255,255,255,.8); -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); display: grid; place-items: center; cursor: pointer; box-shadow: 0 2px 8px rgba(0,0,0,.12); }
 
   /* ---------- drawn pages (cart, customize, modify, search, favourites, success) ---------- */
@@ -227,6 +246,7 @@
 <body>
 <div id="app"></div>
 <div class="toast" id="toast"></div>
+<script type="module" src="chair3d.js"></script>
 <script>
 /* SwiftHome rental app prototype, wired as in the Figma prototype plus the links a real app needs.
    Browsing screens are layered Figma exports (base, scrolling layer, fixed nav) in the screen's own points
@@ -250,15 +270,19 @@ const CATALOG = {
   armchair: { name: "Armchair", price: 15, img: "cart_armchair", bg: "#dcd9d2", desc: "Mid-century frame, linen cushions." },
   bed:      { name: "King Bed", price: 25, img: "cart_bed", bg: "#decabb", desc: "Upholstered headboard, oak frame." },
   bedside:  { name: "Bedside Table", price: 10, img: "cart_bedside", bg: "#efe0bc", desc: "Walnut with a two-tone drawer." },
-  brown:    { name: "Sofa Chair", price: 17, img: "qv_sofachair", bg: "#c3bebaff", desc: "Pleated velvet in chocolate brown." },
-  dining:   { name: "Dining Chair", price: 10, img: "qv_dining", bg: "#c7cfbb", desc: "Curved walnut frame, moss seat." },
-  rattan:   { name: "Rattan Chair", price: 10, img: "qv_rattan", bg: "#d6b597", desc: "Hand-woven rattan with a linen cushion.", cover: true },
+  brown:    { name: "Sofa Chair", price: 17, img: "p_brown", bg: "#c3beba", desc: "Pleated velvet in chocolate brown." },
+  dining:   { name: "Dining Chair", price: 10, img: "p_dining", bg: "#c7cfbb", desc: "Curved walnut frame, moss seat." },
+  rattan:   { name: "Rattan Chair", price: 10, img: "p_rattan", bg: "#e6cdb5", desc: "Hand-woven rattan with a linen cushion." },
+  setchair: { name: "Lounge Chair", price: 30, img: "set_chair", bg: "#efe7dc", desc: "Sculpted shell chair from the Natural Cozy Set." },
+  setsofa:  { name: "Leather Sofa", price: 40, img: "set_sofa", bg: "#efe7dc", desc: "Three-seat cognac leather sofa from the Natural Cozy Set." },
+  setbedside: { name: "White Bedside Table", price: 10, img: "set_bedside", bg: "#f3f1ee", desc: "Two-drawer bedside table from the Natural Cozy Set." },
+  settable: { name: "Coffee Table", price: 20, img: "set_table", bg: "#efe7dc", desc: "Round oak coffee table from the Natural Cozy Set." },
   natural:  { name: "Natural Cozy Set", price: 100, img: "set_hero", bg: "#ddd", desc: "Chair, sofa, bedside table and coffee table.", cover: true, set: true },
   simplicity: { name: "Simplicity Suit", price: 70, was: 100, img: "qv_simplicity", bg: "#ddd", desc: "Grey sofa, coffee table and rug. Lease term 24 months.", cover: true, set: true },
   modern:   { name: "Modern Set", price: 100, img: "qv_modern", bg: "#ddd", desc: "Sectional, lounge chair and coffee table. Lease term 12 months.", cover: true, set: true },
 };
 const COLORS = { green: { dot: "#b2b15e", bg: "#dbdbbb", img: "hero_green", gal: "gallery_green", name: "green", filter: "" },
-  cream: { dot: "#fff6ef", bg: "#f2ece3", img: "hero_green", gal: "gallery_green", name: "cream", filter: "grayscale(1) sepia(.18) brightness(1.55) contrast(.82)" },
+  cream: { dot: "#fff6ef", bg: "#f3eee6", img: "hero_taupe", gal: "gallery_taupe", name: "cream", filter: "brightness(1.4) saturate(.45) sepia(.2) contrast(.9)" },
   taupe: { dot: "#b68b6a", bg: "#f0ebe0", img: "hero_taupe", gal: "gallery_taupe", name: "taupe", filter: "" } };
 const MONTHS = [1, 6, 12, 18, 24];
 const PRICE = { sofa: { 1: 29, 6: 23, 12: 19, 18: 17, 24: 15 }, natural: { 1: 160, 6: 130, 12: 112, 18: 100, 24: 90 } };
@@ -306,9 +330,10 @@ const SCREENS = {
       { x: 5, y: 274, w: 115, h: 35, act: "catTab", t: 0 }, { x: 130, y: 274, w: 105, h: 35, act: "catTab", t: 1 }, { x: 245, y: 274, w: 105, h: 35, act: "catTab", t: 2 },
       { x: 10, y: 339, w: 145, h: 185, ...qv("armchair") }, { x: 200, y: 339, w: 150, h: 185, ...qv("bed") },
       { x: 10, y: 569, w: 145, h: 185, ...qv("bedside") }, { x: 200, y: 569, w: 150, h: 185, ...qv("brown") },
-      { x: 10, y: 824, w: 145, h: 165, ...qv("dining") }, { x: 200, y: 824, w: 150, h: 165, go: "product", zoom: true }] },
+      { x: 10, y: 824, w: 145, h: 165, ...qv("dining") }, { x: 200, y: 824, w: 150, h: 165, go: "product", zoom: true }],
+      patches: ['<span style="position:absolute;left:221px;top:940px;width:80px;height:14px;background:#dbdbbb;font-size:8px;line-height:14px;color:#6f6259;pointer-events:none">Single Sofa Chair</span>'] },
     fx: NAVH("nav_home") },
-  categories: { base: S("F5_base"), hs: [{ x: 14, y: 74, w: 54, h: 42, back: 1 }],
+  categories: { base: S("F5_base"), header: 131, hs: [{ x: 14, y: 74, w: 54, h: 42, back: 1 }],
     sc: { x: 8, y: 111, w: 371, h: 763, img: S("F5_scroll"), ix: -13, iy: -19, iw: 407, ch: 933, hs: [
       { x: 27, y: 66, w: 200, h: 177, go: "sets" }, { x: 234, y: 66, w: 121, h: 143, act: "openCat", t: 0 }, { x: 234, y: 216, w: 121, h: 200, act: "openCat", t: 2 },
       { x: 29, y: 251, w: 196, h: 165, act: "openCat", t: 1 },
@@ -316,10 +341,7 @@ const SCREENS = {
       { x: 29, y: 641, w: 118, h: 158, act: "openCat", t: 0 }, { x: 152, y: 641, w: 203, h: 158, act: "openCat", t: 1 }] },
     fx: NAVH("nav_home") },
   catlist: { base: S("F11_base"), tabs: true, hs: [{ x: 14, y: 74, w: 54, h: 46, back: 1 }, { x: 26, y: 151, w: 296, h: 42, go: "search" }, { x: 340, y: 152, w: 40, h: 40, act: "filter" }],
-    sc: { x: 18, y: 291, w: 375, h: 551, img: S("F11_scroll"), ix: -11, iy: 0, iw: 386, ch: 781, hs: [
-      { x: 12, y: 5, w: 145, h: 190, ...qv("armchair") }, { x: 200, y: 5, w: 150, h: 190, ...qv("bed") },
-      { x: 12, y: 235, w: 145, h: 190, ...qv("bedside") }, { x: 200, y: 235, w: 150, h: 190, ...qv("brown") },
-      { x: 12, y: 485, w: 145, h: 170, ...qv("dining") }, { x: 200, y: 485, w: 150, h: 170, go: "product", zoom: true }] },
+    sc: { x: 18, y: 291, w: 375, h: 551, grid: true, ch: 781, hs: [] },
     fx: NAVH("nav_home") },
   sets: { base: S("F21_base"), hs: [{ x: 24, y: 136, w: 300, h: 45, go: "search" }, { x: 338, y: 138, w: 40, h: 40, act: "filter" }],
     sc: { x: 20, y: 216, w: 375, h: 659, img: S("F21_scroll"), ix: -20, iy: -16, iw: 400, ch: 1147, hs: [
@@ -337,7 +359,8 @@ const SCREENS = {
   profile: { sc: { x: 0, y: 0, w: 402, h: 874, img: S("profile_content"), ix: 0, iy: 0, iw: 402, ch: 1029, hs: [
     { x: 14, y: 74, w: 54, h: 46, back: 1, to: "explore" }, { x: 36, y: 285, w: 103, h: 90, act: "addressSheet" }, { x: 153, y: 285, w: 104, h: 90, act: "payment" }, { x: 273, y: 285, w: 103, h: 90, act: "help" },
     { x: 24, y: 437, w: 352, h: 115, act: "rental", id: "armchair" }, { x: 24, y: 556, w: 352, h: 121, act: "rental", id: "bed" }, { x: 24, y: 694, w: 352, h: 108, act: "rental", id: "bedside" },
-    { x: 25, y: 806, w: 352, h: 119, go: "modify" }] }, fx: NAVH("nav_profile") },
+    { x: 25, y: 806, w: 352, h: 119, go: "modify" }],
+    patches: ['<span style="position:absolute;left:300px;top:995px;width:80px;height:34px;background:#fff;pointer-events:none"></span>'] }, fx: NAVH("nav_profile") },
   modify: { html: "modify" },
   favs: { html: "favs", fx: NAVH("nav_home") },
   search: { html: "search" },
@@ -365,11 +388,14 @@ const make = (id) => {
     const sc = document.createElement("div"), inn = document.createElement("div");
     sc.className = "sc"; sc.style.cssText = `left:${s.sc.x}px;top:${s.sc.y}px;width:${s.sc.w}px;height:${s.sc.h}px`;
     inn.className = "in"; inn.style.height = s.sc.ch + "px";
-    inn.insertAdjacentHTML("beforeend", `<img src="${s.sc.img}" style="position:absolute;left:${s.sc.ix}px;top:${s.sc.iy}px;width:${s.sc.iw}px" alt="">`);
+    if (s.sc.img) inn.insertAdjacentHTML("beforeend", `<img src="${s.sc.img}" style="position:absolute;left:${s.sc.ix}px;top:${s.sc.iy}px;width:${s.sc.iw}px" alt="">`);
+    if (s.sc.grid) inn.classList.add("cgrid");
+    (s.sc.patches || []).forEach((t) => inn.insertAdjacentHTML("beforeend", t));
     (s.sc.hs || []).forEach((h) => inn.append(btn(h)));
     sc.append(inn); el.append(sc);
     if (s.swipeUp) sc.addEventListener("scroll", () => { if (sc.scrollTop > 40 && cur === id) act({ go: s.swipeUp, how: "up" }); });
   }
+  if (s.header) { const h = document.createElement("div"); h.style.cssText = `position:absolute;left:0;top:0;width:402px;height:${s.header}px;background:url(${s.base}) 0 0/402px auto;z-index:3;pointer-events:none`; el.append(h); el.querySelectorAll(":scope > .hs").forEach((b) => (b.style.zIndex = 4)); }
   if (s.swipeUp) el.addEventListener("wheel", (e) => { if (e.deltaY > 20 && cur === id) act({ go: s.swipeUp, how: "up" }); }, { passive: true });
   if (s.tabs) buildTabs(el);
   if (s.patch === "checkout") el.insertAdjacentHTML("beforeend", `<div id="co"></div>`);
@@ -440,7 +466,15 @@ const buildTabs = (el) => {
   el.insertAdjacentHTML("beforeend", `<div class="tabs" style="position:absolute;left:23px;top:222px;width:351px;height:47px;border-radius:24px;background:#f6f6f6"><i style="position:absolute;top:5px;height:41px;width:112px;border-radius:21px;background:#fff;box-shadow:0 4px 10px rgba(0,0,0,.14);transition:left .35s cubic-bezier(.3,1.2,.5,1)"></i>${TABS.map((t, i) => `<button data-t="${i}" style="position:absolute;top:0;left:${[3, 117, 233][i]}px;width:112px;height:47px;border:0;background:none;font:600 11.5px var(--f);cursor:pointer;transition:color .25s">${t}</button>`).join("")}</div>`);
   el.querySelectorAll("[data-t]").forEach((b) => b.addEventListener("click", (e) => { e.stopPropagation(); state.catTab = +b.dataset.t; renderTabs(el); const sc = el.querySelector(".sc"); sc.animate([{ opacity: .2, transform: "translateY(10px)" }, { opacity: 1, transform: "none" }], { duration: 380, easing: "ease-out" }); sc.scrollTop = 0; }));
 };
-const renderTabs = (el) => { el.querySelector(".tabs i").style.left = [3, 117, 233][state.catTab] + "px"; el.querySelectorAll("[data-t]").forEach((b) => (b.style.color = +b.dataset.t === state.catTab ? "#4d4d4d" : "#b5b5b5")); };
+const ROOMS = [["bed", "bedside", "setbedside", "armchair"], ["dining", "settable", "armchair", "setchair"], ["sofa", "brown", "setsofa", "setchair", "settable", "armchair"]];
+const renderGrid = (el) => {
+  const inn = el.querySelector(".cgrid"); if (!inn) return;
+  const ids = ROOMS[state.catTab];
+  inn.style.height = (Math.ceil(ids.length / 2) * 235 + 40) + "px";
+  inn.innerHTML = ids.map((id, i) => { const it = CATALOG[id]; return `<button class="cg ${it.baked ? "baked" : ""}" data-open="${id}" style="left:${i % 2 ? 196 : 8}px;top:${Math.floor(i / 2) * 235 + 18}px;--bg:${it.bg};--top:${it.baked || 0}px"><span class="cg-ph ${it.baked ? "full" : ""}"><img src="${S(it.img)}" alt=""></span><small>${it.name}</small><b>${money(it.price)}<i>/mo</i></b><em><u></u><u></u><u></u></em></button>`; }).join("");
+  inn.querySelectorAll("[data-open]").forEach((b) => b.addEventListener("click", (e) => { e.stopPropagation(); if (dragged) return; if (b.dataset.open === "sofa") { stack.push(cur); zoomFrom(b, "product"); } else actions.quick({ id: b.dataset.open }); }));
+};
+const renderTabs = (el) => { renderGrid(el); el.querySelector(".tabs i").style.left = [3, 117, 233][state.catTab] + "px"; el.querySelectorAll("[data-t]").forEach((b) => (b.style.color = +b.dataset.t === state.catTab ? "#4d4d4d" : "#b5b5b5")); };
 
 /* ---------- pages built in HTML ---------- */
 const backBtn = '<button class="back" data-back aria-label="Back">' + ICON.back + '</button>';
@@ -476,18 +510,18 @@ const PAGES = {
     return `<div class="pg"><div style="position:relative;height:955px">
       <img src="${S("set_content")}" style="position:absolute;left:0;top:0;width:402px" alt="">
       <div style="position:absolute;left:0;top:0;width:402px;height:305px;overflow:hidden"><img id="sethero" src="${S("set_hero")}" style="position:absolute;left:-58px;top:0;width:489px;height:305px;transition:transform .7s cubic-bezier(.25,.8,.25,1);transform:translateX(${[0, 40, -40][s.view]}px) scale(${[1, 1.12, 1.12][s.view]})" alt="Natural Cozy Set"></div>
-      <div class="chip-rate" style="top:70px">4.7 / 5.0 ${ICON.star}</div>
-      ${backBtn.replace('class="back"', 'class="back" style="top:62px;filter:invert(1) brightness(2)"')}
+      <div class="chip-rate" style="top:68px;left:70px;background:rgba(255,255,255,.82);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)">4.7 / 5.0 ${ICON.star}</div>
+      <button class="back glass" data-back aria-label="Back" style="top:60px">${ICON.back}</button>
       <button class="heart ${fav ? "on" : ""}" data-act="favSet" style="top:66px">${ICON.heart(fav)}<span class="burst">${[0, 60, 120, 180, 240, 300].map((a) => `<i style="--a:${a}deg"></i>`).join("")}</span></button>
       <button class="hs" data-act="setPrev" style="left:16px;top:150px;width:36px;height:54px" aria-label="Previous view"></button><button class="hs" data-act="setNext" style="left:348px;top:150px;width:36px;height:54px" aria-label="Next view"></button>
       <div style="position:absolute;left:174px;top:283px;display:flex;gap:9px">${[0, 1, 2].map((i) => `<i style="width:${i === s.view ? 16 : 6}px;height:6px;border-radius:3px;background:#fff;opacity:${i === s.view ? 1 : .6};transition:width .3s"></i>`).join("")}</div>
-      <div style="position:absolute;left:30px;top:443px;width:350px;height:50px;background:#fff">${rentHTML(s.months)}</div>
+      <div style="position:absolute;left:0;top:443px;width:402px;height:52px;background:#fff">${rentHTML(s.months)}</div>
       <button class="hs" data-act="setMore" style="left:310px;top:378px;width:66px;height:20px" aria-label="Read more"></button>
       <button class="hs" data-go="customize" style="left:300px;top:520px;width:80px;height:34px" aria-label="Customize"></button>
-      <button class="hs" data-qv="armchair" style="left:36px;top:564px;width:122px;height:122px" aria-label="Chair"></button>
-      <button class="hs" data-qv="brown" style="left:169px;top:564px;width:204px;height:122px" aria-label="Sofa"></button>
-      <button class="hs" data-qv="bedside" style="left:35px;top:707px;width:161px;height:122px" aria-label="Bedside table"></button>
-      <button class="hs" data-qv="dining" style="left:205px;top:707px;width:164px;height:122px" aria-label="Coffee table"></button>
+      <button class="hs" data-qv="setchair" style="left:36px;top:564px;width:122px;height:122px" aria-label="Chair"></button>
+      <button class="hs" data-qv="setsofa" style="left:169px;top:564px;width:204px;height:122px" aria-label="Sofa"></button>
+      <button class="hs" data-qv="setbedside" style="left:35px;top:707px;width:161px;height:122px" aria-label="Bedside table"></button>
+      <button class="hs" data-qv="settable" style="left:205px;top:707px;width:164px;height:122px" aria-label="Coffee table"></button>
       </div></div>`;
   },
   customize: () => `<div class="pg"><div class="pg-head">${backBtn}Customize</div><div class="pg-sub">4 items · tune each piece of the set</div>
@@ -660,29 +694,49 @@ const bindSearch = (w) => {
 PAGES.ar = () => { const a = state.ar, c = COLORS[a.color];
   return `<div class="ar ${a.mode === "studio" ? "studio" : ""}" style="position:absolute;inset:0">
     <img class="ar-bg" src="${S("ar_bg")}" alt=""><div class="ar-studio"></div>
-    <img class="ar-ring" src="${S("ar_rotate")}" alt="">
-    <div class="ar-chair" id="archair" style="transform:translate(${a.x}px,${a.y}px) scale(${a.s}) perspective(800px) rotateY(${a.r}deg)"><i class="shadow"></i><img src="${S(c.img)}" style="filter:${c.filter}" alt="Single Sofa Chair"></div>
-    <button class="back" data-back aria-label="Back" style="filter:invert(1) brightness(1.8)">${ICON.back}</button>
+    <img class="ar-ring" src="${S("ar_rotate")}" alt="Turn the chair" draggable="false">
+    <div class="ar-chair ${window.Chair3D ? "is3d" : ""}" id="archair" style="transform:translate(${a.x}px,${a.y}px) scale(${a.s})"><i class="shadow"></i><img src="${S(c.img)}" style="filter:${c.filter}" alt="Single Sofa Chair"></div>
+    <button class="back glass" data-back aria-label="Back" style="top:60px">${ICON.back}</button>
     <div class="ar-seg"><i style="left:${a.mode === "studio" ? 0 : 88}px;width:${a.mode === "studio" ? 96 : 111}px"></i><button data-mode="studio" style="width:88px;color:${a.mode === "studio" ? "#3a271a" : "#61534a"}">View in 3D</button><button data-mode="home" style="width:111px;font-weight:${a.mode === "home" ? 700 : 400}">In your home</button></div>
-    <p class="ar-hint">${a.mode === "studio" ? "Drag to spin the chair" : "Drag to place · scroll or pinch to resize"}</p>
+    <p class="ar-hint">${a.mode === "studio" ? "Drag to turn the chair · it keeps spinning when you let go" : "Drag to place · drag the ring to turn · scroll to resize"}</p>
     <div class="ar-dots">${Object.entries(COLORS).map(([k, v]) => `<button class="dot ${k === a.color ? "on" : ""}" data-arcolor="${k}" style="background:${v.dot}" aria-label="${v.name}"></button>`).join("")}</div>
     <button class="ar-btn" data-arspin style="top:279px" aria-label="Rotate"><img src="${S("ar_360")}" style="width:24px" alt=""></button>
     <button class="ar-btn" data-arreset style="top:329px" aria-label="Reset"><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M4 12a8 8 0 108-8H7M7 1L4 4l3 3" stroke="#3a271a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
   </div>`; };
+/* one live three.js chair (chair3d.js) is kept across re-renders and moved into the new box; until it
+   loads, or without WebGL, the photo stands in */
+let chair3d = null;
+const mount3D = (ch) => {
+  if (!window.Chair3D) return null;
+  try { if (!chair3d) { const host = document.createElement("div"); host.className = "ar-3d"; chair3d = window.Chair3D.create(host, { color: state.ar.color }); chair3d.host = host; } }
+  catch (e) { return null; }
+  ch.classList.add("is3d"); ch.append(chair3d.host); chair3d.setColor(state.ar.color); chair3d.setView(state.ar.mode); chair3d.setAuto(state.ar.mode === "studio"); chair3d.resume();
+  return chair3d;
+};
+window.addEventListener("chair3d-ready", () => { if (cur === "ar") render("ar"); });
 const bindAR = (w) => {
-  const a = state.ar, ch = w.querySelector("#archair");
-  const apply = (anim) => { ch.style.transition = anim ? "transform .5s cubic-bezier(.3,1.2,.5,1)" : "none"; ch.style.transform = `translate(${a.x}px,${a.y}px) scale(${a.s}) perspective(800px) rotateY(${a.r}deg)`; };
-  let d = null;
-  ch.addEventListener("pointerdown", (e) => { e.stopPropagation(); ch.setPointerCapture(e.pointerId); d = { x: e.clientX, y: e.clientY, ax: a.x, ay: a.y, r: a.r }; ch.style.cursor = "grabbing"; });
+  const a = state.ar, ch = w.querySelector("#archair"), m = mount3D(ch), ring = w.querySelector(".ar-ring");
+  const apply = (anim) => { ch.style.transition = anim ? "transform .5s cubic-bezier(.3,1.2,.5,1)" : "none"; ch.style.transform = `translate(${a.x}px,${a.y}px) scale(${a.s})` + (m ? "" : ` perspective(800px) rotateY(${a.r}deg)`);
+    ring.style.transition = ch.style.transition; ring.style.transform = `translate(${a.x}px,${a.y}px) scale(${a.s})`; };
+  apply(false);
+  let d = null, lx = 0;
+  ch.addEventListener("pointerdown", (e) => { e.stopPropagation(); ch.setPointerCapture(e.pointerId); d = { x: e.clientX, y: e.clientY, ax: a.x, ay: a.y, r: a.r }; lx = e.clientX; ch.style.cursor = "grabbing"; });
   ch.addEventListener("pointermove", (e) => { if (!d) return; const dx = e.clientX - d.x, dy = e.clientY - d.y;
-    if (a.mode === "studio") a.r = d.r + dx * .8; else { a.x = Math.max(-40, Math.min(110, d.ax + dx)); a.y = Math.max(-260, Math.min(40, d.ay + dy)); a.s = Math.max(.45, Math.min(1.4, a.s)); }
+    if (a.mode === "studio") { if (m) m.drag(e.clientX - lx); else a.r = d.r + dx * .8; lx = e.clientX; }
+    else { a.x = Math.max(-40, Math.min(110, d.ax + dx)); a.y = Math.max(m ? -90 : -260, Math.min(40, d.ay + dy)); }
     apply(false); });
-  ch.addEventListener("pointerup", () => { d = null; ch.style.cursor = ""; });
-  w.querySelector(".ar").addEventListener("wheel", (e) => { e.preventDefault(); if (a.mode === "studio") a.r += e.deltaX * .5 + e.deltaY * .3; else a.s = Math.max(.45, Math.min(1.4, a.s - e.deltaY * .0015)); apply(false); }, { passive: false });
+  const up = () => { d = null; ch.style.cursor = ""; m && m.release(); };
+  ch.addEventListener("pointerup", up); ch.addEventListener("pointercancel", up);
+  // in your home, the floor ring under the chair turns it, so moving and turning never fight
+  let rd = null;
+  ring.addEventListener("pointerdown", (e) => { e.stopPropagation(); ring.setPointerCapture(e.pointerId); rd = e.clientX; });
+  ring.addEventListener("pointermove", (e) => { if (rd === null) return; if (m) m.drag(e.clientX - rd); else { a.r += (e.clientX - rd) * .8; apply(false); } rd = e.clientX; });
+  ring.addEventListener("pointerup", () => { rd = null; m && m.release(); });
+  w.querySelector(".ar").addEventListener("wheel", (e) => { e.preventDefault(); if (a.mode === "studio") { if (m) m.drag(-(e.deltaX * .4 + e.deltaY * .25)), m.release(); else a.r += e.deltaX * .5 + e.deltaY * .3; } else a.s = Math.max(.45, Math.min(1.4, a.s - e.deltaY * .0015)); apply(false); }, { passive: false });
   w.querySelectorAll("[data-mode]").forEach((b) => b.addEventListener("click", (e) => { e.stopPropagation(); a.mode = b.dataset.mode; if (a.mode === "studio") { a.x = 35; a.y = -150; a.s = 1.05; } else { a.x = 0; a.y = 0; a.s = 1; a.r = 0; } render("ar"); const n = els.ar.querySelector("#archair"); n.style.transition = "none"; n.animate([{ opacity: 0, transform: n.style.transform + " translateY(20px)" }, { opacity: 1, transform: n.style.transform }], { duration: 450, easing: "cubic-bezier(.25,.8,.25,1)" }); }));
   w.querySelectorAll("[data-arcolor]").forEach((b) => b.addEventListener("click", (e) => { e.stopPropagation(); a.color = b.dataset.arcolor; state.pd.color = a.color; state.pd.saved = false; render("ar"); }));
-  w.querySelector("[data-arspin]").addEventListener("click", (e) => { e.stopPropagation(); a.r += 180; apply(true); });
-  w.querySelector("[data-arreset]").addEventListener("click", (e) => { e.stopPropagation(); if (a.mode === "studio") { a.r = 0; a.s = 1.05; } else { a.x = 0; a.y = 0; a.s = 1; a.r = 0; } apply(true); });
+  w.querySelector("[data-arspin]").addEventListener("click", (e) => { e.stopPropagation(); if (m) m.spin(Math.PI); else { a.r += 180; apply(true); } });
+  w.querySelector("[data-arreset]").addEventListener("click", (e) => { e.stopPropagation(); if (a.mode === "studio") { a.r = 0; a.s = 1.05; } else { a.x = 0; a.y = 0; a.s = 1; a.r = 0; } m && m.reset(); apply(true); });
 };
 
 /* ---------- checkout totals follow the cart ---------- */
