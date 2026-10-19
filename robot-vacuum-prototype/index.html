@@ -1394,7 +1394,7 @@ function scrSettings(){
   <p class="small muted" style="margin:6px 4px 0">For studies: shows how notices arrive while the app isn’t open.</p>`;
 }
 function scrAutonomy(){
-  return topbar('Automation level')+`<p class="small muted" style="margin:0 4px 12px">How much the robot decides on its own.</p>`+levelPicker(S.autonomy,'setAutonomy');
+  return topbar('Automation level')+`<p class="small muted" style="margin:0 4px 12px">How much the robot decides on its own.</p>`+levelPicker(S.autonomy,'setAutonomy',true);
 }
 function scrRules(){
   let h=topbar('Saved preferences')+`<p class="small muted" style="margin:0 2px 14px">Rules you saved on purpose. Each one lists where it applies. One-time choices never show up here.</p>`;
