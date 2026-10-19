@@ -519,6 +519,14 @@ const MODES={
   autoNotify:{name:'Auto + notify',d:'The robot decides and tells you. You can change any decision.',lvl:3,ex:'Robot leaves it alone and tells you. You can change it.',note:'You get a notice for each decision, and can change it.'},
   fullAuto:{name:'Full auto',d:'The robot decides quietly. Check the report when you want.',lvl:4,ex:'Robot leaves it alone. You’ll see it in the report.',note:'No notices for its decisions. You still hear when it finishes or gets stuck.'},
 };
+/* Notification switches each level starts with. Changing the level resets them; a temporary level puts the old ones back when it ends. */
+const LEVEL_NOTIF={
+  manual:{review:true,problems:true,finished:true,decisions:true,behaviour:true},
+  assist:{review:true,problems:true,finished:true,decisions:true,behaviour:true},
+  autoNotify:{review:true,problems:true,finished:true,decisions:true,behaviour:true},
+  fullAuto:{review:true,problems:true,finished:true,decisions:false,behaviour:false},
+};
+function levelNotif(mode){S.notif={...S.notif,...LEVEL_NOTIF[mode]}}
 const OBJ={sock:{n:'Sock',e:'🧦'},shoe:{n:'Shoe',e:'👟'},cable:{n:'Cable',e:'🔌'},toy:{n:'Toy',e:'🧸'},bowl:{n:'Pet bowl',e:'🥣'},bag:{n:'Bag',e:'👜'},clothes:{n:'Clothes',e:'👕'},box:{n:'Box',e:'📦'},chair:{n:'Chair leg',e:'🪑'}};
 const SPAWNS=[
   {k:'3,2',label:'sock',conf:'sure'},
@@ -730,7 +738,7 @@ function banner(key,lock){
 }
 function notice(ev){
   const own=ev.autonomous&&!ev.changed;
-  if(own?(ev.quiet&&!S.notif.decisions):!S.notif[noticeKind(ev)])return;
+  if(own?!S.notif.decisions:!S.notif[noticeKind(ev)])return;
   if(ev.later&&!ev.reminded)return; // asked to be reminded later
   if(S.ui.away){pushLock({id:ev.id,title:noticeTitle(ev),body:SHORT[ev.key]?SHORT[ev.key].q:DEFS[ev.key].title});return}
   if(quietNow()){if(!S.missed.includes(ev.id))S.missed.push(ev.id);return}
@@ -1372,8 +1380,9 @@ function scrSettings(){
   </div>
   <div class="sec-h">Notifications</div>
   <div class="group">
-   ${[['review','Needs your call'],['problems','Robot is stuck or has a problem'],['finished','Cleaning finished'],['decisions','Every robot decision, also in Full auto'],['behaviour','Unusual behaviour (real robot)']].map(([k,l])=>`<div class="row">${l}<button class="switch ${S.notif[k]?'on':''}" role="switch" aria-checked="${S.notif[k]}" aria-label="${l}" data-a="notif" data-v="${k}"></button></div>`).join('')}
+   ${[['review','Needs your call'],['problems','Robot is stuck or has a problem'],['finished','Cleaning finished'],['decisions','Robot decisions'],['behaviour','Unusual behaviour (real robot)']].map(([k,l])=>`<div class="row">${l}<button class="switch ${S.notif[k]?'on':''}" role="switch" aria-checked="${S.notif[k]}" aria-label="${l}" data-a="notif" data-v="${k}"></button></div>`).join('')}
   </div>
+  <p class="small muted" style="margin:6px 4px 10px">Set for ${MODES[S.autonomy].name}. They change when you change the automation level. You can still adjust them here.</p>
   <div class="group" style="margin-top:10px"><div class="row">Pause for 1 hour${quietNow()?`<span class="v">until ${atLabel(S.quietUntil)}</span>`:''}<button class="switch ${quietNow()?'on':''}" role="switch" aria-checked="${quietNow()}" aria-label="Pause notifications for 1 hour" data-a="pauseNotif"></button></div></div>
   <p class="small muted" style="margin:6px 4px 0">Paused or switched off, nothing is lost: it all waits in Inbox.</p>
   <div class="sec-h">Support</div>
@@ -1450,7 +1459,7 @@ function tempLabel(){const t=S.temp;if(!t)return '';if(t.task)return 'this clean
 function checkTemp(){
   const t=S.temp;if(!t)return;
   const due=t.task?(!S.task||S.task.id!==t.task||S.task.done):t.live?Date.now()>=t.until:S.clock>=t.until;
-  if(due){S.autonomy=t.prev;S.temp=null;flash('Back to '+MODES[S.autonomy].name)}
+  if(due){S.autonomy=t.prev;if(t.notif)S.notif={...S.notif,...t.notif};else levelNotif(t.prev);S.temp=null;flash('Back to '+MODES[S.autonomy].name)}
 }
 function modalHTML(){
   const m=S.ui.modal;if(!m)return '';
@@ -1676,9 +1685,9 @@ const A={
   sheetMode(v){S.ui.sheet.mode=v;S.ui.modal=modeModal();commit()},
   sheetFor(v){S.ui.sheet.for=v;S.ui.modal=modeModal();commit()},
   sheetApply(){const {mode,for:f}=S.ui.sheet;S.ui.modal=null;
-    if(f==='always'){S.temp=null;S.autonomy=mode;flash(MODES[mode].name)}
-    else{const live=realTime();S.temp={prev:S.temp?S.temp.prev:S.autonomy,live,until:f==='1h'?nowT()+(live?3600e3:3600):null,task:f==='task'&&S.task?S.task.id:null};
-      S.autonomy=mode;flash(MODES[mode].name+(f==='1h'?' for 1 hour':' until this cleaning ends')+'. Then back to '+MODES[S.temp.prev].name)}
+    if(f==='always'){if(S.temp&&S.temp.notif)S.notif={...S.notif,...S.temp.notif};S.temp=null;S.autonomy=mode;levelNotif(mode);flash(MODES[mode].name)}
+    else{const live=realTime();S.temp={prev:S.temp?S.temp.prev:S.autonomy,notif:S.temp?S.temp.notif:{...S.notif},live,until:f==='1h'?nowT()+(live?3600e3:3600):null,task:f==='task'&&S.task?S.task.id:null};
+      S.autonomy=mode;levelNotif(mode);flash(MODES[mode].name+(f==='1h'?' for 1 hour':' until this cleaning ends')+'. Then back to '+MODES[S.temp.prev].name)}
     commit()},
   reviewRoom(v){S.ui.notice=null;const m=groupModal(v);if(m){S.ui.modal=m;commit()}},
   groupOk(v){const items=pendingObjs().filter(o=>CELLROOM[o.k]===v&&o.label!=='unknown');items.forEach(o=>{o.status=o.label===o.orig?'confirmed':'corrected'});
@@ -1730,7 +1739,7 @@ const A={
   cmdRefresh(){S.cmd={label:'Refreshing status',state:'sending'};commit();setTimeout(()=>{S.cmd={label:'Status refreshed',state:'confirmed'};commit();setTimeout(()=>{S.cmd=null;commit()},1500)},700)},
   cmdDismiss(){S.cmd=null;commit()},
   reconnect(){S.conn='connecting';commit();setTimeout(()=>{S.conn='connected';S.snap=null;dirtyAll();S.cmd={label:'Status updated',state:'confirmed'};commit();setTimeout(()=>{if(S.cmd&&S.cmd.state==='confirmed'){S.cmd=null;commit()}},1600)},1300)},
-  setAutonomy(v){S.autonomy=v;S.temp=null;commit()},
+  setAutonomy(v){S.autonomy=v;S.temp=null;levelNotif(v);commit()},
   notif(v){S.notif[v]=!S.notif[v];commit()},
   delRule(v){S.rules=S.rules.filter(r=>r.id!==v);commit()},
   delNogo(v){S.nogo=S.nogo.filter(z=>z!==v);ZONES[v].keys.forEach(k=>{if(S.cells[k]==='nogo')setCell(k,S.task&&!S.task.done?'todo':'out')});commit()},
@@ -1747,7 +1756,7 @@ const A={
   schedDelete(){S.schedules=S.schedules.filter(x=>x.id!==S.ui.sched.id);S.ui.modal=null;commit()},
   ob(v){S.onboarding=v;commit()},
   obMode(v){S.ui.obMode=v;commit()},
-  obDone(){S.autonomy=S.ui.obMode;S.onboarding=null;S.ui.tab='home';S.ui.stack=[];commit(true)},
+  obDone(){S.autonomy=S.ui.obMode;levelNotif(S.autonomy);S.onboarding=null;S.ui.tab='home';S.ui.stack=[];commit(true)},
   ctlScen(v){S.ctl.scenario=v;renderPanel()},
   ctlRetry(v){S.ctl.retry=v;renderPanel()},
   ctlSpeed(v){S.ctl.speed=+v;renderPanel()},

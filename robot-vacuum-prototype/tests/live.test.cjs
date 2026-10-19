@@ -220,3 +220,20 @@ test('with no bridge behind the page, it switches to the simulation', async () =
   assert.ok(app.errors.some(e => /navigation/i.test(e)), 'expected a navigation to ?demo=1');
   app.close();
 });
+
+test('notification switches follow the automation level, and a temporary level puts them back', async () => {
+  const app = await boot(fakeBridge(), { onboarded: true, autonomy: 'assist' });
+  app.run("A.setAutonomy('fullAuto')");
+  assert.equal(app.run('S.notif.decisions'), false);
+  assert.equal(app.run('S.notif.finished'), true);
+  app.run("A.setAutonomy('autoNotify')");
+  assert.equal(app.run('S.notif.decisions'), true);
+  app.run("A.notif('finished')"); // your own tweak
+  app.run("S.ui.sheet={mode:'fullAuto',for:'1h'};A.sheetApply()");
+  assert.equal(app.run('S.notif.decisions'), false);
+  app.run('S.temp.until=0;checkTemp()'); // the hour is over
+  assert.equal(app.run('S.autonomy'), 'autoNotify');
+  assert.equal(app.run('S.notif.decisions'), true);
+  assert.equal(app.run('S.notif.finished'), false);
+  app.close();
+});
