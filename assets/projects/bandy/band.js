@@ -178,17 +178,17 @@
 
   /* the base in perspective, measured in % of the stage width (cqw):
      the top face runs from y=TOP (back edge) to y=BOT (front edge) and widens towards the front */
-  const TOP = 33, BOT = 55, BACKW = 64, FRONTW = 82, CX = 50;
+  const TOP = 35, BOT = 55, BACKW = 54, FRONTW = 68, CX = 50;
   const at = (u, v) => { const w = BACKW + (FRONTW - BACKW) * v; return [CX - w / 2 + w * u, TOP + (BOT - TOP) * v]; };
   const IN = { u0: 0.07, u1: 0.93, v0: 0.12, v1: 0.92 }; // the white grid insert
-  const cellBox = (row, col, pad = 0.1) => {
+  const cellBox = (row, col, pad = 0.16) => {
     const cu = (IN.u1 - IN.u0) / COLS, cv = (IN.v1 - IN.v0) / ROWS;
     const u0 = IN.u0 + col * cu + cu * pad / 2, u1 = IN.u0 + (col + 1) * cu - cu * pad / 2;
     const v0 = IN.v0 + row * cv + cv * pad, v1 = IN.v0 + (row + 1) * cv - cv * pad;
     return [at(u0, v0), at(u1, v0), at(u1, v1), at(u0, v1)];
   };
   const cellAnchor = (row, col) => { const cu = (IN.u1 - IN.u0) / COLS, cv = (IN.v1 - IN.v0) / ROWS; return at(IN.u0 + (col + 0.5) * cu, IN.v0 + (row + 0.62) * cv); };
-  const blockSize = (row) => 4.3 + row * 0.55;
+  const blockSize = (row) => 6.1 + row * 0.6;
   const pts = (arr) => arr.map(([x, y]) => `${(x * 16).toFixed(1)},${(y * 16).toFixed(1)}`).join(" ");
   // a rounded "stadium" outline through the four corners of a quad, sampled as a polygon
   const stadium = (u0, v0, u1, v1, r) => {
@@ -268,7 +268,14 @@
   /* drag: a tray block onto a member (or an empty spot), or a member to another spot */
   let drag = null;
   const ghost = document.createElement("div"); ghost.className = "bs-ghost"; ghost.setAttribute("aria-hidden", "true"); document.body.append(ghost);
-  const padAt = (x, y) => { ghost.style.display = "none"; const el = document.elementFromPoint(x, y); ghost.style.display = ""; return el && el.closest("[data-slot-i]"); };
+  // drop target = the grid cell under the pointer (members may hide cells behind them)
+  const inQuad = (px, py, q) => { let inside = false; for (let a = 0, b = q.length - 1; a < q.length; b = a++) { const [xa, ya] = q[a], [xb, yb] = q[b]; if ((ya > py) !== (yb > py) && px < ((xb - xa) * (py - ya)) / (yb - ya) + xa) inside = !inside; } return inside; };
+  const stageEl = root.querySelector(".bs-stage");
+  const padAt = (x, y) => {
+    const r = stageEl.getBoundingClientRect(), px = ((x - r.left) / r.width) * 100, py = ((y - r.top) / r.width) * 100;
+    for (let i = 0; i < slots.length; i++) { const { row, col } = posOf(i); if (inQuad(px, py, cellBox(row, col, 0))) return root.querySelector(`[data-slot-i="${i}"]`); }
+    return null;
+  };
   root.addEventListener("pointerdown", (e) => {
     if (e.button !== 0) return;
     const pk = e.target.closest("[data-pick]"), mem = e.target.closest("[data-member]");

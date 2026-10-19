@@ -1604,6 +1604,8 @@ img.is-zoomable { cursor: zoom-in; }
 .bs-member:hover .bs-remove, .bs-remove:focus-visible { opacity: 1; }
 @media (hover: none) { .bs-remove { opacity: .8; } }
 .bs.is-dragging .bs-remove { opacity: 0; }
+.bs.is-dragging .bs-member { opacity: .45; }
+.bs.is-dragging .bs-pad.is-over .bs-member { opacity: .8; }
 /* block tray */
 .bs-tray { display: flex; flex-direction: column; gap: 8px; padding: 10px; border-radius: 18px; background: rgba(255,255,255,.6); }
 .bs-tray__row small { display: block; margin-bottom: 6px; font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--c-muted); }
