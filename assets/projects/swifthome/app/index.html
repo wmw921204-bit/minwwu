@@ -146,9 +146,6 @@
   .ar.studio .ar-studio { opacity: 1; }
   .ar-chair { position: absolute; left: 12px; top: 418px; width: 309px; height: 312px; cursor: grab; touch-action: none; transform-origin: 50% 85%; }
   .ar-chair img { width: 100%; height: 100%; transition: filter .4s; }
-  .ar-chair.is3d img, .ar-chair.is3d .shadow { display: none; }
-  .ar-3d { position: absolute; inset: -40px -30px 0; pointer-events: none; }
-  .ar:not(.studio) .ar-3d { inset: 30px -30px -70px; }
   .ar-chair .shadow { position: absolute; left: 12%; right: 12%; bottom: 3%; height: 9%; border-radius: 50%; background: radial-gradient(closest-side, rgba(0,0,0,.35), transparent); z-index: -1; }
   .ar-ring { position: absolute; left: 71px; top: 623px; width: 210px; height: 169px; opacity: .9; cursor: ew-resize; touch-action: none; transform-origin: 95px 60px; }
   .scr .ar-ring { pointer-events: auto; }
@@ -276,7 +273,6 @@
 <body>
 <div id="app"></div>
 <div class="toast" id="toast"></div>
-<script type="module" src="chair3d.js"></script>
 <script>
 /* SwiftHome rental app prototype, wired as in the Figma prototype plus the links a real app needs.
    Browsing screens are layered Figma exports (base, scrolling layer, fixed nav) in the screen's own points
@@ -785,48 +781,37 @@ PAGES.ar = () => { const a = state.ar, c = COLORS[a.color];
   return `<div class="ar ${a.mode === "studio" ? "studio" : ""}" style="position:absolute;inset:0">
     <img class="ar-bg" src="${S("ar_bg")}" alt=""><div class="ar-studio"></div>
     <img class="ar-ring" src="${S("ar_rotate")}" alt="Turn the chair" draggable="false">
-    <div class="ar-chair ${window.Chair3D ? "is3d" : ""}" id="archair" style="transform:translate(${a.x}px,${a.y}px) scale(${a.s})"><i class="shadow"></i><img src="${S(c.img)}" style="filter:${c.filter}" alt="Single Sofa Chair"></div>
+    <div class="ar-chair" id="archair" style="transform:translate(${a.x}px,${a.y}px) scale(${a.s})"><i class="shadow"></i><img src="${S(c.img)}" style="filter:${c.filter}" alt="Single Sofa Chair"></div>
     <button class="back glass" data-back aria-label="Back" style="top:60px">${ICON.back}</button>
     <div class="ar-seg"><i style="left:${a.mode === "studio" ? 0 : 88}px;width:${a.mode === "studio" ? 96 : 111}px"></i><button data-mode="studio" style="width:88px;color:${a.mode === "studio" ? "#3a271a" : "#61534a"}">View in 3D</button><button data-mode="home" style="width:111px;font-weight:${a.mode === "home" ? 700 : 400}">In your home</button></div>
-    <p class="ar-hint">${a.mode === "studio" ? "Drag to turn the chair · it keeps spinning when you let go" : "Drag to place · drag the ring to turn · scroll to resize"}</p>
+    <p class="ar-hint">${a.mode === "studio" ? "Drag to spin the chair" : "Drag to place · drag the ring to turn · scroll to resize"}</p>
     <div class="ar-dots">${Object.entries(COLORS).map(([k, v]) => `<button class="dot ${k === a.color ? "on" : ""}" data-arcolor="${k}" style="background:${v.dot}" aria-label="${v.name}"></button>`).join("")}</div>
     <button class="ar-btn" data-arspin style="top:279px" aria-label="Rotate"><img src="${S("ar_360")}" style="width:24px" alt=""></button>
     <button class="ar-btn" data-arreset style="top:329px" aria-label="Reset"><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M4 12a8 8 0 108-8H7M7 1L4 4l3 3" stroke="#3a271a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
   </div>`; };
-/* one live three.js chair (chair3d.js) is kept across re-renders and moved into the new box; until it
-   loads, or without WebGL, the photo stands in */
-let chair3d = null;
-const mount3D = (ch) => {
-  if (!window.Chair3D) return null;
-  try { if (!chair3d) { const host = document.createElement("div"); host.className = "ar-3d"; chair3d = window.Chair3D.create(host, { color: state.ar.color }); chair3d.host = host; } }
-  catch (e) { return null; }
-  ch.classList.add("is3d"); ch.append(chair3d.host); chair3d.setColor(state.ar.color); chair3d.setView(state.ar.mode); chair3d.setAuto(state.ar.mode === "studio"); chair3d.resume();
-  return chair3d;
-};
-window.addEventListener("chair3d-ready", () => { if (cur === "ar") render("ar"); });
 const bindAR = (w) => {
-  const a = state.ar, ch = w.querySelector("#archair"), m = mount3D(ch), ring = w.querySelector(".ar-ring");
-  const apply = (anim) => { ch.style.transition = anim ? "transform .5s cubic-bezier(.3,1.2,.5,1)" : "none"; ch.style.transform = `translate(${a.x}px,${a.y}px) scale(${a.s})` + (m ? "" : ` perspective(800px) rotateY(${a.r}deg)`);
+  const a = state.ar, ch = w.querySelector("#archair"), ring = w.querySelector(".ar-ring");
+  const apply = (anim) => { ch.style.transition = anim ? "transform .5s cubic-bezier(.3,1.2,.5,1)" : "none"; ch.style.transform = `translate(${a.x}px,${a.y}px) scale(${a.s}) perspective(800px) rotateY(${a.r}deg)`;
     ring.style.transition = ch.style.transition; ring.style.transform = `translate(${a.x}px,${a.y}px) scale(${a.s})`; };
   apply(false);
-  let d = null, lx = 0;
-  ch.addEventListener("pointerdown", (e) => { e.stopPropagation(); ch.setPointerCapture(e.pointerId); d = { x: e.clientX, y: e.clientY, ax: a.x, ay: a.y, r: a.r }; lx = e.clientX; ch.style.cursor = "grabbing"; });
+  let d = null;
+  ch.addEventListener("pointerdown", (e) => { e.stopPropagation(); ch.setPointerCapture(e.pointerId); d = { x: e.clientX, y: e.clientY, ax: a.x, ay: a.y, r: a.r }; ch.style.cursor = "grabbing"; });
   ch.addEventListener("pointermove", (e) => { if (!d) return; const dx = e.clientX - d.x, dy = e.clientY - d.y;
-    if (a.mode === "studio") { if (m) m.drag(e.clientX - lx); else a.r = d.r + dx * .8; lx = e.clientX; }
-    else { a.x = Math.max(-40, Math.min(110, d.ax + dx)); a.y = Math.max(m ? -90 : -260, Math.min(40, d.ay + dy)); }
+    if (a.mode === "studio") a.r = d.r + dx * .8;
+    else { a.x = Math.max(-40, Math.min(110, d.ax + dx)); a.y = Math.max(-260, Math.min(40, d.ay + dy)); }
     apply(false); });
-  const up = () => { d = null; ch.style.cursor = ""; m && m.release(); };
+  const up = () => { d = null; ch.style.cursor = ""; };
   ch.addEventListener("pointerup", up); ch.addEventListener("pointercancel", up);
   // in your home, the floor ring under the chair turns it, so moving and turning never fight
   let rd = null;
   ring.addEventListener("pointerdown", (e) => { e.stopPropagation(); ring.setPointerCapture(e.pointerId); rd = e.clientX; });
-  ring.addEventListener("pointermove", (e) => { if (rd === null) return; if (m) m.drag(e.clientX - rd); else { a.r += (e.clientX - rd) * .8; apply(false); } rd = e.clientX; });
-  ring.addEventListener("pointerup", () => { rd = null; m && m.release(); });
-  w.querySelector(".ar").addEventListener("wheel", (e) => { e.preventDefault(); if (a.mode === "studio") { if (m) m.drag(-(e.deltaX * .4 + e.deltaY * .25)), m.release(); else a.r += e.deltaX * .5 + e.deltaY * .3; } else a.s = Math.max(.45, Math.min(1.4, a.s - e.deltaY * .0015)); apply(false); }, { passive: false });
+  ring.addEventListener("pointermove", (e) => { if (rd === null) return; a.r += (e.clientX - rd) * .8; apply(false); rd = e.clientX; });
+  ring.addEventListener("pointerup", () => { rd = null; });
+  w.querySelector(".ar").addEventListener("wheel", (e) => { e.preventDefault(); if (a.mode === "studio") a.r += e.deltaX * .5 + e.deltaY * .3; else a.s = Math.max(.45, Math.min(1.4, a.s - e.deltaY * .0015)); apply(false); }, { passive: false });
   w.querySelectorAll("[data-mode]").forEach((b) => b.addEventListener("click", (e) => { e.stopPropagation(); a.mode = b.dataset.mode; if (a.mode === "studio") { a.x = 35; a.y = -150; a.s = 1.05; } else { a.x = 0; a.y = 0; a.s = 1; a.r = 0; } render("ar"); const n = els.ar.querySelector("#archair"); n.style.transition = "none"; n.animate([{ opacity: 0, transform: n.style.transform + " translateY(20px)" }, { opacity: 1, transform: n.style.transform }], { duration: 450, easing: "cubic-bezier(.25,.8,.25,1)" }); }));
   w.querySelectorAll("[data-arcolor]").forEach((b) => b.addEventListener("click", (e) => { e.stopPropagation(); a.color = b.dataset.arcolor; state.pd.color = a.color; state.pd.saved = false; render("ar"); }));
-  w.querySelector("[data-arspin]").addEventListener("click", (e) => { e.stopPropagation(); if (m) m.spin(Math.PI); else { a.r += 180; apply(true); } });
-  w.querySelector("[data-arreset]").addEventListener("click", (e) => { e.stopPropagation(); if (a.mode === "studio") { a.r = 0; a.s = 1.05; } else { a.x = 0; a.y = 0; a.s = 1; a.r = 0; } m && m.reset(); apply(true); });
+  w.querySelector("[data-arspin]").addEventListener("click", (e) => { e.stopPropagation(); a.r += 180; apply(true); });
+  w.querySelector("[data-arreset]").addEventListener("click", (e) => { e.stopPropagation(); if (a.mode === "studio") { a.r = 0; a.s = 1.05; } else { a.x = 0; a.y = 0; a.s = 1; a.r = 0; } apply(true); });
 };
 
 /* ---------- checkout totals follow the cart ---------- */
