@@ -1406,5 +1406,66 @@ if (!reduceMotion && matchMedia("(hover: hover) and (pointer: fine)").matches) {
   });
 }
 
+/* ---------- Background preloading: while the visitor reads, fetch what comes next ----------
+   1. This page's lazy images, in reading order, three at a time.
+   2. Its off-screen videos and the embedded prototype, as low-priority prefetches.
+   3. The next project (or, on the home page, every project): page, hero poster, then hero video.
+   Skipped on data-saver and 2G connections. */
+(() => {
+  const conn = navigator.connection || {};
+  if (conn.saveData || /(^|-)2g$/.test(conn.effectiveType || "")) return;
+  const idle = window.requestIdleCallback || ((f) => setTimeout(f, 200));
+  const root = location.pathname.includes("/projects/") ? "../" : "";
+  const HERO = {
+    fitfido: ["hero-poster.webp?v=4", "hero.mp4?v=4"], brilliant: ["hero-poster.webp", "hero.mp4"], swifthome: ["hero-poster.webp?v=3", "hero.mp4?v=3"],
+    safedining: ["hero-poster.webp", "hero.mp4?v=2"], reco: ["hero-poster.webp?v=2", "hero.mp4?v=13"], zenbloom: ["hero-poster.webp?v=4", "hero.mp4?v=4"],
+    finra: [], bandy: ["hero-poster.webp?v=7", "hero.mp4?v=7"],
+  };
+  const done = new Set();
+  const prefetch = (href, as) => {
+    if (!href || done.has(href)) return; done.add(href);
+    const l = document.createElement("link"); l.rel = "prefetch"; l.href = href; if (as) l.as = as;
+    document.head.append(l);
+  };
+  const warmProject = (slug, withVideo) => {
+    const h = HERO[slug]; if (!h) return;
+    prefetch(`${root}projects/${slug}.html`, "document");
+    if (h[0]) prefetch(`${root}assets/projects/${slug}/${h[0]}`, "image");
+    if (withVideo && h[1]) prefetch(`${root}assets/projects/${slug}/${h[1]}`, "video");
+  };
+  const slugOf = (a) => ((a.getAttribute("href") || "").match(/([a-z]+)\.html/) || [])[1];
+
+  const nextSteps = () => {
+    // off-screen videos and embedded prototypes on this page
+    $$("video source[data-src]").forEach((s) => prefetch(s.dataset.src, "video"));
+    $$("iframe[data-proto-frame][loading=lazy]").forEach((f) => { f.loading = "eager"; });
+    // the next project, or every project from the home page
+    const next = $(".c-next");
+    if (next) warmProject(slugOf(next), true);
+    else $$('a[href*="projects/"]').map(slugOf).filter((s, i, a) => s && a.indexOf(s) === i).forEach((s, i) => warmProject(s, i < 2));
+  };
+  // hovering or touching a project link warms its hero video right away
+  document.addEventListener("pointerover", (e) => { const a = e.target.closest && e.target.closest('a[href*=".html"]'); const s = a && slugOf(a); if (s && HERO[s]) warmProject(s, true); }, { passive: true });
+  document.addEventListener("touchstart", (e) => { const a = e.target.closest && e.target.closest('a[href*=".html"]'); const s = a && slugOf(a); if (s && HERO[s]) warmProject(s, true); }, { passive: true });
+
+  const start = () => idle(() => {
+    const imgs = $$('img[loading="lazy"]');
+    let i = 0, active = 0, finished = false;
+    const pump = () => {
+      while (active < 3 && i < imgs.length) {
+        const im = imgs[i++];
+        if (im.complete && im.naturalWidth) continue;
+        active++;
+        const settle = () => { active--; pump(); };
+        im.addEventListener("load", settle, { once: true }); im.addEventListener("error", settle, { once: true });
+        im.loading = "eager";
+      }
+      if (!finished && i >= imgs.length && active === 0) { finished = true; idle(nextSteps, { timeout: 3000 }); }
+    };
+    pump();
+  }, { timeout: 2500 });
+  if (document.readyState === "complete") start(); else addEventListener("load", start, { once: true });
+})();
+
 document.documentElement.classList.add("js-ready");
 requestScrollFrame();
