@@ -9,14 +9,14 @@
   <meta property="og:type" content="article">
   <meta property="og:title" content="Bandy — Minwei Wu">
   <meta property="og:description" content="Match your band as you wish: stackable music blocks.">
-  <meta property="og:image" content="https://wmw921204-bit.github.io/minwwu/assets/projects/bandy/hero-poster.webp">
+  <meta property="og:image" content="https://wmw921204-bit.github.io/minwwu/assets/projects/bandy/hero-poster.webp?v=2">
   <meta name="theme-color" content="#faf6e8">
   <link rel="icon" href="../assets/img/logo.webp">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&family=Poppins:wght@400;500;600&family=Sulphur+Point:wght@400&family=Rubik:wght@700;800;900&display=swap">
   <link rel="stylesheet" href="../styles.css?v=20261018a">
-  <link rel="stylesheet" href="../case.css?v=20261023a">
+  <link rel="stylesheet" href="../case.css?v=20261023d">
 </head>
 <body class="case case--bandy">
   <a class="skip" href="#main">Skip to content</a>
@@ -60,7 +60,7 @@
   <main id="main">
     <section class="c-hero c-hero--br c-hero--compact" data-scene style="--beats:1;--hero-bg:#faf6e8">
       <div class="c-hero__pin">
-        <video class="c-hero__media" autoplay muted playsinline preload="auto" poster="../assets/projects/bandy/hero-poster.webp" aria-label="Four band members stack themselves from music blocks, then the Bandy logo drops in"><source src="../assets/projects/bandy/hero.mp4" type="video/mp4"></video>
+        <video class="c-hero__media" autoplay muted playsinline preload="auto" poster="../assets/projects/bandy/hero-poster.webp?v=2" aria-label="Four band members stack themselves from music blocks, then the Bandy logo drops in"><source src="../assets/projects/bandy/hero.mp4?v=2" type="video/mp4"></video>
         <div class="c-hero__intro">
           <small>TANGIBLE INTERACTION · IXDS 734</small>
           <p>Stack three blocks. Start a band.</p>
@@ -110,11 +110,35 @@
       <figure class="film reveal bd-film"><video controls playsinline preload="metadata" poster="../assets/projects/bandy/vision-poster.webp"><source src="../assets/projects/bandy/vision.mp4" type="video/mp4"></video></figure>
     </section>
 
-    <!-- 02 The idea -->
-    <section class="wrap c-sec" id="idea" data-chapter="The idea">
-      <div class="c-chapter"><span class="c-chapter__num">02</span><h2 class="c-kicker">The idea</h2></div>
-      <p class="c-head reveal-mask">Every block is a musical choice.</p>
-      <p class="c-text reveal">Making music usually starts with rules: notes, scales, instruments. Bandy starts with play. Each band member is a stack of three blocks, and each layer controls one part of the sound, so kids and adults can compose just by stacking.</p>
+    <!-- 02 Starting point -->
+    <section class="wrap c-sec" id="start" data-chapter="Starting point">
+      <div class="c-chapter"><span class="c-chapter__num">02</span><h2 class="c-kicker">Starting point</h2></div>
+      <div class="bd-start">
+        <div class="reveal">
+          <p class="c-head" style="margin-top:0">Music for people who don’t read music.</p>
+          <p class="c-text">Most ways into music start with rules: notes, scales and practice. We wanted a way in that starts with play, where nothing can be “wrong” and anyone can make a band in seconds. That led to three principles.</p>
+          <ol class="bd-principles">
+            <li><b>Touch, don’t read</b>Every musical choice is a physical block you can hold and see.</li>
+            <li><b>Every combination works</b>Blocks are tuned to sound good together, so mistakes become surprises.</li>
+            <li><b>Characters, not controls</b>A face reads as a mood long before it reads as a rhythm setting.</li>
+          </ol>
+        </div>
+        <figure class="bd-start__fig reveal"><img src="../assets/projects/bandy/concept-stack.webp" alt="Early white concept model: three plain cubes stacked on a base with six slots" loading="lazy"><figcaption>Early form study: plain cubes on a six-slot base, before the characters.</figcaption></figure>
+      </div>
+    </section>
+
+    <!-- 03 How to play -->
+    <section class="wrap c-sec" id="play" data-chapter="How to play">
+      <div class="c-chapter"><span class="c-chapter__num">03</span><h2 class="c-kicker">How to play</h2></div>
+      <p class="c-head reveal-mask">Stack up. Line up. Pick a scene.</p>
+      <div class="bd-play reveal" data-play>
+        <img class="bd-play__bg" src="../assets/projects/bandy/boards/country.webp" alt="">
+        <div class="bd-play__band"><span class="bd-m"><img src="../assets/projects/bandy/blocks/hat-monster.webp" alt=""><img src="../assets/projects/bandy/blocks/face-angry.webp" alt=""><img src="../assets/projects/bandy/blocks/outfit-drum.webp" alt=""></span><span class="bd-m"><img src="../assets/projects/bandy/blocks/hat-elf.webp" alt=""><img src="../assets/projects/bandy/blocks/face-happy.webp" alt=""><img src="../assets/projects/bandy/blocks/outfit-guitar.webp" alt=""></span><span class="bd-m"><img src="../assets/projects/bandy/blocks/hat-electric.webp" alt=""><img src="../assets/projects/bandy/blocks/face-laughing.webp" alt=""><img src="../assets/projects/bandy/blocks/outfit-singer.webp" alt=""></span><span class="bd-m"><img src="../assets/projects/bandy/blocks/hat-bubble.webp" alt=""><img src="../assets/projects/bandy/blocks/face-calm.webp" alt=""><img src="../assets/projects/bandy/blocks/outfit-piano.webp" alt=""></span><span class="bd-m bd-m--ghost"></span><span class="bd-m bd-m--ghost"></span></div>
+        <div class="bd-play__base"></div>
+        <div class="bd-play__v"><i></i><p><b>Vertical: one member</b>Hat = effect · Face = rhythm · Outfit = instrument</p></div>
+        <div class="bd-play__h"><i></i><p><b>Horizontal: the band</b>Each member adds a layer. Up to six on the base.</p></div>
+        <div class="bd-play__s"><i></i><p><b>Scene board: the genre</b>Read by NFC, it sets the base rhythm and melody.</p></div>
+      </div>
       <ol class="bd-layers reveal-stagger">
         <li><span class="bd-layers__stack"><img src="../assets/projects/bandy/blocks/hat-elf.webp" alt=""><img class="dim" src="../assets/projects/bandy/blocks/face-happy.webp" alt=""><img class="dim" src="../assets/projects/bandy/blocks/outfit-guitar.webp" alt=""></span><b>Hat</b><h3>Sound effect</h3><p>Monster, elf, electric, glitch, bubble or robot: the hat colours the voice.</p></li>
         <li><span class="bd-layers__stack"><img class="dim" src="../assets/projects/bandy/blocks/hat-elf.webp" alt=""><img src="../assets/projects/bandy/blocks/face-happy.webp" alt=""><img class="dim" src="../assets/projects/bandy/blocks/outfit-guitar.webp" alt=""></span><b>Face</b><h3>Rhythm</h3><p>An angry face hits hard; a sleepy one drags lazily. The mood sets the beat.</p></li>
@@ -122,72 +146,108 @@
       </ol>
     </section>
 
-    <!-- 03 Builder -->
-    <section class="bd-build" id="build" data-chapter="Build a member" data-builder>
+    <!-- 04 Play the band -->
+    <section class="bd-build" id="build" data-chapter="Play the band">
       <div class="wrap c-sec">
-        <div class="c-chapter"><span class="c-chapter__num">03</span><h2 class="c-kicker">Build a band member</h2></div>
-        <div class="bd-build__grid">
-          <div class="bd-stage">
-            <div class="bd-notes" aria-hidden="true"></div>
-            <div class="bd-member" aria-live="polite">
-              <button type="button" class="bd-block" data-slot="hat" aria-label="Change hat"><img alt=""></button>
-              <button type="button" class="bd-block" data-slot="face" aria-label="Change face"><img alt=""></button>
-              <button type="button" class="bd-block" data-slot="outfit" aria-label="Change outfit"><img alt=""></button>
+        <div class="c-chapter"><span class="c-chapter__num">04</span><h2 class="c-kicker">Play the band</h2></div>
+        <p class="c-head reveal-mask">Your turn: put a band on the board.</p>
+        <div class="bs reveal" data-band data-base="../assets/projects/bandy/" data-boards="country rock classical jazz electronic">
+          <div class="bs-stage">
+            <div class="bs-bg" aria-hidden="true"><img class="bs-bg__img" src="../assets/projects/bandy/boards/country.webp" alt=""><span class="bs-bg__label" data-band-label>Country</span></div>
+            <div class="bs-base" aria-hidden="true"><span class="bs-nfc"></span></div>
+            <div class="bs-slots" data-band-slots></div>
+            <p class="bs-ping" aria-hidden="true"><span class="bs-ping__dot"></span><span>NFC · <span data-band-scene>Country</span> board detected</span></p>
+            <div class="bs-gate">
+              <span class="bs-gate__icon" aria-hidden="true"><svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 19h7l10-8v26l-10-8H8z" fill="currentColor"/><path class="w1" d="M31 18a8 8 0 0 1 0 12"/><path class="w2" d="M36 13a15 15 0 0 1 0 22"/></svg></span>
+              <b>Turn your sound on</b>
+              <p>Every note is made live in your browser. Speakers or headphones work best.</p>
+              <button type="button" class="bs-go" data-band-start>Start the band</button>
             </div>
-            <span class="bd-floor" aria-hidden="true"></span>
-            <p class="bd-tip">It mixes itself. Tap a block to change it.</p>
           </div>
-          <div class="bd-read">
-            <p class="bd-read__head">Now playing</p>
-            <div class="bd-read__row" data-read="hat"><small>Hat · sound effect</small><b></b><span></span></div>
-            <div class="bd-read__row" data-read="face"><small>Face · rhythm</small><b></b><span></span></div>
-            <div class="bd-read__row" data-read="outfit"><small>Outfit · instrument</small><b></b><span></span></div>
-            <p class="bd-read__combo"><b data-combos>216</b> possible band members from 18 blocks</p>
+          <div class="bs-bar">
+            <button type="button" class="bs-play" data-band-toggle aria-label="Play or pause"><svg class="i-play" viewBox="0 0 24 24"><path d="M7 4.5v15l13-7.5z" fill="currentColor"/></svg><svg class="i-pause" viewBox="0 0 24 24"><path d="M6 4h4.5v16H6zM13.5 4H18v16h-4.5z" fill="currentColor"/></svg></button>
+            <div class="bs-genres" role="group" aria-label="Scene board"><small>Scene board</small><button type="button" data-genre="country" style="--gc:#6aa84f" aria-current="true"><i></i>Country</button><button type="button" data-genre="rock" style="--gc:#e0565b"><i></i>Rock</button><button type="button" data-genre="classical" style="--gc:#c99a3b"><i></i>Classical</button><button type="button" data-genre="jazz" style="--gc:#3f6fd8"><i></i>Jazz</button><button type="button" data-genre="electronic" style="--gc:#9a4fe0"><i></i>Electronic</button></div>
+            <button type="button" class="bs-shuffle" data-band-shuffle>Shuffle the band</button>
           </div>
+          <p class="bs-tip"><span data-band-read></span><span>Tap a block to swap it · <b>+</b> adds a member · <b>×</b> takes one off</span></p>
         </div>
-        <div class="bd-shelf">
-          <div><small>Hats</small><div><button type="button" data-pick="hat:0" title="Monster Hat"><img src="../assets/projects/bandy/blocks/hat-monster.webp" alt="Monster Hat" loading="lazy"></button><button type="button" data-pick="hat:1" title="Elf Hat"><img src="../assets/projects/bandy/blocks/hat-elf.webp" alt="Elf Hat" loading="lazy"></button><button type="button" data-pick="hat:2" title="Electric Hat"><img src="../assets/projects/bandy/blocks/hat-electric.webp" alt="Electric Hat" loading="lazy"></button><button type="button" data-pick="hat:3" title="Glitch Hat"><img src="../assets/projects/bandy/blocks/hat-glitch.webp" alt="Glitch Hat" loading="lazy"></button><button type="button" data-pick="hat:4" title="Bubble Hat"><img src="../assets/projects/bandy/blocks/hat-bubble.webp" alt="Bubble Hat" loading="lazy"></button><button type="button" data-pick="hat:5" title="Robot Hat"><img src="../assets/projects/bandy/blocks/hat-robot.webp" alt="Robot Hat" loading="lazy"></button></div></div>
-          <div><small>Faces</small><div><button type="button" data-pick="face:0" title="Angry Face"><img src="../assets/projects/bandy/blocks/face-angry.webp" alt="Angry Face" loading="lazy"></button><button type="button" data-pick="face:1" title="Sleepy Face"><img src="../assets/projects/bandy/blocks/face-sleepy.webp" alt="Sleepy Face" loading="lazy"></button><button type="button" data-pick="face:2" title="Happy Face"><img src="../assets/projects/bandy/blocks/face-happy.webp" alt="Happy Face" loading="lazy"></button><button type="button" data-pick="face:3" title="Laughing Face"><img src="../assets/projects/bandy/blocks/face-laughing.webp" alt="Laughing Face" loading="lazy"></button><button type="button" data-pick="face:4" title="Calm Face"><img src="../assets/projects/bandy/blocks/face-calm.webp" alt="Calm Face" loading="lazy"></button><button type="button" data-pick="face:5" title="Sad Face"><img src="../assets/projects/bandy/blocks/face-sad.webp" alt="Sad Face" loading="lazy"></button></div></div>
-          <div><small>Outfits</small><div><button type="button" data-pick="outfit:0" title="Guitar"><img src="../assets/projects/bandy/blocks/outfit-guitar.webp" alt="Guitar" loading="lazy"></button><button type="button" data-pick="outfit:1" title="Singer"><img src="../assets/projects/bandy/blocks/outfit-singer.webp" alt="Singer" loading="lazy"></button><button type="button" data-pick="outfit:2" title="Piano"><img src="../assets/projects/bandy/blocks/outfit-piano.webp" alt="Piano" loading="lazy"></button><button type="button" data-pick="outfit:3" title="Bass"><img src="../assets/projects/bandy/blocks/outfit-bass.webp" alt="Bass" loading="lazy"></button><button type="button" data-pick="outfit:4" title="Violin"><img src="../assets/projects/bandy/blocks/outfit-violin.webp" alt="Violin" loading="lazy"></button><button type="button" data-pick="outfit:5" title="Drums"><img src="../assets/projects/bandy/blocks/outfit-drum.webp" alt="Drums" loading="lazy"></button></div></div>
-        </div>
-        <script type="application/json" data-builder-data>{"hat": [["monster", "Monster Hat", "Low pitch", "A deeper, heavier sound, like a small monster voice."], ["elf", "Elf Hat", "High pitch", "A higher, lighter sound, like a tiny fairy voice."], ["electric", "Electric Hat", "Buzz", "A buzzing, zapping sound, as if powered by electricity."], ["glitch", "Glitch Hat", "Signal break", "A broken, choppy sound, like a signal breaking into pixels."], ["bubble", "Bubble Hat", "Underwater", "A soft, muffled sound, like music heard underwater."], ["robot", "Robot Hat", "Vocoder", "A mechanical, digital voice, like a robot singing."]], "face": [["angry", "Angry Face", "Strong rhythm", "Heavy, punchy and powerful."], ["sleepy", "Sleepy Face", "Lazy rhythm", "Slow, loose and relaxed."], ["happy", "Happy Face", "Upbeat rhythm", "Bright, bouncy and cheerful."], ["laughing", "Laughing Face", "Playful rhythm", "Fast, lively and fun."], ["calm", "Calm Face", "Smooth rhythm", "Steady, soft and flowing."], ["sad", "Sad Face", "Slow rhythm", "Gentle, slower and softer."]], "outfit": [["guitar", "Guitar"], ["singer", "Singer"], ["piano", "Piano"], ["bass", "Bass"], ["violin", "Violin"], ["drum", "Drums"]]}</script>
       </div>
     </section>
 
-    <!-- 04 The stage -->
-    <section class="wrap c-sec" id="stage" data-chapter="The stage">
-      <div class="c-chapter"><span class="c-chapter__num">04</span><h2 class="c-kicker">The stage</h2></div>
-      <p class="c-head reveal-mask">A little farm where the band plays.</p>
-      <p class="c-text reveal">The blocks live on a laser-cut stage: a container with a tenon-and-mortise frame, a grid of slots for the band, and a painted, layered farm scene behind it. Place a member in a slot and it starts to play.</p>
+    <!-- 05 Scene boards -->
+    <section class="wrap c-sec" id="scenes" data-chapter="Scene boards">
+      <div class="c-chapter"><span class="c-chapter__num">05</span><h2 class="c-kicker">Scene boards</h2></div>
+      <p class="c-head reveal-mask">Same band, a different genre.</p>
+      <p class="c-text reveal">The board behind the band sets the genre. An NFC tag inside it tells the base which scene is in, and the same piano player sounds completely different at a jazz club than on a rock stage. Our prototype has the country board; try the others in the band above.</p>
       <div class="bd-gallery reveal-stagger">
-        <img src="../assets/projects/bandy/scene-1.webp" alt="The Bandy stage with its painted farm backdrop" width="1600" height="953" loading="lazy">
-        <img src="../assets/projects/bandy/scene-2.webp" alt="The empty laser-cut container with its grid of slots" width="1600" height="953" loading="lazy">
-        <img src="../assets/projects/bandy/scene-3.webp" alt="The stage seen from the front" width="1600" height="953" loading="lazy">
-        <img src="../assets/projects/bandy/scene-5.webp" alt="A single band member on the stage" width="1600" height="953" loading="lazy">
+        <img src="../assets/projects/bandy/scene-1.webp" alt="The real country board: a painted, layered farm behind the base" width="1600" height="953" loading="lazy">
+        <img src="../assets/projects/bandy/scene-2.webp" alt="The laser-cut base with its grid of slots" width="1600" height="953" loading="lazy">
       </div>
+      <p class="fin-note">The real prototype: a laser-cut base with tenon-and-mortise joints and a hand-painted, layered country board.</p>
     </section>
 
-    <!-- 05 How it works -->
+    <!-- 06 How it works -->
     <section class="wrap c-sec" id="tech" data-chapter="How it works">
-      <div class="c-chapter"><span class="c-chapter__num">05</span><h2 class="c-kicker">How it works</h2></div>
-      <p class="c-head reveal-mask">Resistors tell the board who is who.</p>
-      <div class="bd-flow reveal" data-flow>
-        <div class="bd-flow__stack"><img src="../assets/projects/bandy/blocks/hat-robot.webp" alt=""><img src="../assets/projects/bandy/blocks/face-laughing.webp" alt=""><img src="../assets/projects/bandy/blocks/outfit-drum.webp" alt=""></div>
-        <ol class="bd-flow__steps">
-          <li><b>Pogo pins</b><span>Spring-loaded pins pass power, ground and signal through the stack, so blocks connect just by sitting on top of each other.</span></li>
-          <li><b>A resistor in every block</b><span>Each block hides a resistor with its own value, a fingerprint the board can read.</span></li>
-          <li><b>ESP32</b><span>Reads one input per layer (pins 32, 33 and 34) and works out which hat, face and outfit are stacked.</span></li>
-          <li><b>Processing</b><span>Turns the combination into sound: the instrument, its rhythm and its effect.</span></li>
-        </ol>
-      </div>
-      <div class="bd-build-photos reveal-stagger">
-        <figure><img src="../assets/projects/bandy/build-pins.webp" alt="A row of pogo pins on a workbench" loading="lazy"><figcaption>Pogo pins</figcaption></figure>
-        <figure><img src="../assets/projects/bandy/build-resistor.webp" alt="A resistor soldered between two pogo pins" loading="lazy"><figcaption>Pins and resistor</figcaption></figure>
-        <figure><img src="../assets/projects/bandy/build-inside.webp" alt="The inside of a 3D-printed block with its wiring" loading="lazy"><figcaption>Inside a block</figcaption></figure>
-        <figure><img src="../assets/projects/bandy/build-circuit.webp" alt="The ESP32 wired on a breadboard" loading="lazy"><figcaption>ESP32 circuit</figcaption></figure>
+      <div class="c-chapter"><span class="c-chapter__num">06</span><h2 class="c-kicker">How it works</h2></div>
+      <p class="c-head reveal-mask">Look inside.</p>
+      <div class="bd-x" data-xray>
+        <div class="bd-x__fig">
+          <svg viewBox="0 0 1000 640" aria-hidden="true">
+            <defs><clipPath id="xb"><rect x="590" y="120" width="330" height="310" rx="14"/></clipPath></defs>
+            <image href="../assets/projects/bandy/boards/country.webp" x="590" y="120" width="330" height="310" preserveAspectRatio="xMidYMid slice" clip-path="url(#xb)"/>
+            <rect x="590" y="120" width="330" height="310" rx="14" fill="none" stroke="#1d1b19" stroke-opacity=".15" stroke-width="3"/>
+            <path d="M80 440 L150 400 L870 400 L940 440 Z" fill="#ebe4cf"/>
+            <rect x="80" y="440" width="860" height="120" rx="20" fill="#f6f1e2" stroke="#1d1b19" stroke-opacity=".15" stroke-width="3"/>
+            <g opacity=".5" stroke="#1d1b19" stroke-opacity=".25" stroke-width="2" fill="none"><rect x="410" y="408" width="120" height="26" rx="6"/></g>
+            <image href="../assets/projects/bandy/blocks/hat-robot.webp" x="240" y="40" width="120" height="120"/>
+            <image href="../assets/projects/bandy/blocks/face-laughing.webp" x="240" y="160" width="120" height="120"/>
+            <image href="../assets/projects/bandy/blocks/outfit-drum.webp" x="240" y="280" width="120" height="120"/>
+            <!-- x-ray layers -->
+            <g class="bd-x__layer" data-x="block">
+              <rect x="240" y="40" width="120" height="360" rx="14" fill="#faf6e8" fill-opacity=".86"/>
+              <g stroke="#5b47c9" stroke-width="4" fill="none"><path d="M262 48V392"/><path d="M338 48V392"/></g>
+              <g fill="#f4c51c" stroke="#1d1b19" stroke-width="2"><rect x="254" y="36" width="16" height="12" rx="3"/><rect x="254" y="154" width="16" height="12" rx="3"/><rect x="254" y="156" width="16" height="12" rx="3"/><rect x="254" y="272" width="16" height="12" rx="3"/><rect x="254" y="274" width="16" height="12" rx="3"/><rect x="254" y="390" width="16" height="12" rx="3"/><rect x="330" y="36" width="16" height="12" rx="3"/><rect x="330" y="154" width="16" height="12" rx="3"/><rect x="330" y="156" width="16" height="12" rx="3"/><rect x="330" y="272" width="16" height="12" rx="3"/><rect x="330" y="274" width="16" height="12" rx="3"/><rect x="330" y="390" width="16" height="12" rx="3"/></g>
+              <g stroke="#c0402a" stroke-width="4" fill="none"><path d="M262 100 h12 l6 -10 l8 20 l8 -20 l8 20 l8 -20 l6 10 h20"/><path d="M262 220 h12 l6 -10 l8 20 l8 -20 l8 20 l8 -20 l6 10 h20"/><path d="M262 340 h12 l6 -10 l8 20 l8 -20 l8 20 l8 -20 l6 10 h20"/></g>
+              <g font-family="Rubik,sans-serif" font-weight="800" font-size="20" fill="#1d1b19">
+                <text x="372" y="106">Hat → pin 33</text><text x="372" y="226">Face → pin 34</text><text x="372" y="346">Outfit → pin 32</text>
+              </g>
+            </g>
+            <g class="bd-x__layer" data-x="pins">
+              <rect x="240" y="40" width="120" height="360" rx="14" fill="#faf6e8" fill-opacity=".86"/>
+              <g fill="#f4c51c" stroke="#1d1b19" stroke-width="3"><rect x="252" y="32" width="20" height="16" rx="4"/><rect x="252" y="152" width="20" height="16" rx="4"/><rect x="252" y="156" width="20" height="16" rx="4"/><rect x="252" y="272" width="20" height="16" rx="4"/><rect x="252" y="276" width="20" height="16" rx="4"/><rect x="252" y="392" width="20" height="16" rx="4"/><rect x="328" y="32" width="20" height="16" rx="4"/><rect x="328" y="152" width="20" height="16" rx="4"/><rect x="328" y="156" width="20" height="16" rx="4"/><rect x="328" y="272" width="20" height="16" rx="4"/><rect x="328" y="276" width="20" height="16" rx="4"/><rect x="328" y="392" width="20" height="16" rx="4"/></g>
+              <g stroke="#5b47c9" stroke-width="5" fill="none" stroke-dasharray="10 8" class="bd-x__flow"><path d="M262 48V560"/><path d="M338 48V560"/></g>
+              <text x="372" y="226" font-family="Rubik,sans-serif" font-weight="800" font-size="20" fill="#1d1b19">Top and bottom pins are wired through,</text>
+              <text x="372" y="252" font-family="Rubik,sans-serif" font-weight="800" font-size="20" fill="#1d1b19">so the signal runs down the whole stack</text>
+            </g>
+            <g class="bd-x__layer" data-x="base">
+              <rect x="80" y="440" width="860" height="120" rx="20" fill="#faf6e8" fill-opacity=".9"/>
+              <g transform="translate(150,465)"><rect width="190" height="74" rx="8" fill="#1d1b19"/><rect x="66" y="16" width="58" height="42" rx="4" fill="#5b47c9"/><g fill="#f4c51c"><rect x="10" y="4" width="8" height="8"/><rect x="10" y="62" width="8" height="8"/><rect x="28" y="4" width="8" height="8"/><rect x="28" y="62" width="8" height="8"/><rect x="46" y="4" width="8" height="8"/><rect x="46" y="62" width="8" height="8"/><rect x="64" y="4" width="8" height="8"/><rect x="64" y="62" width="8" height="8"/><rect x="82" y="4" width="8" height="8"/><rect x="82" y="62" width="8" height="8"/><rect x="100" y="4" width="8" height="8"/><rect x="100" y="62" width="8" height="8"/><rect x="118" y="4" width="8" height="8"/><rect x="118" y="62" width="8" height="8"/><rect x="136" y="4" width="8" height="8"/><rect x="136" y="62" width="8" height="8"/><rect x="154" y="4" width="8" height="8"/><rect x="154" y="62" width="8" height="8"/><rect x="172" y="4" width="8" height="8"/><rect x="172" y="62" width="8" height="8"/></g><text x="95" y="-10" text-anchor="middle" font-family="Rubik,sans-serif" font-weight="800" font-size="20" fill="#1d1b19">ESP32</text></g>
+              <g transform="translate(660,470)" fill="none" stroke="#2a8fd0" stroke-width="4"><rect width="130" height="64" rx="12"/><rect x="12" y="10" width="106" height="44" rx="9"/><rect x="24" y="20" width="82" height="24" rx="6"/><text x="65" y="-12" text-anchor="middle" fill="#1d1b19" stroke="none" font-family="Rubik,sans-serif" font-weight="800" font-size="20">NFC reader</text></g>
+              <g transform="translate(470,500)"><circle r="34" fill="#e6dfc8"/><g fill="#1d1b19"><circle cx="-22" cy="-22" r="3"/><circle cx="-11" cy="-22" r="3"/><circle cx="0" cy="-22" r="3"/><circle cx="11" cy="-22" r="3"/><circle cx="22" cy="-22" r="3"/><circle cx="-22" cy="-11" r="3"/><circle cx="-11" cy="-11" r="3"/><circle cx="0" cy="-11" r="3"/><circle cx="11" cy="-11" r="3"/><circle cx="22" cy="-11" r="3"/><circle cx="-22" cy="0" r="3"/><circle cx="-11" cy="0" r="3"/><circle cx="0" cy="0" r="3"/><circle cx="11" cy="0" r="3"/><circle cx="22" cy="0" r="3"/><circle cx="-22" cy="11" r="3"/><circle cx="-11" cy="11" r="3"/><circle cx="0" cy="11" r="3"/><circle cx="11" cy="11" r="3"/><circle cx="22" cy="11" r="3"/><circle cx="-22" cy="22" r="3"/><circle cx="-11" cy="22" r="3"/><circle cx="0" cy="22" r="3"/><circle cx="11" cy="22" r="3"/><circle cx="22" cy="22" r="3"/></g><text y="-46" text-anchor="middle" font-family="Rubik,sans-serif" font-weight="800" font-size="20" fill="#1d1b19">Speaker</text></g>
+              <g stroke="#5b47c9" stroke-width="4" fill="none"><path d="M262 440 V470 H240"/><path d="M338 440 V488 H340"/></g>
+              <path d="M940 520 H990" stroke="#1d1b19" stroke-width="6"/><text x="960" y="600" text-anchor="end" font-family="Rubik,sans-serif" font-weight="700" font-size="17" fill="#6b6457">USB · serial to Processing</text>
+            </g>
+            <g class="bd-x__layer" data-x="board">
+              <rect x="590" y="120" width="330" height="310" rx="14" fill="#faf6e8" fill-opacity=".82"/>
+              <g transform="translate(755,330)"><circle r="40" fill="#fff" stroke="#2a8fd0" stroke-width="5"/><text y="9" text-anchor="middle" font-family="Rubik,sans-serif" font-weight="900" font-size="26" fill="#2a8fd0">NFC</text><g fill="none" stroke="#2a8fd0" stroke-width="5" stroke-linecap="round" class="bd-x__waves"><path d="M-20 70 q20 18 40 0"/><path d="M-34 86 q34 28 68 0"/></g></g>
+              <text x="755" y="200" text-anchor="middle" font-family="Rubik,sans-serif" font-weight="800" font-size="22" fill="#1d1b19">A tag in every board</text><text x="755" y="232" text-anchor="middle" font-family="Rubik,sans-serif" font-weight="700" font-size="18" fill="#6b6457">tells the base the genre</text>
+            </g>
+          </svg>
+          <button type="button" class="bd-x__hot" style="--x:30%;--y:34%" data-xgo="block" aria-label="Inside a block"><span>Inside a block</span></button>
+          <button type="button" class="bd-x__hot" style="--x:30%;--y:66%" data-xgo="pins" aria-label="Pogo pins"><span>Pogo pins</span></button>
+          <button type="button" class="bd-x__hot" style="--x:50%;--y:88%" data-xgo="base" aria-label="Inside the base"><span>Inside the base</span></button>
+          <button type="button" class="bd-x__hot" style="--x:75%;--y:32%" data-xgo="board" aria-label="Scene board"><span>Scene board</span></button>
+        </div>
+        <div class="bd-x__side" aria-live="polite">
+          <div class="bd-x__info is-on" data-xinfo="block"><img src="../assets/projects/bandy/build-inside.webp" alt="" loading="lazy"><b>A resistor in every block</b><p>Each block hides a resistor with its own value. One leg goes to a shared ground, the other to a corner pin that maps to its layer: pin 32 for the instrument, 33 for the effect, 34 for the rhythm.</p></div>
+          <div class="bd-x__info" data-xinfo="pins"><img src="../assets/projects/bandy/build-pins.webp" alt="" loading="lazy"><b>Pogo pins</b><p>Spring-loaded pins on the top and bottom faces are wired through, so three blocks are read at once just by stacking.</p></div>
+          <div class="bd-x__info" data-xinfo="base"><img src="../assets/projects/bandy/build-circuit.webp" alt="" loading="lazy"><b>Inside the base</b><p>The ESP32 reads the three voltages, matches them to calibrated ranges and sends the combo, like “bass,laughing,elf”, to Processing, which loops the right sound. In our MVP the laptop plays it; the speaker and NFC reader are part of the final design.</p></div>
+          <div class="bd-x__info" data-xinfo="board"><img src="../assets/projects/bandy/boards/country.webp" alt="" loading="lazy"><b>Scene board</b><p>An NFC tag in each board tells the base which genre is in, so it can set the base rhythm and melody the band plays over.</p></div>
+          <p class="bd-x__tip">Tap a hotspot, or let it walk you through.</p>
+        </div>
       </div>
       <div class="c-split" style="align-items:center">
-        <div class="reveal"><h3 class="fin-sub">A working MVP</h3><p class="c-text">Before painting anything, we proved the core loop: stack blocks on the breadboard rig, and the laptop recognises them and plays the matching sound in real time.</p></div>
+        <div class="reveal"><h3 class="fin-sub">A working MVP</h3><p class="c-text">Before painting anything, we proved the core loop: stack blocks on the breadboard rig, and the laptop recognises them and plays the matching sound in real time, with a debounce so a wobbly contact doesn’t cut the music.</p></div>
         <figure class="film reveal" style="margin-top:0"><video controls playsinline preload="none" poster="../assets/projects/bandy/demo-poster.webp"><source data-src="../assets/projects/bandy/demo.mp4" type="video/mp4"></video></figure>
       </div>
     </section>
@@ -201,7 +261,7 @@
   <nav class="chapter" aria-label="Chapters">
     <ol class="chapter__list"></ol>
     <button class="chapter__toggle" aria-expanded="false">
-      <span class="chapter__num">01 / 05</span><span class="chapter__label">Vision film</span>
+      <span class="chapter__num">01 / 06</span><span class="chapter__label">Vision film</span>
       <span class="chapter__bar"><span></span></span>
     </button>
   </nav>
@@ -242,6 +302,7 @@
   </footer>
 
   <script src="../assets/js/lenis.min.js" defer></script>
-  <script src="../main.js?v=20261023a" defer></script>
+  <script src="../main.js?v=20261023d" defer></script>
+  <script src="../assets/projects/bandy/band.js?v=3" defer></script>
 </body>
 </html>

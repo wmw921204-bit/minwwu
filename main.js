@@ -882,6 +882,46 @@ $$("[data-flow]").forEach((flow) => {
   }), { threshold: 0.4 }).observe(flow);
 });
 
+/* ---------- Bandy: how-to-play diagram, scene boards, x-ray ---------- */
+$$("[data-play]").forEach((el) => {
+  new IntersectionObserver((es, io) => es.forEach((e) => { if (e.isIntersecting) { el.classList.add("is-in"); io.disconnect(); } }), { threshold: 0.35 }).observe(el);
+});
+// a small helper: cycle through items while visible, pause after a click
+const autoCycle = (root, count, show, every) => {
+  let cur = 0, pausedUntil = 0, visible = false;
+  new IntersectionObserver((es) => es.forEach((e) => { visible = e.isIntersecting; }), { threshold: 0.35 }).observe(root);
+  setInterval(() => {
+    if (!visible || Date.now() < pausedUntil || document.hidden || reduceMotion) return;
+    cur = (cur + 1) % count; show(cur);
+  }, every);
+  return (i) => { cur = i; pausedUntil = Date.now() + 12000; show(i); };
+};
+$$("[data-boards]").forEach((sb) => {
+  const imgs = $$("[data-board-img]", sb), tabs = $$("[data-board]", sb), infos = $$("[data-board-info]", sb);
+  let pingT = 0;
+  const show = (i) => {
+    imgs.forEach((im, n) => im.classList.toggle("is-on", n === i));
+    infos.forEach((p, n) => p.classList.toggle("is-on", n === i));
+    tabs.forEach((b, n) => { if (n === i) b.setAttribute("aria-current", "true"); else b.removeAttribute("aria-current"); });
+    sb.classList.remove("is-ping"); void sb.offsetWidth; sb.classList.add("is-ping");
+    clearTimeout(pingT); pingT = setTimeout(() => sb.classList.remove("is-ping"), 1800);
+  };
+  const pick = autoCycle(sb, imgs.length, show, 3600);
+  tabs.forEach((b, n) => b.addEventListener("click", () => pick(n)));
+});
+$$("[data-xray]").forEach((x) => {
+  const order = ["block", "pins", "base", "board"];
+  const hots = $$("[data-xgo]", x), infos = $$("[data-xinfo]", x);
+  const show = (i) => {
+    const k = order[i]; x.dataset.at = k;
+    hots.forEach((h) => h.classList.toggle("is-on", h.dataset.xgo === k));
+    infos.forEach((p) => p.classList.toggle("is-on", p.dataset.xinfo === k));
+  };
+  show(0);
+  const pick = autoCycle(x, order.length, show, 4200);
+  hots.forEach((h) => h.addEventListener("click", () => pick(order.indexOf(h.dataset.xgo))));
+});
+
 /* ---------- Prototype guide: follow the embedded app and explain each step ---------- */
 $$("[data-proto-guide]").forEach((guide) => {
   const demo = guide.closest(".fin-demo") || guide.parentElement;
@@ -1103,7 +1143,8 @@ $$("[data-flip]").forEach((flip) => {
   const main = $(".case main") || $(".case");
   if (!main) return;
   // backgrounds, icons and the hero stay decorative
-  const skip = ".c-hero, .vn__bg, .cine, .site-header, header, footer, .c-next, [aria-hidden='true']";
+  // interactive pieces (buttons, Bandy blocks, demos) keep their own clicks
+  const skip = ".c-hero, .vn__bg, .cine, .site-header, header, footer, .c-next, [aria-hidden='true'], button, [data-nozoom], [data-band], [data-builder], [data-play], [data-boards], [data-xray], .bd-shelf, .bd-layers, .bd-start";
   const zoomable = (img) => !img.closest(skip) && !/icon-|logo/.test(img.src) && (+img.getAttribute("width") || 999) >= 300;
   const imgs = $$("img", main).filter(zoomable);
   if (!imgs.length) return;
