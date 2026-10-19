@@ -237,3 +237,15 @@ test('notification switches follow the automation level, and a temporary level p
   assert.equal(app.run('S.notif.finished'), false);
   app.close();
 });
+
+test('a robot decision shows a Change label in the list and on the banner', async () => {
+  const b = fakeBridge({ vacuum: 'cleaning', detail: 'cleaning' });
+  const app = await boot(b, { onboarded: true, scenario: 'all', autonomy: 'autoNotify' });
+  app.run("S.sim.pending=['cable'];A.haFire()");
+  const ev = "S.events.find(e=>e.key==='cable')";
+  assert.match(app.run(`evItem(${ev})`), /pill edit">Change</);
+  assert.match(app.run(`evItem(${ev})`), /Robot decided: /);
+  app.run(`S.ui.notice=${ev}.id;render()`);
+  assert.match(app.run("document.querySelector('.notice').textContent"), /Change$/);
+  app.close();
+});

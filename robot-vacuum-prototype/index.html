@@ -145,6 +145,7 @@ button.tile{font:inherit;width:100%}
 .link{border:0;background:none;color:var(--primary);font-weight:800;padding:0;font-size:inherit}
 
 .pill{display:inline-flex;align-items:center;gap:5px;font-size:11.5px;font-weight:800;padding:5px 10px;border-radius:99px;white-space:nowrap}
+.pill.edit{background:var(--primary-soft);color:var(--primary)}
 .pill.needsReview,.pill.deferred,.pill.partial{background:var(--warn-soft);color:var(--warn)}
 .pill.inProgress,.pill.info{background:var(--primary-soft);color:var(--primary)}
 .pill.resolved,.pill.completed{background:var(--ok-soft);color:var(--ok)}
@@ -1062,12 +1063,15 @@ function objItem(o){
 }
 function evItem(ev){
   if(ev.autonomous&&!ev.changed){const d=DEFS[ev.key];const lab=ev.autoChoice?SHORT[ev.key].labels[ev.autoChoice]:'Saved preference';
-    return `<button class="item" data-a="openEvent" data-v="${ev.id}"><span class="ico blue">${ic('robot',20)}</span><span class="body"><span class="t">${esc(SHORT[ev.key].q)}</span><span class="s">Robot chose: ${esc(lab)} · ${hhmm(ev.at)}</span></span><span class="pill info">Robot decided</span></button>`}
+    return `<button class="item" data-a="openEvent" data-v="${ev.id}" aria-label="${esc(SHORT[ev.key].q)} Robot decided: ${esc(lab)}. Change it"><span class="ico blue">${ic('robot',20)}</span><span class="body"><span class="t">${esc(SHORT[ev.key].q)}</span><span class="s">Robot decided: ${esc(lab)} · ${hhmm(ev.at)}</span></span><span class="pill edit">Change</span></button>`}
+  const mine=userMadeEv(ev);
   const d=DEFS[ev.key];const icC=ev.status==='resolved'||ev.status==='info'?'ok':ev.status==='skipped'?'gray':ev.status==='inProgress'?'blue':'warn';
   const icN=ev.status==='resolved'?'check':ev.status==='skipped'?'skip':ev.status==='inProgress'?'robot':ev.status==='info'?'robot':'alert';
   const room=ROOM[ZONES[d.zone].room].name;
-  return `<button class="item" data-a="openEvent" data-v="${ev.id}"><span class="ico ${icC}">${ic(icN,20)}</span><span class="body"><span class="t">${esc(ev.suggest&&ev.status==='needsReview'?'Extra pass suggested':d.title)}</span><span class="s">${room} · ${hhmm(ev.at)}${ev.retryFailed?' · retry didn’t work':''}</span></span><span class="pill ${ev.status}">${ev.status==='info'&&!ev.autonomous?'Done':STATUSLABEL[ev.status]}</span></button>`;
+  return `<button class="item" data-a="openEvent" data-v="${ev.id}"><span class="ico ${icC}">${ic(icN,20)}</span><span class="body"><span class="t">${esc(ev.suggest&&ev.status==='needsReview'?'Extra pass suggested':d.title)}</span><span class="s">${room} · ${mine?'You chose: '+esc(SHORT[ev.key].labels[ev.lastAct]||ev.lastAct)+' · ':''}${hhmm(ev.at)}${ev.retryFailed?' · retry didn’t work':''}</span></span>${mine?'<span class="pill edit">Change</span>':`<span class="pill ${ev.status}">${ev.status==='info'&&!ev.autonomous?'Done':STATUSLABEL[ev.status]}</span>`}</button>`;
 }
+/* Your own choice that can still be changed: skipped, put off, or marked no-go. */
+function userMadeEv(ev){return !ev.archived&&!(ev.autonomous&&!ev.changed)&&!!ev.lastAct&&(['skipped','deferred'].includes(ev.status)||(ev.status==='resolved'&&ev.lastAct==='nogo'))}
 function statusCard(){
   const d=dev();const off=S.conn!=='connected';
   const nY=needsYou();
@@ -1201,15 +1205,15 @@ function scrEvent(id){
   h+=`<div class="h-screen" style="margin-top:18px">${esc(q)}</div>`;
   const isAuto=ev.autonomous&&!ev.changed&&!ev.archived;
   // your own choices stay changeable too, not only the robot's
-  const userMade=!ev.archived&&!isAuto&&!!ev.lastAct&&(['skipped','deferred'].includes(ev.status)||(ev.status==='resolved'&&ev.lastAct==='nogo'));
+  const userMade=userMadeEv(ev);
   const active=!ev.archived&&(['needsReview','info','deferred'].includes(ev.status)||(isAuto&&ev.status!=='inProgress')||userMade);
   const fails=ev.retryFails||0;
   if(ev.retryFailed&&ev.status==='needsReview')h+=`<p class="ev-line" style="color:var(--warn)">${fails>=2?'Retried twice. It’s still blocked.':'Retry didn’t work. It’s still blocked.'}</p>${d.failWhy?`<div class="detect"><b>What the robot detects</b>${esc(d.failWhy)}<br><span class="muted">${esc(fails>=2?'Another retry is unlikely to help. Mark it as no-go or leave it for today.':d.failNext||'')}</span></div>`:''}`;
   else if(ev.status==='inProgress')h+=`<p class="ev-line">The robot is heading there now.</p>`;
   else if(ev.outcome&&(!active||isAuto))h+=`<p class="ev-line">${esc(ev.outcome)}</p>`;
   else h+=`<p class="ev-line">${esc(sh.line)}</p>`;
-  if(userMade)h+=`<div class="mode-note">${ic('check',18)}<span>You chose <b>${esc(sh.labels[ev.lastAct]||ev.lastAct)}</b></span></div>`;
-  if(isAuto)h+=`<div class="mode-note">${ic('robot',18)}<span>Robot chose <b>${esc(ev.autoChoice?sh.labels[ev.autoChoice]:'your saved preference')}</b>${ev.status==='inProgress'?' and is on it now':''}</span></div>`;
+  if(userMade)h+=`<div class="mode-note">${ic('check',18)}<span>You chose <b>${esc(sh.labels[ev.lastAct]||ev.lastAct)}</b>. Pick another option below to change it.</span></div>`;
+  if(isAuto)h+=`<div class="mode-note">${ic('robot',18)}<span>Robot chose <b>${esc(ev.autoChoice?sh.labels[ev.autoChoice]:'your saved preference')}</b>${ev.status==='inProgress'?' and is on it now':'. Pick another option below to change it.'}</span></div>`;
   if(!ev.archived&&S.waitEv===ev.id)h+=`<div class="mode-note wait">${ic('pause',18)}<span>The robot stopped and is <b>waiting for you</b></span></div>`;
   if(active){
     const blocked=S.device.status==='returning'||(S.cmd&&S.cmd.state==='sending')||S.conn!=='connected';
@@ -1224,7 +1228,7 @@ function scrEvent(id){
     if(opts.length){
       const want=fails>=2?['nogo','skipNow','avoid'].find(o=>opts.includes(o)):isAuto||userMade||ev.mode==='manual'?null:ev.mode==='assist'?(ev.suggestion||sh.primary):sh.primary;
       const prim=opts.includes(want)?want:null;
-      if(isAuto||userMade)h+=`<div class="sec-h" style="margin:20px 4px -8px">Change it?</div>`;
+      if(isAuto||userMade)h+=`<div class="sec-h" style="margin:20px 4px -8px">Change to</div>`;
       if(prim&&ev.mode==='assist')h+=`<div class="sug-tag">${ic('robot',15)} Robot suggests</div>`;
       const rest=opts.filter(o=>o!==prim);
       const dis=blocked?'disabled':'';
@@ -1617,7 +1621,7 @@ function render(){
   else if(S.ui.notice==='missed'){h+=`<div class="notice" role="status"><span class="ico blue" style="width:34px;height:34px;border-radius:10px;display:grid;place-items:center">${ic('bell',18)}</span><span class="body"><b>While notices were paused</b><br><span class="muted">${S.missedN} thing${S.missedN>1?'s':''} came up</span></span><button class="btn soft" style="height:36px;padding:0 12px;font-size:13px" data-a="tab" data-v="activity">Inbox</button></div>`}
   else if(S.ui.notice==='done'&&S.task&&S.task.done){h+=`<div class="notice" role="status"><span class="ico ok" style="width:34px;height:34px;border-radius:10px;display:grid;place-items:center">${ic('check',18)}</span><span class="body"><b>Cleaning finished</b><br><span class="muted">${esc(RESULTLABEL[S.task.result]||'Done')}</span></span><button class="btn soft" style="height:36px;padding:0 12px;font-size:13px" data-a="openReport" data-v="${S.task.id}">Report</button></div>`}
   else if(S.ui.notice==='objs'){const n=pendingObjs().length;if(n)h+=`<div class="notice" role="status"><span class="ico warn" style="width:34px;height:34px;border-radius:10px;display:grid;place-items:center;font-size:18px">${OBJ[pendingObjs()[0].label].e}</span><span class="body"><b>Cleaning done</b><br><span class="muted">${n} object${n>1?'s':''} to check</span></span><button class="btn soft" style="height:36px;padding:0 12px;font-size:13px" data-a="reviewRoom" data-v="${CELLROOM[pendingObjs()[0].k]}">Check</button></div>`}
-  else if(S.ui.notice&&!(c.name==='event'&&c.id===S.ui.notice)){const ev=findEvent(S.ui.notice);if(ev)h+=`<div class="notice" role="status"><span class="ico warn" style="width:34px;height:34px;border-radius:10px;display:grid;place-items:center">${ic('alert',18)}</span><span class="body"><b>${esc(noticeTitle(ev))}</b><br><span class="muted">${esc(SHORT[ev.key].q)}${ev.autonomous&&ev.autoChoice?' · '+esc(SHORT[ev.key].labels[ev.autoChoice]):''}</span></span><button class="btn soft" style="height:36px;padding:0 12px;font-size:13px" data-a="openEvent" data-v="${ev.id}">Review</button></div>`}
+  else if(S.ui.notice&&!(c.name==='event'&&c.id===S.ui.notice)){const ev=findEvent(S.ui.notice);if(ev)h+=`<div class="notice" role="status"><span class="ico warn" style="width:34px;height:34px;border-radius:10px;display:grid;place-items:center">${ic('alert',18)}</span><span class="body"><b>${esc(noticeTitle(ev))}</b><br><span class="muted">${esc(SHORT[ev.key].q)}${ev.autonomous&&ev.autoChoice?' · '+esc(SHORT[ev.key].labels[ev.autoChoice]):''}</span></span><button class="btn soft" style="height:36px;padding:0 12px;font-size:13px" data-a="openEvent" data-v="${ev.id}">${ev.autonomous&&!ev.changed?'Change':'Review'}</button></div>`}
   if(S.cmd){const m=S.cmd;
     if(m.state==='sending')h+=`<div class="cmd" role="status"><span class="spin"></span>Sending: ${esc(m.label)}…</div>`;
     else if(m.state==='confirmed')h+=`<div class="cmd" role="status">${ic('check',18)}${esc(m.label)}</div>`;
