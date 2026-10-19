@@ -1915,3 +1915,27 @@ img.is-zoomable { cursor: zoom-in; }
 .cturn { position: absolute; inset: 0; z-index: 3; perspective: 1500px; pointer-events: none; }
 .cturn__c { position: absolute; inset: 0; transform-style: preserve-3d; }
 .cturn__f { position: absolute; inset: 0; background-size: cover; background-position: center; border-radius: 12%; backface-visibility: hidden; }
+
+/* ---------- One hero mask for every project, in that page's own colour ----------
+   As you scroll, the hero video settles under a wash of the page colour (never plain black),
+   with the intro text fading in on top: dark text on light pages, light text on dark ones. */
+.c-hero { --mask: var(--hero-bg, var(--c-bg)); --mask-ink: #fff; background: var(--mask); }
+.c-hero__pin { background: var(--mask); }
+.c-hero__media, .case--light .c-hero__media { filter: none; }
+.c-hero__pin::before { content: ""; position: absolute; inset: 0; z-index: 1; background: var(--mask); opacity: clamp(0, calc(var(--p, 0) * .9), .45); pointer-events: none; }
+.c-hero__pin::after, .case--light .c-hero__pin::after, .c-hero--title .c-hero__pin::after {
+  display: block; z-index: 1;
+  background: linear-gradient(0deg, var(--mask) 0%, color-mix(in srgb, var(--mask) 72%, transparent) 34%, color-mix(in srgb, var(--mask) 0%, transparent) 64%);
+}
+.c-hero__intro, .c-hero--title .c-hero__intro { display: block; z-index: 2; color: var(--mask-ink); }
+.c-hero__intro small, .case--light .c-hero__intro small { color: color-mix(in srgb, var(--mask-ink) 70%, transparent); }
+.c-hero__cue, .case--light .c-hero__cue, .c-hero--title .c-hero__cue { z-index: 2; color: color-mix(in srgb, var(--mask-ink) 80%, transparent); }
+/* light pages get dark text */
+.case--bandy .c-hero, .case--light .c-hero, .case--reco .c-hero, .case--warm .c-hero { --mask-ink: #1d1b19; }
+/* phones show the video at its own size: the band around it is the page colour, and no mask is needed */
+@media (max-width: 640px), (max-aspect-ratio: 4/3) {
+  .c-hero--compact .c-hero__pin::before, .c-hero--compact .c-hero__pin::after, .c-hero--compact .c-hero__intro { display: none; }
+}
+@media (max-width: 640px) {
+  .c-hero--fill .c-hero__pin::before, .c-hero--fill .c-hero__pin::after, .c-hero--fill .c-hero__intro { display: none; }
+}
