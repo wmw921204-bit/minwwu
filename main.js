@@ -816,76 +816,83 @@ $$("[data-affinity]").forEach((sec) => {
   update();
 });
 
-/* ---------- Bandy: a band member that remixes itself; tap a block to change it ---------- */
-$$("[data-builder]").forEach((sec) => {
-  const data = JSON.parse($("[data-builder-data]", sec).textContent);
-  const base = "../assets/projects/bandy/blocks/";
-  const state = { hat: 1, face: 2, outfit: 0 };
-  const COLORS = ["#0e4a37", "#c0402a", "#5b47c9", "#e0b100", "#0b3a8c"];
-  const notes = $(".bd-notes", sec);
-  let pausedUntil = 0, order = 0;
-  const burst = () => {
-    if (reduceMotion) return;
-    for (let i = 0; i < 4; i++) {
-      const n = document.createElement("i");
-      n.textContent = ["♪", "♫", "♩", "♬"][i % 4];
-      n.style.setProperty("--dx", (Math.random() * 220 - 110) + "px");
-      n.style.setProperty("--r", (Math.random() * 40 - 20) + "deg");
-      n.style.setProperty("--n", COLORS[(Math.random() * COLORS.length) | 0]);
-      n.style.animationDelay = i * 0.12 + "s";
-      notes.appendChild(n);
-      setTimeout(() => n.remove(), 2400);
-    }
-  };
-  const show = (slot, animate) => {
-    const i = state[slot], item = data[slot][i];
-    const btn = $(`[data-slot="${slot}"]`, sec), img = $("img", btn);
-    img.src = base + slot + "-" + item[0] + ".webp"; img.alt = item[1];
-    const row = $(`[data-read="${slot}"]`, sec);
-    $("b", row).textContent = item[1];
-    $("span", row).textContent = slot === "outfit" ? "Plays the " + item[1].toLowerCase() + "." : item[2] + ": " + item[3];
-    $$(`[data-pick^="${slot}:"]`, sec).forEach((b) => b.classList.toggle("is-on", b.dataset.pick === slot + ":" + i));
-    if (animate) {
-      btn.classList.remove("is-swap"); void btn.offsetWidth; btn.classList.add("is-swap");
-      row.classList.add("is-new"); setTimeout(() => row.classList.remove("is-new"), 700);
-      burst();
-    }
-  };
-  ["hat", "face", "outfit"].forEach((s) => show(s));
-  const next = (slot, user) => {
-    state[slot] = (state[slot] + 1) % data[slot].length;
-    show(slot, true);
-    if (user) pausedUntil = Date.now() + 9000;
-  };
-  $$("[data-slot]", sec).forEach((b) => b.addEventListener("click", () => next(b.dataset.slot, true)));
-  $$("[data-pick]", sec).forEach((b) => b.addEventListener("click", () => {
-    const [slot, i] = b.dataset.pick.split(":"); state[slot] = Number(i); show(slot, true); pausedUntil = Date.now() + 9000;
-  }));
-  // remix one layer at a time while it's on screen
-  let visible = false;
-  new IntersectionObserver((es) => es.forEach((e) => { visible = e.isIntersecting; }), { threshold: 0.3 }).observe(sec);
-  setInterval(() => {
-    if (!visible || Date.now() < pausedUntil || document.hidden || reduceMotion) return;
-    next(["hat", "face", "outfit"][order++ % 3]);
-  }, 2200);
-});
-$$("[data-flow]").forEach((flow) => {
-  const steps = $$(".bd-flow__steps li", flow);
-  let k = 0, timer = 0;
-  new IntersectionObserver((es) => es.forEach((e) => {
-    flow.classList.toggle("is-in", e.isIntersecting);
-    clearInterval(timer);
-    if (e.isIntersecting) {
-      const tick = () => { steps.forEach((s, i) => s.classList.toggle("is-on", i <= k)); k = (k + 1) % (steps.length + 1); };
-      tick(); timer = setInterval(tick, 1300);
-    }
-  }), { threshold: 0.4 }).observe(flow);
+/* ---------- Bandy: research numbers count up as their bars fill ---------- */
+$$("[data-gap]").forEach((el) => {
+  new IntersectionObserver((es, io) => es.forEach((e) => {
+    if (!e.isIntersecting) return;
+    io.disconnect(); el.classList.add("is-in");
+    $$("[data-to]", el).forEach((n) => {
+      const to = +n.dataset.to, t0 = performance.now();
+      const tick = (now) => { const k = Math.min(1, (now - t0) / 1400); n.textContent = Math.round(to * (1 - Math.pow(1 - k, 3))) + "%"; if (k < 1) requestAnimationFrame(tick); };
+      reduceMotion ? (n.textContent = to + "%") : requestAnimationFrame(tick);
+    });
+  }), { threshold: 0.4 }).observe(el);
 });
 
-/* ---------- Bandy: how-to-play diagram, scene boards, x-ray ---------- */
-$$("[data-play]").forEach((el) => {
-  new IntersectionObserver((es, io) => es.forEach((e) => { if (e.isIntersecting) { el.classList.add("is-in"); io.disconnect(); } }), { threshold: 0.35 }).observe(el);
+/* ---------- Bandy: the rules on a top-down view of the base ---------- */
+$$("[data-rules]").forEach((rules) => {
+  const svg = $("[data-rules-svg]", rules);
+  const B = "../assets/projects/bandy/blocks/";
+  const X0 = 170, Y0 = 110, CW = 90, CH = 83.3;
+  const band = [[0, 0, "elf"], [2, 1, "monster"], [1, 2, "bubble"], [0, 3, "robot"], [2, 3, "electric"], [1, 5, "glitch"]];
+  let cells = "", tiles = "", nums = "";
+  for (let r = 0; r < 3; r++) for (let c = 0; c < 6; c++) cells += `<rect class="r-cell" data-c="${c}" x="${X0 + c * CW + 6}" y="${Y0 + r * CH + 6}" width="${CW - 12}" height="${CH - 12}" rx="8"/>`;
+  band.forEach(([r, c, h], i) => { tiles += `<image class="r-tile" data-c="${c}" style="--d:${i * 0.12}s" href="${B}hat-${h}.webp" x="${X0 + c * CW + 15}" y="${Y0 + r * CH + 12}" width="${CW - 30}" height="${CW - 30}"/>`; });
+  for (let c = 0; c < 6; c++) nums += `<text class="r-num" data-c="${c}" x="${X0 + c * CW + CW / 2}" y="428">${c + 1}</text>`;
+  svg.setAttribute("viewBox", "0 0 820 470");
+  svg.innerHTML = `
+    <g class="r-board" data-hl="board"><rect x="230" y="34" width="420" height="22" rx="8"/><text x="440" y="26">SCENE BOARD · GENRE</text></g>
+    <rect x="90" y="66" width="700" height="338" rx="130" fill="#2a2a2e"/>
+    <rect x="102" y="78" width="676" height="314" rx="120" fill="#3ec68f"/>
+    <rect x="${X0 - 12}" y="${Y0 - 12}" width="${CW * 6 + 24}" height="${CH * 3 + 24}" rx="16" fill="#f3f1ec"/>
+    <g data-hl="cols"><rect class="r-sweep" x="${X0}" y="${Y0}" width="${CW}" height="${CH * 3}" rx="10"/></g>
+    ${cells}${tiles}
+    <g class="r-time" data-hl="cols">${nums}<path d="M${X0} 448 H${X0 + CW * 6}" /><path d="M${X0 + CW * 6 - 12} 441 l12 7 -12 7"/><text x="${X0 + CW * 6 + 26}" y="453" style="text-anchor:start">TIME</text></g>
+    <g class="r-pitch" data-hl="rows"><text x="58" y="${Y0 + CH * 0.5 + 6}">high</text><text x="58" y="${Y0 + CH * 1.5 + 6}">mid</text><text x="58" y="${Y0 + CH * 2.5 + 6}">low</text><path d="M16 ${Y0 + 20} V${Y0 + CH * 3 - 20}"/><path d="M9 ${Y0 + 32} l7 -12 7 12"/><text x="16" y="${Y0 - 4}">PITCH</text></g>
+    <g class="r-stack" data-hl="stack"><circle cx="${X0 + 2 * CW + CW / 2}" cy="${Y0 + CH * 1.5}" r="44"/></g>`;
+  // the playhead sweeps the columns; members in that column bounce
+  let col = 0, on = false;
+  const sweep = $(".r-sweep", svg);
+  const step = () => {
+    if (!on || document.hidden) return;
+    sweep.setAttribute("x", X0 + col * CW);
+    $$("[data-c]", svg).forEach((n) => n.classList.toggle("is-now", +n.dataset.c === col));
+    col = (col + 1) % 6;
+  };
+  new IntersectionObserver((es) => es.forEach((e) => { on = e.isIntersecting; rules.classList.toggle("is-in", on); }), { threshold: 0.3 }).observe(rules);
+  if (!reduceMotion) setInterval(step, 650);
+  // hovering a rule points at its part of the map
+  $$(".bd-rules__list li", rules).forEach((li, i) => {
+    const key = ["stack", "cols", "rows", "board"][i];
+    li.addEventListener("mouseenter", () => { rules.dataset.hl = key; });
+    li.addEventListener("mouseleave", () => { delete rules.dataset.hl; });
+  });
 });
+
+/* ---------- Bandy: build a member on the three layer cards ---------- */
+$$("[data-member-build]").forEach((sec) => {
+  const D = {
+    hat: [["monster", "Monster Hat", "Low pitch: a deeper, heavier sound, like a small monster voice."], ["elf", "Elf Hat", "High pitch: a higher, lighter sound, like a tiny fairy voice."], ["electric", "Electric Hat", "Buzz: a buzzing, zapping sound, as if powered by electricity."], ["glitch", "Glitch Hat", "Signal break: a broken, choppy sound, like a signal breaking into pixels."], ["bubble", "Bubble Hat", "Underwater: a soft, muffled sound, like music heard underwater."], ["robot", "Robot Hat", "Vocoder: a mechanical, digital voice, like a robot singing."]],
+    face: [["angry", "Angry Face", "Strong rhythm: heavy, punchy and powerful."], ["sleepy", "Sleepy Face", "Lazy rhythm: slow, loose and relaxed."], ["happy", "Happy Face", "Upbeat rhythm: bright, bouncy and cheerful."], ["laughing", "Laughing Face", "Playful rhythm: fast, lively and fun."], ["calm", "Calm Face", "Smooth rhythm: steady, soft and flowing."], ["sad", "Sad Face", "Slow rhythm: gentle, slower and softer."]],
+    outfit: [["guitar", "Guitar", "Plays the guitar."], ["singer", "Singer", "Sings the tune."], ["piano", "Piano", "Plays the piano."], ["bass", "Bass", "Holds down the low end."], ["violin", "Violin", "Plays the violin."], ["drum", "Drums", "Keeps the beat."]],
+  };
+  const B = "../assets/projects/bandy/blocks/";
+  const st = { hat: 1, face: 2, outfit: 0 };
+  let pausedUntil = 0, order = 0, visible = false;
+  const show = (k, anim) => {
+    const [id, name, desc] = D[k][st[k]];
+    $$(`[data-mb-img="${k}"]`, sec).forEach((im) => { im.src = `${B}${k}-${id}.webp`; if (anim && !im.classList.contains("dim")) { im.classList.remove("is-swap"); void im.offsetWidth; im.classList.add("is-swap"); } });
+    $(`[data-mb-name="${k}"]`, sec).textContent = name;
+    $(`[data-mb-desc="${k}"]`, sec).textContent = desc;
+    if (anim) { const card = $(`[data-mb="${k}"]`, sec); card.classList.remove("is-new"); void card.offsetWidth; card.classList.add("is-new"); }
+  };
+  ["hat", "face", "outfit"].forEach((k) => show(k));
+  const next = (k, user) => { st[k] = (st[k] + 1) % 6; show(k, true); if (user) pausedUntil = Date.now() + 9000; };
+  $$("[data-mb]", sec).forEach((b) => b.addEventListener("click", () => next(b.dataset.mb, true)));
+  new IntersectionObserver((es) => es.forEach((e) => { visible = e.isIntersecting; }), { threshold: 0.3 }).observe(sec);
+  setInterval(() => { if (visible && Date.now() > pausedUntil && !document.hidden && !reduceMotion) next(["hat", "face", "outfit"][order++ % 3]); }, 2200);
+});
+
 // a small helper: cycle through items while visible, pause after a click
 const autoCycle = (root, count, show, every) => {
   let cur = 0, pausedUntil = 0, visible = false;
@@ -896,30 +903,27 @@ const autoCycle = (root, count, show, every) => {
   }, every);
   return (i) => { cur = i; pausedUntil = Date.now() + 12000; show(i); };
 };
-$$("[data-boards]").forEach((sb) => {
-  const imgs = $$("[data-board-img]", sb), tabs = $$("[data-board]", sb), infos = $$("[data-board-info]", sb);
-  let pingT = 0;
-  const show = (i) => {
-    imgs.forEach((im, n) => im.classList.toggle("is-on", n === i));
-    infos.forEach((p, n) => p.classList.toggle("is-on", n === i));
-    tabs.forEach((b, n) => { if (n === i) b.setAttribute("aria-current", "true"); else b.removeAttribute("aria-current"); });
-    sb.classList.remove("is-ping"); void sb.offsetWidth; sb.classList.add("is-ping");
-    clearTimeout(pingT); pingT = setTimeout(() => sb.classList.remove("is-ping"), 1800);
-  };
-  const pick = autoCycle(sb, imgs.length, show, 3600);
-  tabs.forEach((b, n) => b.addEventListener("click", () => pick(n)));
-});
 $$("[data-xray]").forEach((x) => {
+  // hover a part to see inside it; when nobody is pointing, it walks through the parts by itself
   const order = ["block", "pins", "base", "board"];
   const hots = $$("[data-xgo]", x), infos = $$("[data-xinfo]", x);
+  let cur = 0, holdUntil = 0, hovering = false, visible = false;
   const show = (i) => {
-    const k = order[i]; x.dataset.at = k;
+    cur = i; const k = order[i]; x.dataset.at = k;
     hots.forEach((h) => h.classList.toggle("is-on", h.dataset.xgo === k));
     infos.forEach((p) => p.classList.toggle("is-on", p.dataset.xinfo === k));
   };
   show(0);
-  const pick = autoCycle(x, order.length, show, 4200);
-  hots.forEach((h) => h.addEventListener("click", () => pick(order.indexOf(h.dataset.xgo))));
+  hots.forEach((h) => {
+    const go = () => { show(order.indexOf(h.dataset.xgo)); holdUntil = Date.now() + 6000; };
+    h.addEventListener("pointerenter", (e) => { if (e.pointerType === "mouse") go(); });
+    h.addEventListener("click", go);
+  });
+  const fig = $(".bd-x__fig", x);
+  fig.addEventListener("pointerenter", (e) => { if (e.pointerType === "mouse") hovering = true; });
+  fig.addEventListener("pointerleave", () => { hovering = false; holdUntil = Date.now() + 2500; });
+  new IntersectionObserver((es) => es.forEach((e) => { visible = e.isIntersecting; }), { threshold: 0.35 }).observe(x);
+  setInterval(() => { if (visible && !hovering && Date.now() > holdUntil && !document.hidden && !reduceMotion) show((cur + 1) % order.length); }, 3600);
 });
 
 /* ---------- Prototype guide: follow the embedded app and explain each step ---------- */
@@ -1144,7 +1148,7 @@ $$("[data-flip]").forEach((flip) => {
   if (!main) return;
   // backgrounds, icons and the hero stay decorative
   // interactive pieces (buttons, Bandy blocks, demos) keep their own clicks
-  const skip = ".c-hero, .vn__bg, .cine, .site-header, header, footer, .c-next, [aria-hidden='true'], button, [data-nozoom], [data-band], [data-builder], [data-play], [data-boards], [data-xray], .bd-shelf, .bd-layers, .bd-start";
+  const skip = ".c-hero, .vn__bg, .cine, .site-header, header, footer, .c-next, [aria-hidden='true'], button, [data-nozoom], [data-band], [data-member-build], [data-rules], [data-xray], .bd-start";
   const zoomable = (img) => !img.closest(skip) && !/icon-|logo/.test(img.src) && (+img.getAttribute("width") || 999) >= 300;
   const imgs = $$("img", main).filter(zoomable);
   if (!imgs.length) return;
