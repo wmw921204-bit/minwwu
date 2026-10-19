@@ -198,7 +198,7 @@ const homeHs = (pets) => [...pets,
   { x: 312, y: 266, w: 40, h: 40, act: "calendar" },
   ...DAYS.map(([d, , c]) => ({ x: c - 22, y: 342, w: 44, h: 79, act: "pickDay", d })),
   { x: 246, y: 462, w: 116, h: 32, tab: "appt" },
-  { x: 36, y: 655, w: 152, h: 100, act: "bcs" }, { x: 196, y: 655, w: 160, h: 100, go: "camera" },
+  { x: 36, y: 655, w: 152, h: 100, act: "bcs" }, { x: 196, y: 655, w: 160, h: 100, go: "plan" },
   { x: 170, y: 784, w: 48, h: 40, act: "scrollDown" }];
 // Health Care (v2): the doctor finder is the same in all three states
 const finder = (dy) => [{ x: 252, y: 574 + dy, w: 56, h: 56, act: "search" }, { x: 311, y: 574 + dy, w: 56, h: 56, act: "search" },
@@ -261,7 +261,7 @@ const SCREENS = MODE === "before" ? {
     { x: 130, y: 385, w: 240, h: 467, act: "pickOther" }, { x: 37, y: 490, w: 100, h: 362, act: "pickOther" }] },
   gallery2: { base: S("v2-gallery2"), hs: [{ x: 27, y: 55, w: 60, h: 60, back: 1 }, { x: 299, y: 313, w: 60, h: 60, back: 1 }, { x: 237, y: 313, w: 60, h: 60, go: "plan" }, { x: 37, y: 385, w: 100, h: 100, swap: "gallery1" },
     { x: 130, y: 385, w: 240, h: 467, act: "pickOther" }, { x: 37, y: 490, w: 100, h: 362, act: "pickOther" }] },
-  plan: { base: S("v2-plan"), hs: [{ x: 27, y: 55, w: 60, h: 60, back: 1 }, { x: 322, y: 318, w: 48, h: 48, act: "portion" }, { x: 56, y: 781, w: 124, h: 57, act: "discard" }, { x: 182, y: 781, w: 151, h: 57, act: "feedAndLog" }] },
+  plan: { base: S("v2-plan"), hs: [{ x: 27, y: 55, w: 60, h: 60, back: 1 }, { x: 24, y: 272, w: 98, h: 148, go: "camera" }, { x: 322, y: 318, w: 48, h: 48, act: "portion" }, { x: 56, y: 781, w: 124, h: 57, act: "discard" }, { x: 182, y: 781, w: 151, h: 57, act: "feedAndLog" }] },
   appt: { sc: { x: 0, y: 0, w: 393, h: 852, img: S("v2-appt-sc"), ch: 1126, hs: [
     { x: 254, y: 194, w: 56, h: 56, act: "reschedule" }, { x: 310, y: 192, w: 59, h: 59, swap: "apptCancel" }, { x: 310, y: 394, w: 56, h: 56, act: "message" }, ...finder(0)] }, fx: nav2("appt") },
   apptCancel: { sc: { x: 0, y: 0, w: 393, h: 852, img: S("v2-appt-cancel-sc"), ch: 1126, hs: [
@@ -298,6 +298,7 @@ const PAGES = {
     <div class="p1-row nm"><span>Wed<small>8:10 AM</small></span><em>12.8 kg</em></div>
     <button class="btn1" data-act="weigh">Start Weighing</button></div>`,
   notif2: () => `<div class="pg"><button class="p2-back" data-back aria-label="Back">←</button><h2 class="p2-title">Messages</h2>
+    <button class="p2-card" data-go="camera"><i>🦴</i><span>Did Mercy get a treat?<small>Snap it so dinner can adjust</small></span><em>now</em></button>
     <button class="p2-card" data-tab="appt"><i>🩺</i><span>Appointment on Feb 3<small>4:30 PM with Dr. Aris Ray</small></span><em>2h</em></button>
     <button class="p2-card" data-go="feeder"><i>🍽️</i><span>Feeder is 68% full<small>Enough for about 4 days</small></span><em>5h</em></button>
     <button class="p2-card" data-go="scale"><i>⚖️</i><span>Hoppy weighed 81 lbs<small>On the Smart Scale at 7:50 PM</small></span><em>1d</em></button>
