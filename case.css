@@ -1899,3 +1899,12 @@ img.is-zoomable { cursor: zoom-in; }
   .bs-boards { order: 3; } .bs-tray { order: 4; }
 }
 .bs.is-on .bs-gate { pointer-events: none; }
+/* grid map sits on top of the scene-board column, clear of the stage */
+.bs-left { display: flex; flex-direction: column; gap: 10px; }
+.bs-left .bs-map { position: static; box-shadow: none; background: rgba(255,255,255,.6); padding: 8px 6px; border-radius: 18px; }
+.bs-left .bs-map small { font-size: 10px; }
+.bs-left .bs-map [data-band-map] { grid-template-columns: repeat(6, 16px); grid-auto-rows: 16px; justify-content: center; }
+@media (max-width: 900px) {
+  .bs-left { display: contents; }
+  .bs-left .bs-map [data-band-map] { grid-template-columns: repeat(6, 30px); grid-auto-rows: 30px; }
+}

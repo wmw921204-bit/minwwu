@@ -16,7 +16,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&family=Poppins:wght@400;500;600&family=Sulphur+Point:wght@400&family=Rubik:wght@700;800;900&display=swap">
   <link rel="stylesheet" href="../styles.css?v=20261018a">
-  <link rel="stylesheet" href="../case.css?v=20261024m">
+  <link rel="stylesheet" href="../case.css?v=20261024n">
 </head>
 <body class="case case--bandy">
   <a class="skip" href="#main">Skip to content</a>
@@ -180,7 +180,10 @@
         <p class="c-head reveal-mask">Your turn: put a band on the board.</p>
         <div class="bs reveal" data-band data-base="../assets/projects/bandy/" data-boards="country rock classical jazz electronic">
           <div class="bs-main">
+          <div class="bs-left">
+          <div class="bs-map" role="group" aria-label="The grid seen from above: tap a cell to add or pick a member"><small>Grid from above</small><div data-band-map></div></div>
           <div class="bs-boards" role="group" aria-label="Scene board"><small>Scene boards</small><button type="button" data-genre="country" style="--gc:#6aa84f" aria-current="true"><img src="../assets/projects/bandy/boards/country.webp" alt="" loading="lazy"><span>Country</span></button><button type="button" data-genre="rock" style="--gc:#e0565b"><img src="../assets/projects/bandy/boards/rock.webp" alt="" loading="lazy"><span>Rock</span></button><button type="button" data-genre="classical" style="--gc:#c99a3b"><img src="../assets/projects/bandy/boards/classical.webp" alt="" loading="lazy"><span>Classical</span></button><button type="button" data-genre="jazz" style="--gc:#3f6fd8"><img src="../assets/projects/bandy/boards/jazz.webp" alt="" loading="lazy"><span>Jazz</span></button><button type="button" data-genre="electronic" style="--gc:#9a4fe0"><img src="../assets/projects/bandy/boards/electronic.webp" alt="" loading="lazy"><span>Electronic</span></button></div>
+          </div>
           <div class="bs-stage">
             <div class="bs-bg" aria-hidden="true"><img class="bs-bg__img" src="../assets/projects/bandy/boards/country.webp" alt=""></div>
             <div class="bs-base" data-band-base aria-hidden="true"></div>
@@ -192,7 +195,6 @@
               <button type="button" class="bs-go" data-band-start>Start the band</button>
             </div>
           </div>
-          <div class="bs-map" role="group" aria-label="The grid seen from above: tap a cell to add or pick a member"><small>Grid from above</small><div data-band-map></div></div>
           <div class="bs-tray" data-band-tray></div>
           </div>
           <div class="bs-bar">
@@ -200,7 +202,7 @@
             <button type="button" class="bs-shuffle" data-band-shuffle>Shuffle the band</button>
             <p class="bs-song" aria-live="polite"><span>Now playing</span><b data-band-song></b></p>
           </div>
-          <p class="bs-tip"><span><b>Left to right is time:</b> the six columns play in turn and loop. Members in the same column play together. <b>Rows are pitch:</b> the back row plays high, the front row low. <b>Swap a block:</b> drag one from the tray onto a member, or tap a block, then a new one. <b>Move a member:</b> drag it to another spot. <b>Back row hidden?</b> Point at a back member, or use the grid map in the corner.</span><span data-band-read></span></p>
+          <p class="bs-tip"><span><b>Left to right is time:</b> the six columns play in turn and loop. Members in the same column play together. <b>Rows are pitch:</b> the back row plays high, the front row low. <b>Swap a block:</b> drag one from the tray onto a member, or tap a block, then a new one. <b>Move a member:</b> drag it to another spot. <b>Back row hidden?</b> Point at a back member, or use the grid map above the scene boards.</span><span data-band-read></span></p>
         </div>
       </div>
     </section>
@@ -336,7 +338,7 @@
   </footer>
 
   <script src="../assets/js/lenis.min.js" defer></script>
-  <script src="../main.js?v=20261024m" defer></script>
+  <script src="../main.js?v=20261024n" defer></script>
   <script src="../assets/projects/bandy/band.js?v=19" defer></script>
 </body>
 </html>
