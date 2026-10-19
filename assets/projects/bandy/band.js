@@ -497,7 +497,8 @@
     if (!slots[i]) slots[i] = randMember();
     slots[i][kind] = name; sel = null; render({ i, kind });
   };
-  document.addEventListener("click", (e) => { if (sel && !root.contains(e.target)) { sel = null; render(); } });
+  // clicking anywhere outside the demo cancels a selection (a click that re-drew the band is not "outside")
+  document.addEventListener("click", (e) => { if (sel && e.target.isConnected && !root.contains(e.target)) { sel = null; render(); } });
   const move = (from, to) => { if (from === to) return; [slots[from], slots[to]] = [slots[to], slots[from]]; sel = null; render(); };
 
   /* tap: pick a block on the board, then a new one from the tray */
