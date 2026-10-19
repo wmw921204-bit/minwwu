@@ -99,3 +99,25 @@ function trimBackground() {
   }
   Logger.log('Removed: ' + removed.join(' | '));
 }
+
+/**
+ * Third pass: every round 1 item runs negative (left, 1) → positive (right, 7), so a quick reader can't misread one.
+ * Round 1 had items 2 and 4 the other way round: when comparing, reverse those round 1 answers (8 − score).
+ */
+const FLIP = {
+  "I trusted the robot's decisions": ["I distrusted the robot's decisions", "I trusted the robot's decisions"],
+  'Effortless to keep track of': ['Demanding to keep track of', 'Effortless to keep track of'],
+};
+function flipReversedItems() {
+  const form = FormApp.openById(FORM_ID);
+  const done = [];
+  form.getItems(FormApp.ItemType.SCALE).forEach(i => {
+    const s = i.asScaleItem(), pair = FLIP[s.getLeftLabel()];
+    if (!pair) return;
+    const num = (i.getTitle().match(/^\d+\.\s*/) || [''])[0];
+    s.setLabels(pair[0], pair[1]);
+    i.setTitle(num + pair[0] + ' ←→ ' + pair[1]);
+    done.push(i.getTitle());
+  });
+  Logger.log('Flipped: ' + done.join(' | '));
+}
