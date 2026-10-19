@@ -21,7 +21,12 @@
   const MANIFEST = {"acoustic_bass":[28,32,36,40,44,48,52,56],"acoustic_grand_piano":[36,40,44,48,52,56,60,64,68,72,76,80,84,88],"acoustic_guitar_steel":[40,44,48,52,56,60,64,68,72,76],"choir_aahs":[48,52,56,60,64,68,72,76,80],"distortion_guitar":[40,44,48,52,56,60,64,68,72,76],"electric_bass_finger":[28,32,36,40,44,48,52,56],"electric_guitar_jazz":[40,44,48,52,56,60,64,68,72,76],"string_ensemble_1":[36,40,44,48,52,56,60,64,68,72,76,80,84],"synth_bass_1":[28,32,36,40,44,48,52,56],"violin":[52,56,60,64,68,72,76,80,84,88,92]};
   // the recordings come in 15–20 dB quieter than the drums; these bring every instrument to the same level
   const LEVEL = { acoustic_bass: 5, acoustic_grand_piano: 8, acoustic_guitar_steel: 6, choir_aahs: 7, distortion_guitar: 3.2, electric_bass_finger: 5, electric_guitar_jazz: 5.5, string_ensemble_1: 4.5, synth_bass_1: 4.5, violin: 5 };
-  const SUSTAIN = { choir_aahs: 1, string_ensemble_1: 1, violin: 1 };
+  const SUSTAIN = { choir_aahs: 1, string_ensemble_1: 1, violin: 1, voice: 1 };
+  LEVEL.voice = 0.85;
+  const urlOf = (inst, m) => (inst === "voice" ? `${SND}voice/${VOICE[m]}.mp3` : `${SND}${inst}/${noteName(m)}.mp3`);
+  // a real singer: Berklee "aa" recordings (female from A3 up, male below), via the Tone.js audio library
+  const VOICE = { 45: "m45", 48: "m48", 57: "f57", 61: "f61", 63: "f63", 69: "f69", 73: "f73", 77: "f77", 81: "f81", 84: "f84" };
+  MANIFEST.voice = Object.keys(VOICE).map(Number);
   const NOTE = ["C", "Db", "D", "Eb", "E", "F", "Gb", "G", "Ab", "A", "Bb", "B"];
   const noteName = (m) => NOTE[m % 12] + (Math.floor(m / 12) - 1);
 
@@ -33,11 +38,11 @@
      electronic ~120–128 bpm, four-on-the-floor kick, off-beat hats, sidechain-pumping pads, synth bass
      One pass of the grid is 3 bars (6 columns of half a bar), so each song is a 3-chord loop. */
   const GENRES = {
-    country: { bpm: [96, 112], swing: 0.06, root: 55, scale: [0, 2, 4, 7, 9], kit: "acoustic", progs: [["I", "IV", "V"], ["I", "V", "IV"], ["IV", "I", "V"], ["I", "vi", "V"]], inst: { guitar: "acoustic_guitar_steel", bass: "acoustic_bass" } },
-    rock: { bpm: [116, 136], swing: 0, root: 52, scale: [0, 3, 5, 7, 10], kit: "acoustic", progs: [["i", "bVII", "bVI"], ["I", "bVII", "IV"], ["i", "bVI", "bVII"], ["I", "V", "IV"]], inst: { guitar: "distortion_guitar", bass: "electric_bass_finger" } },
-    classical: { bpm: [72, 88], swing: 0, root: 60, scale: [0, 2, 4, 5, 7, 9, 11], kit: null, progs: [["I", "IV", "V"], ["I", "vi", "V"], ["vi", "IV", "V"], ["I", "ii", "V"]], inst: { guitar: "acoustic_guitar_steel", bass: "acoustic_bass" } },
-    jazz: { bpm: [112, 138], swing: 0.3, root: 53, scale: [0, 2, 3, 5, 7, 9, 10], kit: "acoustic", progs: [["ii7", "V7", "Imaj7"], ["vi7", "ii7", "V7"], ["Imaj7", "vi7", "V7"], ["iii7", "VI7", "ii7"]], inst: { guitar: "electric_guitar_jazz", bass: "acoustic_bass" } },
-    electronic: { bpm: [120, 128], swing: 0, root: 57, scale: [0, 2, 3, 5, 7, 8, 10], kit: "techno", progs: [["i", "bVI", "bVII"], ["i", "bVII", "bVI"], ["i", "iv", "bVII"], ["bVI", "bVII", "i"]], inst: { guitar: null, bass: "synth_bass_1" } },
+    country: { bpm: [96, 112], swing: 0.06, root: 55, scale: [0, 2, 4, 7, 9], kit: "acoustic", progs: [["I", "IV", "V"], ["I", "V", "IV"], ["IV", "I", "V"], ["I", "vi", "V"], ["vi", "IV", "V"], ["I", "ii", "V"]], inst: { guitar: "acoustic_guitar_steel", bass: "acoustic_bass" } },
+    rock: { bpm: [116, 136], swing: 0, root: 52, scale: [0, 3, 5, 7, 10], kit: "acoustic", progs: [["i", "bVII", "bVI"], ["I", "bVII", "IV"], ["i", "bVI", "bVII"], ["I", "V", "IV"], ["i", "iv", "bVII"], ["bVI", "bVII", "i"]], inst: { guitar: "distortion_guitar", bass: "electric_bass_finger" } },
+    classical: { bpm: [72, 88], swing: 0, root: 60, scale: [0, 2, 4, 5, 7, 9, 11], kit: null, progs: [["I", "IV", "V"], ["I", "vi", "V"], ["vi", "IV", "V"], ["I", "ii", "V"], ["IV", "V", "vi"], ["ii", "V", "I"]], inst: { guitar: "acoustic_guitar_steel", bass: "acoustic_bass" } },
+    jazz: { bpm: [112, 138], swing: 0.3, root: 53, scale: [0, 2, 3, 5, 7, 9, 10], kit: "acoustic", progs: [["ii7", "V7", "Imaj7"], ["vi7", "ii7", "V7"], ["Imaj7", "vi7", "V7"], ["iii7", "VI7", "ii7"], ["ii7", "V7", "vi7"], ["Imaj7", "ii7", "V7"]], inst: { guitar: "electric_guitar_jazz", bass: "acoustic_bass" } },
+    electronic: { bpm: [120, 128], swing: 0, root: 57, scale: [0, 2, 3, 5, 7, 8, 10], kit: "techno", progs: [["i", "bVI", "bVII"], ["i", "bVII", "bVI"], ["i", "iv", "bVII"], ["bVI", "bVII", "i"], ["bVI", "bIII", "bVII"], ["i", "bIII", "bVII"]], inst: { guitar: null, bass: "synth_bass_1" } },
   };
   const CHORD = { I: [0, "maj"], ii: [2, "min"], iii: [4, "min"], IV: [5, "maj"], iv: [5, "min"], V: [7, "maj"], vi: [9, "min"], i: [0, "min"], bIII: [3, "maj"], bVI: [8, "maj"], bVII: [10, "maj"], ii7: [2, "min7"], iii7: [4, "min7"], vi7: [9, "min7"], V7: [7, "dom7"], VI7: [9, "dom7"], Imaj7: [0, "maj7"] };
   const SHAPES = { maj: [0, 4, 7], min: [0, 3, 7], maj7: [0, 4, 7, 11], min7: [0, 3, 7, 10], dom7: [0, 4, 7, 10] };
@@ -65,19 +70,29 @@
   let ctx = null, master = null, verb = null, band = null, back = null, duck = null, playing = false, genre = "country";
   let step = 0, bar = 0, nextTime = 0, timer = 0;
   // a fresh song each start and each scene change: key, progression, tempo, groove and every member's tune
-  const song = { key: 0, prog: 0, bpm: 110, groove: 0 };
+  const song = { key: 0, prog: 0, progB: 1, bpm: 110, groove: 0, form: "AABA", hook: 0 };
+  const FORMS = ["AABA", "ABAB", "AABB", "ABAA"];
   const rnd = (a, b) => a + Math.random() * (b - a);
   const pick = (arr) => arr[(Math.random() * arr.length) | 0];
   let tunes = new WeakMap();
-  const newSong = () => { song.key = (Math.random() * 5 | 0) - 2; song.prog = Math.random() * 4 | 0; song.bpm = Math.round(rnd(...GENRES[genre].bpm)); song.groove = Math.random() * 3 | 0; tunes = new WeakMap(); };
-  const tuneOf = (m) => { if (!tunes.has(m)) tunes.set(m, pick(MOTIFS)); return tunes.get(m); };
+  const otherProg = (n, not) => { let k; do { k = Math.random() * n | 0; } while (k === not && n > 1); return k; };
+  const newSong = () => {
+    const n = GENRES[genre].progs.length;
+    song.key = (Math.random() * 5 | 0) - 2; song.prog = Math.random() * n | 0; song.progB = otherProg(n, song.prog);
+    song.bpm = Math.round(rnd(...GENRES[genre].bpm)); song.groove = Math.random() * 3 | 0; song.form = pick(FORMS); song.hook = Math.random() * MOTIFS.length | 0;
+    tunes = new WeakMap();
+  };
+  // each member gets two 16-note phrases (for the A and B sections), built from two motifs and a variation
+  const phrase = () => { const a = pick(MOTIFS), b = pick(MOTIFS), lift = pick([1, 2, -1]); return a.concat(b.map((d, i) => (i > 5 ? d : d + lift))); };
+  const tuneOf = (m) => { if (!tunes.has(m)) tunes.set(m, { A: phrase(), B: phrase(), n: 0 }); return tunes.get(m); };
+  const section = (barN) => song.form[Math.floor(barN / 3) % song.form.length];
 
   /* ---------- loading the recordings ---------- */
   const raw = new Map(), buffers = new Map();
   const fetchOne = (url) => { if (!raw.has(url)) raw.set(url, fetch(url).then((r) => r.arrayBuffer()).catch(() => null)); return raw.get(url); };
-  const instFor = (g) => { const I = GENRES[g].inst, list = ["acoustic_grand_piano", "violin", "choir_aahs", "string_ensemble_1", I.bass]; if (I.guitar) list.push(I.guitar); return list; };
+  const instFor = (g) => { const I = GENRES[g].inst, list = ["acoustic_grand_piano", "violin", "voice", "string_ensemble_1", I.bass]; if (I.guitar) list.push(I.guitar); return list; };
   const urlsFor = (g) => {
-    const u = []; instFor(g).forEach((inst) => MANIFEST[inst].forEach((m) => u.push(`${SND}${inst}/${noteName(m)}.mp3`)));
+    const u = []; instFor(g).forEach((inst) => MANIFEST[inst].forEach((m) => u.push(urlOf(inst, m))));
     const k = GENRES[g].kit; if (k) ["kick", "snare", "hihat", "tom1", "tom2", "tom3"].forEach((d) => u.push(`${SND}kit-${k === "techno" ? "techno" : "acoustic-kit"}/${d}.mp3`));
     return u;
   };
@@ -128,7 +143,7 @@
   const sampleFor = (inst, midi) => {
     const list = MANIFEST[inst]; let best = list[0];
     list.forEach((m) => { if (Math.abs(m - midi) < Math.abs(best - midi)) best = m; });
-    return { buf: buffers.get(`${SND}${inst}/${noteName(best)}.mp3`), shift: midi - best };
+    return { buf: buffers.get(urlOf(inst, best)), shift: midi - best };
   };
   const note = (inst, midi, t, dur, v, dest, o = {}) => {
     const { buf, shift } = sampleFor(inst, midi); if (!buf) return;
@@ -154,7 +169,7 @@
 
   /* ---------- harmony ---------- */
   const G = () => GENRES[genre];
-  const chordAt = (barN) => { const p = G().progs[song.prog], [off, q] = CHORD[p[barN % p.length]]; return { root: G().root + song.key + off, tones: SHAPES[q] }; };
+  const chordAt = (barN) => { const p = G().progs[section(barN) === "A" ? song.prog : song.progB], [off, q] = CHORD[p[barN % p.length]]; return { root: G().root + song.key + off, tones: SHAPES[q] }; };
   const degMidi = (deg, base) => { const sc = G().scale, n = sc.length, o = Math.floor(deg / n); return base + sc[((deg % n) + n) % n] + 12 * o; };
   const snap = (midi, ch) => { let best = midi, bd = 99; for (let d = -2; d <= 2; d++) { const pc = (((midi + d - ch.root) % 12) + 12) % 12; if (ch.tones.some((x) => x % 12 === pc) && Math.abs(d) < bd) { bd = Math.abs(d); best = midi + d; } } return best; };
   const voicing = (ch, low) => ch.tones.map((x) => { let m = ch.root + x; while (m < low) m += 12; while (m >= low + 12) m -= 12; return m; }).sort((a, b) => a - b);
@@ -214,11 +229,30 @@
     }
   };
 
+  /* the scene's lead line: plays in some sections only, so the song breathes */
+  const HOOK = { country: "violin", rock: "distortion_guitar", classical: "violin", jazz: "acoustic_grand_piano", electronic: null };
+  const HOOK_STEPS = [[0, 3, 6, 8, 10, 12], [0, 2, 4, 7, 10, 12, 14], [0, 4, 6, 8, 12]];
+  const hookAndFill = (s, t) => {
+    const b = s % 16, pass = Math.floor(bar / 3), sec = section(bar), sd = stepDur(), d = back;
+    const plays = sec === "B" || pass % 4 === 3;
+    const steps = HOOK_STEPS[song.groove % HOOK_STEPS.length];
+    if (plays && steps.includes(b)) {
+      const line = MOTIFS[(song.hook + (sec === "B" ? 3 : 0)) % MOTIFS.length], k = (bar % 3) * steps.length + steps.indexOf(b);
+      let midi = degMidi(line[k % line.length] + (bar % 3 === 2 && b > 8 ? -1 : 0), 67 + (G().root - 57) + song.key);
+      if (b % 4 === 0) midi = snap(midi, chordAt(bar));
+      const inst = HOOK[genre];
+      if (inst) note(inst, inst === "distortion_guitar" ? midi - 12 : midi, t, sd * 1.8, inst === "acoustic_grand_piano" ? 0.35 : 0.3, d, { attack: inst === "violin" ? 0.04 : 0.004, release: 0.2 });
+      else synth(hz(midi + 12), t, sd * 1.5, 0.5, d);
+    }
+    // a drum fill closes every section
+    if (G().kit && bar % 3 === 2 && b >= 12) { const toms = ["tom1", "tom1", "tom2", "tom3"]; if (genre === "electronic") drum("snare", t, 0.25 + (b - 12) * 0.08, d); else drum(toms[b - 12], t, 0.45, d); }
+  };
+
   /* ---------- members on the grid ----------
      Columns are time: left to right, each column plays for half a bar, then the loop starts again (3 bars).
      Members in the same column play together. Rows are pitch: the back row plays high, the front row low. */
   const STEPS = COLS * 8;
-  const REG = { guitar: 55, piano: 60, violin: 67, singer: 60, bass: 40 };
+  const REG = { guitar: 55, piano: 60, violin: 67, singer: 64, bass: 40 };
   const posOf = (i) => ({ row: Math.floor(i / COLS), col: i % COLS });
   const memberPlay = (m, i, s, t) => {
     const r = RHYTHM[m.face], b = s % 16, { row, col } = posOf(i);
@@ -234,8 +268,8 @@
       else if (row === 1) { if (genre === "country" || genre === "jazz") brush(tt, v * 1.5, dest); else drum("snare", tt, 0.6 * v, dest, p); }
       else drum(b % 4 === 0 ? "kick" : pick(["tom1", "tom2", "tom3"]), tt, 0.8 * v, dest, p);
     } else {
-      const ch = chordAt(bar), motif = tuneOf(m), k = r.steps.indexOf(b) + (Math.floor(s / 16) % 2) * 3;
-      let midi = degMidi(motif[k % motif.length], REG[m.outfit] + (G().root - 57) + song.key) + [12, 0, -12][row] + hatShift(m.hat);
+      const ch = chordAt(bar), tu = tuneOf(m), line = tu[section(bar)], k = tu.n++;
+      let midi = degMidi(line[k % line.length], REG[m.outfit] + (G().root - 57) + song.key) + [12, 0, -12][row] + hatShift(m.hat);
       if (b % 4 === 0 || m.outfit === "bass") midi = snap(midi, ch);
       const I = G().inst;
       if (m.outfit === "bass") { midi = Math.max(28, Math.min(55, midi - 12)); note(I.bass, midi, tt, dur, v, dest, { release: 0.15 }); }
@@ -246,7 +280,7 @@
       }
       else if (m.outfit === "piano") { note("acoustic_grand_piano", midi, tt, Math.max(dur, sd * 2), v, dest); if (b % 8 === 0) note("acoustic_grand_piano", snap(midi - 4, ch), tt, sd * 2, 0.6 * v, dest); }
       else if (m.outfit === "violin") note("violin", Math.max(55, midi), tt, Math.max(dur, sd * 1.5), v, dest, { attack: 0.05, release: 0.3 });
-      else if (m.outfit === "singer") note("choir_aahs", Math.max(48, Math.min(79, midi)), tt, Math.max(dur, sd * 2), v, dest, { attack: 0.06, release: 0.35 });
+      else if (m.outfit === "singer") { let vm = midi; while (vm < 57) vm += 12; while (vm > 82) vm -= 12; note("voice", vm, tt, Math.max(dur, sd * 2.5), v, dest, { attack: 0.04, release: 0.3 }); }
     }
     // light up the member on screen in time with its note
     const el = root.querySelector(`[data-slot-i="${i}"] .bs-member`);
@@ -255,11 +289,11 @@
   const schedule = () => {
     while (nextTime < ctx.currentTime + 0.12) {
       const swing = step % 2 ? G().swing * stepDur() * 2 : 0;
-      backing(step, nextTime + swing);
+      backing(step, nextTime + swing); hookAndFill(step, nextTime + swing);
       slots.forEach((m, i) => m && memberPlay(m, i, step, nextTime + swing));
       if (step % 8 === 0) { const col = step / 8; setTimeout(() => showCol(col), Math.max(0, (nextTime - ctx.currentTime) * 1000)); }
       nextTime += stepDur(); step = (step + 1) % STEPS;
-      if (step % 16 === 0) bar++;
+      if (step % 16 === 0) { bar++; if (bar % (3 * song.form.length) === 0) { song.progB = otherProg(G().progs.length, song.prog); song.hook = (song.hook + 1) % MOTIFS.length; tunes = new WeakMap(); } }
     }
   };
   let loading = false;
