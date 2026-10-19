@@ -250,27 +250,34 @@ test('a robot decision shows a Change label in the list and on the banner', asyn
   app.close();
 });
 
-test('the study log notes tasks reached while exploring, then guides the participant through the rest', async () => {
-  const app = await boot(fakeBridge());
+test('the study log: intro, exploration until the cleaning ends, then guided after-cleaning tasks with End and Skip', async () => {
+  const b = fakeBridge();
+  const app = await boot(b);
   const tap = sel => app.run(`document.querySelector('${sel}').dispatchEvent(new MouseEvent('click',{bubbles:true}))`);
+  const p = path => app.run(`STUDY.data().people.P0.${path}`);
   app.run("STUDY.toggle(true);STUDY.begin('P0')");
-  assert.equal(app.run("STUDY.data().people.P0.phase"), 'explore');
-  app.run('render()');
-  tap('[data-a="toNeeds"]'); // reaches T9 on their own
-  await sleep(400);
-  assert.ok(app.run("!!STUDY.data().people.P0.explore.achieved.T9"));
-  app.run('STUDY.endExplore()');
-  assert.equal(app.run("STUDY.data().people.P0.phase"), 'guided');
-  assert.equal(app.run("STUDY.data().people.P0.queue.includes('T9')"), false);
-  assert.match(app.run("document.querySelector('#study-card').textContent"), /Task 1 of/);
+  assert.equal(p('phase'), 'intro');
+  assert.match(app.run("document.querySelector('#study-card').textContent"), /Before we start[\s\S]*Your first task/);
+  tap('#study-card [data-sc="begin"]');
+  assert.equal(p('phase'), 'explore');
+  b.st.vacuum = 'cleaning'; b.st.detail = 'cleaning'; // a cleaning starts
+  await app.poll(); await sleep(400);
+  assert.ok(p('explore.achieved.T2'));
+  b.st.vacuum = 'docked'; b.st.detail = 'charging'; // and ends
+  await app.poll(); await sleep(400);
+  assert.equal(p('explore.since'), null); // clock paused
+  await sleep(2800);
+  assert.match(app.run("document.querySelector('#study-card').textContent"), /The cleaning is done/);
+  tap('#study-card [data-sc="go"]');
+  assert.equal(p('phase'), 'guided');
+  assert.ok(!app.run("STUDY.data().people.P0.queue.some(id=>['T3','T5','T6','T7'].includes(id))")); // nothing that needs a running cleaning
+  const first = p('run.id');
   tap('#study-card [data-sc="start"]');
-  assert.ok(app.run('STUDY.data().people.P0.run.start > 0'));
-  tap('#study-card [data-sc="skip"]');
+  tap('#study [data-s="ok"]'); // facilitator ends it
   const rows = JSON.parse(app.run('JSON.stringify(STUDY.data().people.P0.tasks)'));
-  assert.ok(rows.some(r => r.phase === 'explore' && r.task === 'T9' && r.result === 'achieved'));
-  assert.ok(rows.some(r => r.phase === 'guided' && r.result === 'skipped by participant'));
+  assert.ok(rows.some(r => r.task === first && r.result === 'done (facilitator)'));
+  assert.ok(rows.some(r => r.task === 'T4' && r.result === 'not available')); // no robot decisions to change
   assert.match(app.run('STUDY.summaryCSV()'), /^participant,mode,phase,task/);
-  assert.match(app.run('STUDY.logCSV()'), /P0,.*,explore,.*click,toNeeds/);
-  assert.deepEqual(app.bridge.robotCommands(), []);
+  assert.deepEqual(b.robotCommands(), []);
   app.close();
 });

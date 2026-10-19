@@ -1,6 +1,7 @@
 /* Study log for usability sessions, run like a moderator.
-   1 Free exploration: the participant uses the app freely; every task goal they reach on their own is noted with the time.
-   2 Guided tasks: when exploration ends, the app shows the tasks they didn't reach, one at a time, on the phone.
+   1 Free exploration: the participant sets up, starts a cleaning and uses the app freely; every task goal they reach on
+     their own is noted with the time. It ends when the cleaning ends; if they start another, the clock carries on.
+   2 Guided tasks: the phone then shows the after-cleaning tasks they didn't reach, one at a time.
      Each is timed from "Start task" and ends when its goal is reached (or "I'm done" / "Skip").
    Every tap and screen is logged; results export as CSV. The facilitator panel is hidden from participants:
    Shift+S, ?study, or Settings → Testing → Study log. Data stays in this browser (localStorage) until exported. */
@@ -13,38 +14,37 @@
   const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(D))}catch(e){}};
   const P=()=>D.people[D.pid];
   const evs=k=>(S.events||[]).filter(e=>e.key===k);
-  const ensureCleaning=()=>{if(!S.task||S.task.done){startTask({...S.ui.setup,kind:'home',rooms:[]});S.ui.stack=[];S.ui.tab='home'}};
-  const setLevel=m=>{S.autonomy=m;S.temp=null;if(window.levelNotif)levelNotif(m)};
   const clicked=(t,a,v)=>t.log.some(x=>x.type==='click'&&x.action===a&&(v===undefined||x.value===v));
 
   /* The tasks from the test plan. ask: what the participant reads. ok: screens on the expected path (others count as detours).
-     best: fewest taps. setup: puts the simulation in the right state for a guided task. done(base,t): the goal is reached. */
+     best: fewest taps. after: can be done once the cleaning is over, so it's offered as a guided task if not reached while exploring.
+     can(): the app is in a state where the task makes sense. done(base,t): the goal is reached. */
+  const anyClick=(t,list)=>t.log.some(x=>x.type==='click'&&list.includes(x.action));
   const TASKS=[
-    {id:'T1',name:'First setup',ask:'You just got the robot. Set up the app.',best:3,ok:['onboarding','home'],
-      setup(){A.ctlRestart()},done:()=>!S.onboarding},
-    {id:'T2',name:'Clean the living room',ask:'Clean only the living room.',best:4,ok:['home','setup'],
-      done:()=>!!S.task&&!S.task.done&&/living/i.test(S.task.scopeLabel||'')},
-    {id:'T3',name:'Answer the robot (Assist)',ask:'The robot found something near the sofa and asks what to do. Deal with it.',best:2,ok:['home','event','map','activity'],
-      setup(){setLevel('assist');ensureCleaning();fire('cable')},base:()=>evs('cable').map(e=>e.id),
-      done:b=>evs('cable').some(e=>!b.includes(e.id)&&e.lastAct&&!(e.autonomous&&!e.changed))},
-    {id:'T4',name:'Change a robot decision',ask:'The robot decided something by itself. You think it was wrong. Change it.',best:2,ok:['home','event','map','activity'],
-      setup(){setLevel('autoNotify');ensureCleaning();fire('cable')},base:()=>(S.events||[]).filter(e=>e.changed).map(e=>e.id),
+    {id:'T1',name:'First setup',best:3,done:()=>!S.onboarding},
+    {id:'T2',name:'Start a cleaning',best:2,base:()=>S.task&&S.task.id,done:b=>!!S.task&&S.task.id!==b},
+    {id:'T3',name:'Answer the robot',best:2,base:()=>(S.events||[]).filter(e=>e.lastAct).map(e=>e.id),
+      done:b=>(S.events||[]).some(e=>!b.includes(e.id)&&e.lastAct&&!(e.autonomous&&!e.changed))},
+    {id:'T4',name:'Change a robot decision',ask:'The robot made some decisions on its own. Pick one you’d have done differently and change it.',best:3,after:true,ok:['home','event','map','activity','report','timeline'],
+      can:()=>(S.events||[]).some(e=>e.autonomous&&!e.changed&&!e.archived),base:()=>(S.events||[]).filter(e=>e.changed).map(e=>e.id),
       done:b=>(S.events||[]).some(e=>e.changed&&!b.includes(e.id))},
-    {id:'T5',name:'Undo a choice',ask:'Make a choice for the robot, then take it back straight away.',best:2,ok:['home','event','map','activity'],
-      setup(){setLevel('assist');ensureCleaning();fire('cable')},done:(b,t)=>clicked(t,'undoAct')},
-    {id:'T6',name:'Full auto for an hour',ask:'You have a meeting for an hour. Let the robot decide on its own until then.',best:4,ok:['home','settings','autonomy'],
+    {id:'T5',name:'Undo a choice',best:2,done:(b,t)=>clicked(t,'undoAct')},
+    {id:'T6',name:'Retry keeps failing',best:4,done:()=>evs('bed').some(e=>(e.retryFails||0)>=2&&e.status!=='needsReview'&&e.status!=='inProgress')},
+    {id:'T7',name:'Stop the cleaning',best:2,base:()=>S.task&&S.task.id,done:b=>!!(S.task&&S.task.id!==b&&S.task.done&&S.task.endedEarly)},
+    {id:'T8',name:'Find what the robot did',ask:'The cleaning is done. Find out what the robot did on its own.',best:2,after:true,ok:['home','report','timeline','activity'],
+      done:()=>['report','timeline'].includes(screen().replace('+sheet',''))},
+    {id:'T9',name:'Check found objects',ask:'Check the objects the robot wasn’t sure about.',best:2,after:true,ok:['home','map','activity','report'],
+      can:()=>pendingObjs().length>0,done:(b,t)=>{const n=pendingObjs().length;if(n&&S.task&&S.task.done)t.seen=true;return !!t.seen&&n===0}},
+    {id:'T10',name:'Full auto for an hour',ask:'Next time you’ll be in a meeting for an hour. Let the robot decide on its own until then.',best:4,after:true,ok:['home','settings','autonomy'],
       done:()=>S.autonomy==='fullAuto'&&!!S.temp&&!S.temp.task},
-    {id:'T7',name:'Check found objects',ask:'After a cleaning, check the objects the robot wasn’t sure about.',best:2,ok:['home','map','activity','report'],
-      done:(b,t)=>{const n=pendingObjs().length;if(n&&S.task&&S.task.done)t.seen=true;return !!t.seen&&n===0}},
-    {id:'T8',name:'Retry keeps failing',ask:'The robot can’t get under the bed. Try to get it cleaned.',best:4,ok:['home','event','map','activity'],
-      setup(){setLevel('assist');S.ctl.retry='fail';ensureCleaning();fire('bed')},
-      done:()=>evs('bed').some(e=>(e.retryFails||0)>=2&&e.status!=='needsReview'&&e.status!=='inProgress')},
-    {id:'T9',name:'Find what needs you',ask:'Find everything that still needs you.',best:1,ok:['home','activity'],
-      done:(b,t)=>clicked(t,'toNeeds')||clicked(t,'tab','activity')},
-    {id:'T10',name:'Stop now',ask:'You have to leave. Stop the robot right now.',best:2,ok:['home','map'],
-      setup(){ensureCleaning()},done:(b,t)=>!!(S.task&&S.task.done&&S.task.endedEarly)||clicked(t,'confirmEnd')},
+    {id:'T11',name:'Find what needs you',ask:'Find everything that still needs you.',best:1,after:true,ok:['home','activity'],
+      done:(b,t)=>anyClick(t,['toNeeds'])||clicked(t,'tab','activity')},
   ];
   const byId=id=>TASKS.find(x=>x.id===id);
+  /* What the participant hears first: shown on the phone, and in the panel for the facilitator to read out. */
+  const SCRIPT={
+    background:'Imagine this robot vacuum is yours, and this is its app. The robot cleans on its own. Sometimes it decides things by itself, and sometimes it asks you. We’re testing the app, not you, so there are no wrong answers. Please think out loud as you go.',
+    opening:'Set the app up the way you’d like, then start a cleaning. While it cleans, use the app however you naturally would. The cleaning ending is the end of this part.'};
 
   const screen=()=>{
     if(S.onboarding)return 'onboarding';
@@ -56,13 +56,14 @@
   const mmss=ms=>{const s=Math.max(0,Math.floor(ms/1000));return String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0')};
   const secs=ms=>Math.round(ms/100)/10;
 
+  const exploreMs=p=>{const ex=p.explore;return ex.active+(ex.since?now()-ex.since:0)};
   /* the log: one list per participant; the guided task that is running also keeps its own copy */
   const push=x=>{const p=P();if(!p)return;const r=p.run&&p.run.start?p.run:null;
-    x={t:now(),phase:p.phase,task:r?r.id:'',ms:r?now()-r.start:p.phase==='explore'?now()-p.explore.start:null,screen:screen(),...x};
+    x={t:now(),phase:p.phase,task:r?r.id:'',ms:r?now()-r.start:p.phase==='explore'?exploreMs(p):null,screen:screen(),...x};
     p.log.push(x);if(r)r.log.push(x);if(p.phase==='explore')p.explore.log.push(x);save()};
 
   document.addEventListener('click',e=>{
-    const p=P();if(!p||p.phase==='done'||e.target.closest('#study,#study-card'))return;
+    const p=P();if(!p||p.phase==='done'||p.phase==='intro'||e.target.closest('#study,#study-card'))return;
     if(!e.target.closest('#app'))return;
     const el=e.target.closest('[data-a]');
     if(el&&!el.disabled)push({type:'click',action:el.dataset.a,value:el.dataset.v||'',label:label(el)});
@@ -78,7 +79,7 @@
       const r=p.run;
       if(r&&r.start)r.path.push(sc);
       if(p.phase==='explore')p.explore.path.push(sc)}
-    if(p.phase==='explore')checkExplore(p);
+    if(p.phase==='explore'){checkExplore(p);followCleaning(p)}
     if(p.phase==='guided'&&p.run&&p.run.start&&!p.run.result){let ok=false;try{ok=byId(p.run.id).done(p.run.base,p.run)}catch(e){}if(ok)endTask('done (auto)')}
     draw();
   },300);
@@ -90,9 +91,16 @@
     if(!live()){try{A.ctlRestart();if(S.ctl.scenario==='none')S.ctl.scenario='all';commit(true)}catch(e){}}
     D.pid=pid;
     const ctx={};TASKS.forEach(T=>{let base=null;try{base=T.base?T.base():null}catch(e){}ctx[T.id]={base,seen:false}});
-    D.people[pid]={mode:live()?'real robot':'simulation',started:new Date().toISOString(),phase:'explore',
-      explore:{start:now(),end:null,log:[],path:[],achieved:{},ctx},queue:[],run:null,tasks:[],log:[]};
-    lastScreen=null;save();draw();
+    D.people[pid]={mode:live()?'real robot':'simulation',started:new Date().toISOString(),phase:'intro',
+      explore:{start:null,active:0,since:null,cleaning:false,end:null,log:[],path:[],achieved:{},ctx},queue:[],run:null,tasks:[],log:[]};
+    lastScreen=null;save();card('intro');draw();
+  }
+  /* after the background and opening task: the exploration clock starts */
+  function startExplore(){
+    const p=P();if(!p||p.phase!=='intro')return;
+    const ex=p.explore;TASKS.forEach(T=>{try{ex.ctx[T.id].base=T.base?T.base():null}catch(e){}});
+    ex.start=ex.since=now();ex.cleaning=!!(S.task&&!S.task.done);p.phase='explore';card(null);
+    push({type:'mark',action:'start',value:'',label:'Free exploration'});save();draw();
   }
   function checkExplore(p){
     const ex=p.explore;
@@ -100,19 +108,31 @@
       if(ex.achieved[T.id])return;
       const c=ex.ctx[T.id];c.log=ex.log; // done() reads taps from here
       let ok=false;try{ok=T.done(c.base,c)}catch(e){}
-      if(ok){const ms=now()-ex.start;ex.achieved[T.id]={ms,clicks:ex.log.filter(x=>x.type==='click').length,path:ex.path.slice(-8).join(' > ')};
+      if(ok){const ms=exploreMs(p);ex.achieved[T.id]={ms,clicks:ex.log.filter(x=>x.type==='click').length,path:ex.path.slice(-8).join(' > ')};
         push({type:'mark',action:'achieved',value:T.id,label:T.name})}
     });
   }
+  /* The exploration is one cleaning: when it ends (finished or stopped), the clock pauses and the phone offers the
+     tasks left. If they start another cleaning instead, the clock carries on. */
+  const leftAfter=p=>TASKS.filter(T=>T.after&&!p.explore.achieved[T.id]);
+  function followCleaning(p){
+    const ex=p.explore,running=!!(S.task&&!S.task.done);
+    if(ex.cleaning&&!running&&ex.since){ex.active+=now()-ex.since;ex.since=null;push({type:'mark',action:'cleaning ended',value:'',label:'exploration paused'});save();
+      setTimeout(()=>{const q=P();if(q===p&&p.phase==='explore'&&!p.explore.since){if(leftAfter(p).length)card('after');else endExplore()}},2500)}
+    if(!ex.cleaning&&running&&!ex.since){ex.since=now();card(null);push({type:'mark',action:'cleaning started again',value:'',label:'exploration continues'});save()}
+    ex.cleaning=running;
+  }
+  function keepExploring(){const p=P();if(!p||p.phase!=='explore')return;card(null);if(!p.explore.since)p.explore.since=now();
+    push({type:'mark',action:'keep exploring',value:'',label:''});save();draw()}
   function endExplore(){
     const p=P();if(!p||p.phase!=='explore')return;
     checkExplore(p);
-    const ex=p.explore;ex.end=now();
-    p.tasks.push({phase:'explore',task:'',name:'Free exploration',result:'',seconds:secs(ex.end-ex.start),clicks:ex.log.filter(x=>x.type==='click').length,
+    const ex=p.explore;ex.end=now();const total=exploreMs(p);if(ex.since){ex.active=total;ex.since=null}
+    p.tasks.push({phase:'explore',task:'',name:'Free exploration',result:'',seconds:secs(total),clicks:ex.log.filter(x=>x.type==='click').length,
       dead:ex.log.filter(x=>x.type==='tap').length,path:''});
     TASKS.forEach(T=>{const a=ex.achieved[T.id];if(a)p.tasks.push({phase:'explore',task:T.id,name:T.name,result:'achieved',seconds:secs(a.ms),clicks:a.clicks,best:T.best,path:a.path})});
     ex.log=[];Object.values(ex.ctx).forEach(c=>delete c.log); // the full log stays in p.log
-    p.queue=TASKS.filter(T=>!ex.achieved[T.id]).map(T=>T.id);
+    p.queue=leftAfter(p).map(T=>T.id);
     push({type:'mark',action:'exploration ended',value:String(p.queue.length),label:p.queue.length+' tasks left'});
     p.phase=p.queue.length?'guided':'done';p.run=null;save();
     if(p.queue.length)offer();else card('thanks');
@@ -121,13 +141,15 @@
 
   /* 2 guided tasks: the phone shows each one; the participant starts it */
   function offer(){
-    const p=P();if(!p)return;const id=p.queue[0];if(!id){p.phase='done';save();card('thanks');draw();return}
+    const p=P();if(!p)return;let id=p.queue[0];
+    while(id&&byId(id).can&&!byId(id).can()){const T=byId(id);p.tasks.push({phase:'guided',task:id,name:T.name,result:'not available',seconds:0,clicks:0,best:T.best,path:''});
+      push({type:'mark',action:'not available',value:id,label:T.name});p.queue.shift();id=p.queue[0]}
+    if(!id){p.phase='done';save();card('thanks');draw();return}
     p.run={id,start:null,base:null,log:[],path:[],result:null};save();card('task');draw();
   }
   function startTask_(){
     const p=P();const r=p&&p.run;if(!r||r.start)return;
     const T=byId(r.id);
-    if(T.setup&&!live()){try{T.setup()}catch(e){console.warn('study setup',e)}commit(true)}
     try{r.base=T.base?T.base():null}catch(e){}
     r.start=now();lastScreen=null;push({type:'mark',action:'start',value:'',label:T.name});card('strip');draw();
   }
@@ -204,13 +226,21 @@
     if(!kind){if(c)c.remove();return}
     if(!c){c=document.createElement('div');c.id='study-card';phone().appendChild(c)}
     const p=P();const r=p&&p.run;const T=r&&byId(r.id);
-    const doneN=p?p.tasks.filter(x=>x.phase==='guided').length:0,total=doneN+(p?p.queue.length:0),n=doneN+1;
+    const doneN=p?p.tasks.filter(x=>x.phase==='guided'&&x.result!=='not available').length:0,total=doneN+(p?p.queue.length:0),n=doneN+1;
     c.removeAttribute('role');c.removeAttribute('aria-label');
     if(kind==='task'){c.className='sc-full';c.setAttribute('role','dialog');c.setAttribute('aria-label','Task '+n);
       c.innerHTML=`<div class="sc-box"><div class="sc-eyebrow">${n===1?'A few more things to try · ':''}Task ${n} of ${total}</div><div class="sc-ask">${h(T.ask)}</div>
       <div class="sc-sub">Take your time and think out loud. Tap “I’m done” at the top when you think you’ve finished.</div><button class="sc-go" data-sc="start">Start task</button></div>`}
     if(kind==='strip'){c.className='sc-strip';c.setAttribute('role','status');
       c.innerHTML=`<span>Task ${n}/${total} · ${h(T.ask)}</span><button data-sc="done">I’m done</button><button data-sc="skip">Skip</button>`}
+    if(kind==='intro'){c.className='sc-full';c.setAttribute('role','dialog');c.setAttribute('aria-label','Before we start');
+      c.innerHTML=`<div class="sc-box"><div class="sc-eyebrow">Before we start</div><div class="sc-sub" style="margin-top:8px;color:var(--ink)">${h(SCRIPT.background)}</div>
+      <div class="sc-eyebrow" style="margin-top:16px">Your first task</div><div class="sc-ask" style="font-size:23px">${h(SCRIPT.opening)}</div>
+      <button class="sc-go" data-sc="begin">Start</button></div>`}
+    if(kind==='after'){const k=leftAfter(p).length;c.className='sc-full';c.setAttribute('role','dialog');c.setAttribute('aria-label','The cleaning is done');
+      c.innerHTML=`<div class="sc-box"><div class="sc-eyebrow">The cleaning is done</div><div class="sc-ask">${k} more thing${k>1?'s':''} to try</div>
+      <div class="sc-sub">One at a time. Think out loud as you go.</div><button class="sc-go" data-sc="go">Continue</button>
+      <button data-sc="keep" style="display:block;width:100%;margin-top:8px;padding:10px;background:none;color:var(--primary);font-size:14px">Not yet, keep exploring</button></div>`}
     if(kind==='done'){c.className='sc-full';c.innerHTML=`<div class="sc-box" style="text-align:center"><div class="sc-done">Done</div><div class="sc-sub" style="margin-top:6px">Nice. On to the next one.</div></div>`}
     if(kind==='thanks'){c.className='sc-full';c.innerHTML=`<div class="sc-box" style="text-align:center"><div class="sc-ask">That’s everything. Thank you!</div><div class="sc-sub">The researcher will take it from here.</div></div>`}
   }
@@ -218,6 +248,9 @@
     const b=e.target.closest('#study-card [data-sc]');if(!b)return;
     const k=b.dataset.sc;
     if(k==='start')startTask_();
+    if(k==='begin')startExplore();
+    if(k==='go')endExplore();
+    if(k==='keep')keepExploring();
     if(k==='done')endTask('said done');
     if(k==='skip')endTask('skipped by participant');
   });
@@ -229,32 +262,42 @@
   const dlBtn=()=>window.STUDY_NO_DOWNLOAD?'':'<button data-s="dl">Download CSV</button>';
   const exportRow=()=>`<div class="st-row">${dlBtn()}<button data-s="cp">Copy summary</button><button data-s="cpl">Copy taps</button></div>`;
   function drawClock(){const c=box.querySelector('.st-clock');const p=P();if(!c||!p)return;
-    if(p.phase==='explore')c.textContent=mmss(now()-p.explore.start);else if(p.run)c.textContent=p.run.start?mmss(now()-p.run.start):'waiting'}
+    if(p.phase==='explore')c.textContent=mmss(exploreMs(p))+(p.explore.since?'':' ⏸');else if(p.run)c.textContent=p.run.start?mmss(now()-p.run.start):'waiting'}
   function draw(){
     if(box.hidden)return;const p=P();
     let s=`<div style="display:flex;justify-content:space-between;align-items:start"><div><h2>Study log</h2><div class="st-m">For the facilitator. Shift+S hides it.</div></div><button data-s="hide" aria-label="Hide the study log">Hide</button></div>`;
     if(!p){
       s+=`<div class="st-row"><input id="study-pid" value="P${Object.keys(D.people).length+1}" aria-label="Participant ID" autocomplete="off"><button class="st-p" data-s="new">Begin</button></div>
-      <p class="st-m" style="margin-top:6px">Starts free exploration. Tasks they reach on their own are noted. When you end exploration, the phone shows the rest one by one.</p>`;
+      <p class="st-m" style="margin-top:6px">Begin shows the background and opening task on the phone. Free exploration runs until the cleaning ends; then the phone guides them through the after-cleaning tasks they didn’t reach.</p>`;
       const n=Object.keys(D.people).length;
       if(n)s+=`<p class="st-m" style="margin-top:8px">${n} participant${n>1?'s':''} saved in this browser.</p>`+exportRow();
     }else{
       s+=`<div class="st-row" style="margin-top:6px"><b>${h(D.pid)}</b><span class="st-m">· ${live()?'Real robot':'Simulation'}</span><span style="flex:1"></span><button data-s="end">End session</button></div>`;
+      if(p.phase==='intro')s+=`<div class="st-run"><b>Read out, or let them read it on the phone</b>
+        <p class="st-m" style="margin-top:6px;color:var(--ink)"><b>Background.</b> ${h(SCRIPT.background)}</p>
+        <p class="st-m" style="margin-top:6px;color:var(--ink)"><b>Opening task.</b> ${h(SCRIPT.opening)}</p>
+        <div class="st-m" style="margin-top:6px">The clock starts when they tap Start on the phone.</div><div class="st-row"><button class="st-p" data-s="startx">Start now</button></div></div>`;
       if(p.phase==='explore'){const k=Object.keys(p.explore.achieved).length;
-        s+=`<div class="st-run"><div style="display:flex;justify-content:space-between;align-items:center"><b>Free exploration</b><span class="st-clock">${mmss(now()-p.explore.start)}</span></div>
-        <div class="st-m" style="margin-top:4px">${k} of ${TASKS.length} tasks reached on their own · ${p.explore.log.filter(x=>x.type==='click').length} taps</div>
-        <div class="st-row"><button class="st-p" data-s="endx">End exploration</button></div></div>`}
-      if(p.phase==='guided'&&p.run){const T=byId(p.run.id);const r=p.run;const c=r.log.filter(x=>x.type==='click').length;
-        s+=`<div class="st-run"><div style="display:flex;justify-content:space-between;align-items:center"><b>${T.id} ${h(T.name)}</b><span class="st-clock">${r.start?mmss(now()-r.start):'waiting'}</span></div>
-        ${r.start?`<div class="st-m" style="margin-top:4px">${c} tap${c===1?'':'s'} (best ${T.best}) · ${detours(r)} detour${detours(r)===1?'':'s'} · ${r.log.filter(x=>x.type==='tap').length} dead taps</div>`:'<div class="st-m" style="margin-top:4px">The phone is showing this task. Waiting for them to press Start task.</div>'}
-        <div class="st-row"><button class="st-g" data-s="ok">Success</button><button class="st-r" data-s="fail">Failed</button><button data-s="skip">Skip</button></div></div>`}
+        s+=`<div class="st-run"><div style="display:flex;justify-content:space-between;align-items:center"><b>Free exploration</b><span class="st-clock">${mmss(exploreMs(p))+(p.explore.since?'':' ⏸')}</span></div>
+        <div class="st-m" style="margin-top:4px">“${h(SCRIPT.opening)}”</div>
+        ${p.explore.since?'':'<div class="st-m" style="margin-top:4px">The cleaning ended, so the clock is paused. It carries on if they start another cleaning.</div>'}
+        <div class="st-m" style="margin-top:4px">${k} of ${TASKS.length} goals reached on their own · ${p.explore.log.filter(x=>x.type==='click').length} taps</div>
+        <div class="st-row"><button class="st-p" data-s="endx">End this part</button><span class="st-m">if the cleaning end wasn’t picked up</span></div></div>`}
+      if(p.phase==='guided'){
+        s+=`<div class="st-run"><b>Guided tasks</b><div class="st-m">Shown on the phone one by one. If the app misses the end, use End task or Skip.</div>`;
+        p.queue.forEach((id,i)=>{const T=byId(id),r=p.run&&p.run.id===id?p.run:null;
+          s+=`<div style="margin-top:10px;padding-top:8px;border-top:1px solid var(--line)"><div style="display:flex;justify-content:space-between;align-items:center"><b>${T.id} ${h(T.name)}</b>${r?`<span class="st-clock" style="font-size:18px">${r.start?mmss(now()-r.start):'waiting'}</span>`:''}</div>
+          <div class="st-m">“${h(T.ask)}”</div>
+          ${r&&r.start?`<div class="st-m">${r.log.filter(x=>x.type==='click').length} taps (best ${T.best}) · ${detours(r)} detours</div>`:r?'<div class="st-m">Waiting for them to tap Start task.</div>':''}
+          <div class="st-row">${r?'<button class="st-g" data-s="ok">End task</button><button data-s="skip">Skip</button>':`<button data-s="skipq" data-v="${id}">Skip</button>`}</div></div>`});
+        s+=`</div>`}
       if(p.phase==='done')s+=`<div class="st-run" style="background:var(--ok-soft)"><b>Session complete.</b> Copy or download the results, then End session.</div>`;
       s+=`<div class="st-tl">${TASKS.map(T=>{
         const a=p.explore.achieved[T.id],g=[...p.tasks].reverse().find(x=>x.phase==='guided'&&x.task===T.id);
-        const st=a?`<span class="st-ok">✓ explored ${mmss(a.ms)}</span>`:g?`<span class="${g.result==='done (auto)'||g.result==='success'?'st-ok':'st-bad'}">${h(g.result)} ${g.seconds}s</span>`:
-          p.run&&p.run.id===T.id?'<span class="st-m">now</span>':p.phase==='explore'?'<span class="st-todo">—</span>':'<span class="st-todo">to do</span>';
+        const st=a?`<span class="st-ok">✓ explored ${mmss(a.ms)}</span>`:g&&g.result==='not available'?'<span class="st-todo">n/a</span>':g?`<span class="${/^done/.test(g.result)?'st-ok':'st-bad'}">${h(g.result)} ${g.seconds}s</span>`:
+          p.run&&p.run.id===T.id?'<span class="st-m">now</span>':p.phase==='explore'||p.phase==='intro'?'<span class="st-todo">—</span>':T.after?'<span class="st-todo">to do</span>':'<span class="st-todo">not reached</span>';
         return `<span title="${h(T.ask)}">${T.id} ${h(T.name)}</span>${st}`}).join('')}</div>`;
-      if(live())s+=`<p class="st-m" style="margin-top:8px">Real robot: guided tasks aren’t set up for you, and tasks that start a cleaning move the robot.</p>`;
+      if(live())s+=`<p class="st-m" style="margin-top:8px">Real robot: starting a cleaning moves the robot.</p>`;
       s+=exportRow();
     }
     s+=`<div class="st-note" role="status">${h(msg)}</div>`;
@@ -267,8 +310,10 @@
     if(k==='new'){const v=(box.querySelector('#study-pid').value||'').trim();if(!v){note('Enter a participant ID first');return}
       if(D.people[v]){note(v+' already exists. Use another ID.');return}begin(v)}
     if(k==='endx')endExplore();
+    if(k==='startx')startExplore();
+    if(k==='skipq'){const p=P();const T=byId(b.dataset.v);if(p&&T){p.queue=p.queue.filter(x=>x!==T.id);p.tasks.push({phase:'guided',task:T.id,name:T.name,result:'skipped',seconds:0,clicks:0,best:T.best,path:''});save();draw()}}
     if(k==='end'){const p=P();if(p&&p.run&&p.run.start&&!p.run.result)endTask('stopped');if(P())P().phase='done';card(null);D.pid=null;save();draw()}
-    if(k==='ok')endTask('success');if(k==='fail')endTask('failed');if(k==='skip')endTask('skipped');
+    if(k==='ok')endTask('done (facilitator)');if(k==='skip')endTask('skipped');
     if(k==='dl'){const d=new Date().toISOString().slice(0,10);download(`study-summary-${d}.csv`,summaryCSV());setTimeout(()=>download(`study-taps-${d}.csv`,logCSV()),400)}
     if(k==='cp')copy(summaryCSV());
     if(k==='cpl')copy(logCSV());
@@ -279,7 +324,7 @@
   let open=false;try{open=!!localStorage.getItem(KEY+'-open')}catch(e){}
   if(open||new URLSearchParams(location.search).has('study'))toggle(true);
   // after a reload in the middle of a session, put the phone card back
-  {const p=P();if(p&&p.phase==='guided'&&p.run)card(p.run.start?'strip':'task');else if(p&&p.phase==='done'){D.pid=null;save()}}
-  window.STUDY={toggle,begin,endExplore,startTask:startTask_,endTask,tasks:TASKS,data:()=>D,summaryCSV,logCSV};
+  {const p=P();if(p&&p.phase==='intro')card('intro');if(p&&p.phase==='guided'&&p.run)card(p.run.start?'strip':'task');else if(p&&p.phase==='done'){D.pid=null;save()}}
+  window.STUDY={toggle,begin,startExplore,endExplore,keepExploring,startTask:startTask_,endTask,tasks:TASKS,data:()=>D,summaryCSV,logCSV};
   if(typeof A!=='undefined')A.studyLog=()=>toggle(true);
 })();
