@@ -5,9 +5,10 @@
 <meta name="viewport" content="width=393, initial-scale=1">
 <title>Fitfido app prototype</title>
 <style>
-  :root { --o: #f0611f; --ink: #1f1f1f; --muted: #7b7b7b; }
+  :root { --o: #ea5b17; --ink: #333; --muted: #8a8a8a; --sf: -apple-system, "SF Pro Display", "SF Pro Text", Inter, system-ui, sans-serif; }
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  html, body { width: 393px; height: 852px; overflow: hidden; overscroll-behavior: none; background: #efefef; font-family: -apple-system, "SF Pro Text", Inter, system-ui, sans-serif; -webkit-font-smoothing: antialiased; }
+  html, body { width: 393px; height: 852px; overflow: hidden; overscroll-behavior: none; background: #efefef; font-family: var(--sf); -webkit-font-smoothing: antialiased; }
+  button, input { font-family: inherit; }
   #app { position: relative; width: 393px; height: 852px; overflow: hidden; background: #efefef; touch-action: pan-y; }
   img { display: block; user-select: none; -webkit-user-drag: none; pointer-events: none; }
   /* a screen: fixed base, an optional scrolling layer, then fixed layers (nav) on top */
@@ -15,33 +16,106 @@
   .scr.is-cur { pointer-events: auto; opacity: 1; z-index: 2; }
   .scr.is-prev { opacity: 1; z-index: 1; }
   .scr > .base { position: absolute; left: 0; top: 0; width: 393px; }
-  .sc { position: absolute; overflow-x: hidden; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
+  .sc { position: absolute; overflow-x: hidden; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: none; scroll-behavior: smooth; }
   .sc::-webkit-scrollbar { display: none; }
   .sc .in { position: relative; }
   .fx { position: absolute; left: 0; width: 393px; pointer-events: none; }
   .fx .hs { pointer-events: auto; }
   .fx .glass { position: absolute; top: 59px; width: 283px; height: 70px; border-radius: 20px; -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px); }
   .hs { position: absolute; border: 0; background: transparent; cursor: pointer; border-radius: 14px; -webkit-tap-highlight-color: transparent; }
-  .hs:focus-visible { outline: 3px solid var(--o); outline-offset: 2px; }
+  .hs:focus-visible { outline: 2px solid var(--o); outline-offset: 2px; }
   .tg { position: absolute; cursor: pointer; }
   .tg img { width: 100%; }
-  #app.is-hint .scr.is-cur .hs, #app.is-hint .scr.is-cur .tg { animation: hint .7s ease-out; }
-  @keyframes hint { 35% { box-shadow: 0 0 0 3px rgba(240,97,31,.6); background: rgba(240,97,31,.1); } }
   .layer { position: absolute; pointer-events: none; }
+  .patch { position: absolute; display: none; align-items: center; background: #e6e6e6; pointer-events: none; }
+  .patch.is-on { display: flex; }
+  /* v2 week strip: the selected day */
+  .day { position: absolute; top: 342px; width: 39px; height: 79px; border-radius: 20px; background: #ea5b17; color: #fff; text-align: center; pointer-events: none; transition: left .3s cubic-bezier(.3,.7,.2,1); }
+  .day b { display: block; margin-top: 12px; font: 400 22px/26px var(--sf); }
+  .day i { display: block; margin-top: 12px; font: 400 14px/17px var(--sf); font-style: normal; }
   /* toast */
-  .toast { position: absolute; left: 50%; bottom: 118px; z-index: 40; transform: translate(-50%, 16px); opacity: 0; max-width: 340px; padding: 12px 18px; border-radius: 16px; background: rgba(28,28,28,.92); color: #fff; font-size: 14px; line-height: 1.35; text-align: center; transition: .3s; pointer-events: none; }
+  .toast { position: absolute; left: 50%; bottom: 118px; z-index: 60; transform: translate(-50%, 16px); opacity: 0; width: max-content; max-width: 340px; padding: 12px 18px; border-radius: 16px; background: rgba(28,28,28,.92); color: #fff; font-size: 14px; line-height: 1.35; text-align: center; transition: .3s; pointer-events: none; }
   .toast.is-on { transform: translate(-50%, 0); opacity: 1; }
-  /* sheets drawn in each version's style */
-  .veil { position: absolute; inset: 0; z-index: 30; background: rgba(0,0,0,.3); opacity: 0; transition: opacity .3s; }
+
+  /* ---------- v1 Feeding Mode card, rebuilt so every control works ---------- */
+  .fm { position: absolute; left: 18px; top: 244px; width: 360px; height: 309px; border-radius: 10px; background: #e8e8e8; box-shadow: 5px 5px 20px rgba(185,185,185,.5), -5px -5px 20px #fff; font-family: var(--sf); }
+  .fm * { position: absolute; }
+  .fm .t { font-weight: 700; font-size: 16px; line-height: 19px; white-space: nowrap; transition: color .25s; }
+  .fm .well { border-radius: 10px; background: #e8e8e8; box-shadow: inset -5px -5px 4px rgba(255,255,255,.3), inset 5px 5px 4px rgba(174,174,192,.2); }
+  .fm .ic { width: 24px; height: 24px; border-radius: 5px; display: grid; place-items: center; transition: background .25s; }
+  .fm .ic svg { position: static; }
+  .fm .sw { width: 46px; height: 22px; cursor: pointer; }
+  .fm .sw .tr { left: 1px; top: 3px; width: 44px; height: 16px; border-radius: 50px; background: #d4d4d4; box-shadow: inset 2.5px 2.5px 5px rgba(87,87,87,.55), inset -2.5px -2.5px 5px rgba(250,251,255,.1); transition: background .25s; }
+  .fm .sw .kn { left: 1px; top: 1px; width: 20px; height: 20px; border-radius: 50%; background: linear-gradient(135deg, #f4f6f9, #dfe3e8); box-shadow: 2.5px 2.5px 8px rgba(53,62,85,.35), -2.5px -2.5px 8px #fff; transition: left .25s cubic-bezier(.3,.7,.2,1); }
+  .fm .sw.on .tr { background: #e95a18; }
+  .fm .sw.on .kn { left: 25px; }
+  .fm .seg { border-radius: 50px; transition: opacity .25s; }
+  .fm .seg button { position: absolute; top: 0; height: 50px; border: 0; background: none; cursor: pointer; font-weight: 500; font-size: 11px; color: #b1b1b1; transition: color .25s; }
+  .fm .thumb { top: 5px; width: 99px; height: 42px; border-radius: 20px; background: #e8e8e8; box-shadow: 5px 5px 10px rgba(193,193,193,.35), -5px -5px 5px rgba(255,255,255,.6), inset 2px 2px 4px #fff, inset -2px -2px 4px rgba(0,0,0,.1); transition: left .3s cubic-bezier(.3,.7,.2,1); pointer-events: none; }
+  .fm .msg { border-radius: 6px; transition: background .25s; }
+  .fm .msg b { left: 20px; top: 4px; font-weight: 500; font-size: 11px; line-height: 13px; white-space: nowrap; }
+  .fm .msg svg { left: 7px; top: 5px; }
+  .fm .msg span { left: 23px; top: 17px; width: 286px; font: 400 10px/12px Inter, var(--sf); color: #333; }
+  .fm.manual .auto-t { color: #b1b1b1 !important; }
+  .fm.manual .seg { opacity: .45; pointer-events: none; }
+  .badge { position: absolute; left: 172px; top: 99px; width: 118px; height: 28px; background: #e6e6e6; pointer-events: none; display: none; }
+  .badge span { position: absolute; left: 4px; top: 3px; height: 22px; padding: 0 9px 0 22px; border-radius: 6px; background: #dedede; color: #8a8a8a; font-size: 12px; font-weight: 500; line-height: 22px; }
+  .badge span::before { content: ""; position: absolute; left: 9px; top: 8px; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+  .badge.is-on { display: block; }
+
+  /* ---------- pages drawn in each version's style ---------- */
+  .pg { position: absolute; inset: 0; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: none; }
+  .pg::-webkit-scrollbar { display: none; }
+  .sbar { height: 50px; background: url(s/v1-food.webp?v=2) 0 0 / 393px auto no-repeat; }
+  .v1 .pg { background: #e6e6e6; padding: 0 22px 40px; }
+  .v1 .pg .sbar { margin: 0 -22px; }
+  .p1-head { position: relative; height: 56px; display: flex; align-items: center; justify-content: center; font-size: 22px; font-weight: 700; color: #333; }
+  .p1-back { position: absolute; left: 0; top: 8px; width: 40px; height: 40px; border-radius: 50%; border: 0; background: #e8e8e8; box-shadow: 4px 4px 10px rgba(174,174,192,.45), -4px -4px 10px #fff; color: #9a9a9a; font-size: 20px; cursor: pointer; }
+  .nm { background: #e8e8e8; border-radius: 14px; box-shadow: 5px 5px 16px rgba(185,185,185,.5), -5px -5px 16px #fff; }
+  .nm-in { background: #e8e8e8; border-radius: 12px; box-shadow: inset -4px -4px 6px rgba(255,255,255,.6), inset 4px 4px 6px rgba(174,174,192,.25); }
+  .p1-big { margin-top: 18px; padding: 20px; }
+  .p1-big small { color: #333; font-size: 14px; font-weight: 600; }
+  .p1-big b { display: block; margin-top: 6px; color: var(--o); font-size: 44px; font-weight: 700; letter-spacing: -.01em; }
+  .p1-big b em { font-style: normal; font-size: 16px; color: #333; margin-left: 4px; }
+  .p1-big p { margin-top: 4px; font-size: 13px; color: #2f9e57; }
+  .p1-chart { margin-top: 18px; padding: 18px 14px 10px; }
+  .p1-chart svg { display: block; width: 100%; }
+  .p1-h { margin: 22px 0 10px; font-size: 18px; font-weight: 700; color: var(--o); }
+  .p1-row { display: flex; align-items: center; gap: 12px; padding: 14px 16px; margin-bottom: 12px; font-size: 14px; color: #333; cursor: pointer; border: 0; width: 100%; text-align: left; }
+  .p1-row i { flex: none; width: 34px; height: 34px; border-radius: 10px; background: #f6dccb; display: grid; place-items: center; font-style: normal; font-size: 16px; }
+  .p1-row span { flex: 1; } .p1-row span small { display: block; color: var(--muted); font-size: 12px; margin-top: 2px; }
+  .p1-row em { font-style: normal; color: var(--o); font-weight: 700; }
+  .v1 .btn1 { display: block; width: 100%; margin-top: 18px; padding: 16px; border: 0; border-radius: 14px; background: var(--o); color: #fff; font-size: 17px; font-weight: 600; box-shadow: 4px 6px 14px rgba(234,91,23,.35); cursor: pointer; }
+
+  .v2 .pg { background: #efefef; padding: 59px 20px 40px; }
+  .p2-back { width: 52px; height: 52px; border-radius: 50%; border: 0; background: #fff; font-size: 22px; color: #222; cursor: pointer; }
+  .p2-title { margin: 30px 0 22px; font-size: 34px; font-weight: 300; color: #222; letter-spacing: -.01em; }
+  .p2-card { display: flex; align-items: center; gap: 14px; width: 100%; padding: 16px; margin-bottom: 12px; border: 0; border-radius: 22px; background: #fff; text-align: left; cursor: pointer; font-size: 15px; color: #222; }
+  .p2-card i { flex: none; width: 44px; height: 44px; border-radius: 50%; background: #f3f3f3; display: grid; place-items: center; font-style: normal; font-size: 19px; }
+  .p2-card span { flex: 1; } .p2-card span small { display: block; margin-top: 3px; color: var(--muted); font-size: 13px; }
+  .p2-card em { font-style: normal; font-size: 12px; color: var(--muted); align-self: flex-start; }
+  .p2-card.new i::after { content: ""; position: absolute; }
+
+  /* ---------- sheets ---------- */
+  .veil { position: absolute; inset: 0; z-index: 30; background: rgba(0,0,0,.32); opacity: 0; transition: opacity .3s; }
   .veil.is-on { opacity: 1; }
-  .sheet { position: absolute; left: 10px; right: 10px; bottom: 10px; z-index: 31; padding: 26px 22px 22px; border-radius: 30px; transform: translateY(110%); transition: transform .42s cubic-bezier(.3,.7,.2,1); }
+  .sheet { position: absolute; left: 10px; right: 10px; bottom: 10px; z-index: 31; max-height: 760px; overflow-y: auto; scrollbar-width: none; padding: 24px 20px 20px; border-radius: 30px; transform: translateY(110%); transition: transform .42s cubic-bezier(.3,.7,.2,1); }
+  .sheet::-webkit-scrollbar { display: none; }
   .sheet.is-on { transform: none; }
-  .btn { display: block; width: 100%; margin-top: 18px; padding: 15px; border: 0; border-radius: 16px; background: var(--o); color: #fff; font-family: inherit; font-size: 17px; font-weight: 600; line-height: 1; cursor: pointer; }
+  .sheet.dialog { top: 50%; bottom: auto; left: 36px; right: 36px; transform: translateY(-40%) scale(.94); opacity: 0; transition: .3s; text-align: center; }
+  .sheet.dialog.is-on { transform: translateY(-50%); opacity: 1; }
+  .btn { display: block; width: 100%; margin-top: 18px; padding: 15px; border: 0; border-radius: 16px; background: var(--o); color: #fff; font-size: 17px; font-weight: 600; line-height: 1; cursor: pointer; }
+  .btn:disabled { opacity: .4; cursor: default; }
   .btn--ghost { background: transparent; color: var(--muted); margin-top: 6px; font-weight: 500; font-size: 15px; box-shadow: none !important; }
   .v1 .sheet { background: #ececec; box-shadow: 8px 8px 24px rgba(0,0,0,.18), -6px -6px 16px rgba(255,255,255,.8); }
   .v1 .sheet h3 { font-size: 20px; color: var(--o); }
-  .v1 .sheet p { margin-top: 6px; font-size: 14px; color: var(--muted); }
-  .v1 .btn { box-shadow: 4px 6px 14px rgba(240,97,31,.35); }
+  .v1 .sheet p { margin-top: 6px; font-size: 14px; color: var(--muted); line-height: 1.4; }
+  .v1 .btn { box-shadow: 4px 6px 14px rgba(234,91,23,.35); }
+  .v1 .field { margin-top: 18px; width: 100%; padding: 15px 16px; border: 0; border-radius: 12px; background: #e8e8e8; box-shadow: inset -4px -4px 6px rgba(255,255,255,.7), inset 4px 4px 6px rgba(174,174,192,.3); font-size: 17px; color: #333; outline: none; }
+  .chips { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 16px; }
+  .chip { padding: 11px 18px; border: 0; border-radius: 99px; font-size: 15px; cursor: pointer; }
+  .v1 .chip { background: #e8e8e8; color: #8a8a8a; box-shadow: 4px 4px 10px rgba(174,174,192,.4), -4px -4px 10px #fff; }
+  .v1 .chip.on { color: var(--o); box-shadow: inset 3px 3px 6px rgba(174,174,192,.4), inset -3px -3px 6px #fff; }
   .dial { position: relative; width: 190px; height: 190px; margin: 20px auto 6px; border-radius: 50%; background: #ececec; box-shadow: inset 6px 6px 14px rgba(0,0,0,.12), inset -6px -6px 14px rgba(255,255,255,.9); display: grid; place-items: center; text-align: center; }
   .dial b { display: block; font-size: 46px; color: var(--o); font-weight: 700; font-variant-numeric: tabular-nums; letter-spacing: -.02em; }
   .dial small { font-size: 14px; color: var(--muted); }
@@ -51,115 +125,217 @@
   .portion { display: flex; align-items: baseline; justify-content: center; gap: 12px; margin: 22px 0 4px; font-size: 18px; color: var(--muted); }
   .portion b { font-size: 40px; color: var(--o); }
   .portion s { color: #b5b5b5; }
+
   .v2 .sheet { background: #fff; box-shadow: 0 -10px 40px rgba(0,0,0,.12); }
-  .v2 .sheet h3 { font-size: 22px; font-weight: 500; color: var(--ink); }
-  .row { display: flex; align-items: center; gap: 12px; margin-top: 14px; padding: 14px; border-radius: 18px; background: #f3f3f3; font-size: 15px; }
-  .row i { width: 40px; height: 40px; border-radius: 50%; background: #fff; display: grid; place-items: center; font-style: normal; font-size: 18px; }
-  .row span { flex: 1; } .row em { font-style: normal; font-size: 13px; color: #34a853; }
+  .v2 .sheet h3 { font-size: 24px; font-weight: 400; color: #222; }
+  .v2 .sheet p { margin-top: 6px; font-size: 14px; color: var(--muted); line-height: 1.45; }
+  .v2 .field { margin-top: 16px; width: 100%; padding: 15px 16px; border: 0; border-radius: 16px; background: #f3f3f3; font-size: 16px; color: #222; outline: none; }
+  .v2 .chip { background: #f3f3f3; color: #444; }
+  .v2 .chip.on { background: #ea5b17; color: #fff; }
+  .row { display: flex; align-items: center; gap: 12px; margin-top: 12px; padding: 14px; border-radius: 18px; background: #f3f3f3; font-size: 15px; color: #222; }
+  .row i { flex: none; width: 40px; height: 40px; border-radius: 50%; background: #fff; display: grid; place-items: center; font-style: normal; font-size: 18px; }
+  .row span { flex: 1; } .row span small { display: block; margin-top: 2px; font-size: 12px; color: var(--muted); }
+  .row em { font-style: normal; font-size: 13px; color: #34a853; }
   .row em.wait { color: var(--muted); }
+  .row.tap { cursor: pointer; border: 0; width: 100%; text-align: left; }
   .spin { width: 16px; height: 16px; border: 2px solid #ccc; border-top-color: var(--o); border-radius: 50%; animation: s 1s linear infinite; display: inline-block; vertical-align: -3px; margin-right: 6px; }
   @keyframes s { to { transform: rotate(360deg); } }
+  .step { display: flex; align-items: center; gap: 10px; }
+  .step button { width: 34px; height: 34px; border-radius: 50%; border: 0; background: #fff; font-size: 18px; color: #222; cursor: pointer; }
+  .v1 .step button { background: #e8e8e8; box-shadow: 3px 3px 8px rgba(174,174,192,.45), -3px -3px 8px #fff; color: var(--o); }
+  .step b { min-width: 56px; text-align: center; font-size: 16px; font-weight: 600; font-variant-numeric: tabular-nums; }
+  .sum { display: flex; justify-content: space-between; align-items: baseline; margin-top: 16px; padding: 14px 16px; border-radius: 16px; background: #fdf0e9; font-size: 14px; color: #555; }
+  .sum b { font-size: 20px; color: var(--o); }
+  .sw2 { position: relative; flex: none; width: 50px; height: 30px; border-radius: 99px; background: #ddd; border: 0; cursor: pointer; transition: background .25s; }
+  .sw2::after { content: ""; position: absolute; left: 3px; top: 3px; width: 24px; height: 24px; border-radius: 50%; background: #fff; box-shadow: 0 2px 6px rgba(0,0,0,.2); transition: left .25s; }
+  .sw2.on { background: #ea5b17; } .sw2.on::after { left: 23px; }
+  .cal { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; margin-top: 14px; text-align: center; font-size: 15px; }
+  .cal span { padding: 4px 0 8px; font-size: 12px; color: var(--muted); }
+  .cal button { height: 40px; border: 0; border-radius: 50%; background: none; font-size: 15px; color: #222; cursor: pointer; }
+  .cal button.on { background: #ea5b17; color: #fff; }
+  .cal button.muted { color: #c4c4c4; }
+  .slots { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 12px; }
+  .slots .chip { padding: 11px 0; text-align: center; }
+  .lbl { margin-top: 18px; font-size: 13px; color: var(--muted); }
+  .bub { max-width: 80%; margin-top: 10px; padding: 11px 14px; border-radius: 18px; font-size: 14px; line-height: 1.4; }
+  .bub.them { background: #f3f3f3; color: #222; border-bottom-left-radius: 6px; }
+  .bub.me { margin-left: auto; background: #ea5b17; color: #fff; border-bottom-right-radius: 6px; }
+  .bcs { display: flex; gap: 4px; margin-top: 18px; }
+  .bcs i { flex: 1; height: 10px; border-radius: 5px; background: #eee; }
+  .bcs i.ok { background: #ffd2ba; } .bcs i.me { background: #ea5b17; }
+  .bcs-l { display: flex; justify-content: space-between; margin-top: 6px; font-size: 12px; color: var(--muted); }
+  .dialog h3 { font-size: 20px !important; }
+  .dialog .two { display: flex; gap: 10px; margin-top: 20px; }
+  .dialog .two .btn { margin: 0; }
+  .dialog .two .btn--ghost { background: #f3f3f3; color: #222; }
 </style>
 </head>
 <body>
 <div id="app"></div>
 <div class="toast" id="toast"></div>
 <script>
-/* Fitfido prototypes, wired the way the Figma prototype is: ?mode=before is the first app, ?mode=after the second.
-   Screens are layered exports from Figma (a fixed base, a scrolling layer, the fixed nav), all in the screen's own
-   points (393 x 852). Hotspots on a scrolling layer use that layer's coordinates. A few screens Figma didn't have
-   (weigh-in, adjust plan, add device) are drawn here in each version's style. Every screen carries data-testid
-   so the case-study page can explain where the visitor is. */
+/* Fitfido prototypes, wired as in the Figma prototype plus the links a real app would need.
+   ?mode=before is the first app, ?mode=after the second. Screens are layered Figma exports (fixed base,
+   scrolling layer, fixed nav) in the screen's own points (393 x 852); hotspots on a scrolling layer use
+   that layer's coordinates. Screens and sheets the designs didn't have are drawn here in each version's
+   style. Every screen and sheet carries data-testid so the case-study page can explain where you are. */
 const MODE = new URLSearchParams(location.search).get("mode") === "before" ? "before" : "after";
 const PRE = MODE === "before" ? "b-" : "a-";
 const app = document.getElementById("app");
 app.className = MODE === "before" ? "v1" : "v2";
-const S = (n) => "s/" + n + ".webp?v=2";
+const S = (n) => "s/" + n + ".webp?v=3";
+const state = { portion: 245, auto: true, mode: "ai", manual: false, day: 29, pieces: 1, booked: true,
+  dog: { name: "Jelly", gender: "Female", age: "3yrs 2mon", breed: "Corgi", wifi: "Jellyjellyje" } };
 
 /* ---------- screens ---------- */
 const NAV1 = [{ x: 21, y: 774, w: 117, h: 56, tab: "home" }, { x: 138, y: 774, w: 117, h: 56, tab: "feeder" }, { x: 255, y: 774, w: 116, h: 56, tab: "settings" }];
 const NAV2 = [{ x: 63, y: 765, w: 62, h: 58, tab: "home1" }, { x: 131, y: 765, w: 62, h: 58, tab: "device1" }, { x: 199, y: 765, w: 62, h: 58, tab: "appt" }, { x: 267, y: 765, w: 62, h: 58, tab: "profile" }];
 const nav2 = (img) => ({ img: S("v2-nav-" + img), y: 700, h: 152, hs: NAV2 });
+// Home (v2): avatars, header icons and cards live in the scrolling layer (offset 13, 59)
+const DAYS = [[25, "mon", 40], [26, "tue", 89.5], [27, "wed", 137.5], [28, "thu", 185], [29, "fri", 233.5], [30, "sat", 282.5], [31, "sun", 330.5]];
+const homeHs = (pets) => [...pets,
+  { x: 240, y: 0, w: 50, h: 48, go: "notif" }, { x: 302, y: 0, w: 56, h: 48, tab: "profile" },
+  { x: 312, y: 266, w: 40, h: 40, act: "calendar" },
+  ...DAYS.map(([d, , c]) => ({ x: c - 22, y: 342, w: 44, h: 79, act: "pickDay", d })),
+  { x: 246, y: 462, w: 116, h: 32, tab: "appt" },
+  { x: 36, y: 655, w: 152, h: 100, act: "bcs" }, { x: 196, y: 655, w: 160, h: 100, go: "camera" },
+  { x: 170, y: 784, w: 48, h: 40, act: "scrollDown" }];
+// Health Care (v2): the doctor finder is the same in all three states
+const finder = (dy) => [{ x: 252, y: 574 + dy, w: 56, h: 56, act: "search" }, { x: 311, y: 574 + dy, w: 56, h: 56, act: "search" },
+  { x: 26, y: 656 + dy, w: 162, h: 144, act: "book", kind: "video" }, { x: 204, y: 656 + dy, w: 162, h: 144, act: "book", kind: "clinic" },
+  { x: 26, y: 816 + dy, w: 162, h: 140, act: "qa" }, { x: 204, y: 816 + dy, w: 162, h: 140, act: "emergency" }];
 
 const SCREENS = MODE === "before" ? {
-  home: { base: S("v1-home"), ring: true, hs: [
-    { x: 236, y: 522, w: 112, h: 66, act: "adjust" },
-    { x: 34, y: 698, w: 120, h: 36, act: "weigh" },
-    { x: 26, y: 650, w: 160, h: 46, act: "weigh" },
-    { x: 200, y: 650, w: 170, h: 92, tab: "feeder" },
-    { x: 290, y: 418, w: 80, h: 26, tab: "feeder" },
-    ...NAV1] },
-  feeder: { base: S("v1-feeder"), mode: true, hs: [
-    { x: 40, y: 634, w: 150, h: 62, go: "upload" },
-    { x: 204, y: 634, w: 154, h: 62, go: "upload" },
-    ...NAV1] },
+  home: { base: S("v1-home"), ring: true, patch: "portion", hs: [
+    { x: 276, y: 46, w: 50, h: 50, tab: "settings" }, { x: 328, y: 46, w: 50, h: 50, go: "notif" },
+    { x: 288, y: 128, w: 82, h: 26, go: "weight" },
+    { x: 236, y: 522, w: 112, h: 66, act: "adjust" }, { x: 288, y: 420, w: 82, h: 24, tab: "feeder" },
+    { x: 36, y: 700, w: 118, h: 34, act: "weigh" }, { x: 26, y: 650, w: 160, h: 48, go: "weight" },
+    { x: 200, y: 650, w: 170, h: 96, tab: "feeder" }, ...NAV1] },
+  feeder: { base: S("v1-feeder"), feeding: true, hs: [
+    { x: 20, y: 46, w: 54, h: 54, tab: "settings" }, { x: 330, y: 46, w: 50, h: 50, go: "notif" },
+    { x: 40, y: 634, w: 150, h: 62, go: "upload" }, { x: 204, y: 634, w: 154, h: 62, go: "upload" }, ...NAV1] },
   upload: { base: S("v1-upload"), hs: [{ x: 14, y: 50, w: 54, h: 54, back: 1 }, { x: 140, y: 724, w: 112, h: 112, go: "food" }] },
-  food: { base: S("v1-food"), hs: [{ x: 14, y: 50, w: 54, h: 54, back: 1 }, { x: 20, y: 725, w: 353, h: 62, act: "autoAdjust" }, { x: 110, y: 794, w: 172, h: 28, back: 1 }] },
-  settings: { base: S("v1-settings"), hs: [...NAV1] },
+  food: { base: S("v1-food"), hs: [{ x: 14, y: 50, w: 54, h: 54, back: 1 }, { x: 78, y: 134, w: 238, h: 172, back: 1 }, { x: 20, y: 725, w: 353, h: 62, act: "autoAdjust" }, { x: 110, y: 794, w: 172, h: 28, act: "manualAdjust" }] },
+  settings: { base: S("v1-settings"), patch: "dog", hs: [
+    { x: 328, y: 46, w: 50, h: 50, go: "notif" }, { x: 44, y: 178, w: 52, h: 52, act: "photo" },
+    { x: 28, y: 280, w: 337, h: 44, act: "edit", f: "name" }, { x: 28, y: 345, w: 337, h: 44, act: "edit", f: "gender" },
+    { x: 28, y: 410, w: 337, h: 44, act: "edit", f: "age" }, { x: 28, y: 475, w: 337, h: 44, act: "edit", f: "breed" },
+    { x: 28, y: 612, w: 337, h: 44, act: "edit", f: "wifi" }, { x: 28, y: 677, w: 337, h: 44, act: "firmware" }, ...NAV1] },
+  notif: { html: "notif1" },
+  weight: { html: "weight1" },
 } : {
   onboarding: { base: S("v2-onboarding"), auto: { after: 1600, tab: "home1" }, hs: [{ x: 200, y: 754, w: 122, h: 46, tab: "home1" }] },
-  // Home: the card list scrolls; swipe or tap an avatar to switch pets
-  home1: { base: S("v2-home1-bg"), swipe: [null, "home2"], sc: { x: 13, y: 59, w: 368, h: 793, img: S("v2-home1-sc"), ch: 1004, hs: [
-    { x: 85, y: 12, w: 62, h: 90, tab: "home2", dir: 1 }, { x: 158, y: 12, w: 62, h: 90, tab: "home3", dir: 1 }, { x: 192, y: 640, w: 170, h: 70, go: "camera" }] }, fx: nav2("home") },
-  home2: { base: S("v2-home2-bg"), swipe: ["home1", "home3"], sc: { x: 13, y: 59, w: 368, h: 793, img: S("v2-home2-sc"), ch: 1004, hs: [
-    { x: 0, y: 12, w: 52, h: 90, tab: "home1", dir: -1 }, { x: 134, y: 12, w: 62, h: 90, tab: "home3", dir: 1 }, { x: 192, y: 640, w: 170, h: 70, go: "camera" }] }, fx: nav2("home") },
-  home3: { base: S("v2-home3-bg"), swipe: ["home2", null], sc: { x: 13, y: 59, w: 368, h: 793, img: S("v2-home3-sc"), ch: 1004, hs: [
-    { x: 0, y: 12, w: 28, h: 90, tab: "home1", dir: -1 }, { x: 36, y: 12, w: 62, h: 90, tab: "home2", dir: -1 }, { x: 192, y: 640, w: 170, h: 70, go: "camera" }] }, fx: nav2("home") },
-  // Devices: one card per device, swipe or tap the icons to switch; toggles work
+  home1: { base: S("v2-home1-bg"), swipe: [null, "home2"], strip: true, sc: { x: 13, y: 59, w: 368, h: 793, img: S("v2-home1-sc"), ch: 1004,
+    hs: homeHs([{ x: 85, y: 12, w: 62, h: 90, tab: "home2", dir: 1 }, { x: 158, y: 12, w: 50, h: 90, tab: "home3", dir: 1 }]) }, fx: nav2("home") },
+  home2: { base: S("v2-home2-bg"), swipe: ["home1", "home3"], strip: true, sc: { x: 13, y: 59, w: 368, h: 793, img: S("v2-home2-sc"), ch: 1004,
+    hs: homeHs([{ x: 0, y: 12, w: 52, h: 90, tab: "home1", dir: -1 }, { x: 134, y: 12, w: 62, h: 90, tab: "home3", dir: 1 }]) }, fx: nav2("home") },
+  home3: { base: S("v2-home3-bg"), swipe: ["home2", null], strip: true, sc: { x: 13, y: 59, w: 368, h: 793, img: S("v2-home3-sc"), ch: 1004,
+    hs: homeHs([{ x: 0, y: 12, w: 28, h: 90, tab: "home1", dir: -1 }, { x: 36, y: 12, w: 62, h: 90, tab: "home2", dir: -1 }]) }, fx: nav2("home") },
   device1: { base: S("v2-dev1-bg"), swipe: [null, "device2"], sc: { x: 0, y: 0, w: 393, h: 852, img: S("v2-dev1-sc"), ch: 1121,
     tg: [{ x: 26, y: 436, w: 120, h: 64, a: "auto", on: 0 }, { x: 26, y: 496, w: 120, h: 64, a: "conn", on: 1 }],
-    hs: [{ x: 108, y: 68, w: 60, h: 84, tab: "device2", dir: 1 }, { x: 176, y: 96, w: 56, h: 56, act: "addDevice" }, { x: 13, y: 369, w: 340, h: 199, go: "feeder" }] }, fx: nav2("dev") },
+    hs: [{ x: 108, y: 94, w: 62, h: 62, tab: "device2", dir: 1 }, { x: 174, y: 96, w: 50, h: 56, act: "addDevice" },
+      { x: 254, y: 60, w: 50, h: 50, go: "notif" }, { x: 314, y: 60, w: 56, h: 50, tab: "profile" },
+      { x: 160, y: 300, w: 36, h: 36, act: "rename" }, { x: 13, y: 369, w: 340, h: 199, go: "feeder" },
+      { x: 326, y: 596, w: 44, h: 44, act: "preorder" }, { x: 26, y: 655, w: 336, h: 280, act: "preorder" }] }, fx: nav2("dev") },
   device2: { base: S("v2-dev2-bg"), swipe: ["device1", null], sc: { x: 0, y: 0, w: 393, h: 852, img: S("v2-dev2-sc"), ch: 1121,
     tg: [{ x: 80, y: 436, w: 120, h: 64, a: "auto", on: 1 }, { x: 80, y: 496, w: 120, h: 64, a: "conn", on: 1 }],
-    hs: [{ x: 16, y: 68, w: 66, h: 84, tab: "device1", dir: -1 }, { x: 156, y: 96, w: 56, h: 56, act: "addDevice" }, { x: 67, y: 369, w: 313, h: 199, go: "scale" }] }, fx: nav2("dev") },
-  // Device details: the feeder and scale pages sit side by side; swipe between them
+    hs: [{ x: 40, y: 94, w: 62, h: 62, tab: "device1", dir: -1 }, { x: 154, y: 96, w: 50, h: 56, act: "addDevice" },
+      { x: 254, y: 60, w: 50, h: 50, go: "notif" }, { x: 314, y: 60, w: 56, h: 50, tab: "profile" },
+      { x: 150, y: 300, w: 36, h: 36, act: "rename" }, { x: 67, y: 369, w: 313, h: 199, go: "scale" },
+      { x: 326, y: 596, w: 44, h: 44, act: "preorder" }, { x: 26, y: 655, w: 336, h: 280, act: "preorder" }] }, fx: nav2("dev") },
   feeder: { base: S("v2-det1-bg"), swipe: [null, "scale"], sc: { x: 0, y: 0, w: 393, h: 852, img: S("v2-det1-sc"), ch: 1127,
     tg: [{ x: 223, y: 580, w: 103, h: 64, a: "sw", on: 1 }, { x: 224, y: 830, w: 103, h: 64, a: "sw", on: 0 }],
-    hs: [{ x: 27, y: 55, w: 60, h: 60, back: 1, to: "device1" }, { x: 124, y: 760, w: 111, h: 57, go: "camera" }] }, fx: nav2("det") },
+    hs: [{ x: 27, y: 55, w: 60, h: 60, back: 1, to: "device1" }, { x: 130, y: 202, w: 120, h: 44, act: "calendar" },
+      { x: 56, y: 268, w: 122, h: 44, tab: "device1" }, { x: 232, y: 266, w: 46, h: 46, swipeTo: "scale", dir: 1 }, { x: 290, y: 266, w: 40, h: 46, act: "addDevice" },
+      { x: 124, y: 760, w: 111, h: 57, act: "feedPlan" }] }, fx: nav2("det") },
   scale: { base: S("v2-det2-bg"), swipe: ["feeder", null], sc: { x: 0, y: 0, w: 393, h: 852, img: S("v2-det2-sc"), ch: 1127,
     tg: [{ x: 263, y: 822, w: 103, h: 64, a: "sw", on: 0 }],
-    hs: [{ x: 27, y: 55, w: 60, h: 60, back: 1, to: "device2" }, { x: 76, y: 553, w: 126, h: 56, act: "zero" }] }, fx: nav2("det") },
-  // Treat camera, gallery and the AI diet plan
+    hs: [{ x: 27, y: 55, w: 60, h: 60, back: 1, to: "device2" }, { x: 130, y: 202, w: 120, h: 44, act: "calendar" },
+      { x: 56, y: 268, w: 122, h: 44, tab: "device2" }, { x: 180, y: 266, w: 46, h: 46, swipeTo: "feeder", dir: -1 }, { x: 290, y: 266, w: 40, h: 46, act: "addDevice" },
+      { x: 302, y: 364, w: 52, h: 52, act: "synced" }, { x: 76, y: 553, w: 126, h: 56, act: "zero" }, { x: 214, y: 553, w: 148, h: 56, act: "history" },
+      { x: 74, y: 630, w: 284, h: 44, tab: "home1" }, { x: 74, y: 686, w: 284, h: 100, tab: "home2" }] }, fx: nav2("det") },
   camera: { base: S("v2-camera"), scan: true, hs: [{ x: 27, y: 55, w: 60, h: 60, back: 1 }, { x: 27, y: 745, w: 60, h: 60, go: "gallery1" }, { x: 156, y: 734, w: 82, h: 82, swap: "captured" }] },
   captured: { base: S("v2-captured"), hs: [{ x: 27, y: 55, w: 60, h: 60, swap: "camera" }, { x: 27, y: 745, w: 60, h: 60, go: "gallery1" }, { x: 156, y: 734, w: 82, h: 82, go: "plan" }] },
-  gallery1: { base: S("v2-gallery1"), hs: [{ x: 27, y: 55, w: 60, h: 60, back: 1 }, { x: 299, y: 313, w: 60, h: 60, back: 1 }, { x: 37, y: 385, w: 100, h: 100, swap: "gallery2" }, { x: 156, y: 734, w: 82, h: 82, go: "captured" }] },
-  gallery2: { base: S("v2-gallery2"), hs: [{ x: 27, y: 55, w: 60, h: 60, back: 1 }, { x: 299, y: 313, w: 60, h: 60, back: 1 }, { x: 237, y: 313, w: 60, h: 60, go: "plan" }, { x: 37, y: 385, w: 100, h: 100, swap: "gallery1" }, { x: 156, y: 734, w: 82, h: 82, go: "captured" }] },
-  plan: { base: S("v2-plan"), hs: [{ x: 27, y: 55, w: 60, h: 60, back: 1 }, { x: 56, y: 781, w: 124, h: 57, back: 1 }, { x: 182, y: 781, w: 151, h: 57, act: "feedAndLog" }] },
-  // Health Care: the doctor sheet scrolls up under a fixed nav
-  appt: { sc: { x: 0, y: 0, w: 393, h: 852, img: S("v2-appt-sc"), ch: 1126, hs: [{ x: 310, y: 192, w: 59, h: 59, swap: "apptCancel" }] }, fx: nav2("appt") },
-  apptCancel: { sc: { x: 0, y: 0, w: 393, h: 852, img: S("v2-appt-cancel-sc"), ch: 1126, hs: [{ x: 246, y: 192, w: 123, h: 59, swap: "apptNone" }, { x: 13, y: 260, w: 368, h: 240, swap: "appt" }] }, fx: nav2("appt") },
-  apptNone: { base: S("v2-appt-none"), hs: [...NAV2] },
+  gallery1: { base: S("v2-gallery1"), hs: [{ x: 27, y: 55, w: 60, h: 60, back: 1 }, { x: 299, y: 313, w: 60, h: 60, back: 1 }, { x: 37, y: 385, w: 100, h: 100, swap: "gallery2" },
+    { x: 130, y: 385, w: 240, h: 467, act: "pickOther" }, { x: 37, y: 490, w: 100, h: 362, act: "pickOther" }] },
+  gallery2: { base: S("v2-gallery2"), hs: [{ x: 27, y: 55, w: 60, h: 60, back: 1 }, { x: 299, y: 313, w: 60, h: 60, back: 1 }, { x: 237, y: 313, w: 60, h: 60, go: "plan" }, { x: 37, y: 385, w: 100, h: 100, swap: "gallery1" },
+    { x: 130, y: 385, w: 240, h: 467, act: "pickOther" }, { x: 37, y: 490, w: 100, h: 362, act: "pickOther" }] },
+  plan: { base: S("v2-plan"), hs: [{ x: 27, y: 55, w: 60, h: 60, back: 1 }, { x: 322, y: 318, w: 48, h: 48, act: "portion" }, { x: 56, y: 781, w: 124, h: 57, act: "discard" }, { x: 182, y: 781, w: 151, h: 57, act: "feedAndLog" }] },
+  appt: { sc: { x: 0, y: 0, w: 393, h: 852, img: S("v2-appt-sc"), ch: 1126, hs: [
+    { x: 254, y: 194, w: 56, h: 56, act: "reschedule" }, { x: 310, y: 192, w: 59, h: 59, swap: "apptCancel" }, { x: 310, y: 394, w: 56, h: 56, act: "message" }, ...finder(0)] }, fx: nav2("appt") },
+  apptCancel: { sc: { x: 0, y: 0, w: 393, h: 852, img: S("v2-appt-cancel-sc"), ch: 1126, hs: [
+    { x: 13, y: 250, w: 368, h: 250, swap: "appt" }, { x: 200, y: 194, w: 40, h: 56, act: "reschedule" }, { x: 246, y: 192, w: 123, h: 59, act: "cancelAppt" }, ...finder(0)] }, fx: nav2("appt") },
+  apptNone: { base: S("v2-appt-none"), hs: [{ x: 318, y: 200, w: 50, h: 44, act: "book", kind: "clinic" }, ...finder(-240), ...NAV2] },
   profile: { sc: { x: 0, y: 0, w: 393, h: 852, img: S("v2-profile-sc"), ch: 1024, hs: [
-    { x: 26, y: 362, w: 70, h: 96, tab: "home1" }, { x: 108, y: 362, w: 70, h: 96, tab: "home2" },
-    { x: 26, y: 786, w: 342, h: 50, tab: "device1" }, { x: 30, y: 911, w: 334, h: 50, tab: "onboarding" }] }, fx: nav2("profile") },
+    { x: 250, y: 58, w: 56, h: 54, go: "notif" }, { x: 312, y: 58, w: 60, h: 54, act: "menu" },
+    { x: 26, y: 362, w: 70, h: 96, tab: "home1" }, { x: 108, y: 362, w: 70, h: 96, tab: "home2" }, { x: 190, y: 362, w: 70, h: 72, act: "addPet" },
+    { x: 326, y: 322, w: 48, h: 36, tab: "home1" }, { x: 326, y: 540, w: 48, h: 36, act: "member", who: "Family" },
+    { x: 26, y: 582, w: 70, h: 96, act: "member", who: "Samuel" }, { x: 108, y: 582, w: 70, h: 96, act: "member", who: "Agnes" }, { x: 190, y: 582, w: 70, h: 96, act: "member", who: "James" },
+    { x: 272, y: 582, w: 70, h: 72, act: "invite" },
+    { x: 26, y: 724, w: 342, h: 48, act: "location" }, { x: 26, y: 788, w: 342, h: 48, tab: "device1" }, { x: 26, y: 852, w: 342, h: 48, act: "privacy" },
+    { x: 30, y: 911, w: 334, h: 50, act: "logout" }] }, fx: nav2("profile") },
+  notif: { html: "notif2" },
 };
 const START = MODE === "before" ? "home" : "onboarding";
 const TOGGLES = { auto: ["v2-auto0", "v2-auto1"], conn: ["v2-conn0", "v2-conn1"], sw: ["v2-sw0", "v2-sw1"] };
 
+/* ---------- drawn pages ---------- */
+const PAGES = {
+  notif1: () => `<div class="pg"><div class="sbar"></div><div class="p1-head"><button class="p1-back" data-back aria-label="Back">←</button>Notifications</div>
+    <p class="p1-h">Today</p>
+    <button class="p1-row nm" data-go="weight"><i>⚖️</i><span>Jelly weighed 12.5 kg<small>Down 0.1 kg since yesterday · 8:02 AM</small></span></button>
+    <button class="p1-row nm" data-act="adjust"><i>🍽️</i><span>Try 15 g less food today<small>Based on this week’s weight · 7:30 AM</small></span></button>
+    <button class="p1-row nm" data-tab="feeder"><i>🥣</i><span>Food surplus at 45%<small>About 5 days left · Yesterday</small></span></button></div>`,
+  weight1: () => `<div class="pg"><div class="sbar"></div><div class="p1-head"><button class="p1-back" data-back aria-label="Back">←</button>Health Monitoring</div>
+    <div class="nm p1-big"><small>Current weight</small><b>12.5<em>kg</em></b><p>−0.4 kg this week · target 11.0 kg</p></div>
+    <div class="nm p1-chart"><svg viewBox="0 0 320 150"><g fill="#9a9a9a" font-size="11" text-anchor="middle">${["Mon","Tue","Wed","Thu","Fri","Sat","Sun"].map((d, i) => `<text x="${22 + i * 46}" y="146">${d}</text>`).join("")}</g>
+      <polyline fill="none" stroke="#ea5b17" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" points="${[12.9, 12.85, 12.8, 12.7, 12.65, 12.6, 12.5].map((v, i) => `${22 + i * 46},${20 + (13 - v) * 200}`).join(" ")}"/>
+      ${[12.9, 12.85, 12.8, 12.7, 12.65, 12.6, 12.5].map((v, i) => `<circle cx="${22 + i * 46}" cy="${20 + (13 - v) * 200}" r="${i === 6 ? 5 : 3}" fill="${i === 6 ? "#ea5b17" : "#e8e8e8"}" stroke="#ea5b17" stroke-width="2"/>`).join("")}</svg></div>
+    <p class="p1-h">Weigh-ins</p>
+    <div class="p1-row nm"><span>Today<small>8:02 AM</small></span><em>12.5 kg</em></div>
+    <div class="p1-row nm"><span>Yesterday<small>7:56 AM</small></span><em>12.6 kg</em></div>
+    <div class="p1-row nm"><span>Wed<small>8:10 AM</small></span><em>12.8 kg</em></div>
+    <button class="btn1" data-act="weigh">Start Weighing</button></div>`,
+  notif2: () => `<div class="pg"><button class="p2-back" data-back aria-label="Back">←</button><h2 class="p2-title">Messages</h2>
+    <button class="p2-card" data-tab="appt"><i>🩺</i><span>Appointment on Feb 3<small>4:30 PM with Dr. Aris Ray</small></span><em>2h</em></button>
+    <button class="p2-card" data-go="feeder"><i>🍽️</i><span>Feeder is 68% full<small>Enough for about 4 days</small></span><em>5h</em></button>
+    <button class="p2-card" data-go="scale"><i>⚖️</i><span>Hoppy weighed 81 lbs<small>On the Smart Scale at 7:50 PM</small></span><em>1d</em></button>
+    <button class="p2-card" data-tab="home3"><i>👋</i><span>Agnes fed Kitty<small>Shared member · 12:30 PM</small></span><em>1d</em></button></div>`,
+};
+
 /* ---------- building ---------- */
 const els = {};
+let dragged = false;
 const btn = (h, onClick) => {
   const b = document.createElement("button");
   b.className = "hs"; b.style.cssText = `left:${h.x}px;top:${h.y}px;width:${h.w}px;height:${h.h}px`;
-  b.setAttribute("aria-label", h.go || h.tab || h.swap || h.act || "back");
+  b.setAttribute("aria-label", h.go || h.tab || h.swap || h.swipeTo || h.act || "back");
   b.addEventListener("click", (e) => { e.stopPropagation(); if (!dragged) onClick(h); });
   return b;
 };
+const bindPage = (root) => root.querySelectorAll("[data-back],[data-go],[data-tab],[data-act]").forEach((b) => b.addEventListener("click", (e) => {
+  e.stopPropagation(); const d = b.dataset;
+  if ("back" in d) act({ back: 1 }); else if (d.go) act({ go: d.go }); else if (d.tab) act({ tab: d.tab }); else act({ act: d.act });
+}));
 const make = (id) => {
   if (els[id]) return els[id];
   const s = SCREENS[id], el = document.createElement("div");
   el.className = "scr"; el.dataset.testid = PRE + id;
+  if (s.html) { el.innerHTML = PAGES[s.html](); bindPage(el); }
   if (s.base) el.insertAdjacentHTML("beforeend", `<img class="base" src="${s.base}" alt="">`);
   if (s.ring) el.insertAdjacentHTML("beforeend", `<svg class="layer" style="left:45px;top:140px;width:143px;height:143px" viewBox="0 0 143 143"><circle id="ring" cx="71.5" cy="71.5" r="71" fill="none" stroke="#f4f4f4" stroke-width="2.6" stroke-linecap="round" transform="rotate(-90 71.5 71.5)" pathLength="100" stroke-dasharray="0 100"/></svg>`);
-  if (s.mode) el.insertAdjacentHTML("beforeend", `<img class="layer" id="mode" src="${S("v1-mode-protein")}" style="left:23px;top:248px;width:351px;opacity:0;transition:opacity .25s" alt="">`);
+  if (s.patch === "portion") el.insertAdjacentHTML("beforeend", `<div class="patch" id="portion" style="left:46px;top:549px;width:86px;height:36px"><b style="font-size:24px;font-weight:700;color:#ea5b17">230</b><small style="font-size:13px;color:#ea5b17;margin-left:1px">/270</small><small style="font-size:13px;color:#333">g</small></div>`);
+  if (s.patch === "dog") Object.entries({ name: 301, gender: 366, age: 431, breed: 496, wifi: 633 }).forEach(([k, y]) => el.insertAdjacentHTML("beforeend", `<div class="patch" data-f="${k}" style="right:70px;top:${y - 12}px;height:24px;min-width:120px;justify-content:flex-end;font-size:15px;font-weight:500;color:#b9b9b9"></div>`));
   if (s.scan) el.insertAdjacentHTML("beforeend", `<img class="layer" id="scan" src="${S("v2-scan0")}" style="left:0;top:134px;width:393px" alt="">`);
   (s.hs || []).forEach((h) => el.append(btn(h, act)));
-  if (s.mode) [["ai", 133, 336, 120, 44], ["protein", 256, 336, 112, 44]].forEach(([m, x, y, w, hh]) => el.append(btn({ x, y, w, h: hh, act: "mode" }, () => setMode(el, m))));
+  if (s.feeding) buildFeeding(el);
   if (s.sc) {
     const sc = document.createElement("div"), inn = document.createElement("div");
     sc.className = "sc"; sc.style.cssText = `left:${s.sc.x}px;top:${s.sc.y}px;width:${s.sc.w}px;height:${s.sc.h}px`;
     inn.className = "in"; inn.style.height = s.sc.ch + "px";
     inn.insertAdjacentHTML("beforeend", `<img src="${s.sc.img}" style="width:${s.sc.w}px" alt="">`);
+    if (s.strip) inn.insertAdjacentHTML("beforeend", `<div class="day"><b></b><i></i></div>`);
     (s.sc.hs || []).forEach((h) => inn.append(btn(h, act)));
     (s.sc.tg || []).forEach((t) => {
       const d = document.createElement("div"); d.className = "tg"; d.style.cssText = `left:${t.x}px;top:${t.y}px;width:${t.w}px;height:${t.h}px`;
@@ -178,7 +354,59 @@ const make = (id) => {
   }
   app.append(el); els[id] = el; return el;
 };
-const setMode = (el, m) => { el.querySelector("#mode").style.opacity = m === "protein" ? 1 : 0; el.toggleAttribute("data-protein", m === "protein"); toast(m === "protein" ? "Protein+ on: more protein, 2% smaller portions" : "AI Recommend on"); };
+
+/* ---------- v1 Feeding Mode card ---------- */
+const MODES = {
+  diet: ["Diet", 21, "Diet Mode Enabled", "Lighter, higher-fibre portions: daily food reduced by 5% to support weight loss.", "#ea5b17", "rgba(234,91,23,.07)"],
+  ai: ["AI Recommend", 119, "Smart Mode Enabled", "Based on recent weight loss trend, system has automatically reduced daily portions by 2%", "#03aa00", "rgba(3,170,0,.05)"],
+  protein: ["Protein+", 226, "Protein+ Mode Enabled", "“Based on recent weight loss trend, the system has optimized protein intake and reduced daily portions by 2%.”", "#ea5b17", "rgba(234,91,23,.07)"],
+};
+const buildFeeding = (el) => {
+  const P = (x, y) => `left:${x + 5}px;top:${y + 4}px`;
+  const icon = (fill) => `<svg width="15" height="15" viewBox="0 0 15 15"><circle cx="7.5" cy="7.5" r="7.5" fill="${fill}"/><path d="M7.5 3.2l1.1 3.2 3.2 1.1-3.2 1.1-1.1 3.2-1.1-3.2-3.2-1.1 3.2-1.1z" fill="#fff"/></svg>`;
+  const hand = `<svg width="12" height="15" viewBox="0 0 12 15"><path d="M4 1.5a1.2 1.2 0 012.4 0V7l.4-.2V5.4a1.2 1.2 0 012.4 0v1.9a1.1 1.1 0 012.2.3v3.2A4 4 0 017.4 14.8H6.1a4 4 0 01-3.3-1.8L.6 9.6a1.1 1.1 0 011.7-1.4L4 9.6z" fill="#fff"/></svg>`;
+  el.insertAdjacentHTML("beforeend", `<div class="badge" id="badge"><span>Manual</span></div>
+  <div class="fm" id="fm">
+    <span class="t" style="${P(11, 8)};color:#333">Feeding Mode</span>
+    <div class="well" style="${P(8, 37)};width:338px;height:172px"></div>
+    <div class="ic" id="aic" style="${P(21, 48)};background:#e9cfba">${icon("#e95a18")}</div>
+    <span class="t auto-t" style="${P(50, 50)};color:#ea5b17">Automatic Feeding Settings</span>
+    <div class="sw on" id="asw" style="${P(290, 50)}" role="switch" aria-label="Automatic feeding"><i class="tr"></i><i class="kn"></i></div>
+    <div class="seg well" style="${P(17, 82)};width:312px;height:50px;border-radius:50px">
+      <i class="thumb" id="thumb" style="left:102px"></i>
+      ${Object.entries(MODES).map(([k, m]) => `<button data-m="${k}" style="left:${m[1] - 17}px;width:99px">${m[0]}</button>`).join("")}
+    </div>
+    <div class="msg" id="msg" style="${P(20, 145)};width:312px;height:44px"><svg width="9" height="9" viewBox="0 0 9 9"><circle cx="4.5" cy="4.5" r="4.5" fill="currentColor"/><path d="M2.4 4.6l1.4 1.3 2.8-2.8" stroke="#fff" stroke-width="1.2" fill="none"/></svg><b></b><span></span></div>
+    <div class="well" style="${P(7, 243)};width:338px;height:50px"></div>
+    <div class="ic" id="mic" style="${P(21, 256)};background:#b1b1b1">${hand}</div>
+    <span class="t" id="mt" style="${P(50, 258)};color:#b1b1b1">Manual Setting</span>
+    <div class="sw" id="msw" style="${P(290, 256)}" role="switch" aria-label="Manual setting"><i class="tr"></i><i class="kn"></i></div>
+  </div>`);
+  const fm = el.querySelector("#fm");
+  fm.querySelectorAll("[data-m]").forEach((b) => b.addEventListener("click", (e) => { e.stopPropagation(); state.mode = b.dataset.m; renderFeeding(el); }));
+  fm.querySelector("#asw").addEventListener("click", (e) => { e.stopPropagation(); setAuto(!state.auto); renderFeeding(el); toast(state.auto ? "Automatic feeding on" : "Manual feeding on: portions stay as you set them"); });
+  fm.querySelector("#msw").addEventListener("click", (e) => { e.stopPropagation(); setAuto(state.manual); renderFeeding(el); toast(state.auto ? "Automatic feeding on" : "Manual feeding on: portions stay as you set them"); });
+  renderFeeding(el);
+};
+const setAuto = (on) => { state.auto = on; state.manual = !on; };
+const renderFeeding = (el) => {
+  const fm = el.querySelector("#fm"); if (!fm) return;
+  const m = MODES[state.mode];
+  fm.classList.toggle("manual", !state.auto);
+  fm.querySelector("#asw").classList.toggle("on", state.auto);
+  fm.querySelector("#msw").classList.toggle("on", state.manual);
+  fm.querySelector("#aic").style.background = state.auto ? "#e9cfba" : "#b1b1b1";
+  fm.querySelector("#mic").style.background = state.manual ? "#e95a18" : "#b1b1b1";
+  fm.querySelector("#mt").style.color = state.manual ? "#ea5b17" : "#b1b1b1";
+  fm.querySelector("#thumb").style.left = (m[1] - 17) + "px";
+  fm.querySelectorAll("[data-m]").forEach((b) => (b.style.color = b.dataset.m === state.mode ? m[4] : "#b1b1b1"));
+  const msg = fm.querySelector("#msg");
+  if (state.auto) { msg.style.background = m[5]; msg.style.color = m[4]; msg.querySelector("b").textContent = m[2]; msg.querySelector("span").textContent = m[3]; }
+  else { msg.style.background = "rgba(0,0,0,.04)"; msg.style.color = "#9a9a9a"; msg.querySelector("b").textContent = "Automatic Feeding Paused"; msg.querySelector("span").textContent = `Jelly gets ${state.portion} g a day until you turn automatic feeding back on.`; }
+  el.querySelector("#badge").classList.toggle("is-on", !state.auto);
+  el.toggleAttribute("data-manual", !state.auto);
+  el.dataset.mode = state.mode;
+};
 
 /* ---------- navigation (Figma: smart animate ≈ a short dissolve; swipes slide) ---------- */
 let cur = null, stack = [], timers = [];
@@ -187,7 +415,7 @@ const show = (id, how = "fade", dir = 1) => {
   if (prev === next) return;
   timers.forEach(clearTimeout); timers = [];
   Object.values(els).forEach((e) => { if (e !== prev && e !== next) { e.className = "scr"; e.style.transform = ""; } });
-  const sc = next.querySelector(".sc"); if (sc && how !== "swap") sc.scrollTop = 0;
+  const sc = next.querySelector(".sc,.pg"); if (sc && how !== "swap") { sc.style.scrollBehavior = "auto"; sc.scrollTop = 0; sc.style.scrollBehavior = ""; }
   if (how !== "swap") next.removeAttribute("data-scrolled");
   if (how === "slide") {
     next.style.transition = "none"; next.style.transform = `translateX(${dir * 100}%)`; next.className = "scr is-cur"; void next.offsetWidth; next.style.transition = "";
@@ -202,10 +430,15 @@ const show = (id, how = "fade", dir = 1) => {
   onShow(id, next);
 };
 const act = (h) => {
-  if (h.back) { const to = stack.pop() || h.to || START; show(to); return; }
+  if (h.back) {
+    // device details return to the card of the device you are looking at, even after swiping between them
+    if (h.to && (!stack.length || /^device/.test(stack[stack.length - 1]))) { stack.pop(); show(h.to); return; }
+    show(stack.pop() || h.to || START); return;
+  }
   if (h.go) { stack.push(cur); show(h.go); return; }
   if (h.tab) { stack = []; show(h.tab, h.dir ? "slide" : "fade", h.dir || 1); return; }
   if (h.swap) { show(h.swap, "swap"); return; }
+  if (h.swipeTo) { show(h.swipeTo, "slide", h.dir); return; }
   if (h.act) actions[h.act](h);
 };
 const onShow = (id, el) => {
@@ -213,43 +446,64 @@ const onShow = (id, el) => {
   if (s.auto) timers.push(setTimeout(() => { if (cur === id) act({ tab: s.auto.tab }); }, s.auto.after));
   if (s.ring) { const r = el.querySelector("#ring"); r.style.transition = "none"; r.setAttribute("stroke-dasharray", "0 100"); requestAnimationFrame(() => requestAnimationFrame(() => { r.style.transition = "stroke-dasharray 1.6s cubic-bezier(.3,.6,.2,1)"; r.setAttribute("stroke-dasharray", "73 100"); })); }
   if (s.scan) { let i = 0; const im = el.querySelector("#scan"); const step = () => { if (cur !== id) return; i = (i + 1) % 4; im.src = S("v2-scan" + i); timers.push(setTimeout(step, 300)); }; timers.push(setTimeout(step, 300)); }
+  if (s.patch === "portion") el.querySelector("#portion").classList.toggle("is-on", state.portion !== 245);
+  if (s.patch === "portion") el.querySelector("#portion b").textContent = state.portion;
+  if (s.patch === "dog") el.querySelectorAll("[data-f]").forEach((p) => { const k = p.dataset.f; p.textContent = state.dog[k]; p.classList.toggle("is-on", state.dog[k] !== DOG0[k]); });
+  if (s.feeding) renderFeeding(el);
+  if (s.strip) renderDay(el);
+  if (id === "appt" && !state.booked) { show("apptNone", "swap"); }
 };
+const DOG0 = { ...state.dog };
+const renderDay = (el) => { const d = DAYS.find((x) => x[0] === state.day) || DAYS[4]; const p = el.querySelector(".day"); p.style.left = (d[2] - 19.5) + "px"; p.querySelector("b").textContent = d[0]; p.querySelector("i").textContent = d[1]; };
+// Leave the camera flow and return to wherever it was opened from
+const leaveCamera = () => { const cam = ["camera", "captured", "gallery1", "gallery2", "plan"]; while (stack.length && cam.includes(stack[stack.length - 1])) stack.pop(); show(stack.pop() || "home1"); };
 
 /* ---------- swipe between sibling screens (Figma: drag) ---------- */
-let dragged = false, d0 = null;
+let d0 = null;
 app.addEventListener("pointerdown", (e) => { d0 = { x: e.clientX, y: e.clientY }; dragged = false; });
 app.addEventListener("pointermove", (e) => { if (d0 && Math.abs(e.clientX - d0.x) > 12 && Math.abs(e.clientX - d0.x) > Math.abs(e.clientY - d0.y)) dragged = true; });
 app.addEventListener("pointerup", (e) => {
   if (!d0) return; const dx = e.clientX - d0.x, dy = e.clientY - d0.y; d0 = null;
   const sw = cur && SCREENS[cur].swipe;
-  if (sw && Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy) * 1.3) { const to = dx < 0 ? sw[1] : sw[0]; if (to) show(to, "slide", dx < 0 ? 1 : -1); }
+  if (sw && !app.querySelector(".sheet") && Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy) * 1.3) { const to = dx < 0 ? sw[1] : sw[0]; if (to) show(to, "slide", dx < 0 ? 1 : -1); }
   setTimeout(() => (dragged = false), 0);
 });
 let wheelX = 0, wheelT = 0;
 app.addEventListener("wheel", (e) => {
   if (Math.abs(e.deltaX) <= Math.abs(e.deltaY)) return;
-  const sw = cur && SCREENS[cur].swipe; if (!sw) return;
+  const sw = cur && SCREENS[cur].swipe; if (!sw || app.querySelector(".sheet")) return;
   e.preventDefault(); const now = Date.now(); if (now - wheelT < 600) return;
   wheelX += e.deltaX; if (Math.abs(wheelX) > 60) { const to = wheelX > 0 ? sw[1] : sw[0]; wheelX = 0; if (to) { wheelT = now; show(to, "slide", e.deltaX > 0 ? 1 : -1); } }
 }, { passive: false });
 
-/* ---------- small flows the designs didn't draw ---------- */
-const toast = (t) => { const el = document.getElementById("toast"); el.textContent = t; el.classList.add("is-on"); clearTimeout(toast.t); toast.t = setTimeout(() => el.classList.remove("is-on"), 2400); };
-const sheet = (html, id, onOpen) => {
+/* ---------- toasts and sheets ---------- */
+const toast = (t) => { const el = document.getElementById("toast"); el.textContent = t; el.classList.add("is-on"); clearTimeout(toast.t); toast.t = setTimeout(() => el.classList.remove("is-on"), 2600); };
+const sheet = (html, id, onOpen, cls = "") => {
+  app.querySelectorAll(".sheet,.veil").forEach((n) => n.remove());
   const veil = document.createElement("div"), sh = document.createElement("div");
-  veil.className = "veil"; sh.className = "sheet"; sh.dataset.testid = PRE + "ov-" + id; sh.innerHTML = html;
+  veil.className = "veil"; sh.className = "sheet " + cls; sh.dataset.testid = PRE + "ov-" + id; sh.innerHTML = html;
   app.append(veil, sh); requestAnimationFrame(() => { veil.classList.add("is-on"); sh.classList.add("is-on"); });
   let done = false;
   const close = () => { if (done) return; done = true; veil.classList.remove("is-on"); sh.classList.remove("is-on"); delete sh.dataset.testid; setTimeout(() => { veil.remove(); sh.remove(); }, 420); };
   veil.onclick = (e) => { e.stopPropagation(); close(); };
   sh.addEventListener("click", (e) => e.stopPropagation());
   sh.querySelectorAll("[data-close]").forEach((b) => b.addEventListener("click", close));
+  // chip groups: one selected per group
+  sh.querySelectorAll(".chips,.slots").forEach((g) => g.addEventListener("click", (e) => { const c = e.target.closest(".chip"); if (!c) return; g.querySelectorAll(".chip").forEach((x) => x.classList.toggle("on", x === c)); g.dispatchEvent(new Event("pick")); }));
+  sh.querySelectorAll(".sw2").forEach((t) => t.addEventListener("click", () => t.classList.toggle("on")));
   if (onOpen) onOpen(sh, close);
+  return sh;
 };
+const stepper = (sh, sel, step, min, max, onChange) => sh.querySelectorAll(sel).forEach((row) => {
+  const b = row.querySelector("b"); let v = +row.dataset.v;
+  row.querySelectorAll("button").forEach((x) => x.addEventListener("click", () => { v = Math.min(max, Math.max(min, v + (x.textContent === "+" ? step : -step))); row.dataset.v = v; b.textContent = v + (row.dataset.u || ""); onChange && onChange(); }));
+});
+const calendarHTML = (sel) => { let h = ["S", "M", "T", "W", "T", "F", "S"].map((d) => `<span>${d}</span>`).join(""); h += "<button class=muted>28</button><button class=muted>29</button><button class=muted>30</button><button class=muted>31</button>"; for (let d = 1; d <= 31; d++) h += `<button class="${d === sel ? "on" : ""}" data-d="${d}">${d}</button>`; return `<div class="cal">${h}</div>`; };
+
 const actions = {
-  // A scale reading wobbles while the dog shifts its weight, then settles
+  /* ----- v1 ----- */
   weigh: () => sheet(`<h3>Weighing Jelly</h3><p>Ask Jelly to stand still on the Smart Scale.</p>
-      <div class="dial"><svg viewBox="0 0 174 174"><circle cx="87" cy="87" r="80" fill="none" stroke="#f0611f" stroke-width="6" stroke-linecap="round" stroke-dasharray="0 503" id="arc" transform="rotate(-90 87 87)"/></svg><div><b id="kg">--.-</b><small>kg</small></div><i id="st">Measuring…</i></div>
+      <div class="dial"><svg viewBox="0 0 174 174"><circle cx="87" cy="87" r="80" fill="none" stroke="#ea5b17" stroke-width="6" stroke-linecap="round" stroke-dasharray="0 503" id="arc" transform="rotate(-90 87 87)"/></svg><div><b id="kg">--.-</b><small>kg</small></div><i id="st">Measuring…</i></div>
       <button class="btn" data-close>Done</button>`, "weigh", (sh) => {
       const kg = sh.querySelector("#kg"), arc = sh.querySelector("#arc"), st = sh.querySelector("#st"), dial = sh.querySelector(".dial");
       const t0 = performance.now() + 350, T = 2600;
@@ -265,19 +519,111 @@ const actions = {
   adjust: () => sheet(`<h3>Adjust today’s plan</h3><p>Jelly is 0.4 kg above target this week. Fitfido suggests a smaller portion.</p>
       <div class="portion"><s>245 g</s>→<b>230 g</b></div>
       <button class="btn" id="ok">Apply to feeder</button><button class="btn btn--ghost" data-close>Not now</button>`, "adjust", (sh, close) => {
-      sh.querySelector("#ok").onclick = () => { close(); toast("Feeder updated: 230 g today"); }; }),
-  autoAdjust: () => { stack = []; show("home"); toast("Feeder set to 2.5 cups/day for this food"); },
-  addDevice: () => sheet(`<h3>Add a device</h3>
+      sh.querySelector("#ok").onclick = () => { close(); state.portion = 230; if (cur === "home") onShow("home", els.home); toast("Feeder updated: 230 g today"); }; }),
+  autoAdjust: () => { stack = []; setAuto(true); show("home"); toast("Feeder set to 2.5 cups/day for this food"); },
+  manualAdjust: () => { stack = []; setAuto(false); show("feeder"); toast("Manual feeding on: set portions yourself"); },
+  edit: (h) => {
+    const k = h.f, label = { name: "Name", gender: "Gender", age: "Age", breed: "Breed", wifi: "Wi-Fi network" }[k];
+    const body = k === "gender" ? `<div class="chips">${["Female", "Male"].map((g) => `<button class="chip ${g === state.dog.gender ? "on" : ""}">${g}</button>`).join("")}</div>`
+      : k === "wifi" ? `<div class="chips">${["Jellyjellyje", "Home-5G", "Studio"].map((g) => `<button class="chip ${g === state.dog.wifi ? "on" : ""}">${g}</button>`).join("")}</div>`
+      : `<input class="field" value="${state.dog[k]}">`;
+    sheet(`<h3>Edit ${label.toLowerCase()}</h3><p>${k === "wifi" ? "Pick the network the feeder and scale should use." : "Shown on Jelly’s profile and in reports."}</p>${body}
+      <button class="btn" id="save">Save</button><button class="btn btn--ghost" data-close>Cancel</button>`, "edit", (sh, close) => {
+      sh.querySelector("#save").onclick = () => { const v = (sh.querySelector(".chip.on") || {}).textContent || (sh.querySelector("input") || {}).value; if (v) state.dog[k] = v.trim() || state.dog[k]; close(); onShow("settings", els.settings); toast(`${label} saved`); }; });
+  },
+  photo: () => sheet(`<h3>Profile photo</h3><p>Choose a new photo of Jelly.</p><button class="btn" id="a">Take photo</button><button class="btn" id="b" style="margin-top:12px">Choose from library</button><button class="btn btn--ghost" data-close>Cancel</button>`, "photo", (sh, close) => { sh.querySelectorAll("#a,#b").forEach((b) => (b.onclick = () => { close(); toast("Photo updated"); })); }),
+  firmware: () => toast("FidoV1 is up to date"),
+  /* ----- v2 ----- */
+  calendar: () => sheet(`<h3>January 2026</h3><p>Pick a day to see its meals and weight.</p>${calendarHTML(state.day)}<button class="btn" data-close>Done</button>`, "calendar", (sh, close) => {
+    sh.querySelectorAll("[data-d]").forEach((b) => b.addEventListener("click", () => { sh.querySelectorAll("[data-d]").forEach((x) => x.classList.toggle("on", x === b)); const d = +b.dataset.d;
+      if (d >= 25) { state.day = d; Object.keys(els).filter((k) => /^home/.test(k)).forEach((k) => renderDay(els[k])); } else toast(`Showing Jan ${d}`); })); }),
+  pickDay: (h) => { state.day = h.d; renderDay(els[cur]); },
+  scrollDown: () => { els[cur].querySelector(".sc").scrollBy({ top: 400, behavior: "smooth" }); },
+  bcs: () => sheet(`<h3>Body Condition Score</h3><p>Vets score body shape from 1 (too thin) to 9 (obese). 4–5 is ideal. Mercy is a 5: a light fat cover, ribs easy to feel.</p>
+    <div class="bcs">${[1,2,3,4,5,6,7,8,9].map((n) => `<i class="${n === 5 ? "me" : n === 4 ? "ok" : ""}"></i>`).join("")}</div><div class="bcs-l"><span>1 · thin</span><span>5 · Mercy</span><span>9 · obese</span></div>
+    <button class="btn" data-close>Got it</button>`, "bcs"),
+  addDevice: () => sheet(`<h3>Add a device</h3><p>Fitfido looks for devices on your Wi-Fi.</p>
       <div class="row"><i>🍽️</i><span>Smart Feeder</span><em>Paired</em></div>
       <div class="row"><i>⚖️</i><span>Smart Scale</span><em>Paired</em></div>
-      <div class="row"><i>💧</i><span>Smart Fountain</span><em class="wait"><span class="spin"></span>Searching</em></div>
-      <button class="btn" data-close>Done</button>`, "adddev"),
+      <div class="row"><i>💧</i><span>Smart Fountain<small>FF-W02 · nearby</small></span><em class="wait" id="w"><span class="spin"></span>Searching</em></div>
+      <button class="btn" id="pair" disabled>Pair fountain</button><button class="btn btn--ghost" data-close>Close</button>`, "adddev", (sh, close) => {
+      setTimeout(() => { if (!sh.isConnected) return; sh.querySelector("#w").textContent = "Found"; sh.querySelector("#w").className = ""; sh.querySelector("#pair").disabled = false; }, 1600);
+      sh.querySelector("#pair").onclick = () => { close(); toast("Smart Fountain paired"); }; }),
+  rename: () => sheet(`<h3>Rename device</h3><input class="field" value="${cur === "device2" ? "Smart Scale" : "Smart Feeder"}"><button class="btn" id="s">Save</button><button class="btn btn--ghost" data-close>Cancel</button>`, "rename", (sh, close) => { sh.querySelector("#s").onclick = () => { close(); toast("Device renamed"); }; }),
+  preorder: () => sheet(`<h3>FitFido Series Update</h3><p>The next feeder and scale share one base, so weighing and feeding happen in the same spot. Pre-order to save 15%.</p>
+      <div class="row"><i>🎁</i><span>Early-bird price<small>Ships spring 2026</small></span><em style="color:#ea5b17">$189</em></div>
+      <button class="btn" id="p">Pre-order</button><button class="btn btn--ghost" data-close>Not now</button>`, "preorder", (sh, close) => { sh.querySelector("#p").onclick = () => { close(); toast("You’re on the pre-order list"); }; }),
+  feedPlan: () => {
+    const meals = [["Breakfast", "7:30 AM", 160], ["Lunch", "12:30 PM", 130], ["Dinner", "6:00 PM", 150]];
+    sheet(`<h3>Feeding plan</h3><p>Mercy’s 580 kcal a day, split across three meals. The feeder serves these automatically.</p>
+      ${meals.map(([n, t, g]) => `<div class="row"><span>${n}<small>${t}</small></span><div class="step" data-v="${g}" data-u=" g"><button>−</button><b>${g} g</b><button>+</button></div></div>`).join("")}
+      <div class="sum"><span>Daily total</span><b id="tot">580 kcal</b></div>
+      <button class="btn" id="s">Save to feeder</button><button class="btn btn--ghost" data-close>Cancel</button>`, "feedplan", (sh, close) => {
+      const tot = () => { const g = [...sh.querySelectorAll(".step")].reduce((a, r) => a + +r.dataset.v, 0); sh.querySelector("#tot").textContent = Math.round(g * 580 / 440) + " kcal"; };
+      stepper(sh, ".step", 10, 0, 300, tot);
+      sh.querySelector("#s").onclick = () => { close(); toast(`Feeder updated: ${sh.querySelector("#tot").textContent} a day`); }; });
+  },
+  synced: () => toast("Synced just now"),
   zero: () => toast("Scale zeroed"),
-  feedAndLog: () => { stack = ["device1"]; show("feeder"); toast("Logged. Tonight’s dinner is now 135 g."); },
+  history: () => sheet(`<h3>Weigh-in history</h3><p>Every pet that stepped on the scale this week.</p>
+      ${[["Mercy", "Today 9:32 PM", "74 lbs"], ["Hoppy", "Today 7:50 PM", "81 lbs"], ["Hoppy", "Yesterday 7:21 PM", "80 lbs"], ["Kitty", "Yesterday 8:05 AM", "52 lbs"], ["Mercy", "Tue 9:10 PM", "74.5 lbs"]].map(([n, t, w]) => `<div class="row"><span>${n}<small>${t}</small></span><em style="color:#ea5b17">${w}</em></div>`).join("")}
+      <button class="btn" data-close>Done</button>`, "history"),
+  pickOther: () => toast("Pick the photo of the treat"),
+  portion: () => sheet(`<h3>How much did Mercy eat?</h3><p>Dried Beef · 45 kcal per piece (10 g)</p>
+      <div class="row"><span>Pieces</span><div class="step" data-v="${state.pieces}"><button>−</button><b>${state.pieces}</b><button>+</button></div></div>
+      <div class="sum"><span>Tonight’s dinner</span><b id="din">${150 - 15 * state.pieces} g</b></div>
+      <button class="btn" id="s">Update</button>`, "portion", (sh, close) => {
+      stepper(sh, ".step", 1, 1, 5, () => { sh.querySelector("#din").textContent = (150 - 15 * +sh.querySelector(".step").dataset.v) + " g"; });
+      sh.querySelector("#s").onclick = () => { state.pieces = +sh.querySelector(".step").dataset.v; close(); toast(`${state.pieces} piece${state.pieces > 1 ? "s" : ""}: ${45 * state.pieces} kcal, dinner ${150 - 15 * state.pieces} g`); }; }),
+  discard: () => { leaveCamera(); toast("Not logged"); },
+  feedAndLog: () => { leaveCamera(); toast(`Logged ${45 * state.pieces} kcal. Tonight’s dinner is ${150 - 15 * state.pieces} g; the feeder is updated.`); state.pieces = 1; },
+  reschedule: () => sheet(`<h3>Reschedule</h3><p>Dr. Aris Ray · in clinic</p>
+      <p class="lbl">Day</p><div class="chips">${["Feb 3", "Feb 4", "Feb 5", "Feb 6"].map((d, i) => `<button class="chip ${i === 0 ? "on" : ""}">${d}</button>`).join("")}</div>
+      <p class="lbl">Time</p><div class="slots">${["9:00 AM", "11:30 AM", "2:00 PM", "4:30 PM", "5:15 PM", "6:00 PM"].map((t, i) => `<button class="chip ${i === 3 ? "on" : ""}">${t}</button>`).join("")}</div>
+      <button class="btn" id="s">Confirm</button><button class="btn btn--ghost" data-close>Keep current time</button>`, "reschedule", (sh, close) => {
+      sh.querySelector("#s").onclick = () => { const d = sh.querySelector(".chips .on").textContent, t = sh.querySelector(".slots .on").textContent; close(); toast(`Moved to ${d}, ${t}`); }; }),
+  message: () => sheet(`<h3>Dr. Aris Ray</h3><p>Usually replies within an hour.</p>
+      <div class="bub them">Hi Ally! Mercy’s weight trend looks good. Keep treats under 10% of her daily calories.</div><div id="th"></div>
+      <input class="field" id="m" value="Is dried beef okay as a treat?"><button class="btn" id="s">Send</button>`, "message", (sh) => {
+      sh.querySelector("#s").onclick = () => { const v = sh.querySelector("#m").value.trim(); if (!v) return; sh.querySelector("#th").insertAdjacentHTML("beforeend", `<div class="bub me">${v.replace(/</g, "&lt;")}</div>`); sh.querySelector("#m").value = "";
+        setTimeout(() => sh.isConnected && sh.querySelector("#th").insertAdjacentHTML("beforeend", `<div class="bub them">Yes, in small pieces. Fitfido already takes it off her dinner.</div>`), 900); }; }),
+  book: (h) => sheet(`<h3>${h.kind === "video" ? "Book a video visit" : "Book a clinic visit"}</h3><p>${h.kind === "video" ? "150+ certified vets online" : "45+ clinics in Georgia"} · for Mercy</p>
+      <p class="lbl">Vet</p><div class="chips">${["Dr. Aris Ray", "Dr. Lena Cho", "Any vet"].map((d, i) => `<button class="chip ${i === 0 ? "on" : ""}">${d}</button>`).join("")}</div>
+      <p class="lbl">Day</p><div class="chips">${["Feb 3", "Feb 4", "Feb 5"].map((d, i) => `<button class="chip ${i === 0 ? "on" : ""}">${d}</button>`).join("")}</div>
+      <p class="lbl">Time</p><div class="slots">${["9:00 AM", "11:30 AM", "4:30 PM"].map((t, i) => `<button class="chip ${i === 2 ? "on" : ""}">${t}</button>`).join("")}</div>
+      <button class="btn" id="s">Book</button><button class="btn btn--ghost" data-close>Cancel</button>`, "book", (sh, close) => {
+      sh.querySelector("#s").onclick = () => { const p = [...sh.querySelectorAll(".chips .on, .slots .on")].map((x) => x.textContent); close(); state.booked = true; stack = []; show("appt", cur === "apptNone" ? "swap" : "fade"); toast(`Booked: ${p[0]}, ${p[1]} at ${p[2]}`); }; }),
+  cancelAppt: () => { state.booked = false; show("apptNone", "swap"); toast("Appointment cancelled"); },
+  qa: () => sheet(`<h3>Quick Q&amp;A</h3><p>A vet answers in about 5 minutes.</p>
+      <div class="chips">${["Is Mercy’s weight healthy?", "How many treats a day?", "Why is Hoppy eating less?"].map((q) => `<button class="chip">${q}</button>`).join("")}</div><div id="th"></div>`, "qa", (sh) => {
+      sh.querySelector(".chips").addEventListener("pick", () => { const q = sh.querySelector(".chips .on").textContent; sh.querySelector("#th").innerHTML = `<div class="bub me">${q}</div><div class="bub them"><span class="spin"></span>A vet is typing…</div>`;
+        setTimeout(() => { if (sh.isConnected) sh.querySelector("#th").lastElementChild.textContent = "Keep treats under 10% of daily calories. Fitfido counts them for you when you snap a photo."; }, 1400); }); }),
+  emergency: () => sheet(`<h3>Emergency</h3><p>A vet picks up in about 15 seconds, any time.</p>
+      <div class="row"><i>☎️</i><span>24/7 Vet Line<small>(912) 555-0144</small></span></div>
+      <div class="row"><i>📍</i><span>Nearest emergency clinic<small>Savannah Animal ER · 2.1 mi</small></span></div>
+      <button class="btn" id="c">Call now</button><button class="btn btn--ghost" data-close>Close</button>`, "emergency", (sh, close) => { sh.querySelector("#c").onclick = () => { close(); toast("Calling the 24/7 Vet Line…"); }; }),
+  search: () => sheet(`<h3>Find a doctor</h3><input class="field" placeholder="Search by name or need" value="weight">
+      <div class="chips">${["Obesity", "Senior dogs", "Nutrition", "Video visit"].map((c, i) => `<button class="chip ${i === 0 ? "on" : ""}">${c}</button>`).join("")}</div>
+      ${[["Dr. Aris Ray", "Obesity intervention · 4.9 ★"], ["Dr. Lena Cho", "Nutrition · 4.8 ★"], ["Dr. Omar Hale", "Senior dogs · 4.7 ★"]].map(([n, s]) => `<button class="row tap" data-k="clinic"><i>🩺</i><span>${n}<small>${s}</small></span></button>`).join("")}`, "search", (sh) => {
+      sh.querySelectorAll("[data-k]").forEach((b) => (b.onclick = () => actions.book({ kind: "clinic" }))); }),
+  menu: () => sheet(`<h3>Menu</h3>${[["🏠", "Home", "home1"], ["🍽️", "Devices", "device1"], ["🩺", "Health Care", "appt"]].map(([i, n, t]) => `<button class="row tap" data-t="${t}"><i>${i}</i><span>${n}</span></button>`).join("")}<button class="btn btn--ghost" data-close>Close</button>`, "menu", (sh, close) => {
+      sh.querySelectorAll("[data-t]").forEach((b) => (b.onclick = () => { close(); act({ tab: b.dataset.t }); })); }),
+  addPet: () => sheet(`<h3>Add a pet</h3><input class="field" placeholder="Name" value="Kitty"><div class="chips">${["Dog", "Cat"].map((c, i) => `<button class="chip ${i === 0 ? "on" : ""}">${c}</button>`).join("")}</div>
+      <button class="btn" id="s">Add</button><button class="btn btn--ghost" data-close>Cancel</button>`, "addpet", (sh, close) => { sh.querySelector("#s").onclick = () => { close(); toast(`${sh.querySelector("input").value || "Pet"} added. Weigh them once to start a plan.`); }; }),
+  member: (h) => sheet(`<h3>${h.who === "Family" ? "Shared members" : h.who}</h3><p>${h.who === "Family" ? "What family members can do." : "What " + h.who + " can do."}</p>
+      ${[["See health data", 1], ["Feed and log treats", 1], ["Change feeding plans", h.who === "Samuel"]].map(([t, on]) => `<div class="row"><span>${t}</span><button class="sw2 ${on ? "on" : ""}" aria-label="${t}"></button></div>`).join("")}
+      <button class="btn" id="s">Save</button>`, "member", (sh, close) => { sh.querySelector("#s").onclick = () => { close(); toast("Permissions saved"); }; }),
+  invite: () => sheet(`<h3>Invite a family member</h3><p>They can feed and log treats for your pets.</p><input class="field" placeholder="Email" value="sam@example.com">
+      <button class="btn" id="s">Send invite</button><button class="btn btn--ghost" data-close>Cancel</button>`, "invite", (sh, close) => { sh.querySelector("#s").onclick = () => { close(); toast("Invite sent"); }; }),
+  location: () => sheet(`<h3>Location Based Service</h3><p>Used to find nearby clinics and emergency care.</p>
+      <div class="row"><span>Use my location<small>Savannah, GA</small></span><button class="sw2 on" aria-label="Use my location"></button></div><button class="btn" data-close>Done</button>`, "location"),
+  privacy: () => sheet(`<h3>Notification &amp; Privacy</h3>
+      ${[["Feeding reminders", 1], ["Weight updates", 1], ["Vet messages", 1], ["Share data with my vet", 1], ["Product news", 0]].map(([t, on]) => `<div class="row"><span>${t}</span><button class="sw2 ${on ? "on" : ""}" aria-label="${t}"></button></div>`).join("")}
+      <button class="btn" data-close>Done</button>`, "privacy"),
+  logout: () => sheet(`<h3>Log out?</h3><p>Your feeders keep running. Log back in any time.</p><div class="two"><button class="btn btn--ghost" data-close>Cancel</button><button class="btn" id="s">Log out</button></div>`, "logout", (sh, close) => {
+      sh.querySelector("#s").onclick = () => { close(); stack = []; show("onboarding"); }; }, "dialog"),
 };
 
-/* tapping where nothing happens flashes the tappable areas, like a Figma prototype */
-app.addEventListener("click", () => { if (dragged) return; app.classList.remove("is-hint"); void app.offsetWidth; app.classList.add("is-hint"); });
 // the case-study page can restart the prototype
 addEventListener("message", (e) => { if (e.data && e.data.type === "fitfido-restart") { stack = []; show(START); } });
 show(START);
