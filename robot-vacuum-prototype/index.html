@@ -487,7 +487,9 @@ const DEFS={
     next:'It left this patch alone and moved on.',
     dflt:'The patch stays uncleaned until you choose.',
     options:['asRug','asHard','skipNow'],retryControlled:false,
-    basis:'The carpet sensor read 0.4. It treats 0.6 and above as rug and below 0.2 as hard floor, so this was in between.'},
+    basis:'The carpet sensor read 0.4. It treats 0.6 and above as rug and below 0.2 as hard floor, so this was in between.',
+    remember:{asRug:{text:'Treat the hallway patch as a rug (vacuum only)',scope:'Hallway only. Other floors still ask.'},
+      asHard:{text:'Treat the hallway patch as hard floor (vacuum and mop)',scope:'Hallway only. Other floors still ask.'}}},
   bed:{type:'nav',zone:'bed',kind:'Navigation issue',title:"Couldn't get under the bed",chip:'Gave up on the area under the bed',
     what:'The robot tried to reach the area under the bed 3 times.',
     why:'Something near the bed frame keeps blocking the way in. It may be a low object on the floor, or the gap may be too tight.',
@@ -504,7 +506,8 @@ const DEFS={
     next:'After the extra pass it moves on. This adds about a minute.',
     dflt:'The extra pass goes ahead.',
     options:['allow','skipOnce'],basis:'The dirt sensor read about 2× the usual level for this spot on the first pass.',
-    remember:{skipOnce:{text:'Skip extra passes in the kitchen',scope:'Kitchen only. The robot still does one normal pass.'}}},
+    remember:{skipOnce:{text:'Skip extra passes in the kitchen',scope:'Kitchen only. The robot still does one normal pass.'},
+      allow:{text:'Always allow extra passes in the kitchen',scope:'Kitchen only. It won’t ask or tell you each time.'}}},
 };
 const SCEN={
   normal:{label:'Normal run',keys:['extra']},
@@ -691,6 +694,7 @@ function fire(key){
   if(d.type==='decision'){
     const rule=S.rules.find(r=>r.key==='extra');
     if(rule&&rule.act==='skipOnce'){ev.status='skipped';ev.autonomous=true;ev.outcome='Skipped using your saved preference.';tl('robot','Extra pass by the stove skipped (your saved preference)',ev.id);return}
+    if(rule&&rule.act==='allow'){ev.status='info';ev.autonomous=true;ev.autoChoice='allow';ev.quiet=true;ev.outcome='Extra pass allowed using your saved preference.';queueExtra(ev);tl('robot','Extra pass by the stove (your saved preference)',ev.id);return}
     ev.mode=S.autonomy;
     if(S.autonomy==='manual'){S.events=S.events.filter(e=>e!==ev);tl('robot','More crumbs by the stove. No extra pass (Manual)');return}
     if(S.autonomy==='autoNotify'||S.autonomy==='fullAuto'){
@@ -735,7 +739,7 @@ function banner(key,lock){
   if(S.ui.away){if(lock)pushLock(lock);return}
   if(quietNow()&&key!=='missed'){S.missed.push(key);return}
   S.ui.notice=key;clearTimeout(notice.t);
-  if(key!=='stuck')notice.t=setTimeout(()=>{S.ui.notice=null;nextBanner();commit()},7000);
+  if(key!=='stuck')notice.t=setTimeout(()=>{S.ui.notice=null;nextBanner();commit()},4500);
 }
 function notice(ev){
   const own=ev.autonomous&&!ev.changed;
@@ -743,7 +747,7 @@ function notice(ev){
   if(ev.later&&!ev.reminded)return; // asked to be reminded later
   if(S.ui.away){pushLock({id:ev.id,title:noticeTitle(ev),body:SHORT[ev.key]?SHORT[ev.key].q:DEFS[ev.key].title});return}
   if(quietNow()){if(!S.missed.includes(ev.id))S.missed.push(ev.id);return}
-  S.ui.notice=ev.id;clearTimeout(notice.t);notice.t=setTimeout(()=>{S.ui.notice=null;nextBanner();commit()},6000);
+  S.ui.notice=ev.id;clearTimeout(notice.t);notice.t=setTimeout(()=>{S.ui.notice=null;nextBanner();commit()},4000);
 }
 function laterLabel(ev){return !ev.later?'':ev.later.task?'After this cleaning':'At '+atLabel(ev.later.until)}
 function checkReminders(){
@@ -946,14 +950,14 @@ function offerUndo(ev,act,snap,label){
 function doAction(ev,act,saveRule){
   if(!ev.archived){S.ui.stack=[];S.ui.tab='map';S.ui.scrollTop=0;forceTop=true}
   const snap=snapFor(ev);
-  const run=()=>{resetForChange(ev,act);applyAction(ev,act,false);if(saveRule){const r=DEFS[ev.key].remember[act];S.rules.push({id:'r'+(++seq),key:ev.key,act,text:r.text,scope:r.scope})}};
+  const run=()=>{resetForChange(ev,act);applyAction(ev,act,false);if(saveRule){const r=DEFS[ev.key].remember[act];S.rules=S.rules.filter(x=>x.key!==ev.key);S.rules.push({id:'r'+(++seq),key:ev.key,act,text:r.text,scope:r.scope})}};
   if(NEEDS_DEVICE[act]){const [l,d]=CMDTEXT[act];command(l,d,()=>{run();S.undoNext={ev,act,snap}})}
   else{run();offerUndo(ev,act,snap);commit()}
 }
 
 /* ============ navigation ============ */
 const cur=()=>S.ui.stack[S.ui.stack.length-1]||{name:S.ui.tab};
-function go(name,id){S.ui.stack.push({name,id});S.ui.scrollTop=0;commit(true)}
+function go(name,id){S.ui.stack.push({name,id});S.ui.scrollTop=0;if(S.ui.notice!=='stuck')S.ui.notice=null;commit(true)}
 function back(){S.ui.stack.pop();commit(true)}
 
 /* ============ map ============ */
@@ -1237,8 +1241,8 @@ function scrEvent(id){
       h+=`<div class="choice-grid ${rest.length===1?'one':''}">${rest.map(o=>`<button class="choice" data-a="evAct" data-v="${ev.id}|${o}" ${dis}><span class="ci">${ic(OPTICON[o],22)}</span><b>${esc(sh.labels[o])}</b></button>`).join('')}</div></div>`;
       if(S.device.status==='returning')h+=`<p class="small muted" style="margin:10px 4px 0">Available once the robot is docked.</p>`;
       if(d.remember&&opts.some(o=>d.remember[o])){
-        const o=opts.find(x=>d.remember[x]);
-        h+=`<label class="check"><input type="checkbox" data-a="remember" data-v="${ev.id}" ${S.ui.remember[ev.id]?'checked':''}><span>Remember “${esc(sh.labels[o])}”<small style="display:block;color:var(--muted);font-weight:600;margin-top:2px">${esc(d.remember[o].scope)} You can change it in Saved preferences.</small></span></label>`;
+        const can=opts.filter(x=>d.remember[x]),one=opts.filter(x=>!d.remember[x]);
+        h+=`<label class="check"><input type="checkbox" data-a="remember" data-v="${ev.id}" ${S.ui.remember[ev.id]?'checked':''}><span>Remember my choice<small style="display:block;color:var(--muted);font-weight:600;margin-top:2px">Next time, the robot does what you pick here without asking. ${esc(d.remember[can[0]].scope)}${one.length?` ${esc(one.map(o=>sh.labels[o]).join(' and '))} ${one.length>1?'are':'is'} only for now.`:''} You can change it in Saved preferences.</small></span></label>`;
       }
       if(ev.status==='needsReview'&&!ev.suggest)h+=`<p class="small muted" style="margin:12px 4px 0">${S.waitEv===ev.id?'Cleaning continues as soon as you choose.':`No rush. Until you choose, ${esc(d.type==='rug'?'this patch stays uncleaned':'this spot stays skipped')}.`}</p>`;
     }
@@ -1712,7 +1716,7 @@ const A={
     objNext()},
   objNone(){const o=S.objects.find(x=>x.id===S.ui.objId);S.objects=S.objects.filter(x=>x!==o);tl('you',`You said nothing was there (robot thought: ${OBJ[o.orig].n.toLowerCase()})`);objNext()},
   map3d(v){S.ui.map3d=v==='1';commit()},
-  tab(v){S.ui.tab=v;S.ui.stack=[];commit(true)},
+  tab(v){S.ui.tab=v;S.ui.stack=[];if(S.ui.notice!=='stuck')S.ui.notice=null;commit(true)},
   toNeeds(){const el=document.getElementById('needs-you');if(el)el.scrollIntoView({behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth',block:'start'})},
   go(v){go(v)},back(){back()},
   setup(){go('setup')},
@@ -1734,6 +1738,7 @@ const A={
     if(act==='nogo'){S.ui.modal={title:`Never clean ${ZONES[d.zone].name.toLowerCase()}?`,body:'<p>The robot will stay out of it every time. You can undo this in Settings.</p>',buttons:[{label:'Yes, never clean here',a:'evGo',v:id+'|nogo|0',cls:'primary'},{label:'Cancel',a:'closeModal'}]};commit();return}
     if(S.ui.remember[id]&&d.remember&&d.remember[act]){doAction(ev,act,true);return}
     doAction(ev,act,false);
+    if(S.ui.remember[id])setTimeout(()=>flash(`“${SHORT[ev.key].labels[act]}” is only for now, so it wasn’t saved`),1800);
   },
   evGo(v){const [id,act,save]=v.split('|');S.ui.modal=null;doAction(findEvent(id),act,save==='1');commit()},
   snapshot(v){S.ui.modal=snapshotModal(findEvent(v));commit()},

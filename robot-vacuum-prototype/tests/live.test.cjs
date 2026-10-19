@@ -294,3 +294,20 @@ test('a goal counts whichever way they get there, and the way is recorded (Full 
   assert.match(app.run('STUDY.data().people.P0.explore.achieved.T10.how'), /until changed.*in Settings/);
   app.close();
 });
+
+test('Remember my choice saves the option they picked, and one-time choices are not saved', async () => {
+  const b = fakeBridge({ vacuum: 'cleaning', detail: 'cleaning' });
+  const app = await boot(b, { onboarded: true, scenario: 'all', autonomy: 'assist' });
+  app.run("S.sim.pending=['rug'];A.haFire()");
+  const id = app.run("S.events.find(e=>e.key==='rug').id");
+  app.run(`S.ui.remember['${id}']=true;A.evAct('${id}|asHard')`);
+  app.run(`A.haRetryWhen('${id}|asHard|after')`); // live mode asks when to go
+  await app.poll(2);
+  assert.equal(app.run("S.rules.filter(r=>r.key==='rug').length"), 1);
+  assert.equal(app.run("S.rules.find(r=>r.key==='rug').act"), 'asHard');
+  app.run("S.sim.pending=['cable'];A.haFire()");
+  const cid = app.run("S.events.find(e=>e.key==='cable').id");
+  app.run(`S.ui.remember['${cid}']=true;A.evAct('${cid}|later')`);
+  assert.equal(app.run("S.rules.some(r=>r.key==='cable')"), false);
+  app.close();
+});

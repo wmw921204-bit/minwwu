@@ -907,6 +907,9 @@
     Object.assign(DEFS.bed,{title:'Couldn’t get into a tight spot',chip:'Gave up on a tight spot',what:'The robot tried to reach this area 3 times.',why:'Something keeps blocking the way in. It may be a low object on the floor, or the gap may be too tight.',next:'It stopped trying and is finishing the rest of the home.'});
     Object.assign(DEFS.extra,{title:'Extra pass on a dirty spot',chip:'Extra pass on a dirty spot',what:'The robot is going over a dirty spot a second time.'});
     DEFS.extra.remember.skipOnce={text:'Skip extra passes',scope:'Everywhere. The robot still does one normal pass.'};
+    DEFS.extra.remember.allow={text:'Always allow extra passes',scope:'Everywhere. It won’t ask or tell you each time.'};
+    DEFS.rug.remember.asRug={text:'Treat unclear floors as rug (vacuum only)',scope:'Everywhere on this map. Other kinds of events still ask.'};
+    DEFS.rug.remember.asHard={text:'Treat unclear floors as hard floor (vacuum and mop)',scope:'Everywhere on this map. Other kinds of events still ask.'};
     SHORT.cable.q='Cable on the floor?';SHORT.bed.q='Can’t get into this spot';SHORT.extra.q='Extra pass on a dirty spot';
 
     // Simulation off: the real robot moves, the map is real
@@ -1004,7 +1007,7 @@
       }
       if(!ev.archived){S.ui.stack=[];S.ui.tab='map';S.ui.scrollTop=0;forceTop=true}
       const snap=snapFor(ev);
-      const run=()=>{resetForChange(ev,act);applyAction(ev,act,false);if(saveRule){const r=DEFS[ev.key].remember[act];S.rules.push({id:'r'+(++seq),key:ev.key,act,text:r.text,scope:r.scope})}};
+      const run=()=>{resetForChange(ev,act);applyAction(ev,act,false);if(saveRule){const r=DEFS[ev.key].remember[act];S.rules=S.rules.filter(x=>x.key!==ev.key);S.rules.push({id:'r'+(++seq),key:ev.key,act,text:r.text,scope:r.scope})}};
       if(act==='pauseCheck')return liveCommand('pause',{label:'Pause',done:'Paused',expect:['paused','idle']},run);
       if(S.ui.retryOnce)ev.retryWhen=S.ui.retryOnce;
       const goesNow=['retry','retryCleared','asRug','asHard','allow'].includes(act)&&(ev.retryWhen||HA.retryWhen)==='now';

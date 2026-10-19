@@ -62,6 +62,7 @@
       how:(b,t)=>{const c=lastClick(t,['sheetApply','setAutonomy']);const where=c&&c.action==='setAutonomy'?'in Settings':'from Home';
         return 'Full auto '+(S.temp?(S.temp.task?'until this cleaning ends':'for 1 hour'):'until changed (no time limit)')+', '+where}},
     {id:'T11',name:'Find what needs you',ask:'Find everything that still needs you.',best:1,after:true,ok:['home','activity'],
+      can:()=>needsYou().length>0||pendingObjs().length>0,
       done:(b,t)=>anyClick(t,['toNeeds'])||screen()==='activity',
       how:(b,t)=>anyClick(t,['toNeeds'])?'Needs you tile on Home':'Inbox'},
   ];
