@@ -411,6 +411,7 @@
     root.querySelectorAll("[data-slot-i]").forEach((p) => p.classList.toggle("is-now", +p.dataset.slotI % COLS === c));
     root.querySelectorAll("[data-col]").forEach((t) => t.classList.toggle("is-now", +t.dataset.col === c));
     root.querySelectorAll("[data-cell-col]").forEach((t) => t.classList.toggle("is-now", +t.dataset.cellCol === c));
+    root.querySelectorAll("[data-mcol]").forEach((t) => t.classList.toggle("is-now", +t.dataset.mcol === c));
   };
   // a new scene board starts the next song in that genre (its sounds load first)
   const onGenre = async () => {
@@ -479,7 +480,19 @@
     tray.querySelectorAll(".bs-tray__row").forEach((r) => r.classList.toggle("is-target", !!sel && r.dataset.kind === sel.kind));
     tray.querySelectorAll("[data-pick]").forEach((b) => { const [k, n] = b.dataset.pick.split(":"); b.classList.toggle("is-on", !!sel && sel.kind === k && slots[sel.i] && slots[sel.i][k] === n); });
     applyPeek();
+    // the grid from above: every cell reachable, front row at the bottom
+    map.innerHTML = slots.map((m, i) => `<button type="button" data-map="${i}" data-mcol="${i % COLS}" class="${m ? "is-full" : ""}${sel && sel.i === i ? " is-sel" : ""}${i % COLS === nowCol ? " is-now" : ""}" aria-label="${m ? NAMES[m.outfit] + ", " + POS[i] : "Add a member: " + POS[i]}">${m ? `<img src="${src("hat", m.hat)}" alt="">` : "+"}</button>`).join("");
   };
+  const map = root.querySelector("[data-band-map]");
+  map.addEventListener("click", (e) => {
+    const b = e.target.closest("[data-map]"); if (!b) return;
+    e.stopPropagation();
+    const i = +b.dataset.map;
+    if (!slots[i]) slots[i] = randMember();
+    sel = { i, kind: "hat" }; render(); // picked: it comes forward on the stage, ready to edit
+  });
+  map.addEventListener("pointerover", (e) => { const b = e.target.closest("[data-map]"); if (b && e.pointerType === "mouse" && slots[+b.dataset.map]) { hoverPeek = +b.dataset.map; applyPeek(); } });
+  map.addEventListener("pointerleave", () => { if (hoverPeek != null) { hoverPeek = null; applyPeek(); } });
   /* reaching the back rows: the member you point at (or have selected) comes forward,
      and the members standing in front of it in that column fade and let clicks through */
   let hoverPeek = null;
@@ -545,7 +558,7 @@
     else if (a) { const i = +a.dataset.add; slots[i] = randMember(); sel = null; render(); }
     else if (r) { slots[+r.dataset.remove] = null; sel = null; render(); }
     else if (g) setGenre(g.dataset.genre);
-    else if (!e.target.closest(".bs-tray, .bs-bar")) { sel = null; render(); }
+    else if (!e.target.closest(".bs-tray, .bs-bar, .bs-map")) { sel = null; render(); }
   });
 
   /* drag: a tray block onto a member (or an empty spot), or a member to another spot */
