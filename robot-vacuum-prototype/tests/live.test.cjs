@@ -250,20 +250,27 @@ test('a robot decision shows a Change label in the list and on the banner', asyn
   app.close();
 });
 
-test('the study log times a task, records taps, and marks it done when the goal is reached', async () => {
+test('the study log runs tasks in order, starts the clock at the first tap, and moves on when a goal is reached', async () => {
   const app = await boot(fakeBridge());
+  const tap = sel => app.run(`document.querySelector('${sel}').dispatchEvent(new MouseEvent('click',{bubbles:true}))`);
   app.run("STUDY.toggle(true);document.querySelector('#study-pid').value='P0';document.querySelector('[data-s=\"new\"]').click()");
-  app.run("document.querySelector('[data-s=\"go\"][data-v=\"T9\"]').click()");
-  await sleep(50);
-  app.run("render();document.querySelector('[data-a=\"toNeeds\"]').dispatchEvent(new MouseEvent('click',{bubbles:true}))");
+  assert.equal(app.run('STUDY.data().people.P0.run.id'), 'T1');
+  assert.equal(app.run('STUDY.data().people.P0.run.start'), null); // waits for the participant
+  app.run("STUDY.finish('skipped')"); // facilitator skips ahead
+  await sleep(20);
+  for (let i = 0; i < 7; i++) app.run("STUDY.finish('skipped')"), await sleep(20);
+  assert.equal(app.run('STUDY.data().people.P0.run.id'), 'T9');
+  app.run('render()');
+  tap('[data-a="toNeeds"]');
   await sleep(400);
-  const t = app.run("JSON.stringify(STUDY.data().people.P0.tasks[0])");
-  const row = JSON.parse(t);
+  const row = JSON.parse(app.run('JSON.stringify(STUDY.data().people.P0.tasks.at(-1))'));
   assert.equal(row.task, 'T9');
   assert.equal(row.result, 'done (auto)');
   assert.equal(row.clicks, 1);
-  assert.match(app.run('STUDY.summaryCSV()'), /^participant,mode,task/);
+  await sleep(1700);
+  assert.equal(app.run('STUDY.data().people.P0.run.id'), 'T10'); // set up by itself
   assert.match(app.run('STUDY.logCSV()'), /P0,.*,T9,.*click,toNeeds/);
+  assert.match(app.run('STUDY.summaryCSV()'), /^participant,mode,task/);
   assert.deepEqual(app.bridge.robotCommands(), []);
   app.close();
 });

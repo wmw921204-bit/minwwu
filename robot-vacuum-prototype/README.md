@@ -112,9 +112,9 @@ npm test
 
 A facilitator panel that times tasks and records what participants tap. Open it with **Shift+S**, `?study` in the address, or Settings → Testing → Study log. Participants don't see it unless it's open.
 
-1. Enter a participant ID and press Start.
-2. Press Start next to a task. In the simulation this also sets the task up (level, events). With the real robot, set tasks up by hand.
-3. The task ends by itself when its goal is reached (`done (auto)`), or press Success, Failed or Gave up.
+1. Check the participant ID (it counts up: P1, P2, …) and press Begin. That's the only button you need.
+2. Tasks run in order by themselves. Each task is set up when the last one ends (in the simulation: level, events), and its clock starts at the participant's first tap, so the time you spend reading the task out isn't counted.
+3. A task ends by itself when its goal is reached (`done (auto)`). If someone is stuck, press Failed, Gave up or Skip; Jump goes to any task.
 4. Download CSV gives two files: a summary (one row per task: seconds, taps, fewest taps, extra taps, detours, backs, dead taps, screen path) and every tap and screen with timestamps. Copy summary and Copy taps put the same two tables on the clipboard; the published web version only offers these, since it can't save files.
 
 Data stays in this browser until exported. The tasks (T1–T10) follow the second-round test plan; edit `TASKS` in `study-log.js` to change them.
