@@ -1939,6 +1939,3 @@ img.is-zoomable { cursor: zoom-in; }
 @media (max-width: 640px) {
   .c-hero--fill .c-hero__pin::before, .c-hero--fill .c-hero__pin::after, .c-hero--fill .c-hero__intro { display: none; }
 }
-/* the mask is a shade deeper than the page colour; the hero's own background stays the page colour */
-.c-hero { --page: var(--hero-bg, var(--c-bg)); --mask: color-mix(in srgb, var(--page) 88%, #000); background: var(--page); }
-.c-hero__pin { background: var(--page); }
