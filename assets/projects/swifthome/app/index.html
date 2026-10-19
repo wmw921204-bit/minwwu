@@ -118,10 +118,7 @@
   .cv-panel { position: absolute; left: 0; top: 0; width: 402px; height: 874px; overflow: hidden; transition: background-color .5s; touch-action: none; cursor: grab; }
   .cv-panel h1 { position: absolute; left: 24px; top: 70px; margin: 0; font-size: 40px; font-weight: 400; line-height: 1.08; letter-spacing: -.02em; color: #fff; z-index: 2; pointer-events: none; }
   .cv-panel h1 b { font-weight: 700; }
-  .cv-word { position: absolute; left: 14px; top: 200px; font-size: 108px; font-weight: 700; letter-spacing: -.04em; line-height: 1; color: rgba(255,255,255,.13); white-space: nowrap; pointer-events: none; transform: translateX(30px); transition: transform .9s cubic-bezier(.2,.8,.2,1); }
-  .cv-arch { position: absolute; left: 62px; top: 262px; width: 262px; height: 420px; border-radius: 131px 131px 28px 28px; background: linear-gradient(180deg, rgba(255,255,255,.26), rgba(255,255,255,.06)); pointer-events: none; }
   .cv-floor { position: absolute; left: 50px; top: 566px; width: 290px; height: 34px; border-radius: 50%; background: radial-gradient(closest-side, rgba(60,40,25,.28), transparent); pointer-events: none; animation: floorPulse 5s ease-in-out infinite; }
-  .cv-slide.on .cv-word { transform: none; }
   .cv-slide > img { animation: floatY 5s ease-in-out infinite; }
   .cv-slide:not(.on) > img { opacity: .5; scale: .9; }
   .cv-slide > img { transition: opacity .6s, scale .7s cubic-bezier(.2,.8,.2,1), filter .4s; }
@@ -739,17 +736,17 @@ const bindSearch = (w) => {
 
 /* ---------- cover: swipe between featured pieces, tap the card for a quick view, swipe up to explore ---------- */
 const COVER = [
-  { id: "rattan", word: "Rattan", bg: "#c3a186", dots: ["#b68b6a", "#ece6e0", "#6b6058"] },
-  { id: "brown", word: "Velvet", bg: "#ab9d93", dots: ["#5a4235", "#cdbcad", "#2e2a28"] },
-  { id: "dining", word: "Walnut", bg: "#a9b293", dots: ["#5f7d3c", "#d9d0c2", "#3d3936"] },
-  { id: "sofa", word: "Tufted", img: "hero_green", bg: "#c3c28e", dots: ["#b2b15e", "#fff6ef", "#b68b6a"] },
+  { id: "rattan", bg: "#c3a186", dots: ["#b68b6a", "#ece6e0", "#6b6058"] },
+  { id: "brown", bg: "#ab9d93", dots: ["#5a4235", "#cdbcad", "#2e2a28"] },
+  { id: "dining", bg: "#a9b293", dots: ["#5f7d3c", "#d9d0c2", "#3d3936"] },
+  { id: "sofa", img: "hero_green", bg: "#c3c28e", dots: ["#b2b15e", "#fff6ef", "#b68b6a"] },
 ];
 const TINT = ["", "brightness(1.25) saturate(.55)", "brightness(.72) saturate(1.1)"];
 PAGES.cover = () => { const v = state.cover.view;
   return `<div class="cv-panel" style="background-color:${COVER[v].bg}">
     <h1>Furniture that<br><b>fits</b> your <b>space</b></h1>
     <div class="cv-track" style="transform:translateX(${-402 * v}px)">${COVER.map((c, i) => { const it = CATALOG[c.id], k = state.cover.tint[i];
-      return `<div class="cv-slide ${i === v ? "on" : ""}"><span class="cv-word">${c.word}</span><i class="cv-arch"></i><i class="cv-floor"></i><img src="${S(c.img || it.img)}" style="filter:drop-shadow(0 18px 18px rgba(0,0,0,.18)) ${TINT[k]}" alt="${it.name}">
+      return `<div class="cv-slide ${i === v ? "on" : ""}"><i class="cv-floor"></i><img src="${S(c.img || it.img)}" style="filter:drop-shadow(0 18px 18px rgba(0,0,0,.18)) ${TINT[k]}" alt="${it.name}">
         <button class="cv-card" data-cvopen="${i}" aria-label="${it.name} quick view"><b>${it.name}</b><span class="chipw">Available Color</span>
           <span class="dots">${c.dots.map((d, j) => `<i class="${j === k ? "on" : ""}" data-cvtint="${j}" style="background:${d}"></i>`).join("")}</span>
           <span class="pr">${money(it.price)}/mo</span><span class="go">${ICON.arrow}</span></button></div>`; }).join("")}</div>
