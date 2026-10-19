@@ -116,13 +116,8 @@
   /* ---------- AR ---------- */
   /* cover: product carousel, swipe up to explore */
   .cv-panel { position: absolute; left: 0; top: 0; width: 402px; height: 874px; overflow: hidden; transition: background-color .5s; touch-action: none; cursor: grab; }
-  .cv-panel h1 { position: absolute; left: 23px; top: 92px; margin: 0; font-size: 34px; font-weight: 600; letter-spacing: -.01em; color: #fff; z-index: 2; pointer-events: none; }
-  .cv-top { position: absolute; left: 24px; right: 24px; top: 62px; display: flex; justify-content: space-between; align-items: center; font-size: 12px; letter-spacing: .04em; color: rgba(255,255,255,.85); z-index: 2; pointer-events: none; }
-  .cv-top span:first-child { display: flex; align-items: center; gap: 7px; }
-  .cv-top span:first-child i { width: 6px; height: 6px; border-radius: 50%; background: #fff; }
-  .cv-count { font-variant-numeric: tabular-nums; color: rgba(255,255,255,.6); }
-  .cv-count b { color: #fff; font-weight: 600; }
-  .cv-sub { position: absolute; left: 24px; top: 140px; margin: 0; font-size: 14px; color: rgba(255,255,255,.78); z-index: 2; pointer-events: none; }
+  .cv-panel h1 { position: absolute; left: 24px; top: 70px; margin: 0; font-size: 40px; font-weight: 400; line-height: 1.08; letter-spacing: -.02em; color: #fff; z-index: 2; pointer-events: none; }
+  .cv-panel h1 b { font-weight: 700; }
   .cv-word { position: absolute; left: 14px; top: 200px; font-size: 108px; font-weight: 700; letter-spacing: -.04em; line-height: 1; color: rgba(255,255,255,.13); white-space: nowrap; pointer-events: none; transform: translateX(30px); transition: transform .9s cubic-bezier(.2,.8,.2,1); }
   .cv-arch { position: absolute; left: 62px; top: 262px; width: 262px; height: 420px; border-radius: 131px 131px 28px 28px; background: linear-gradient(180deg, rgba(255,255,255,.26), rgba(255,255,255,.06)); pointer-events: none; }
   .cv-floor { position: absolute; left: 50px; top: 566px; width: 290px; height: 34px; border-radius: 50%; background: radial-gradient(closest-side, rgba(60,40,25,.28), transparent); pointer-events: none; animation: floorPulse 5s ease-in-out infinite; }
@@ -147,17 +142,15 @@
   .cv-card .pr { position: absolute; left: 14px; top: 136px; font-size: 16px; font-weight: 600; color: var(--ink); }
   .cv-card .go { position: absolute; right: 14px; bottom: 14px; width: 40px; height: 40px; border-radius: 50%; background: #fff; display: grid; place-items: center; }
   .cv-card .go svg { transform: rotate(-45deg); }
-  .cv-ind { position: absolute; left: 0; right: 0; top: 752px; display: flex; justify-content: center; gap: 4px; z-index: 2; }
+  .cv-ind { position: absolute; left: 0; right: 0; top: 728px; display: flex; justify-content: center; gap: 4px; z-index: 2; }
   .cv-ind button { border: 0; background: none; padding: 6px 4px; cursor: pointer; }
   .cv-ind i { display: block; width: 8px; height: 8px; border-radius: 4px; background: #fff; opacity: .55; transition: width .3s, opacity .3s; }
   .cv-ind .on i { width: 20px; opacity: 1; }
-  .cv-hint { position: absolute; left: 50%; top: 806px; transform: translateX(-50%); border: 0; background: none; display: flex; flex-direction: column; align-items: center; gap: 4px; font-size: 13px; color: rgba(255,255,255,.9); cursor: pointer; z-index: 3; transition: opacity .3s; }
-  .cv-hint svg { animation: nudge 1.6s ease-in-out infinite; }
-  @keyframes nudge { 0%, 100% { transform: translateY(0); opacity: .6; } 50% { transform: translateY(-6px); opacity: 1; } }
-  .cv-bag { position: absolute; left: 50%; top: 800px; width: 52px; height: 52px; margin-left: -26px; border-radius: 50%; background: var(--bar); display: grid; place-items: center; box-shadow: 0 8px 20px rgba(63,44,31,.35); transform: translateY(40px) scale(.6); opacity: 0; transition: transform .45s cubic-bezier(.3,1.5,.5,1), opacity .3s; z-index: 6; pointer-events: none; }
+  .cv-cta { position: absolute; left: 24px; top: 776px; width: 354px; height: 54px; border: 0; border-radius: 27px; background: #fff; color: var(--ink); font: 600 16px var(--f); cursor: pointer; z-index: 3; box-shadow: 0 10px 24px rgba(0,0,0,.08); transition: transform .2s; }
+  .cv-cta:active { transform: scale(.98); }
+  .cv-bag { position: absolute; right: 22px; top: 64px; width: 48px; height: 48px; border-radius: 50%; background: var(--bar); display: grid; place-items: center; box-shadow: 0 8px 20px rgba(63,44,31,.35); transform: translateY(-16px) scale(.6); opacity: 0; transition: transform .45s cubic-bezier(.3,1.5,.5,1), opacity .3s; z-index: 6; pointer-events: none; }
   .cv-bag .badge { left: 30px; top: 4px; }
   .cover-bag .cv-bag { transform: none; opacity: 1; }
-  .cover-bag .cv-hint { opacity: 0; }
   .ar-bg { position: absolute; inset: 0; width: 402px; height: 874px; object-fit: cover; transition: opacity .5s; }
   .ar-studio { position: absolute; inset: 0; pointer-events: none; background: radial-gradient(120% 80% at 50% 60%, #f6f1ea 0%, #e7ddd1 70%, #d8cabb 100%); opacity: 0; transition: opacity .5s; }
   .ar.studio .ar-studio { opacity: 1; }
@@ -754,21 +747,19 @@ const COVER = [
 const TINT = ["", "brightness(1.25) saturate(.55)", "brightness(.72) saturate(1.1)"];
 PAGES.cover = () => { const v = state.cover.view;
   return `<div class="cv-panel" style="background-color:${COVER[v].bg}">
-    <div class="cv-top"><span><i></i>SwiftHome · Featured</span><span class="cv-count"><b>${String(v + 1).padStart(2, "0")}</b> / ${String(COVER.length).padStart(2, "0")}</span></div>
-    <h1>Explore Furniture</h1><p class="cv-sub">Rent the pieces you love, from $10/mo.</p>
+    <h1>Furniture that<br><b>fits</b> your <b>space</b></h1>
     <div class="cv-track" style="transform:translateX(${-402 * v}px)">${COVER.map((c, i) => { const it = CATALOG[c.id], k = state.cover.tint[i];
       return `<div class="cv-slide ${i === v ? "on" : ""}"><span class="cv-word">${c.word}</span><i class="cv-arch"></i><i class="cv-floor"></i><img src="${S(c.img || it.img)}" style="filter:drop-shadow(0 18px 18px rgba(0,0,0,.18)) ${TINT[k]}" alt="${it.name}">
         <button class="cv-card" data-cvopen="${i}" aria-label="${it.name} quick view"><b>${it.name}</b><span class="chipw">Available Color</span>
           <span class="dots">${c.dots.map((d, j) => `<i class="${j === k ? "on" : ""}" data-cvtint="${j}" style="background:${d}"></i>`).join("")}</span>
           <span class="pr">${money(it.price)}/mo</span><span class="go">${ICON.arrow}</span></button></div>`; }).join("")}</div>
     <div class="cv-ind">${COVER.map((_, i) => `<button class="${i === v ? "on" : ""}" data-cvview="${i}" aria-label="Item ${i + 1}"><i></i></button>`).join("")}</div></div>
-    <button class="cv-hint" data-go="explore" aria-label="Swipe up to explore"><svg width="20" height="12" viewBox="0 0 20 12" fill="none"><path d="M2 10l8-7 8 7" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>Swipe up to explore</button>
+    <button class="cv-cta" data-go="explore">Explore</button>
     <div class="cv-bag"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M5 8h14l-1 12H6L5 8z" stroke="#fff" stroke-width="1.8" stroke-linejoin="round"/><path d="M9 8V6a3 3 0 016 0v2" stroke="#fff" stroke-width="1.8" stroke-linecap="round"/></svg><span class="badge">${count()}</span></div>`; };
 const coverView = (v) => { const w = els.cover; state.cover.view = v;
   w.querySelector(".cv-track").style.transform = `translateX(${-402 * v}px)`; w.querySelector(".cv-panel").style.backgroundColor = COVER[v].bg;
   w.querySelectorAll("[data-cvview]").forEach((b, i) => b.classList.toggle("on", i === v));
-  w.querySelectorAll(".cv-slide").forEach((sl, i) => sl.classList.toggle("on", i === v));
-  w.querySelector(".cv-count b").textContent = String(v + 1).padStart(2, "0"); };
+  w.querySelectorAll(".cv-slide").forEach((sl, i) => sl.classList.toggle("on", i === v)); };
 const bindCover = (w) => {
   const panel = w.querySelector(".cv-panel"), t = w.querySelector(".cv-track");
   let d = null;
