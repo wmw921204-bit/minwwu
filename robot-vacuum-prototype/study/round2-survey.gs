@@ -63,3 +63,39 @@ function setUpRound2Survey() {
   Logger.log('Removed: ' + removed.join(' | '));
   Logger.log('Edit: ' + form.getEditUrl());
 }
+
+/**
+ * Second pass: shorter background, and a round 1 question with no skipping.
+ *  - Section "About you" keeps age, gender, comfort with technology, comfort with devices deciding, and owning a robot vacuum.
+ *  - Sections "Your robot vacuum" and "About robot vacuums" are removed (asked in round 1).
+ *  - Adds "Did you take part in the first round?" after the participant ID. Everyone answers every section.
+ */
+const DROP = ['Occupation', 'Who do you live with?', 'Pets at home', 'Home type', 'Which smart home devices do you use?'];
+const DROP_SECTIONS = ['Your robot vacuum', 'About robot vacuums'];
+
+function trimBackground() {
+  const form = FormApp.openById(FORM_ID);
+  const removed = [];
+  // the ownership question may send people to the sections being removed: make it a plain question
+  const own = form.getItems().find(i => i.getTitle() === 'Do you own or use a robot vacuum?');
+  if (own) { const mc = own.asMultipleChoiceItem(); mc.setChoiceValues(mc.getChoices().map(c => c.getValue())); }
+  form.getItems().filter(i => DROP.includes(i.getTitle())).forEach(i => { removed.push(i.getTitle()); form.deleteItem(i); });
+  DROP_SECTIONS.forEach(title => {
+    const items = form.getItems();
+    const page = items.find(i => i.getType() === FormApp.ItemType.PAGE_BREAK && i.getTitle() === title);
+    if (!page) return;
+    const next = items.find(i => i.getIndex() > page.getIndex() && i.getType() === FormApp.ItemType.PAGE_BREAK);
+    items.filter(i => i.getIndex() > page.getIndex() && (!next || i.getIndex() < next.getIndex()))
+      .forEach(i => { removed.push(title + ' › ' + i.getTitle()); form.deleteItem(i); });
+    removed.push('section ' + title); form.deleteItem(page);
+  });
+  if (!form.getItems().some(i => i.getTitle() === 'Did you take part in the first round?')) {
+    const q = form.addMultipleChoiceItem().setTitle('Did you take part in the first round?')
+      .setHelpText('The first round was a few weeks ago, with an earlier version of this app.')
+      .setChoiceValues(['Yes', 'No', 'Not sure']);
+    q.setRequired(true); // set on its own: chained after setChoiceValues it didn't stick
+    const id = form.getItems().find(i => i.getTitle() === 'Participant ID');
+    form.moveItem(q.getIndex(), id.getIndex() + 1);
+  }
+  Logger.log('Removed: ' + removed.join(' | '));
+}
