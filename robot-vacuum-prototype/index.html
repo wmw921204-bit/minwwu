@@ -1392,7 +1392,7 @@ function scrSettings(){
   <div class="sec-h">Support</div>
   <div class="group"><button class="row" data-a="go" data-v="help">Help and tips${ic('chev',18)}</button></div>
   <div class="sec-h">Testing</div>
-  <div class="group"><button class="row" data-a="lockShow">Leave the app (lock screen)${ic('chev',18)}</button>
+  <div class="group"><button class="row" data-a="lockShow">Leave the app (lock screen)${ic('chev',18)}</button><button class="row" data-a="studyLog">Study log (facilitator)${ic('chev',18)}</button>
    ${window.HA_LIVE?'':`<div class="row">Reminders use real time<button class="switch ${S.timeReal?'on':''}" role="switch" aria-checked="${!!S.timeReal}" aria-label="Reminders and timed levels use real time" data-a="timeReal"></button></div>`}</div>
   ${window.HA_LIVE?'':'<p class="small muted" style="margin:6px 4px 0">The simulation clock runs about 18× faster than real time, so a cleaning takes a few minutes. With this off, “Remind me in 30 min” and “For 1 hour” follow that fast clock too, so they come back during a short test.</p>'}
   <p class="small muted" style="margin:6px 4px 0">For studies: shows how notices arrive while the app isn’t open.</p>`;
@@ -1823,5 +1823,6 @@ setInterval(()=>{
 if(window.HA_LIVE)HA_INIT();else if(window.HA_DEMO_INIT)HA_DEMO_INIT();
 commit();
 </script>
+<script src="study-log.js"></script>
 </body>
 </html>

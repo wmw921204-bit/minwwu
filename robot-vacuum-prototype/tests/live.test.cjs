@@ -18,7 +18,7 @@ const CAL = [
 function page() {
   let html = fs.readFileSync(path.join(DIR, 'index.html'), 'utf8');
   html = html.replace(/<script src="https:\/\/cdnjs[^"]*"><\/script>/, ''); // no three.js: 3D is not under test
-  for (const f of ['ha-model.js', 'ha-live.js'])
+  for (const f of ['ha-model.js', 'ha-live.js', 'study-log.js'])
     html = html.replace(`<script src="${f}"></script>`, () => '<script>' + fs.readFileSync(path.join(DIR, f), 'utf8') + '</script>');
   return html;
 }
@@ -247,5 +247,23 @@ test('a robot decision shows a Change label in the list and on the banner', asyn
   assert.match(app.run(`evItem(${ev})`), /Robot decided: /);
   app.run(`S.ui.notice=${ev}.id;render()`);
   assert.match(app.run("document.querySelector('.notice').textContent"), /Change$/);
+  app.close();
+});
+
+test('the study log times a task, records taps, and marks it done when the goal is reached', async () => {
+  const app = await boot(fakeBridge());
+  app.run("STUDY.toggle(true);document.querySelector('#study-pid').value='P0';document.querySelector('[data-s=\"new\"]').click()");
+  app.run("document.querySelector('[data-s=\"go\"][data-v=\"T9\"]').click()");
+  await sleep(50);
+  app.run("render();document.querySelector('[data-a=\"toNeeds\"]').dispatchEvent(new MouseEvent('click',{bubbles:true}))");
+  await sleep(400);
+  const t = app.run("JSON.stringify(STUDY.data().people.P0.tasks[0])");
+  const row = JSON.parse(t);
+  assert.equal(row.task, 'T9');
+  assert.equal(row.result, 'done (auto)');
+  assert.equal(row.clicks, 1);
+  assert.match(app.run('STUDY.summaryCSV()'), /^participant,mode,task/);
+  assert.match(app.run('STUDY.logCSV()'), /P0,.*,T9,.*click,toNeeds/);
+  assert.deepEqual(app.bridge.robotCommands(), []);
   app.close();
 });

@@ -107,3 +107,14 @@ npm test
 - Simulation: Settings → Testing → *Reminders use real time*, for studies where "remind me in 30 minutes" should mean 30 real minutes.
 - After the robot's map changes (or comes back after having none), the app asks you to check rooms, zones, no-go zones and alignment.
 - Phone access over Wi-Fi with a PIN (above), and end-to-end tests for live mode.
+
+## Study log (for usability sessions)
+
+A facilitator panel that times tasks and records what participants tap. Open it with **Shift+S**, `?study` in the address, or Settings → Testing → Study log. Participants don't see it unless it's open.
+
+1. Enter a participant ID and press Start.
+2. Press Start next to a task. In the simulation this also sets the task up (level, events). With the real robot, set tasks up by hand.
+3. The task ends by itself when its goal is reached (`done (auto)`), or press Success, Failed or Gave up.
+4. Download CSV gives two files: a summary (one row per task: seconds, taps, fewest taps, extra taps, detours, backs, dead taps, screen path) and every tap and screen with timestamps. Copy summary puts the summary on the clipboard (use this on the published web version, where downloads are blocked).
+
+Data stays in this browser until exported. The tasks (T1–T10) follow the second-round test plan; edit `TASKS` in `study-log.js` to change them.

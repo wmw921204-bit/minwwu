@@ -36,7 +36,7 @@ p{color:#5b6274;font-size:14px;margin:0 0 14px}input,button{width:100%;box-sizin
 input{border:1px solid #cfd5e3;margin-bottom:10px}button{border:0;background:#3246f0;color:#fff;font-weight:700}.e{color:#c0392b}</style>
 <form method="get" action="/"><h1>Robot app</h1><p>Enter the PIN shown where the bridge was started.</p>{msg}
 <input name="pin" type="password" inputmode="numeric" autocomplete="off" autofocus aria-label="PIN"><button>Open</button></form>'''
-FILES = {'/': 'index.html', '/index.html': 'index.html', '/ha-model.js': 'ha-model.js', '/ha-live.js': 'ha-live.js'}
+FILES = {'/': 'index.html', '/index.html': 'index.html', '/ha-model.js': 'ha-model.js', '/ha-live.js': 'ha-live.js', '/study-log.js': 'study-log.js'}
 IMAGES = {'/img/level-%s.jpg' % k: 'img/level-%s.jpg' % k for k in ('manual', 'assist', 'autoNotify', 'fullAuto')}
 SIMPLE = {'start', 'pause', 'return_to_base'}
 ZONE_LIMIT = 4000  # mm; a spot retry never covers more than 4 x 4 m
