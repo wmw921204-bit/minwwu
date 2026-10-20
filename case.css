@@ -252,6 +252,8 @@
 .gallery__track img { flex: none; height: min(600px, 62vh); width: auto; max-width: 88vw; object-fit: contain; border-radius: 20px; scroll-snap-align: center; user-select: none; background: var(--c-soft); transition: transform .8s var(--ease); }
 .gallery__track.is-dragging img { transform: scale(.97); }
 .gallery__hint { text-align: center; font: 500 14px/1 var(--f-body); letter-spacing: .08em; color: var(--c-muted); }
+.gallery__hint.has-zoom { display: flex; justify-content: center; align-items: center; flex-wrap: wrap; gap: 14px 18px; }
+.gallery__hint .gallery__zoom { letter-spacing: 0; }
 
 /* ---------- Next project ---------- */
 .c-next { display: block; border-top: 1px solid var(--c-line); padding: 80px 0 100px; text-align: center; }

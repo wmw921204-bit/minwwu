@@ -1377,8 +1377,10 @@ $$("[data-flip]").forEach((flip) => {
       const best = inside.reduce((a, i) => { const b = i.getBoundingClientRect(); return Math.abs(b.left + b.width / 2 - mid) < Math.abs(a.r.left + a.r.width / 2 - mid) ? { i, r: b } : a; }, { i: inside[0], r: inside[0].getBoundingClientRect() });
       open(best.i);
     });
-    const bar = document.createElement("div"); bar.className = "gallery__bar wrap"; bar.append(btn);
-    track.after(bar);
+    // sits beside the gallery's own "Drag to explore" line when there is one, otherwise on its own row
+    const hint = track.parentElement && track.parentElement.querySelector(".gallery__hint");
+    if (hint) { hint.classList.add("has-zoom"); hint.append(btn); }
+    else { const bar = document.createElement("div"); bar.className = "gallery__bar wrap"; bar.append(btn); track.after(bar); }
   });
   $$("[data-deck]").forEach((deck) => {
     const btn = document.createElement("button");
