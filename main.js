@@ -1395,18 +1395,27 @@ $$("[data-flip]").forEach((flip) => {
 })();
 
 /* ---------- Custom cursor label over projects and galleries ---------- */
-if (!reduceMotion && matchMedia("(hover: hover) and (pointer: fine)").matches && $("[data-cursor]")) {
+if (!reduceMotion && matchMedia("(hover: hover) and (pointer: fine)").matches && $("[data-cursor], .gallery__track, [data-drag], img")) {
   const cursor = document.createElement("div");
   cursor.className = "cursor";
   cursor.setAttribute("aria-hidden", "true");
   document.body.append(cursor);
-  let tx = 0, ty = 0, cx = 0, cy = 0;
+  const root = document.documentElement;
+  let tx = 0, ty = 0, cx = 0, cy = 0, leaveT = 0;
+  const show = () => { clearTimeout(leaveT); cursor.classList.add("is-on"); root.classList.add("cursor-on"); };
+  const hide = () => { clearTimeout(leaveT); cursor.classList.remove("is-on"); root.classList.remove("cursor-on"); };
+  // scrolling moves the page under a still pointer: hide the label until the pointer moves again
+  addEventListener("wheel", hide, { passive: true });
+  addEventListener("scroll", hide, { passive: true });
   addEventListener("pointermove", (e) => {
     tx = e.clientX; ty = e.clientY;
     const host = e.target.closest("[data-cursor]");
-    cursor.classList.toggle("is-on", !!host);
+    // sweeping across a grid crosses small gaps: keep the label up briefly so it doesn't blink
+    if (host) show();
+    else if (cursor.classList.contains("is-on")) { clearTimeout(leaveT); leaveT = setTimeout(hide, 160); }
     if (host) {
       cursor.textContent = host.dataset.cursor;
+      cursor.classList.toggle("is-md", host.dataset.cursor === "View" || host.dataset.cursor === "Drag");
       cursor.classList.toggle("is-sm", host.dataset.cursorSize === "sm");
       // links can tint the cursor (e.g. "Next" takes the next project's colour)
       const cs = getComputedStyle(host);
@@ -1414,7 +1423,7 @@ if (!reduceMotion && matchMedia("(hover: hover) and (pointer: fine)").matches &&
       cursor.style.setProperty("--cursor-fg", cs.getPropertyValue("--next-fg").trim() || "");
     }
   });
-  document.addEventListener("pointerleave", () => cursor.classList.remove("is-on"));
+  document.addEventListener("pointerleave", hide);
   const follow = () => {
     cx += (tx - cx) * 0.18;
     cy += (ty - cy) * 0.18;
