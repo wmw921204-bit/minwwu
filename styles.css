@@ -433,7 +433,7 @@ a.table__row:hover span:last-child::after { opacity: 1; transform: none; }
 .cursor.is-sm { width: 62px; height: 62px; font-size: 12px; }
 .cursor.is-md { width: 72px; height: 72px; font-size: 13px; }
 /* the label replaces the system pointer wherever it shows */
-.cursor-on [data-cursor], .cursor-on [data-cursor] * { cursor: none !important; }
+.cursor-on, .cursor-on * { cursor: none !important; }
 [data-cursor] { cursor: none; }
 @media (hover: none) { [data-cursor] { cursor: auto; } }
 

@@ -1405,15 +1405,18 @@ if (!reduceMotion && matchMedia("(hover: hover) and (pointer: fine)").matches &&
   const root = document.documentElement;
   const place = () => { cursor.style.transform = `translate3d(${x}px, ${y}px, 0) translate(-50%, -50%)`; };
   // scrolling moves the page under a still pointer: hide the label until the pointer moves again
-  const hide = () => { cursor.classList.remove("is-on"); root.classList.remove("cursor-on"); };
+  let leaveT = 0;
+  const hide = () => { clearTimeout(leaveT); cursor.classList.remove("is-on"); root.classList.remove("cursor-on"); };
+  const show = () => { clearTimeout(leaveT); cursor.classList.add("is-on"); root.classList.add("cursor-on"); };
   addEventListener("wheel", hide, { passive: true });
   addEventListener("scroll", hide, { passive: true });
   addEventListener("pointermove", (e) => {
     x = e.clientX; y = e.clientY;
     const host = e.target.closest("[data-cursor]");
     place();
-    cursor.classList.toggle("is-on", !!host);
-    root.classList.toggle("cursor-on", !!host);
+    // sweeping across a grid crosses small gaps: keep the label up briefly so it glides between items instead of blinking
+    if (host) show();
+    else if (cursor.classList.contains("is-on")) { clearTimeout(leaveT); leaveT = setTimeout(hide, 160); }
     if (host) {
       if (cursor.textContent !== host.dataset.cursor) cursor.textContent = host.dataset.cursor;
       cursor.classList.toggle("is-md", host.dataset.cursor === "View" || host.dataset.cursor === "Drag");
