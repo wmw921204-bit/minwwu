@@ -1359,7 +1359,7 @@ $$("[data-flip]").forEach((flip) => {
     if (img.closest("[data-deck], [data-flip]")) return; // decks and books open from their own button
     if (img.closest("[data-drag]")) return; // a single long picture you drag through opens from its Enlarge button
     img.classList.add("is-zoomable");
-    if (img.closest(dragBox)) img.dataset.cursor = "Drag · View";
+    if (img.closest(dragBox)) img.dataset.cursor = "Drag";
     else if (!img.closest("[data-cursor]")) img.dataset.cursor = "View";
     img.addEventListener("click", (e) => { e.preventDefault(); open(img); });
   });
