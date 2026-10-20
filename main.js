@@ -1394,6 +1394,37 @@ $$("[data-flip]").forEach((flip) => {
   });
 })();
 
+/* ---------- Cursor dot: stands in for the system pointer on every page ---------- */
+// invert + hue-rotate keeps it visible on light and dark; it grows over links and hides while a label circle shows
+if (!reduceMotion && matchMedia("(hover: hover) and (pointer: fine)").matches) {
+  const dot = document.createElement("div");
+  dot.className = "dot-cursor is-hidden";
+  dot.setAttribute("aria-hidden", "true");
+  document.body.append(dot);
+  document.documentElement.classList.add("has-dot");
+  let x = -100, y = -100, cx = x, cy = y, seen = false, over = false, away = true;
+  const root = document.documentElement;
+  addEventListener("pointermove", (e) => {
+    if (e.pointerType !== "mouse") return;
+    x = e.clientX; y = e.clientY;
+    if (!seen) { cx = x; cy = y; seen = true; }
+    const t = e.target;
+    dot.classList.toggle("is-big", !!t.closest("a, button, label, select, summary, [role=button], .ch, .play__chips li, [data-talk] .talk__box"));
+    over = !!t.closest("[data-cursor], input, textarea, iframe, [contenteditable]"); away = false;
+  }, { passive: true });
+  document.addEventListener("pointerleave", () => { away = true; });
+  addEventListener("blur", () => { away = true; });
+  const loop = () => {
+    // checked every frame, so the dot comes back the moment a label circle fades, even if the mouse is still
+    const hidden = away || over || root.classList.contains("cursor-on");
+    if (hidden !== dot.classList.contains("is-hidden")) dot.classList.toggle("is-hidden", hidden);
+    cx += (x - cx) * 0.25; cy += (y - cy) * 0.25;
+    dot.style.transform = `translate3d(${cx.toFixed(1)}px, ${cy.toFixed(1)}px, 0)`;
+    requestAnimationFrame(loop);
+  };
+  requestAnimationFrame(loop);
+}
+
 /* ---------- Custom cursor label over projects and galleries ---------- */
 if (!reduceMotion && matchMedia("(hover: hover) and (pointer: fine)").matches && $("[data-cursor], .gallery__track, [data-drag], img")) {
   const cursor = document.createElement("div");

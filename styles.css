@@ -520,6 +520,10 @@ a.table__row:hover span:last-child::after { opacity: 1; transform: none; }
 .dot-cursor { position: fixed; left: 0; top: 0; z-index: 99; width: 14px; height: 14px; margin: -7px 0 0 -7px; border-radius: 50%; -webkit-backdrop-filter: invert(1) hue-rotate(180deg); backdrop-filter: invert(1) hue-rotate(180deg); pointer-events: none; transition: width .3s var(--ease), height .3s var(--ease), margin .3s var(--ease), opacity .2s; }
 .dot-cursor.is-big { width: 46px; height: 46px; margin: -23px 0 0 -23px; }
 .dot-cursor.is-hidden { opacity: 0; }
+/* with the dot on, the system pointer hides everywhere except where you type */
+.has-dot, .has-dot * { cursor: none !important; }
+.has-dot :is(input, textarea, select, [contenteditable]) { cursor: text !important; }
+.has-dot select { cursor: default !important; }
 
 /* skill logos pop up on hover */
 .skills__list li { position: relative; }

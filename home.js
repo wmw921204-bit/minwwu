@@ -362,23 +362,5 @@
     host.addEventListener("pointerleave", () => spans.forEach((s) => { s.style.translate = ""; s.style.rotate = ""; }));
   }
 
-  /* ---------- Blend-mode cursor dot ---------- */
-  if (finePointer && !reduce) {
-    const dot = document.createElement("div");
-    dot.className = "dot-cursor";
-    dot.setAttribute("aria-hidden", "true");
-    document.body.append(dot);
-    let x = innerWidth / 2, y = innerHeight / 2, cx = x, cy = y;
-    addEventListener("pointermove", (e) => {
-      x = e.clientX; y = e.clientY;
-      dot.classList.toggle("is-big", !!e.target.closest("a, button, .ch, .play__chips li, [data-talk] .talk__box"));
-      dot.classList.toggle("is-hidden", !!e.target.closest("[data-cursor]"));
-    });
-    const loop = () => {
-      cx = lerp(cx, x, 0.25); cy = lerp(cy, y, 0.25);
-      dot.style.transform = `translate3d(${cx.toFixed(1)}px, ${cy.toFixed(1)}px, 0)`;
-      requestAnimationFrame(loop);
-    };
-    requestAnimationFrame(loop);
-  }
+  // the cursor dot lives in main.js so every page has it
 })();
