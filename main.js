@@ -1426,8 +1426,12 @@ if (!reduceMotion && matchMedia("(hover: hover) and (pointer: fine)").matches) {
     const host = t.closest("[data-cursor]");
     if (host) setLabel(host);
     // crossing the small gaps in a grid: hold the label a moment so it doesn't blink
-    // (start the countdown once; restarting it on every move would keep the label up forever)
-    else if (label && !leaveT) leaveT = setTimeout(() => { leaveT = 0; setLabel(null); }, 140);
+    // in a narrow gap of a grid (another label target within reach) hold it briefly; anywhere else let go at once
+    else if (label) {
+      const near = [[30, 0], [-30, 0], [0, 30], [0, -30]].some(([dx, dy]) => { const e = document.elementFromPoint(x + dx, y + dy); return e && e.closest && e.closest("[data-cursor]"); });
+      if (!near) setLabel(null);
+      else if (!leaveT) leaveT = setTimeout(() => { leaveT = 0; setLabel(null); }, 120);
+    }
     // big display type gets the home-page treatment: a large circle that inverts the letters under it
     const big = !host && !!t.closest(".ch, .c-hero__marquee, .c-head, .c-next__title, .reco-demo__title, .c-title, h1, h2:not(.c-kicker)");
     dot.classList.toggle("is-xl", big);

@@ -514,7 +514,8 @@ a.table__row:hover span:last-child::after { opacity: 1; transform: none; }
 .dot-cursor.is-big { width: 46px; height: 46px; margin: -23px 0 0 -23px; }
 .dot-cursor.is-hidden { opacity: 0; }
 /* the dot grows into a label circle */
-.dot-cursor { display: grid; place-items: center; transition: width .22s cubic-bezier(.2,.9,.3,1), height .22s cubic-bezier(.2,.9,.3,1), margin .22s cubic-bezier(.2,.9,.3,1), opacity .15s, background-color .15s; }
+.dot-cursor { display: grid; place-items: center; transition: width .16s cubic-bezier(.2,.9,.3,1), height .16s cubic-bezier(.2,.9,.3,1), margin .16s cubic-bezier(.2,.9,.3,1), opacity .12s, background-color .12s; }
+.dot-cursor.is-label { transition-duration: .2s; }
 .dot-cursor.is-xl { width: 96px; height: 96px; margin: -48px 0 0 -48px; }
 .dot-cursor span { font: 500 13px/1 var(--f-body); letter-spacing: .02em; color: var(--cursor-fg, var(--theme-fg, #fff)); opacity: 0; scale: .6; transition: opacity .12s, scale .22s cubic-bezier(.2,.9,.3,1); white-space: nowrap; }
 .dot-cursor.is-label { width: 84px; height: 84px; margin: -42px 0 0 -42px; -webkit-backdrop-filter: none; backdrop-filter: none; background: var(--cursor-bg, var(--theme-bg, var(--accent))); box-shadow: 0 0 0 1px rgba(255,255,255,.18); }
