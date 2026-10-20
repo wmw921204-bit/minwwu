@@ -118,7 +118,7 @@
   .cv-panel { position: absolute; left: 0; top: 0; width: 402px; height: 874px; overflow: hidden; transition: background-color .5s; touch-action: none; cursor: grab; }
   .cv-panel h1 { position: absolute; left: 24px; top: 70px; margin: 0; font-size: 40px; font-weight: 400; line-height: 1.08; letter-spacing: -.02em; color: #fff; z-index: 2; pointer-events: none; }
   .cv-panel h1 b { font-weight: 700; }
-  .cv-floor { position: absolute; left: 50px; top: 566px; width: 290px; height: 34px; border-radius: 50%; background: radial-gradient(closest-side, rgba(60,40,25,.28), transparent); pointer-events: none; animation: floorPulse 5s ease-in-out infinite; }
+  .cv-floor { position: absolute; left: 40px; top: 572px; width: 310px; height: 34px; border-radius: 50%; background: radial-gradient(closest-side, rgba(60,40,25,.28), transparent); pointer-events: none; animation: floorPulse 5s ease-in-out infinite; }
   .cv-slide > img { animation: floatY 5s ease-in-out infinite; }
   .cv-slide:not(.on) > img { opacity: .5; scale: .9; }
   .cv-slide > img { transition: opacity .6s, scale .7s cubic-bezier(.2,.8,.2,1), filter .4s; }
@@ -126,9 +126,9 @@
   .cv-card { transition: opacity .5s .15s, translate .6s .15s cubic-bezier(.2,.8,.2,1); }
   @keyframes floatY { 0%, 100% { translate: 0 0; } 50% { translate: 0 -8px; } }
   @keyframes floorPulse { 0%, 100% { scale: 1; opacity: 1; } 50% { scale: .93; opacity: .75; } }
-  .cv-track { position: absolute; inset: 0; display: flex; transition: transform .55s cubic-bezier(.25,.8,.25,1); }
+  .cv-track { position: absolute; inset: 0; display: flex; transition: transform .55s cubic-bezier(.25,.8,.25,1); z-index: 1; }
   .cv-slide { position: relative; flex: none; width: 402px; height: 874px; overflow: hidden; }
-  .cv-slide > img { position: absolute; left: 0; top: 196px; width: 380px; height: 400px; object-fit: contain; object-position: 40% 100%; filter: drop-shadow(0 18px 18px rgba(0,0,0,.18)); transition: filter .4s; pointer-events: none; }
+  .cv-slide > img { position: absolute; left: -10px; top: 172px; width: 410px; height: 428px; object-fit: contain; object-position: 40% 100%; filter: drop-shadow(0 18px 18px rgba(0,0,0,.18)); transition: filter .4s; pointer-events: none; }
   .cv-card { position: absolute; left: 177px; top: 520px; width: 190px; height: 178px; border-radius: 16px; border: 1px solid rgba(255,255,255,.55); background: rgba(255,255,255,.28); -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px); text-align: left; cursor: pointer; padding: 0; }
   .cv-card b { position: absolute; left: 14px; top: 20px; font-size: 19px; font-weight: 600; color: var(--ink); white-space: nowrap; }
   .cv-card .chipw { position: absolute; left: 13px; top: 58px; padding: 5px 9px; border: 1px solid rgba(255,255,255,.85); border-radius: 10px; font-size: 11px; color: #fff; }
@@ -139,12 +139,20 @@
   .cv-card .pr { position: absolute; left: 14px; top: 136px; font-size: 16px; font-weight: 600; color: var(--ink); }
   .cv-card .go { position: absolute; right: 14px; bottom: 14px; width: 40px; height: 40px; border-radius: 50%; background: #fff; display: grid; place-items: center; }
   .cv-card .go svg { transform: rotate(-45deg); }
-  .cv-ind { position: absolute; left: 0; right: 0; top: 728px; display: flex; justify-content: center; gap: 4px; z-index: 2; }
+  .cv-ind { position: absolute; left: 0; right: 0; top: 732px; display: flex; justify-content: center; gap: 4px; z-index: 2; }
   .cv-ind button { border: 0; background: none; padding: 6px 4px; cursor: pointer; }
   .cv-ind i { display: block; width: 8px; height: 8px; border-radius: 4px; background: #fff; opacity: .55; transition: width .3s, opacity .3s; }
   .cv-ind .on i { width: 20px; opacity: 1; }
-  .cv-cta { position: absolute; left: 24px; top: 776px; width: 354px; height: 54px; border: 0; border-radius: 27px; background: #fff; color: var(--ink); font: 600 16px var(--f); cursor: pointer; z-index: 3; box-shadow: 0 10px 24px rgba(0,0,0,.08); transition: transform .2s; }
-  .cv-cta:active { transform: scale(.98); }
+  .cv-light { position: absolute; inset: 0; pointer-events: none; background: radial-gradient(60% 34% at 50% 47%, rgba(255,255,255,.34), rgba(255,255,255,0) 72%), linear-gradient(180deg, rgba(255,255,255,.12) 0%, rgba(255,255,255,0) 40%, rgba(40,25,15,.14) 100%); }
+  .cv-peek { position: absolute; left: 0; top: 784px; width: 402px; height: 874px; overflow: hidden; padding: 0; border: 0; border-radius: 30px 30px 0 0; background: rgba(255,255,255,.94); -webkit-backdrop-filter: blur(16px); backdrop-filter: blur(16px); box-shadow: 0 -10px 30px rgba(40,25,15,.10); cursor: pointer; z-index: 4; color: var(--ink); animation: peek 3.2s ease-in-out infinite; }
+  .cv-peek .pv { position: absolute; left: 0; top: 64px; width: 402px; opacity: .0; transition: opacity .3s; pointer-events: none; }
+  .cv-peek.drag .pv { opacity: 1; }
+  .cv-peek .grab { position: absolute; left: 50%; top: 10px; width: 38px; height: 5px; margin-left: -19px; border-radius: 3px; background: #d9cfc6; }
+  .cv-peek span { position: absolute; left: 0; right: 0; top: 30px; display: flex; justify-content: center; align-items: center; gap: 8px; font: 500 15px var(--f); letter-spacing: -.005em; }
+  .cv-peek svg { color: var(--acc); animation: chev 1.6s ease-in-out infinite; }
+  .cv-peek.drag { animation: none; transition: none; }
+  @keyframes peek { 0%, 100% { translate: 0 0; } 50% { translate: 0 -5px; } }
+  @keyframes chev { 0%, 100% { translate: 0 2px; opacity: .55; } 50% { translate: 0 -3px; opacity: 1; } }
   .cv-bag { position: absolute; right: 22px; top: 64px; width: 48px; height: 48px; border-radius: 50%; background: var(--bar); display: grid; place-items: center; box-shadow: 0 8px 20px rgba(63,44,31,.35); transform: translateY(-16px) scale(.6); opacity: 0; transition: transform .45s cubic-bezier(.3,1.5,.5,1), opacity .3s; z-index: 6; pointer-events: none; }
   .cv-bag .badge { left: 30px; top: 4px; }
   .cover-bag .cv-bag { transform: none; opacity: 1; }
@@ -744,29 +752,30 @@ const COVER = [
 const TINT = ["", "brightness(1.25) saturate(.55)", "brightness(.72) saturate(1.1)"];
 PAGES.cover = () => { const v = state.cover.view;
   return `<div class="cv-panel" style="background-color:${COVER[v].bg}">
-    <h1>Furniture that<br><b>fits</b> your <b>space</b></h1>
+    <i class="cv-light"></i><h1>Furniture that<br><b>fits</b> your <b>space</b></h1>
     <div class="cv-track" style="transform:translateX(${-402 * v}px)">${COVER.map((c, i) => { const it = CATALOG[c.id], k = state.cover.tint[i];
       return `<div class="cv-slide ${i === v ? "on" : ""}"><i class="cv-floor"></i><img src="${S(c.img || it.img)}" style="filter:drop-shadow(0 18px 18px rgba(0,0,0,.18)) ${TINT[k]}" alt="${it.name}">
         <button class="cv-card" data-cvopen="${i}" aria-label="${it.name} quick view"><b>${it.name}</b><span class="chipw">Available Color</span>
           <span class="dots">${c.dots.map((d, j) => `<i class="${j === k ? "on" : ""}" data-cvtint="${j}" style="background:${d}"></i>`).join("")}</span>
           <span class="pr">${money(it.price)}/mo</span><span class="go">${ICON.arrow}</span></button></div>`; }).join("")}</div>
-    <div class="cv-ind">${COVER.map((_, i) => `<button class="${i === v ? "on" : ""}" data-cvview="${i}" aria-label="Item ${i + 1}"><i></i></button>`).join("")}</div></div>
-    <button class="cv-cta" data-go="explore">Explore</button>
+    <div class="cv-ind">${COVER.map((_, i) => `<button class="${i === v ? "on" : ""}" data-cvview="${i}" aria-label="Item ${i + 1}"><i></i></button>`).join("")}</div>
+    <button class="cv-peek" data-go="explore" aria-label="Swipe up to explore"><i class="grab"></i><img class="pv" src="${S("F3_base")}" alt=""><span><svg width="14" height="16" viewBox="0 0 14 16" fill="none"><path d="M2 8l5-5 5 5M2 14l5-5 5 5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>Swipe up to explore</span></button></div>
+    
     <div class="cv-bag"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M5 8h14l-1 12H6L5 8z" stroke="#fff" stroke-width="1.8" stroke-linejoin="round"/><path d="M9 8V6a3 3 0 016 0v2" stroke="#fff" stroke-width="1.8" stroke-linecap="round"/></svg><span class="badge">${count()}</span></div>`; };
 const coverView = (v) => { const w = els.cover; state.cover.view = v;
   w.querySelector(".cv-track").style.transform = `translateX(${-402 * v}px)`; w.querySelector(".cv-panel").style.backgroundColor = COVER[v].bg;
   w.querySelectorAll("[data-cvview]").forEach((b, i) => b.classList.toggle("on", i === v));
   w.querySelectorAll(".cv-slide").forEach((sl, i) => sl.classList.toggle("on", i === v)); };
 const bindCover = (w) => {
-  const panel = w.querySelector(".cv-panel"), t = w.querySelector(".cv-track");
+  const panel = w.querySelector(".cv-panel"), t = w.querySelector(".cv-track"), peek = w.querySelector(".cv-peek");
   let d = null;
   panel.addEventListener("pointerdown", (e) => { d = { x: e.clientX, y: e.clientY, ax: null, moved: false }; });
   panel.addEventListener("pointermove", (e) => { if (!d) return; const dx = e.clientX - d.x, dy = e.clientY - d.y;
     if (!d.ax && Math.hypot(dx, dy) > 8) { d.ax = Math.abs(dx) > Math.abs(dy) ? "x" : "y"; d.moved = true; panel.setPointerCapture(e.pointerId); t.style.transition = "none"; }
     if (d.ax === "x") { const v = state.cover.view, edge = (v === 0 && dx > 0) || (v === COVER.length - 1 && dx < 0); t.style.transform = `translateX(${-402 * v + (edge ? dx / 3 : dx)}px)`; }
-    if (d.ax === "y") panel.style.transform = `translateY(${Math.min(0, dy) / 4}px)`; });
+    if (d.ax === "y") { const up = Math.min(0, dy); peek.classList.add("drag"); peek.style.transform = `translateY(${up}px)`; t.style.transform = `translateX(${-402 * state.cover.view}px) translateY(${up / 5}px)`; t.style.opacity = 1 + up / 600; } });
   const end = (e) => { if (!d) return; const dx = e.clientX - d.x, dy = e.clientY - d.y, ax = d.ax; d = null;
-    t.style.transition = ""; panel.style.transform = "";
+    t.style.transition = ""; t.style.opacity = ""; t.style.transform = `translateX(${-402 * state.cover.view}px)`; peek.classList.remove("drag"); peek.style.transition = "transform .45s cubic-bezier(.25,.8,.25,1)"; peek.style.transform = "";
     if (ax === "x") coverView(Math.max(0, Math.min(COVER.length - 1, state.cover.view + (dx < -50 ? 1 : dx > 50 ? -1 : 0))));
     if (ax === "y" && dy < -60) act({ go: "explore", how: "up" });
     if (ax) { const stop = (ev) => { ev.stopPropagation(); ev.preventDefault(); }; panel.addEventListener("click", stop, { capture: true, once: true }); setTimeout(() => panel.removeEventListener("click", stop, { capture: true }), 50); } };
