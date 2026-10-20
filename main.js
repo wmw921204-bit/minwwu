@@ -1357,12 +1357,25 @@ $$("[data-flip]").forEach((flip) => {
   const dragBox = ".gallery__track, [data-drag]";
   imgs.forEach((img) => {
     if (img.closest("[data-deck], [data-flip]")) return; // decks and books open from their own button
+    if (img.closest("[data-drag]")) return; // a single long picture you drag through opens from its Enlarge button
     img.classList.add("is-zoomable");
     if (img.closest(dragBox)) img.dataset.cursor = "Drag · View";
     else if (!img.closest("[data-cursor]")) img.dataset.cursor = "View";
     img.addEventListener("click", (e) => { e.preventDefault(); open(img); });
   });
   $$(dragBox).forEach((t) => { if (!t.dataset.cursor) t.dataset.cursor = "Drag"; });
+  $$("[data-drag]").forEach((box) => {
+    const img = $("img", box);
+    if (!img) return;
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "gallery__zoom";
+    btn.setAttribute("aria-label", "Enlarge the picture");
+    btn.innerHTML = `<svg viewBox="0 0 20 20" aria-hidden="true"><path d="M12 3h5v5M8 17H3v-5M17 3l-6 6M3 17l6-6" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Enlarge</span>`;
+    btn.addEventListener("click", () => open(img));
+    const bar = document.createElement("div"); bar.className = "gallery__bar wrap"; bar.append(btn);
+    box.after(bar);
+  });
   $$("[data-deck]").forEach((deck) => {
     const btn = document.createElement("button");
     btn.type = "button";
