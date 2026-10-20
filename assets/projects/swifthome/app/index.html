@@ -490,6 +490,22 @@
   .pd-body .pd-specs { margin: 16px 12px 12px; background: #efe8df; } .pd-body .pd-specs span { background: #faf7f3; }
   .pd-body .gallery { margin: 9px 12px 4px; }
   .pd-body .ex-sec { margin-left: 22px !important; margin-right: 14px !important; } .pd-body .set-grid { margin: 0 12px; } .pd-body .set-pc { background: #faf7f3; box-shadow: none; }
+
+  /* full-bleed hero, details slide over it as a sheet with rounded top corners */
+  .pd-hero { left: 0 !important; top: 0 !important; width: 402px !important; height: 452px !important; border-radius: 0 !important; box-shadow: none !important; background: var(--ebg) !important; }
+  .pd-hero::before { left: 56px !important; top: 330px !important; }
+  .pd-hero .back { left: 20px !important; top: 58px !important; } .pd-hero .heart { left: 336px !important; top: 58px !important; } .pd-hero .link360 { left: 78px !important; top: 62px !important; }
+  .pd-img { left: 32px !important; top: 72px !important; } .pd-tag { left: 24px !important; top: 292px !important; }
+  .thumbs { left: 28px !important; top: 362px !important; } .vline { left: 252px !important; top: 362px !important; } .dots { left: 270px !important; top: 374px !important; }
+  .pd-body { left: 0 !important; width: 402px !important; top: 420px !important; border-radius: 32px 32px 0 0 !important; box-shadow: 0 -10px 30px rgba(60,40,25,.08) !important; min-height: 900px; }
+  .pd-body .pd-title { padding-left: 24px; } .pd-body .pd-subline, .pd-body .pd-desc { margin-left: 24px; } .pd-body .pd-desc { width: 354px; }
+  .pd-body .pd-more { margin-left: 314px; } .pd-body .pd-hr { margin: 8px 24px 0; } .pd-body .pd-h { padding-left: 24px; }
+  .pd-body .rent { margin: 0 24px 0 28px; } .pd-body .sizes { margin: 4px 20px 0; } .pd-body .pd-specs { margin: 16px 20px 12px; }
+  .pd-body .gallery { margin: 9px 20px 4px; } .pd-body .set-grid { margin: 0 20px; } .pd-body .ex-sec { margin-left: 24px !important; margin-right: 20px !important; }
+  .pd-body::before { content: ""; position: absolute; left: 50%; top: 10px; width: 38px; height: 5px; margin-left: -19px; border-radius: 3px; background: #e6ddd2; }
+  .setcar { left: 0 !important; top: 0 !important; width: 402px !important; height: 340px !important; border-radius: 0 !important; }
+  .scr[data-testid=sh-set] .back.glass { left: 20px; top: 58px; } .scr[data-testid=sh-set] .heart { left: 336px; top: 58px; } .scr[data-testid=sh-set] .chip-rate { left: 74px; top: 68px; }
+  .scr[data-testid=sh-set] .setdots { top: 290px !important; }
 </style>
 </head>
 <body>
@@ -734,7 +750,7 @@ const PAGES = {
     const c = sofa ? COLORS[p.color] : { bg: it.bg, img: it.img, filter: TINT[p.tint], name: "" };
     const dots = sofa ? Object.entries(COLORS).map(([k, v]) => `<button class="dot ${k === p.color ? "on" : ""}" data-color="${k}" style="background:${v.dot}" aria-label="${v.name}"></button>`).join("")
       : pdDots(p.id).map((d, i) => `<button class="dot ${i === p.tint ? "on" : ""}" data-tint="${i}" style="background:${d}" aria-label="Colour ${i + 1}"></button>`).join("");
-    return `<div class="pg" id="pdpg"><div style="position:relative;height:${sofa ? 1330 : 900}px">
+    return `<div class="pg" id="pdpg"><div style="position:relative;height:${sofa ? 1360 : 930}px">
       <div class="pd-hero" style="background:${c.bg}">
         <div class="pd-img ${sofa ? "" : "cut"}"><img id="pdimg" src="${S(c.img)}" style="transform:${ZOOM[p.thumb]};filter:${c.filter}" alt="${it.name}"></div>
         ${backBtn}
@@ -762,7 +778,7 @@ const PAGES = {
   },
   setPage: () => {
     const s = state.set, fav = state.fav.has("natural");
-    return `<div class="pg"><div style="position:relative;height:305px">
+    return `<div class="pg"><div style="position:relative;height:340px">
       <div class="setcar" style="position:absolute;left:0;top:0;width:402px;height:305px;overflow:hidden;touch-action:pan-y;cursor:grab"><div class="setcar-t" style="display:flex;height:305px;transform:translateX(${-402 * s.view}px);transition:transform .45s cubic-bezier(.25,.8,.25,1)">${["set_hero", "set_view2", "set_view3"].map((k, i) => `<img ${i ? "" : 'id="sethero"'} src="${S(k)}" draggable="false" style="flex:none;width:402px;height:305px;object-fit:cover;${i ? "" : "object-position:67% 50%"}" alt="${["Natural Cozy Set in a living room", "The lounge chair and stool", "The chaise, side table and rug"][i]}">`).join("")}</div></div>
       <div class="chip-rate" style="top:68px;left:70px;background:rgba(255,255,255,.82);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)">4.7 / 5.0 ${ICON.star}</div>
       <button class="back glass" data-back aria-label="Back" style="top:60px">${ICON.back}</button>
@@ -770,7 +786,7 @@ const PAGES = {
       <button class="hs" data-act="setPrev" style="left:16px;top:150px;width:36px;height:54px" aria-label="Previous view"></button><button class="hs" data-act="setNext" style="left:348px;top:150px;width:36px;height:54px" aria-label="Next view"></button>
       <div class="setdots" style="position:absolute;left:166px;top:276px;display:flex;align-items:center;gap:3px">${[0, 1, 2].map((i) => `<button data-setview="${i}" aria-label="View ${i + 1}" style="border:0;background:none;padding:7px 3px;cursor:pointer"><i style="display:block;width:${i === s.view ? 16 : 6}px;height:6px;border-radius:3px;background:#fff;opacity:${i === s.view ? 1 : .6};transition:width .3s,opacity .3s"></i></button>`).join("")}</div>
       </div>
-      <div class="pd-body" style="position:relative;top:12px">
+      <div class="pd-body" style="position:relative;top:-32px !important">
         <div class="pd-title">Natural Cozy Set</div>
         <div class="pd-desc">A calm living room in one order: sculpted lounge chair, three-seat leather sofa, white bedside table and a round oak coffee table. Delivered and assembled together.</div>
         <button class="pd-more" data-act="setMore">Read more</button>
