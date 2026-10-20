@@ -1395,39 +1395,33 @@ $$("[data-flip]").forEach((flip) => {
 })();
 
 /* ---------- Custom cursor label over projects and galleries ---------- */
-// the label is the pointer: it sits exactly on it (no easing, so it never lags) and the system cursor is hidden underneath
-if (!reduceMotion && matchMedia("(hover: hover) and (pointer: fine)").matches && $("[data-cursor], .gallery__track, [data-drag], img")) {
+if (!reduceMotion && matchMedia("(hover: hover) and (pointer: fine)").matches && $("[data-cursor]")) {
   const cursor = document.createElement("div");
   cursor.className = "cursor";
   cursor.setAttribute("aria-hidden", "true");
   document.body.append(cursor);
-  let x = 0, y = 0;
-  const root = document.documentElement;
-  const place = () => { cursor.style.transform = `translate3d(${x}px, ${y}px, 0) translate(-50%, -50%)`; };
-  // scrolling moves the page under a still pointer: hide the label until the pointer moves again
-  let leaveT = 0;
-  const hide = () => { clearTimeout(leaveT); cursor.classList.remove("is-on"); root.classList.remove("cursor-on"); };
-  const show = () => { clearTimeout(leaveT); cursor.classList.add("is-on"); root.classList.add("cursor-on"); };
-  addEventListener("wheel", hide, { passive: true });
-  addEventListener("scroll", hide, { passive: true });
+  let tx = 0, ty = 0, cx = 0, cy = 0;
   addEventListener("pointermove", (e) => {
-    x = e.clientX; y = e.clientY;
+    tx = e.clientX; ty = e.clientY;
     const host = e.target.closest("[data-cursor]");
-    place();
-    // sweeping across a grid crosses small gaps: keep the label up briefly so it glides between items instead of blinking
-    if (host) show();
-    else if (cursor.classList.contains("is-on")) { clearTimeout(leaveT); leaveT = setTimeout(hide, 160); }
+    cursor.classList.toggle("is-on", !!host);
     if (host) {
-      if (cursor.textContent !== host.dataset.cursor) cursor.textContent = host.dataset.cursor;
-      cursor.classList.toggle("is-md", host.dataset.cursor === "View" || host.dataset.cursor === "Drag");
+      cursor.textContent = host.dataset.cursor;
       cursor.classList.toggle("is-sm", host.dataset.cursorSize === "sm");
       // links can tint the cursor (e.g. "Next" takes the next project's colour)
       const cs = getComputedStyle(host);
       cursor.style.setProperty("--cursor-bg", cs.getPropertyValue("--next-bg").trim() || "");
       cursor.style.setProperty("--cursor-fg", cs.getPropertyValue("--next-fg").trim() || "");
     }
-  }, { passive: true });
-  document.addEventListener("pointerleave", hide);
+  });
+  document.addEventListener("pointerleave", () => cursor.classList.remove("is-on"));
+  const follow = () => {
+    cx += (tx - cx) * 0.18;
+    cy += (ty - cy) * 0.18;
+    cursor.style.transform = `translate3d(${cx.toFixed(1)}px, ${cy.toFixed(1)}px, 0) translate(-50%, -50%)`;
+    requestAnimationFrame(follow);
+  };
+  requestAnimationFrame(follow);
 }
 
 /* ---------- Magnetic buttons ---------- */
