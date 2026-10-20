@@ -70,8 +70,9 @@
   /* ---------- product detail ---------- */
   .pd-hero { position: absolute; left: 0; top: 0; width: 402px; height: 421px; transition: background .5s; overflow: hidden; }
   .pd-img { position: absolute; left: 39px; top: 65px; width: 338px; height: 342px; overflow: hidden; }
-  .pd-img img { position: absolute; inset: 0; width: 100%; height: 100%; transition: transform .6s cubic-bezier(.25,.8,.25,1), opacity .35s, filter .4s; }
+  .pd-img img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; transition: transform .6s cubic-bezier(.25,.8,.25,1), opacity .35s, filter .4s; }
   .pd-img img.out { opacity: 0; }
+  .pd-img.cut img { left: 28px; top: 30px; width: calc(100% - 56px); height: calc(100% - 74px); filter: drop-shadow(0 16px 18px rgba(0,0,0,.14)); }
   .chip-rate { position: absolute; left: 65px; top: 70px; width: 84px; height: 25px; border-radius: 21.5px; border: 1px solid #61534a; background: rgba(255,255,255,.28); box-shadow: 0 4px 8.6px rgba(0,0,0,.27); font-size: 13px; font-weight: 700; color: #61534a; display: flex; align-items: center; justify-content: center; gap: 4px; }
   .link360 { position: absolute; left: 277px; top: 62px; height: 34px; border: 0; background: none; font-size: 13px; color: #61534a; display: flex; align-items: center; gap: 6px; cursor: pointer; }
   .back { position: absolute; left: 22px; top: 62px; width: 40px; height: 40px; border: 0; background: none; cursor: pointer; display: grid; place-items: center; }
@@ -89,7 +90,7 @@
   .thumb { width: 42px; height: 42px; border: 0; border-radius: 7px; background: #fff; padding: 2px; cursor: pointer; opacity: .62; transition: opacity .2s, box-shadow .2s, transform .2s; overflow: hidden; }
   .thumb.on { opacity: 1; box-shadow: 0 0 0 1.5px var(--acc), 0 4px 10px rgba(0,0,0,.12); transform: translateY(-2px); }
   .thumb div { width: 38px; height: 38px; border-radius: 6px; overflow: hidden; position: relative; }
-  .thumb img { position: absolute; inset: 0; width: 100%; height: 100%; }
+  .thumb img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; }
   .vline { position: absolute; left: 259px; top: 365px; width: 1px; height: 42px; background: var(--line); }
   .dots { position: absolute; left: 277px; top: 377px; display: flex; gap: 19px; }
   .dot { width: 17px; height: 17px; border-radius: 50%; border: 0; cursor: pointer; box-shadow: 0 0 0 0 #fff; transition: box-shadow .2s, transform .2s; }
@@ -335,7 +336,7 @@ const state = {
     { id: "sofa", color: "green", size: "Regular", lease: 12, qty: 1 },
   ],
   fav: new Set(),
-  pd: { color: "green", thumb: 0, months: 18, size: 1, more: false, saved: false },
+  pd: { id: "sofa", color: "green", tint: 0, thumb: 0, months: 18, size: 1, more: false, saved: false },
   set: { months: 18, saved: false, view: 0 },
   cz: [{ n: "Chair", img: "set_chair", p: 30, c: 0, s: 1, q: 1 }, { n: "Sofa", img: "set_sofa", p: 40, c: 0, s: 1, q: 1 }, { n: "Bedside Table", img: "set_bedside", p: 10, c: 0, s: 2, q: 1 }, { n: "Coffee Table", img: "set_table", p: 20, c: 0, s: 1, q: 1 }],
   czSaved: false,
@@ -475,16 +476,17 @@ const show = (id, how = "push") => {
 };
 const act = (h, srcEl) => {
   if (h.back) { show(stack.pop() || h.to || "explore", "pop"); return; }
+  if (h.go === "product" && state.pd.id !== "sofa") Object.assign(state.pd, { id: "sofa", thumb: 0, months: 18, size: 1, more: false, saved: false });
   if (h.go) { stack.push(cur); if (h.zoom && srcEl) zoomFrom(srcEl, h.go); else show(h.go, h.how || "push"); return; }
   if (h.tab) { stack = []; show(h.tab, "fade"); return; }
   if (h.act) actions[h.act](h, srcEl);
 };
 const zoomFrom = (src, to) => {
   const r = src.getBoundingClientRect(), ar = app.getBoundingClientRect();
-  const img = to === "set" ? S("set_hero") : S("hero_" + COLORS[state.pd.color].name.replace("cream", "green"));
+  const sofa = state.pd.id === "sofa", img = to === "set" ? S("set_hero") : sofa ? S("hero_" + COLORS[state.pd.color].name.replace("cream", "green")) : S(CATALOG[state.pd.id].img);
   const target = to === "set" ? { x: 0, y: 0, w: 402, h: 305 } : { x: 39, y: 65, w: 338, h: 342 };
   const z = document.createElement("div"); z.className = "zoomer";
-  z.style.cssText = `left:${r.left - ar.left}px;top:${r.top - ar.top}px;width:${r.width}px;height:${r.height}px;border-radius:14px;background:${to === "set" ? "#ddd" : COLORS[state.pd.color].bg}`;
+  z.style.cssText = `left:${r.left - ar.left}px;top:${r.top - ar.top}px;width:${r.width}px;height:${r.height}px;border-radius:14px;background:${to === "set" ? "#ddd" : sofa ? COLORS[state.pd.color].bg : CATALOG[state.pd.id].bg}`;
   z.innerHTML = `<img src="${img}" style="object-fit:${to === "set" ? "cover" : "contain"}" alt="">`;
   app.append(z);
   const bgFull = to === "product";
@@ -536,7 +538,7 @@ const renderGrid = (el) => {
   const ids = ROOMS[state.catTab];
   inn.style.height = (Math.ceil(ids.length / 2) * 235 + 40) + "px";
   inn.innerHTML = ids.map((id, i) => { const it = CATALOG[id]; return `<button class="cg ${it.baked ? "baked" : ""}" data-open="${id}" style="left:${i % 2 ? 196 : 8}px;top:${Math.floor(i / 2) * 235 + 18}px;--bg:${it.bg};--top:${it.baked || 0}px"><span class="cg-ph ${it.baked ? "full" : ""}"><img src="${S(it.img)}" alt=""></span><small>${it.name}</small><b>${money(it.price)}<i>/mo</i></b><em><u></u><u></u><u></u></em></button>`; }).join("");
-  inn.querySelectorAll("[data-open]").forEach((b) => b.addEventListener("click", (e) => { e.stopPropagation(); if (dragged) return; if (b.dataset.open === "sofa") { stack.push(cur); zoomFrom(b, "product"); } else actions.quick({ id: b.dataset.open }); }));
+  inn.querySelectorAll("[data-open]").forEach((b) => b.addEventListener("click", (e) => { e.stopPropagation(); if (dragged) return; openItem(b.dataset.open, b); }));
 };
 const renderTabs = (el) => { renderGrid(el); el.querySelector(".tabs i").style.left = [3, 117, 233][state.catTab] + "px"; el.querySelectorAll("[data-t]").forEach((b) => (b.style.color = +b.dataset.t === state.catTab ? "#4d4d4d" : "#b5b5b5")); };
 
@@ -544,29 +546,32 @@ const renderTabs = (el) => { renderGrid(el); el.querySelector(".tabs i").style.l
 const backBtn = '<button class="back" data-back aria-label="Back">' + ICON.back + '</button>';
 const PAGES = {
   product: () => {
-    const p = state.pd, c = COLORS[p.color], fav = state.fav.has("sofa");
-    return `<div class="pg" id="pdpg"><div style="position:relative;height:1299px">
+    const p = state.pd, sofa = p.id === "sofa", it = CATALOG[p.id], fav = state.fav.has(p.id);
+    const c = sofa ? COLORS[p.color] : { bg: it.bg, img: it.img, filter: TINT[p.tint], name: "" };
+    const dots = sofa ? Object.entries(COLORS).map(([k, v]) => `<button class="dot ${k === p.color ? "on" : ""}" data-color="${k}" style="background:${v.dot}" aria-label="${v.name}"></button>`).join("")
+      : pdDots(p.id).map((d, i) => `<button class="dot ${i === p.tint ? "on" : ""}" data-tint="${i}" style="background:${d}" aria-label="Colour ${i + 1}"></button>`).join("");
+    return `<div class="pg" id="pdpg"><div style="position:relative;height:${sofa ? 1299 : 860}px">
       <div class="pd-hero" style="background:${c.bg}">
-        <div class="pd-img"><img id="pdimg" src="${S(c.img)}" style="transform:${ZOOM[p.thumb]};filter:${c.filter}" alt="Single Sofa Chair"></div>
+        <div class="pd-img ${sofa ? "" : "cut"}"><img id="pdimg" src="${S(c.img)}" style="transform:${ZOOM[p.thumb]};filter:${c.filter}" alt="${it.name}"></div>
         ${backBtn}
         <div class="chip-rate">4.7 / 5.0 ${ICON.star}</div>
-        <button class="link360" data-go="ar">360° Virtual ${ICON.arrow}</button>
+        ${sofa ? `<button class="link360" data-go="ar">360° Virtual ${ICON.arrow}</button>` : ""}
         <button class="heart ${fav ? "on" : ""}" data-act="fav" aria-label="Favourite">${ICON.heart(fav)}<span class="burst">${[0, 45, 90, 135, 180, 225, 270, 315].map((a) => `<i style="--a:${a}deg"></i>`).join("")}</span></button>
         <div class="thumbs">${ZOOM.map((z, i) => `<button class="thumb ${i === p.thumb ? "on" : ""}" data-thumb="${i}" aria-label="View ${i + 1}"><div style="background:${c.bg}"><img src="${S(c.img)}" style="transform:${z};filter:${c.filter}" alt=""></div></button>`).join("")}</div>
         <i class="vline"></i>
-        <div class="dots">${Object.entries(COLORS).map(([k, v]) => `<button class="dot ${k === p.color ? "on" : ""}" data-color="${k}" style="background:${v.dot}" aria-label="${v.name}"></button>`).join("")}</div>
+        <div class="dots">${dots}</div>
       </div>
       <div class="pd-body">
-        <div class="pd-title">Single Sofa Chair</div>
-        <div class="pd-desc ${p.more ? "open" : ""}">MAXYOYO Giant ${c.name === "taupe" ? "Oat" : c.name === "cream" ? "Ivory" : "Green"} Velvet Sofa Chair, Oversized Bean Bag Couch for Adults and Kids, Faux Fur Shell-Shaped Large Chair with Filler, Stuffed Big Accent Sofa Lounge Floor Sofa for Gaming, Reading. Solid wood legs, removable cover, fits rooms from 120 sq ft. Delivered assembled; swap or return at the end of your lease.</div>
+        <div class="pd-title">${it.name}</div>
+        <div class="pd-desc ${p.more ? "open" : ""}">${sofa ? "" : `${it.desc} ${PD_MORE}`}${sofa ? `MAXYOYO Giant ${c.name === "taupe" ? "Oat" : c.name === "cream" ? "Ivory" : "Green"} Velvet Sofa Chair, Oversized Bean Bag Couch for Adults and Kids, Faux Fur Shell-Shaped Large Chair with Filler, Stuffed Big Accent Sofa Lounge Floor Sofa for Gaming, Reading. Solid wood legs, removable cover, fits rooms from 120 sq ft. Delivered assembled; swap or return at the end of your lease.` : ""}</div>
         <button class="pd-more" data-act="more">${p.more ? "Hide" : "Read more"}</button>
         <div class="pd-hr"></div>
         <div class="pd-h">Rent <em>More time, less cost!</em></div>
         ${rentHTML(p.months)}
         <div class="pd-h" style="margin-top:-6px">Size</div>
         <div class="sizes"><i class="sel" style="left:${[0, 117, 226][p.size]}px;width:${[117, 108, 112][p.size]}px"></i>${["Small", "Regular", "Large"].map((n, i) => `<button data-size="${i}">${n}<small>${["31.5’’x 39.4’’x 28.3’’", "35.4’’x 43.3’’x 31.5’’", "39.4’’x 47.2’’x 33.5’’"][i]}</small></button>`).join("")}</div>
-        <div class="pd-h" style="margin-top:9px">Product Gallery</div>
-        <div class="gallery"><img src="${S(c.gal)}" style="filter:${c.filter}" alt="The chair in a living room"></div>
+        ${sofa ? `<div class="pd-h" style="margin-top:9px">Product Gallery</div>
+        <div class="gallery"><img src="${S(c.gal)}" style="filter:${c.filter}" alt="The chair in a living room"></div>` : ""}
       </div></div></div>`;
   },
   setPage: () => {
@@ -640,7 +645,7 @@ const bindPage = (w, id) => {
   w.querySelectorAll("[data-go]").forEach((b) => b.addEventListener("click", (e) => { e.stopPropagation(); act({ go: b.dataset.go }); }));
   w.querySelectorAll("[data-tab]").forEach((b) => b.addEventListener("click", (e) => { e.stopPropagation(); act({ tab: b.dataset.tab }); }));
   w.querySelectorAll("[data-act]").forEach((b) => b.addEventListener("click", (e) => { e.stopPropagation(); actions[b.dataset.act]({}, b); }));
-  w.querySelectorAll("[data-qv]").forEach((b) => b.addEventListener("click", (e) => { e.stopPropagation(); actions.quick({ id: b.dataset.qv }); }));
+  w.querySelectorAll("[data-qv]").forEach((b) => b.addEventListener("click", (e) => { e.stopPropagation(); openItem(b.dataset.qv, b); }));
   w.querySelectorAll("[data-open]").forEach((b) => b.addEventListener("click", (e) => { e.stopPropagation(); openItem(b.dataset.open, b); }));
   w.querySelectorAll("[data-rent]").forEach((r) => bindRent(r, id));
   if (id === "product") bindProduct(w);
@@ -653,7 +658,17 @@ const bindPage = (w, id) => {
   if (id === "search") bindSearch(w);
   if (id === "ar") bindAR(w);
 };
-const openItem = (id, srcEl) => { if (id === "sofa") { stack.push(cur); show("product"); } else if (id === "natural") { stack.push(cur); show("set"); } else actions.quick({ id }); };
+const openItem = (id, srcEl) => { if (id === "natural") { stack.push(cur); show("set"); } else if (CATALOG[id].set) actions.quick({ id }); else openProduct(id, srcEl); };
+/* product page for any piece: the green sofa keeps its photos and colours, the rest use their cut-out and three tints */
+const PD_MORE = "Solid construction, delivered assembled; swap or return at the end of your lease. Free delivery and pickup.";
+const pdDots = (id) => (COVER.find((c) => c.id === id) || { dots: ["#c9a27e", "#e9e2d8", "#5b4a3e"] }).dots;
+const pdPrice = () => state.pd.id === "sofa" ? PRICE.sofa[state.pd.months] : Math.round(CATALOG[state.pd.id].price * PRICE.sofa[state.pd.months] / 17);
+const openProduct = (id, srcEl) => {
+  const p = state.pd;
+  if (p.id !== id) Object.assign(p, { id, tint: cur === "cover" ? state.cover.tint[COVER.findIndex((c) => c.id === id)] || 0 : 0, thumb: 0, months: 18, size: 1, more: false, saved: false });
+  stack.push(cur);
+  if (srcEl && srcEl.getBoundingClientRect && cur !== "cover") zoomFrom(srcEl, "product"); else show("product");
+};
 
 /* rent slider: drag or tap a month; snaps to the five lease terms */
 const bindRent = (r, id) => {
@@ -700,11 +715,13 @@ const bindProduct = (w) => {
     w.querySelector(".pd-hero").style.background = c.bg; img.classList.add("out");
     setTimeout(() => { const sc = w.querySelector(".pg").scrollTop; render("product"); els.product.querySelector(".pg").scrollTop = sc; const ni = els.product.querySelector("#pdimg"); ni.classList.add("out"); requestAnimationFrame(() => requestAnimationFrame(() => ni.classList.remove("out"))); }, 220);
   }));
+  w.querySelectorAll("[data-tint]").forEach((b) => b.addEventListener("click", (e) => { e.stopPropagation(); p.tint = +b.dataset.tint; p.saved = false;
+    w.querySelectorAll("#pdimg, .thumb img").forEach((im) => (im.style.filter = TINT[p.tint])); w.querySelectorAll("[data-tint]").forEach((x) => x.classList.toggle("on", x === b)); els.product.querySelectorAll(".pill").forEach(renderPill); }));
   w.querySelectorAll("[data-size]").forEach((b) => b.addEventListener("click", (e) => { e.stopPropagation(); p.size = +b.dataset.size; p.saved = false; const sel = w.querySelector(".sizes .sel"); sel.style.left = [0, 117, 226][p.size] + "px"; sel.style.width = [117, 108, 112][p.size] + "px"; els.product.querySelectorAll(".pill").forEach(renderPill); }));
 };
 const renderPill = (pl) => {
   const k = pl.dataset.k;
-  const price = k === "pd" ? PRICE.sofa[state.pd.months] : k === "set" ? PRICE.natural[state.set.months] : czTotal();
+  const price = k === "pd" ? pdPrice() : k === "set" ? PRICE.natural[state.set.months] : czTotal();
   const saved = k === "pd" ? state.pd.saved : k === "set" ? state.set.saved : state.czSaved;
   pl.innerHTML = `${ICON.bag}<b>${money(price)}</b><small>/mo Add to Cart</small><span class="saved">${ICON.bag} Choice Saved!</span>`;
   pl.classList.toggle("is-saved", saved); pl.setAttribute("aria-label", saved ? "Choice saved, open cart" : "Add to cart");
@@ -714,7 +731,7 @@ const addFrom = (k, pill) => {
   const saved = k === "pd" ? state.pd.saved : k === "set" ? state.set.saved : state.czSaved;
   if (saved) { stack.push(cur); show("cart"); return; }
   let id, img, price, extra = {};
-  if (k === "pd") { id = "sofa"; img = S(COLORS[state.pd.color].img); price = PRICE.sofa[state.pd.months]; extra = { color: COLORS[state.pd.color].name, size: ["Small", "Regular", "Large"][state.pd.size], lease: state.pd.months }; state.pd.saved = true; }
+  if (k === "pd") { const p = state.pd, sofa = p.id === "sofa"; id = p.id; img = S(sofa ? COLORS[p.color].img : CATALOG[p.id].img); price = pdPrice(); extra = { color: sofa ? COLORS[p.color].name : ["natural", "light", "dark"][p.tint], size: ["Small", "Regular", "Large"][state.pd.size], lease: state.pd.months }; state.pd.saved = true; }
   else if (k === "set") { id = "natural"; img = S("set_hero"); price = PRICE.natural[state.set.months]; extra = { color: "natural", size: "Set", lease: state.set.months }; state.set.saved = true; }
   else { id = "natural"; img = S("set_sofa"); price = czTotal(); extra = { color: "custom", size: "Custom set", lease: 12 }; state.czSaved = true; }
   addToCart(id, price, extra);
@@ -816,7 +833,8 @@ const bindCover = (w) => {
     dot.parentNode.querySelectorAll("i").forEach((x, j) => x.classList.toggle("on", j === k)); dot.closest(".cv-slide").querySelector("img").style.filter = `drop-shadow(0 18px 18px rgba(0,0,0,.18)) ${TINT[k]}`;
     if (COVER[i].id === "sofa") state.pd.color = Object.keys(COLORS)[k]; }));
   w.querySelectorAll("[data-cvopen]").forEach((b) => b.addEventListener("click", (e) => { e.stopPropagation(); const c = COVER[+b.dataset.cvopen];
-    if (c.id === "sofa") { stack.push("cover"); show("product"); } else act({ act: "quick", id: c.id }); }));
+    if (c.id === "sofa") state.pd.color = Object.keys(COLORS)[state.cover.tint[+b.dataset.cvopen]];
+    openProduct(c.id); }));
 };
 // adding to cart from the cover: a bag pops up where the hint is, takes the item, then slips away
 const coverBag = () => { const w = els.cover; if (cur !== "cover" || !w) return; w.classList.add("cover-bag"); clearTimeout(w._bag); w._bag = setTimeout(() => w.classList.remove("cover-bag"), 2200); };
@@ -878,7 +896,8 @@ const sheet = (html, id, onOpen) => {
   return sh;
 };
 const actions = {
-  quick: (h) => {
+  quick: (h, srcEl) => {
+    if (!CATALOG[h.id].set) return openProduct(h.id, srcEl);
     const it = CATALOG[h.id], ci = cur === "cover" ? COVER.findIndex((c) => c.id === h.id) : -1; let color = ci >= 0 ? state.cover.tint[ci] : 0;
     sheet(`<div class="qv-img ${it.cover ? "cover" : ""}" style="background:${it.bg}"><img src="${S(it.img)}" style="filter:${TINT[color]}" alt=""></div>
       <h3>${it.name}</h3><p>${it.desc}</p>
@@ -898,7 +917,7 @@ const actions = {
       <p class="lbl">Style</p><div class="chips" data-multi="1">${["Mid-century", "Natural wood", "Velvet", "Minimal", "Rattan"].map((c, i) => `<button class="chip ${i < 2 ? "on" : ""}">${c}</button>`).join("")}</div>
       <div class="opt" style="margin-top:12px"><span>Free assembly only</span><button class="sw on" aria-label="Free assembly only"></button></div>
       <button class="btn" id="go">Show 18 pieces</button>`, "filter", (sh, close) => { sh.querySelector("#go").onclick = () => { close(); toast("Showing 18 pieces that match"); }; }),
-  fav: (h, b) => { const on = !state.fav.has("sofa"); on ? state.fav.add("sofa") : state.fav.delete("sofa"); b.classList.toggle("on", on); b.querySelector("svg").outerHTML = ICON.heart(on); toast(on ? "Saved to favourites" : "Removed from favourites"); },
+  fav: (h, b) => { const k = state.pd.id, on = !state.fav.has(k); on ? state.fav.add(k) : state.fav.delete(k); b.classList.toggle("on", on); b.querySelector("svg").outerHTML = ICON.heart(on); toast(on ? "Saved to favourites" : "Removed from favourites"); },
   favSet: (h, b) => { const on = !state.fav.has("natural"); on ? state.fav.add("natural") : state.fav.delete("natural"); b.classList.toggle("on", on); b.querySelector("svg").outerHTML = ICON.heart(on); toast(on ? "Saved to favourites" : "Removed from favourites"); },
   more: (h, b) => { state.pd.more = !state.pd.more; const d = els.product.querySelector(".pd-desc"); d.classList.toggle("open", state.pd.more); b.textContent = state.pd.more ? "Hide" : "Read more"; },
   setMore: () => sheet(`<h3>Natural Cozy Set</h3><p>Everything for a calm living room: a sculpted lounge chair, a three-seat leather sofa, a white bedside table and a round oak coffee table. Delivered and assembled together; swap any piece once a lease year.</p><button class="btn" data-close>Close</button>`, "setinfo"),
