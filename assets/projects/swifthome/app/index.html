@@ -511,6 +511,16 @@
   .pd-img.cut { left: 0 !important; top: 40px !important; width: 402px !important; height: 330px !important; }
   .pd-img.cut img { left: 28px !important; top: 16px !important; width: 346px !important; height: 292px !important; filter: drop-shadow(0 14px 14px rgba(0,0,0,.12)); }
   .setcar-t { height: 100% !important; } .setcar-t img { height: 100% !important; }
+
+  /* hero image: bleeds to the screen edges and fades out at the bottom, never a hard square */
+  .pd-img:not(.cut) { left: 0 !important; top: 0 !important; width: 402px !important; height: 352px !important; -webkit-mask-image: linear-gradient(180deg, #000 82%, transparent 100%); mask-image: linear-gradient(180deg, #000 82%, transparent 100%); }
+  .pd-img:not(.cut) img { left: 32px !important; top: 72px !important; width: 338px !important; height: 270px !important; }
+  .pd-img { pointer-events: none; }
+  .pd-hero .thumbs, .pd-hero .dots, .pd-hero .vline, .pd-tag, .pd-hero .back, .pd-hero .heart, .link360 { z-index: 3 !important; }
+  .sizes .sel { transition: left .4s cubic-bezier(.3,1.2,.5,1), width .4s cubic-bezier(.3,1.2,.5,1); }
+  /* confetti bursts from the check */
+  .confetti i { left: 50% !important; top: 180px !important; margin-left: -4px; animation: burstOut var(--d) cubic-bezier(.15,.7,.3,1) forwards !important; opacity: 0; }
+  @keyframes burstOut { 0% { opacity: 1; transform: translate(0, 0) rotate(0) scale(.4); } 22% { opacity: 1; transform: translate(var(--x), var(--y)) rotate(calc(var(--r) * .3)) scale(1); } 75% { opacity: 1; } 100% { opacity: 0; transform: translate(calc(var(--x) * 1.15), calc(var(--y) + 420px)) rotate(var(--r)) scale(.9); } }
 </style>
 </head>
 <body>
@@ -690,12 +700,12 @@ const zoomFrom = (src, to) => {
   const sofa = state.pd.id === "sofa", img = to === "set" ? S("set_hero") : sofa ? S("hero_" + COLORS[state.pd.color].name.replace("cream", "green")) : S(CATALOG[state.pd.id].img);
   const target = to === "set" ? { x: 0, y: 0, w: 402, h: 305 } : { x: 39, y: 65, w: 338, h: 342 };
   const z = document.createElement("div"); z.className = "zoomer";
-  z.style.cssText = `left:${r.left - ar.left}px;top:${r.top - ar.top}px;width:${r.width}px;height:${r.height}px;border-radius:14px;background:${to === "set" ? "#ddd" : sofa ? COLORS[state.pd.color].bg : CATALOG[state.pd.id].bg}`;
+  z.style.cssText = `left:${r.left - ar.left}px;top:${r.top - ar.top}px;width:${r.width}px;height:${r.height}px;border-radius:${to === "set" ? 14 : 22}px;background:${to === "set" ? "#ddd" : "transparent"}`;
   z.innerHTML = `<img src="${img}" style="object-fit:${to === "set" ? "cover" : "contain"}" alt="">`;
   app.append(z);
   const bgFull = to === "product";
-  z.animate([{ }, { left: (bgFull ? 0 : target.x) + "px", top: (bgFull ? 0 : target.y) + "px", width: (bgFull ? 402 : target.w) + "px", height: (bgFull ? 421 : target.h) + "px", borderRadius: "0px" }], { duration: 480, easing: "cubic-bezier(.25,.8,.25,1)", fill: "forwards" });
-  if (bgFull) z.querySelector("img").animate([{ padding: "0" }, { padding: "65px 25px 14px 39px" }], { duration: 480, easing: "cubic-bezier(.25,.8,.25,1)", fill: "forwards" });
+  z.animate([{ }, { left: (bgFull ? 0 : target.x) + "px", top: (bgFull ? 0 : target.y) + "px", width: (bgFull ? 402 : target.w) + "px", height: (bgFull ? 452 : target.h) + "px", borderRadius: "0px" }], { duration: 480, easing: "cubic-bezier(.25,.8,.25,1)", fill: "forwards" });
+  if (bgFull) z.querySelector("img").animate([{ padding: "0" }, { padding: sofa ? "72px 32px 38px 32px" : "56px 28px 96px 28px" }], { duration: 480, easing: "cubic-bezier(.25,.8,.25,1)", fill: "forwards" });
   setTimeout(() => { show(to, "zoom"); setTimeout(() => z.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 220, fill: "forwards" }).onfinish = () => z.remove(), 120); }, 420);
 };
 const onShow = (id, el, how) => {
@@ -940,7 +950,9 @@ const bindProduct = (w) => {
   }));
   w.querySelectorAll("[data-tint]").forEach((b) => b.addEventListener("click", (e) => { e.stopPropagation(); p.tint = +b.dataset.tint; p.saved = false;
     w.querySelectorAll("#pdimg, .thumb img").forEach((im) => (im.style.filter = TINT[p.tint])); w.querySelectorAll("[data-tint]").forEach((x) => x.classList.toggle("on", x === b)); els.product.querySelectorAll(".pill").forEach(renderPill); }));
-  w.querySelectorAll("[data-size]").forEach((b) => b.addEventListener("click", (e) => { e.stopPropagation(); p.size = +b.dataset.size; p.saved = false; const sel = w.querySelector(".sizes .sel"); sel.style.left = [0, 117, 226][p.size] + "px"; sel.style.width = [117, 108, 112][p.size] + "px"; els.product.querySelectorAll(".pill").forEach(renderPill); const sp = w.querySelector(".pd-specs"); if (sp) sp.innerHTML = pdSpecs(p.size); }));
+  const placeSel = () => { const sel = w.querySelector(".sizes .sel"), bt = w.querySelectorAll(".sizes button")[p.size]; if (sel && bt) { sel.style.left = (bt.offsetLeft + 4) + "px"; sel.style.width = (bt.offsetWidth - 8) + "px"; } };
+  requestAnimationFrame(placeSel);
+  w.querySelectorAll("[data-size]").forEach((b) => b.addEventListener("click", (e) => { e.stopPropagation(); p.size = +b.dataset.size; p.saved = false; const sel = w.querySelector(".sizes .sel"); placeSel(); els.product.querySelectorAll(".pill").forEach(renderPill); const sp = w.querySelector(".pd-specs"); if (sp) sp.innerHTML = pdSpecs(p.size); }));
 };
 const renderPill = (pl) => {
   const k = pl.dataset.k;
@@ -1263,7 +1275,8 @@ const actions = {
 const confetti = (el) => {
   el.querySelectorAll(".confetti").forEach((c) => c.remove());
   const c = document.createElement("div"); c.className = "confetti";
-  c.innerHTML = [...Array(40)].map(() => `<i style="left:${Math.random() * 100}%;background:${["#3f2c1f", "#b68b6a", "#dbdbbb", "#e2b48f", "#c3bebaff"][Math.floor(Math.random() * 5)]};--dx:${(Math.random() - .5) * 160}px;--r:${Math.random() * 720}deg;animation-delay:${.9 + Math.random() * .6}s"></i>`).join("");
+  c.innerHTML = [...Array(46)].map((_, i) => { const a = (i / 46) * Math.PI * 2 + Math.random() * .3, v = 150 + Math.random() * 150, w = 5 + Math.random() * 6;
+    return `<i style="width:${w}px;height:${w * (Math.random() < .5 ? 1 : 1.8)}px;border-radius:${Math.random() < .35 ? "50%" : "2px"};background:${["#36291f", "#a9845a", "#c0714f", "#8c973a", "#e2b48f", "#5d4a3a"][i % 6]};--x:${Math.cos(a) * v}px;--y:${Math.sin(a) * v * .8 - 40}px;--r:${(Math.random() - .5) * 900}deg;--d:${2.2 + Math.random() * .9}s;animation-delay:${.82 + Math.random() * .12}s"></i>`; }).join("");
   el.append(c);
 };
 
