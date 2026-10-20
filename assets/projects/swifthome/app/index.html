@@ -134,7 +134,7 @@
   .cv-floor { position: absolute; left: 50px; top: 674px; width: 290px; height: 30px; border-radius: 50%; background: radial-gradient(closest-side, rgba(50,32,20,.3), transparent); pointer-events: none; animation: cvShadow 5s ease-in-out infinite; }
   .cv-card { position: absolute; left: 208px; top: 300px; width: 172px; height: 118px; padding: 0; border-radius: 18px; border: 1px solid rgba(255,255,255,.7); background: rgba(255,255,255,.42); -webkit-backdrop-filter: blur(16px); backdrop-filter: blur(16px); box-shadow: 0 12px 30px rgba(60,40,25,.10); text-align: left; cursor: pointer; z-index: 2; transition: opacity .5s .15s, translate .6s .15s cubic-bezier(.2,.8,.2,1); }
   .cv-card b { position: absolute; left: 16px; top: 15px; font-size: 16px; font-weight: 600; color: var(--ink); white-space: nowrap; }
-  .cv-card .dots { position: absolute; left: 16px; top: 47px; display: flex; gap: 9px; }
+  .cv-card .dots { position: absolute !important; left: 16px !important; top: 47px !important; display: flex; gap: 9px; }
   .cv-card .dots i { position: relative; width: 13px; height: 13px; border-radius: 50%; transition: box-shadow .25s; }
   .cv-card .dots i::after { content: ""; position: absolute; inset: -7px; }
   .cv-card .dots i.on { box-shadow: 0 0 0 2px #fff, 0 0 0 3px rgba(58,39,26,.45); }
@@ -477,7 +477,7 @@
   .pd-hero::before { left: 44px; top: 306px; background: radial-gradient(closest-side, rgba(60,40,25,.13), rgba(60,40,25,0)); }
   .pd-hero .back { left: 12px; top: 46px; } .pd-hero .heart { left: 320px; top: 46px; } .pd-hero .link360 { left: 66px; top: 50px; }
   .pd-img { left: 20px; top: 52px; } .pd-tag { left: 16px; top: 270px; }
-  .thumbs { left: 22px; top: 346px; } .vline { left: 246px; top: 346px; } .dots { left: 264px; top: 358px; }
+  .pd-hero .thumbs { left: 22px; top: 346px; } .pd-hero .vline { left: 246px; top: 346px; } .pd-hero .dots { left: 264px; top: 358px; }
   .setcar { left: 12px !important; top: 12px !important; width: 378px !important; height: 293px !important; border-radius: 32px; }
   .pd-body { margin-top: 0; }
   .scr[data-testid=sh-set] .back.glass { left: 26px; top: 58px; } .scr[data-testid=sh-set] .heart { left: 324px; top: 58px; } .scr[data-testid=sh-set] .chip-rate { left: 80px; top: 68px; }
@@ -496,7 +496,7 @@
   .pd-hero::before { left: 56px !important; top: 330px !important; }
   .pd-hero .back { left: 20px !important; top: 58px !important; } .pd-hero .heart { left: 336px !important; top: 58px !important; } .pd-hero .link360 { left: 78px !important; top: 62px !important; }
   .pd-img { left: 32px !important; top: 72px !important; } .pd-tag { left: 24px !important; top: 292px !important; }
-  .thumbs { left: 28px !important; top: 362px !important; } .vline { left: 252px !important; top: 362px !important; } .dots { left: 270px !important; top: 374px !important; }
+  .pd-hero .thumbs { left: 28px !important; top: 362px !important; } .pd-hero .vline { left: 252px !important; top: 362px !important; } .pd-hero .dots { left: 270px !important; top: 374px !important; }
   .pd-body { left: 0 !important; width: 402px !important; top: 420px !important; border-radius: 32px 32px 0 0 !important; box-shadow: 0 -10px 30px rgba(60,40,25,.08) !important; min-height: 900px; }
   .pd-body .pd-title { padding-left: 24px; } .pd-body .pd-subline, .pd-body .pd-desc { margin-left: 24px; } .pd-body .pd-desc { width: 354px; }
   .pd-body .pd-more { margin-left: 314px; } .pd-body .pd-hr { margin: 8px 24px 0; } .pd-body .pd-h { padding-left: 24px; }
@@ -1026,7 +1026,7 @@ PAGES.cover = () => { const v = state.cover.view;
   return `<div class="cv-panel" style="background-color:${COVER[v].bg}">
     <h1><b>Choose</b><br>furniture <b>that</b><br><b>fits</b> your <span class="circ">space<svg viewBox="0 0 150 64" preserveAspectRatio="none"><path d="M12 36C10 18 44 7 82 8c38 1 62 12 60 28-2 17-40 24-76 22C30 56 6 46 13 30 18 19 40 12 64 10"/></svg></span></h1>
     <div class="cv-track" style="transform:translateX(${-402 * v}px)">${COVER.map((c, i) => { const it = CATALOG[c.id], k = state.cover.tint[i];
-      return `<div class="cv-slide ${i === v ? "on" : ""}"><i class="cv-floor"></i><img src="${S(c.img || it.img)}" style="filter:drop-shadow(0 22px 22px rgba(50,32,20,.2)) ${TINT[k]}" alt="${it.name}">
+      return `<div class="cv-slide ${i === v ? "on" : ""}"><img src="${S(c.img || it.img)}" style="filter:drop-shadow(0 22px 22px rgba(50,32,20,.2)) ${TINT[k]}" alt="${it.name}">
         <button class="cv-card" data-cvopen="${i}" aria-label="${it.name} quick view"><b>${it.name}</b>
           <span class="dots">${c.dots.map((d, j) => `<i class="${j === k ? "on" : ""}" data-cvtint="${j}" style="background:${d}"></i>`).join("")}</span>
           <span class="pr">${money(it.price)}<small>/mo</small></span><span class="go">${ICON.arrow}</span></button></div>`; }).join("")}</div>
