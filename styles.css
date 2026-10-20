@@ -522,6 +522,7 @@ a.table__row:hover span:last-child::after { opacity: 1; transform: none; }
 .dot-cursor.is-label span { opacity: 1; scale: 1; }
 .dot-cursor.is-label.is-sm { width: 62px; height: 62px; margin: -31px 0 0 -31px; }
 .dot-cursor.is-label.is-sm span { font-size: 12px; }
+.dot-cursor.is-label.is-wide { width: 104px; height: 104px; margin: -52px 0 0 -52px; }
 .dot-cursor.is-off { opacity: 0; }
 /* with the dot on, the system pointer hides everywhere except where you type */
 .has-dot, .has-dot * { cursor: none !important; }

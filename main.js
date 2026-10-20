@@ -1353,35 +1353,16 @@ $$("[data-flip]").forEach((flip) => {
   addEventListener("resize", () => { if (lb.classList.contains("is-open")) { clampPan(); apply(false); } });
 
   // hook the page images up
-  // images that sit inside another interaction (drag galleries) don't zoom on click;
-  // an Enlarge button outside the images opens the one in view instead
+  // in drag galleries a real drag only scrolls (the drag handler swallows that click); a still click opens that image
   const dragBox = ".gallery__track, [data-drag]";
-  $$(dragBox).forEach((t) => { if (!t.dataset.cursor) t.dataset.cursor = "Drag"; });
   imgs.forEach((img) => {
     if (img.closest("[data-deck], [data-flip]")) return; // decks and books open from their own button
-    if (img.closest(dragBox)) return;
     img.classList.add("is-zoomable");
-    if (!img.closest("[data-cursor]")) img.dataset.cursor = "View";
+    if (img.closest(dragBox)) img.dataset.cursor = "Drag · View";
+    else if (!img.closest("[data-cursor]")) img.dataset.cursor = "View";
     img.addEventListener("click", (e) => { e.preventDefault(); open(img); });
   });
-  $$(dragBox).forEach((track) => {
-    const inside = imgs.filter((i) => track.contains(i));
-    if (!inside.length) return;
-    const btn = document.createElement("button");
-    btn.type = "button";
-    btn.className = "gallery__zoom";
-    btn.setAttribute("aria-label", "Enlarge the image in view");
-    btn.innerHTML = `<svg viewBox="0 0 20 20" aria-hidden="true"><path d="M12 3h5v5M8 17H3v-5M17 3l-6 6M3 17l6-6" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Enlarge</span>`;
-    btn.addEventListener("click", () => {
-      const r = track.getBoundingClientRect(), mid = r.left + r.width / 2;
-      const best = inside.reduce((a, i) => { const b = i.getBoundingClientRect(); return Math.abs(b.left + b.width / 2 - mid) < Math.abs(a.r.left + a.r.width / 2 - mid) ? { i, r: b } : a; }, { i: inside[0], r: inside[0].getBoundingClientRect() });
-      open(best.i);
-    });
-    // sits beside the gallery's own "Drag to explore" line when there is one, otherwise on its own row
-    const hint = track.parentElement && track.parentElement.querySelector(".gallery__hint");
-    if (hint) { hint.classList.add("has-zoom"); hint.append(btn); }
-    else { const bar = document.createElement("div"); bar.className = "gallery__bar wrap"; bar.append(btn); track.after(bar); }
-  });
+  $$(dragBox).forEach((t) => { if (!t.dataset.cursor) t.dataset.cursor = "Drag"; });
   $$("[data-deck]").forEach((deck) => {
     const btn = document.createElement("button");
     btn.type = "button";
@@ -1418,8 +1399,9 @@ if (!reduceMotion && matchMedia("(hover: hover) and (pointer: fine)").matches) {
       dot.style.setProperty("--cursor-bg", cs.getPropertyValue("--next-bg").trim() || "");
       dot.style.setProperty("--cursor-fg", cs.getPropertyValue("--next-fg").trim() || "");
       dot.classList.toggle("is-sm", host.dataset.cursorSize === "sm");
+      dot.classList.toggle("is-wide", host.dataset.cursor.length > 6);
       dot.classList.add("is-label");
-    } else dot.classList.remove("is-label", "is-sm");
+    } else dot.classList.remove("is-label", "is-sm", "is-wide");
     label = host;
   };
   // what's under the pointer decides the look; run on every move, on enter/leave of elements, and while the page scrolls
