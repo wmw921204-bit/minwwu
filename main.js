@@ -1420,26 +1420,46 @@ if (!reduceMotion && matchMedia("(hover: hover) and (pointer: fine)").matches) {
     } else dot.classList.remove("is-label", "is-sm");
     label = host;
   };
-  addEventListener("pointermove", (e) => {
-    if (e.pointerType !== "mouse") return;
-    x = e.clientX; y = e.clientY; away = false;
-    if (!seen) { cx = x; cy = y; seen = true; }
-    const t = e.target;
+  // what's under the pointer decides the look; run on every move, on enter/leave of elements, and while the page scrolls
+  const update = (t) => {
+    if (!t || !t.closest) return;
     const host = t.closest("[data-cursor]");
     if (host) setLabel(host);
     // crossing the small gaps in a grid: hold the label a moment so it doesn't blink
     else if (label) { clearTimeout(leaveT); leaveT = setTimeout(() => setLabel(null), 140); }
-    dot.classList.toggle("is-big", !host && !!t.closest("a, button, label, select, summary, [role=button], .ch, .play__chips li, [data-talk] .talk__box"));
+    // big display type gets the home-page treatment: a large circle that inverts the letters under it
+    const big = !host && !!t.closest(".ch, .c-hero__marquee, .c-head, .c-next__title, .reco-demo__title, .c-title, h1, h2:not(.c-kicker)");
+    dot.classList.toggle("is-xl", big);
+    dot.classList.toggle("is-big", !host && !big && !!t.closest("a, button, label, select, summary, [role=button], .play__chips li, [data-talk] .talk__box"));
     dot.classList.toggle("is-off", !!t.closest("input, textarea, iframe, [contenteditable]"));
-  }, { passive: true });
-  // scrolling moves the page under a still pointer: drop back to the dot until the pointer moves again
-  const calm = () => { if (label) setLabel(null); };
-  addEventListener("wheel", calm, { passive: true });
-  addEventListener("scroll", calm, { passive: true });
+  };
+  const at = (e) => {
+    if (e.pointerType && e.pointerType !== "mouse") return;
+    x = e.clientX; y = e.clientY; away = false;
+    if (!seen) { cx = x; cy = y; seen = true; }
+    update(e.target);
+  };
+  // a new page can't know where the pointer is until it moves, so carry the last spot over from the previous page
+  try {
+    const last = JSON.parse(sessionStorage.getItem("dot-xy") || "null");
+    if (last && last.w === innerWidth) { x = cx = last.x; y = cy = last.y; seen = true; away = false; requestAnimationFrame(() => update(document.elementFromPoint(x, y))); }
+  } catch (e) {}
+  const save = () => { try { if (seen) sessionStorage.setItem("dot-xy", JSON.stringify({ x, y, w: innerWidth })); } catch (e) {} };
+  addEventListener("pagehide", save);
+  addEventListener("pointerdown", save, { passive: true });
+  addEventListener("pointermove", at, { passive: true });
+  // fires without any movement when the page loads or the layout shifts under a still pointer
+  addEventListener("pointerover", at, { passive: true });
+  addEventListener("mouseover", at, { passive: true });
+  // scrolling moves the page under a still pointer: re-read what's under it each frame, no wiggle needed
+  let scrollQ = false;
+  const reread = () => { scrollQ = false; if (seen && !away) update(document.elementFromPoint(x, y)); };
+  addEventListener("scroll", () => { if (!scrollQ) { scrollQ = true; requestAnimationFrame(reread); } }, { passive: true });
+  addEventListener("wheel", () => { if (!scrollQ) { scrollQ = true; requestAnimationFrame(reread); } }, { passive: true });
   document.addEventListener("pointerleave", () => { away = true; });
   addEventListener("blur", () => { away = true; });
   const loop = () => {
-    cx += (x - cx) * 0.3; cy += (y - cy) * 0.3;
+    cx += (x - cx) * 0.38; cy += (y - cy) * 0.38;
     dot.style.transform = `translate3d(${cx.toFixed(1)}px, ${cy.toFixed(1)}px, 0)`;
     if (away !== dot.classList.contains("is-hidden")) dot.classList.toggle("is-hidden", away);
     requestAnimationFrame(loop);
