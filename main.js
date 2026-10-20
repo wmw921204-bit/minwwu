@@ -1408,7 +1408,7 @@ if (!reduceMotion && matchMedia("(hover: hover) and (pointer: fine)").matches) {
   root.classList.add("has-dot");
   let x = -100, y = -100, cx = x, cy = y, seen = false, away = true, label = null, leaveT = 0;
   const setLabel = (host) => {
-    clearTimeout(leaveT);
+    clearTimeout(leaveT); leaveT = 0;
     if (host) {
       if (text.textContent !== host.dataset.cursor) text.textContent = host.dataset.cursor;
       // links can tint it (e.g. "Next" takes the next project's colour)
@@ -1426,7 +1426,8 @@ if (!reduceMotion && matchMedia("(hover: hover) and (pointer: fine)").matches) {
     const host = t.closest("[data-cursor]");
     if (host) setLabel(host);
     // crossing the small gaps in a grid: hold the label a moment so it doesn't blink
-    else if (label) { clearTimeout(leaveT); leaveT = setTimeout(() => setLabel(null), 140); }
+    // (start the countdown once; restarting it on every move would keep the label up forever)
+    else if (label && !leaveT) leaveT = setTimeout(() => { leaveT = 0; setLabel(null); }, 140);
     // big display type gets the home-page treatment: a large circle that inverts the letters under it
     const big = !host && !!t.closest(".ch, .c-hero__marquee, .c-head, .c-next__title, .reco-demo__title, .c-title, h1, h2:not(.c-kicker)");
     dot.classList.toggle("is-xl", big);
