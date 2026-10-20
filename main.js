@@ -1020,6 +1020,23 @@ $$("[data-proto-guide]").forEach((guide) => {
   if (restart) restart.addEventListener("click", () => { seen.clear(); current = ""; frame.src = frame.src; });
 });
 
+/* ---------- Prototypes: a veil that says what this is, lifted with one click ---------- */
+$$('iframe[src*="/app/"]').forEach((frame) => {
+  const box = frame.parentElement;
+  if (!box || box.querySelector(".proto-veil")) return;
+  if (getComputedStyle(box).position === "static") box.style.position = "relative";
+  const veil = document.createElement("button");
+  veil.type = "button";
+  veil.className = "proto-veil";
+  veil.setAttribute("aria-label", `Start the interactive prototype: ${frame.title || "prototype"}`);
+  veil.innerHTML = `<span class="proto-veil__tag">Interactive prototype</span><span class="proto-veil__btn"><svg width="14" height="16" viewBox="0 0 14 16" aria-hidden="true"><path d="M2 1.5v13L13 8z" fill="currentColor"/></svg>Click to try it</span><span class="proto-veil__note">${box.closest(".fin-browser") ? "Click around like the real site" : "Tap around like a real app"}</span>`;
+  veil.addEventListener("click", () => {
+    veil.classList.add("is-gone");
+    setTimeout(() => { veil.remove(); try { frame.focus({ preventScroll: true }); } catch (e) {} }, 450);
+  });
+  box.append(veil);
+});
+
 /* ---------- RECO demo: size the embedded phone to the screen ---------- */
 $$(".reco-device--app").forEach((dev) => {
   const fit = () => dev.style.setProperty("--dev-s", (dev.getBoundingClientRect().height / 900).toFixed(4));
