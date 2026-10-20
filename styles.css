@@ -431,6 +431,7 @@ a.table__row:hover span:last-child::after { opacity: 1; transform: none; }
 .cursor.is-on { opacity: 1; scale: 1; }
 .cursor { transition: opacity .3s var(--ease), scale .5s var(--ease), background-color .3s, width .4s var(--ease), height .4s var(--ease), font-size .3s; }
 .cursor.is-sm { width: 62px; height: 62px; font-size: 12px; }
+.cursor.is-md { width: 80px; height: 80px; font-size: 13px; }
 [data-cursor] { cursor: none; }
 @media (hover: none) { [data-cursor] { cursor: auto; } }
 

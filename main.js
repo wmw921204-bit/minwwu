@@ -1356,6 +1356,7 @@ $$("[data-flip]").forEach((flip) => {
   // images that sit inside another interaction (drag galleries) don't zoom on click;
   // an Enlarge button outside the images opens the one in view instead
   const dragBox = ".gallery__track, [data-drag]";
+  $$(dragBox).forEach((t) => { if (!t.dataset.cursor) t.dataset.cursor = "Drag"; });
   imgs.forEach((img) => {
     if (img.closest("[data-deck], [data-flip]")) return; // decks and books open from their own button
     if (img.closest(dragBox)) return;
@@ -1394,12 +1395,12 @@ $$("[data-flip]").forEach((flip) => {
 })();
 
 /* ---------- Custom cursor label over projects and galleries ---------- */
-if (!reduceMotion && matchMedia("(hover: hover) and (pointer: fine)").matches && $("[data-cursor]")) {
+if (!reduceMotion && matchMedia("(hover: hover) and (pointer: fine)").matches && $("[data-cursor], .gallery__track, [data-drag], img")) {
   const cursor = document.createElement("div");
   cursor.className = "cursor";
   cursor.setAttribute("aria-hidden", "true");
   document.body.append(cursor);
-  let tx = 0, ty = 0, cx = 0, cy = 0, off = 0;
+  let tx = 0, ty = 0, cx = 0, cy = 0, off = 0, toff = 0, on = false, last = performance.now();
   // scrolling moves the page under a still pointer: hide the label until the pointer moves again
   const hide = () => cursor.classList.remove("is-on");
   addEventListener("wheel", hide, { passive: true });
@@ -1407,13 +1408,17 @@ if (!reduceMotion && matchMedia("(hover: hover) and (pointer: fine)").matches &&
   addEventListener("pointermove", (e) => {
     tx = e.clientX; ty = e.clientY;
     const host = e.target.closest("[data-cursor]");
-    cursor.classList.toggle("is-on", !!host);
+    // appear right at the pointer instead of sliding in from wherever it was last
+    if (host && !on) { cx = tx; cy = ty; }
+    on = !!host;
+    cursor.classList.toggle("is-on", on);
     if (host) {
       cursor.textContent = host.dataset.cursor;
       // over a picture the label is small and sits beside the pointer, so it never covers what you're looking at
       const onImage = host.dataset.cursor === "View";
-      off = onImage ? 44 : 0;
-      cursor.classList.toggle("is-sm", onImage || host.dataset.cursorSize === "sm");
+      toff = onImage ? 46 : 0;
+      cursor.classList.toggle("is-md", onImage);
+      cursor.classList.toggle("is-sm", !onImage && host.dataset.cursorSize === "sm");
       // links can tint the cursor (e.g. "Next" takes the next project's colour)
       const cs = getComputedStyle(host);
       cursor.style.setProperty("--cursor-bg", cs.getPropertyValue("--next-bg").trim() || "");
@@ -1421,9 +1426,10 @@ if (!reduceMotion && matchMedia("(hover: hover) and (pointer: fine)").matches &&
     }
   });
   document.addEventListener("pointerleave", () => cursor.classList.remove("is-on"));
-  const follow = () => {
-    cx += (tx - cx) * 0.18;
-    cy += (ty - cy) * 0.18;
+  // time-based easing: tight and the same at 60 or 120 Hz
+  const follow = (now) => {
+    const k = 1 - Math.exp(-Math.max(0, Math.min(64, now - last)) / 20); last = now;
+    cx += (tx - cx) * k; cy += (ty - cy) * k; off += (toff - off) * k;
     cursor.style.transform = `translate3d(${(cx + off).toFixed(1)}px, ${(cy + off).toFixed(1)}px, 0) translate(-50%, -50%)`;
     requestAnimationFrame(follow);
   };
