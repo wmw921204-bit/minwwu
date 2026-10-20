@@ -19,6 +19,11 @@
   .scr { position: absolute; inset: 0; overflow: hidden; background: #fff; pointer-events: none; visibility: hidden; transition: transform .42s cubic-bezier(.25,.8,.25,1), opacity .32s ease; }
   .scr.is-cur { pointer-events: auto; visibility: visible; z-index: 2; }
   .scr.is-prev { visibility: visible; z-index: 1; }
+  .scr::after { content: ""; position: absolute; inset: 0; background: rgba(28,18,10,.22); opacity: 0; pointer-events: none; transition: opacity .42s; z-index: 60; }
+  .scr.dim::after { opacity: 1; }
+  /* tactile press on everything tappable */
+  :is(.btn, .pill, .chip, .res, .cg, .cv-card, .totalbar, .save-bar, .thumb, .ar-btn, .back, .cv-card .go, .cbar-bag, .row-opt, .opt):active { scale: .965; }
+  .hs:active { background: rgba(255,255,255,.16); }
   .scr > .base { position: absolute; left: 0; top: 0; width: 402px; }
   .sc { position: absolute; overflow-x: hidden; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: none; scroll-behavior: smooth; }
   .sc::-webkit-scrollbar, .pg::-webkit-scrollbar { display: none; }
@@ -186,6 +191,7 @@
   .item.gone { height: 0; margin-bottom: 0; opacity: 0; }
   .totalbar { position: absolute; left: 25px; top: 749px; width: 352px; height: 45px; border-radius: 10px; background: var(--bar); color: #fff; display: flex; align-items: center; z-index: 4; cursor: pointer; border: 0; }
   .totalbar b { flex: 1; text-align: center; font-size: 16px; font-weight: 600; }
+  .totalbar .tot { font-style: normal; font-variant-numeric: tabular-nums; }
   .totalbar i { width: 1px; height: 100%; background: rgba(255,255,255,.35); }
   .totalbar span { width: 72px; display: grid; place-items: center; }
   .item.cz .qty { top: auto; bottom: 14px; }
@@ -386,11 +392,11 @@ const SCREENS = {
     { x: 62, y: 808, w: 50, h: 46, tab: "explore" }, { x: 112, y: 808, w: 100, h: 46, tab: "cart" }, { x: 216, y: 808, w: 54, h: 46, tab: "favs" }, { x: 274, y: 808, w: 66, h: 46, tab: "profile" }] } },
   checkout: { base: S("checkout"), patch: "checkout", hs: [{ x: 14, y: 74, w: 54, h: 46, back: 1 }, { x: 288, y: 388, w: 74, h: 36, act: "payment" }, { x: 288, y: 628, w: 64, h: 30, act: "address" }, { x: 34, y: 478, w: 335, h: 148, act: "address" }, { x: 84, y: 796, w: 230, h: 45, act: "placeOrder" }] },
   success: { html: "success" },
-  profile: { sc: { x: 0, y: 0, w: 402, h: 874, img: S("profile_content"), ix: 0, iy: 0, iw: 402, ch: 1029, hs: [
+  profile: { sc: { x: 0, y: 0, w: 402, h: 874, img: S("profile_content"), ix: 0, iy: 0, iw: 402, ch: 1039, hs: [
     { x: 14, y: 74, w: 54, h: 46, back: 1, to: "explore" }, { x: 36, y: 285, w: 103, h: 90, act: "addressSheet" }, { x: 153, y: 285, w: 104, h: 90, act: "payment" }, { x: 273, y: 285, w: 103, h: 90, act: "help" },
-    { x: 24, y: 437, w: 352, h: 115, act: "rental", id: "armchair" }, { x: 24, y: 556, w: 352, h: 121, act: "rental", id: "bed" }, { x: 24, y: 694, w: 352, h: 108, act: "rental", id: "bedside" },
-    { x: 25, y: 806, w: 352, h: 119, go: "modify" }],
-    patches: ['<span style="position:absolute;left:300px;top:995px;width:80px;height:34px;background:#fff;pointer-events:none"></span>'] }, fx: NAVH("nav_profile") },
+    { x: 24, y: 458, w: 352, h: 94, act: "rental", id: "armchair" }, { x: 24, y: 582, w: 352, h: 96, act: "rental", id: "bed" }, { x: 24, y: 706, w: 352, h: 96, act: "rental", id: "bedside" },
+    { x: 24, y: 830, w: 352, h: 96, go: "modify" }],
+  }, fx: NAVH("nav_profile") },
   modify: { html: "modify" },
   favs: { html: "favs", fx: NAVH("nav_home") },
   search: { html: "search" },
@@ -462,10 +468,10 @@ const show = (id, how = "push") => {
   void next.offsetWidth; next.style.transition = ""; next.style.transform = ""; next.style.opacity = 1;
   if (how === "pop") next.style.zIndex = 1, prev && (prev.style.zIndex = 3);
   else next.style.zIndex = "", prev && (prev.style.zIndex = "");
-  if (prev) { prev.className = "scr is-prev"; prev.style.transform = from[1]; if (how === "fade") prev.style.opacity = 0;
+  if (prev) { prev.className = "scr is-prev" + (how === "push" || how === "up" ? " dim" : ""); prev.style.transform = from[1]; if (how === "fade") prev.style.opacity = 0;
     const p = prev; setTimeout(() => { if (els[cur] !== p) { p.className = "scr"; p.style.transform = ""; p.style.opacity = ""; p.style.zIndex = ""; } }, 450); }
   cur = id;
-  onShow(id, next);
+  onShow(id, next, how);
 };
 const act = (h, srcEl) => {
   if (h.back) { show(stack.pop() || h.to || "explore", "pop"); return; }
@@ -486,8 +492,36 @@ const zoomFrom = (src, to) => {
   if (bgFull) z.querySelector("img").animate([{ padding: "0" }, { padding: "65px 25px 14px 39px" }], { duration: 480, easing: "cubic-bezier(.25,.8,.25,1)", fill: "forwards" });
   setTimeout(() => { show(to, "zoom"); setTimeout(() => z.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 220, fill: "forwards" }).onfinish = () => z.remove(), 120); }, 420);
 };
-const onShow = (id, el) => {
+const onShow = (id, el, how) => {
   if (id === "success") confetti(el);
+  if (how !== "none") enter(el);
+  bindParallax(el);
+};
+
+/* ---------- motion: content settles in after each move, heroes drift on scroll, totals count ---------- */
+let shownTotal = 0;
+const reduceMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
+const EASE = "cubic-bezier(.2,.8,.2,1)";
+const enter = (el) => {
+  if (reduceMotion) return;
+  // list rows and result cards rise in one after another
+  const rows = [...el.querySelectorAll(".items > .item, .res, .tl > div, .chips .chip, .pd-body > *, .pd-hero .thumb, .pd-hero .dot")].slice(0, 14);
+  rows.forEach((r, i) => r.animate([{ opacity: 0, transform: "translateY(16px)" }, { opacity: 1, transform: "none" }], { duration: 520, delay: 120 + i * 45, easing: EASE, fill: "backwards" }));
+  el.querySelectorAll(".pd-img, .md-hero").forEach((h) => h.animate([{ opacity: 0, transform: "scale(.9)" }, { opacity: 1, transform: "none" }], { duration: 700, delay: 60, easing: EASE, fill: "backwards" }));
+  // exported screens: the scrolling layer settles a beat after the header
+  if (!rows.length) el.querySelectorAll(":scope > .sc").forEach((sc) => sc.animate([{ opacity: 0, transform: "translateY(22px)" }, { opacity: 1, transform: "none" }], { duration: 560, delay: 90, easing: EASE, fill: "backwards" }));
+};
+const bindParallax = (el) => {
+  const pg = el.querySelector(".pg"), hero = el.querySelector(".pd-img, .setcar, .md-hero");
+  if (!pg || !hero || reduceMotion || pg._px) return; pg._px = 1;
+  pg.addEventListener("scroll", () => { const y = Math.min(pg.scrollTop, 400); hero.style.transformOrigin = "50% 0"; hero.style.transform = `scale(${1 - y / 1800})`; hero.style.opacity = 1 - y / 600; }, { passive: true });
+};
+const countTo = (node, to) => {
+  const from = parseFloat((node.dataset.v || node.textContent).replace(/[^0-9.]/g, "")) || 0; node.dataset.v = to;
+  if (reduceMotion || from === to) { node.textContent = money(to); return; }
+  const t0 = performance.now(), d = 500;
+  const step = (t) => { const k = Math.min(1, (t - t0) / d), e = 1 - Math.pow(1 - k, 3); node.textContent = money(from + (to - from) * e); if (k < 1) requestAnimationFrame(step); };
+  requestAnimationFrame(step);
 };
 
 /* ---------- tabs on the category list (redrawn so they can switch) ---------- */
@@ -566,7 +600,7 @@ const PAGES = {
       <div class="meta"><b>${it.name}</b>Color: ${c.color}<br>Size: ${c.size}<br>Lease term: ${c.lease} mo<div class="pr">${money(unitPrice(c))}/mo</div></div>
       <div class="qty"><button data-q="-1" data-i="${i}" aria-label="Less">−</button><b>${c.qty}</b><button data-q="1" data-i="${i}" aria-label="More">+</button></div>
       <button class="del" data-del="${i}">Remove</button></div>`; }).join("") : `<div class="empty"><svg width="60" height="56" viewBox="0 0 26 24" fill="none"><path d="M2 3h3l2.6 12h12.6L23 7H8" stroke="#c9bdb2" stroke-width="1.4" stroke-linejoin="round"/><circle cx="9.5" cy="20" r="1.4" fill="#c9bdb2"/><circle cx="18.5" cy="20" r="1.4" fill="#c9bdb2"/></svg>Your cart is empty.<br>Rent a piece and it shows up here.<button class="btn" data-tab="explore" style="margin-top:22px">Explore furniture</button></div>`}</div></div>
-    ${state.cart.length ? `<button class="totalbar" data-go="checkout"><b>Total: ${money(total())}</b><i></i><span>${ICON.cartok}</span></button>` : ""}`,
+    ${state.cart.length ? `<button class="totalbar" data-go="checkout"><b>Total: <em class="tot" data-v="${shownTotal}">${money(shownTotal)}</em></b><i></i><span>${ICON.cartok}</span></button>` : ""}`,
   success: () => `<div class="pg ok"><svg class="ok-ring" viewBox="0 0 120 120" fill="none"><circle cx="60" cy="60" r="54" stroke="#3f2c1f" stroke-width="4"/><path d="M38 61l15 15 30-32" stroke="#3f2c1f" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/></svg>
     <h2>Order placed</h2><p class="sub">${money(total())} · ${count()} item${count() === 1 ? "" : "s"} on a 12-month lease</p>
     <div class="tl">${[["Order confirmed", "Just now", 1], ["Preparing your pieces", "Cleaned, checked and packed", 0], ["Out for delivery", "Jun 2, 2025", 0], ["Delivered and assembled", "Jun 3, 2025 · we take the boxes", 0]].map(([t, s, d], i) => `<div class="${d ? "done" : ""}" style="animation-delay:${1.2 + i * .12}s">${t}<small>${s}</small></div>`).join("")}</div>
@@ -610,6 +644,7 @@ const bindPage = (w, id) => {
   w.querySelectorAll("[data-open]").forEach((b) => b.addEventListener("click", (e) => { e.stopPropagation(); openItem(b.dataset.open, b); }));
   w.querySelectorAll("[data-rent]").forEach((r) => bindRent(r, id));
   if (id === "product") bindProduct(w);
+  if (id === "cart") { const t = w.querySelector(".tot"); if (t) countTo(t, total()); shownTotal = total(); }
   if (id === "set") bindSetCar(w);
   if (id === "cover") bindCover(w);
   if (id === "customize") bindCustomize(w);
