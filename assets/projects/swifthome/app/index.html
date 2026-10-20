@@ -158,6 +158,51 @@
   @keyframes cvFloat { 0%, 100% { translate: 0 0; } 50% { translate: 0 -8px; } }
   @keyframes cvShadow { 0%, 100% { scale: 1; opacity: 1; } 50% { scale: .92; opacity: .7; } }
   @keyframes cvChev { 0%, 100% { translate: 0 2px; opacity: .6; } 50% { translate: 0 -4px; opacity: 1; } }
+  /* explore (v2): warm oat ground, white cards in two staggered columns, round category icons, cart preview pill */
+  .ex { --ebg: #f0eae2; --epromo: #dcc4a5; --edark: #36291f; --eacc: #a9845a; background: var(--ebg); }
+  .ex .pg { background: var(--ebg); padding-bottom: 120px; }
+  .ex-top { display: flex; justify-content: space-between; align-items: center; padding: 58px 20px 0; }
+  .ex-rb { position: relative; width: 46px; height: 46px; border-radius: 50%; border: 0; background: #fff; display: grid; place-items: center; cursor: pointer; padding: 0; }
+  .ex-rb img { width: 46px; height: 46px; border-radius: 50%; object-fit: cover; }
+  .ex h1 { margin: 18px 24px 0; font: 800 34px/1.02 Manrope, var(--f); letter-spacing: -.02em; text-transform: uppercase; color: #231a14; }
+  .ex-cats { display: flex; gap: 10px; margin: 18px 0 0; padding: 0 22px; overflow-x: auto; scrollbar-width: none; }
+  .ex-cats::-webkit-scrollbar { display: none; }
+  .ex-cats button { flex: none; width: 56px; height: 56px; border-radius: 50%; border: 0; background: rgba(255,255,255,.6); display: grid; place-items: center; cursor: pointer; color: #231a14; font: 600 14px var(--f); transition: background .25s, color .25s; }
+  .ex-cats button.on { background: var(--edark); color: #fff; }
+  .ex-cats button.on svg path, .ex-cats button.on svg ellipse, .ex-cats button.on svg rect { stroke: #fff; }
+  .ex-promo { position: relative; display: block; width: calc(100% - 40px); margin: 18px 20px 0; height: 112px; border: 0; border-radius: 22px; background: var(--epromo); overflow: hidden; text-align: left; cursor: pointer; padding: 0; }
+  .ex-promo p { position: absolute; left: 20px; top: 18px; font: 600 16px/1.25 Manrope, var(--f); color: #2b211a; letter-spacing: -.01em; }
+  .ex-promo p b { font-weight: 800; }
+  .ex-promo span { position: absolute; left: 20px; bottom: 16px; display: flex; align-items: center; gap: 6px; padding: 7px 12px; border-radius: 99px; background: #fff; font-size: 11px; font-weight: 600; color: #231a14; }
+  .ex-promo img { position: absolute; right: 14px; bottom: 6px; height: 100px; filter: drop-shadow(0 10px 10px rgba(0,0,0,.18)); transition: transform .5s cubic-bezier(.2,.8,.2,1); }
+  .ex-promo:hover img { transform: translateY(-4px) rotate(-2deg); }
+  .ex-sec { display: flex; justify-content: space-between; align-items: baseline; margin: 22px 22px 12px 24px; }
+  .ex-sec h2 { font: 700 18px Manrope, var(--f); letter-spacing: -.01em; color: #231a14; }
+  .ex-sec button { border: 0; background: none; font-size: 13px; color: #8d837b; cursor: pointer; padding: 4px 0; }
+  .ex-cols { display: flex; gap: 12px; margin: 0 20px; }
+  .ex-col { flex: 1; display: flex; flex-direction: column; gap: 12px; }
+  .ex-card { position: relative; border: 0; border-radius: 22px; background: #fff; padding: 14px; text-align: left; cursor: pointer; box-shadow: 0 6px 20px rgba(60,40,25,.07); }
+  .ex-card img { display: block; width: 100%; object-fit: contain; filter: drop-shadow(0 8px 8px rgba(0,0,0,.1)); transition: transform .5s cubic-bezier(.2,.8,.2,1); }
+  .ex-card:hover img { transform: scale(1.04); }
+  .ex-card h3 { margin-top: 8px; font: 700 14px Manrope, var(--f); letter-spacing: -.01em; color: #231a14; }
+  .ex-card small { display: block; margin-top: 2px; font-size: 10.5px; color: #8d837b; letter-spacing: .04em; text-transform: uppercase; }
+  .ex-card .pr { display: block; margin-top: 8px; font: 800 18px Manrope, var(--f); color: var(--eacc); }
+  .ex-card .pr i { font: 400 11px var(--f); color: #8d837b; }
+  .ex-add { position: absolute; right: 12px; bottom: 12px; width: 32px; height: 32px; border-radius: 50%; border: 0; background: var(--edark); display: grid; place-items: center; cursor: pointer; transition: transform .2s; }
+  .ex-add.ok { animation: exOk .5s cubic-bezier(.3,1.6,.5,1); background: var(--eacc); }
+  @keyframes exOk { 40% { transform: scale(1.25); } }
+  .ex-card.dark { background: var(--edark); color: #fff; box-shadow: none; }
+  .ex-card.dark h3 { color: #fff; font-size: 15px; } .ex-card.dark p { margin-top: 6px; font-size: 11px; line-height: 1.45; color: rgba(255,255,255,.7); }
+  .ex-card.dark .arr { margin-top: 12px; display: inline-flex; width: 30px; height: 30px; border-radius: 50%; background: #fff; align-items: center; justify-content: center; }
+  .ex-empty { padding: 40px 0; text-align: center; color: #8d837b; font-size: 14px; }
+  .ex-fade { position: absolute; left: 0; right: 0; bottom: 0; height: 120px; background: linear-gradient(180deg, rgba(240,234,226,0), #f0eae2 75%); pointer-events: none; z-index: 3; }
+  .ex-cart { position: absolute; left: 50%; bottom: 26px; transform: translateX(-50%); display: flex; align-items: center; gap: 10px; padding: 7px 8px 7px 20px; border: 0; border-radius: 34px; background: #36291f; box-shadow: 0 14px 30px rgba(35,26,20,.35); color: #fff; font: 600 14px var(--f); cursor: pointer; z-index: 4; white-space: nowrap; }
+  .ex-cart .badge { position: static; box-shadow: none; }
+  .ex-thumbs { display: flex; margin-left: 4px; }
+  .ex-thumbs span { width: 40px; height: 40px; border-radius: 50%; background: #f3eee8; border: 2px solid #36291f; margin-left: -10px; display: grid; place-items: center; overflow: hidden; animation: exIn .4s cubic-bezier(.3,1.4,.5,1) backwards; }
+  .ex-thumbs span img { width: 30px; height: 30px; object-fit: contain; }
+  .ex-thumbs span.more { background: #fff; color: #231a14; font-size: 12px; font-weight: 700; }
+  @keyframes exIn { from { transform: scale(.4); opacity: 0; } }
   .ar-bg { position: absolute; inset: 0; width: 402px; height: 874px; object-fit: cover; transition: opacity .5s; }
   .ar-studio { position: absolute; inset: 0; pointer-events: none; background: radial-gradient(120% 80% at 50% 60%, #f6f1ea 0%, #e7ddd1 70%, #d8cabb 100%); opacity: 0; transition: opacity .5s; }
   .ar.studio .ar-studio { opacity: 1; }
@@ -342,6 +387,7 @@ const state = {
   czSaved: false,
   ar: { mode: "home", color: "green", x: 0, y: 0, s: 1 },
   cover: { view: 0, tint: [0, 0, 0, 0] },
+  exCat: "all",
   md: { months: 12, renew: false, day: 2, thumb: 0 },
   card: "5688", address: "River House, PMB 145778, 22 E. Lathrop Ave, Savannah, GA, 31415",
   catTab: 0,
@@ -361,15 +407,7 @@ const qv = (id) => ({ act: "quick", id });
 const SCREENS = {
   splash: { base: S("splash"), kenburns: true, hs: [{ x: 288, y: 390, w: 76, h: 78, go: "cover", how: "fade" }] },
   cover: { html: "cover" },
-  explore: { base: S("F3_base"), hs: [{ x: 24, y: 136, w: 300, h: 45, go: "search" }, { x: 338, y: 138, w: 40, h: 40, act: "filter" }],
-    sc: { x: 20, y: 210, w: 375, h: 664, img: S("F3_scroll"), ix: -20, iy: -16, iw: 400, ch: 1112, hs: [
-      { x: 0, y: 0, w: 360, h: 195, go: "sets" }, { x: 314, y: 219, w: 51, h: 40, go: "categories" },
-      { x: 5, y: 274, w: 115, h: 35, act: "catTab", t: 0 }, { x: 130, y: 274, w: 105, h: 35, act: "catTab", t: 1 }, { x: 245, y: 274, w: 105, h: 35, act: "catTab", t: 2 },
-      { x: 10, y: 339, w: 145, h: 185, ...qv("armchair") }, { x: 200, y: 339, w: 150, h: 185, ...qv("bed") },
-      { x: 10, y: 569, w: 145, h: 185, ...qv("bedside") }, { x: 200, y: 569, w: 150, h: 185, ...qv("brown") },
-      { x: 10, y: 824, w: 145, h: 165, ...qv("dining") }, { x: 200, y: 824, w: 150, h: 165, go: "product", zoom: true }],
-      patches: ['<span style="position:absolute;left:221px;top:940px;width:80px;height:14px;background:#dbdbbb;font-size:8px;line-height:14px;color:#6f6259;pointer-events:none">Single Sofa Chair</span>'] },
-    fx: NAVH("nav_home") },
+  explore: { html: "explore" },
   categories: { base: S("F5_base"), header: 131, hs: [{ x: 14, y: 74, w: 54, h: 42, back: 1 }],
     sc: { x: 8, y: 111, w: 371, h: 763, img: S("F5_scroll"), ix: -13, iy: -19, iw: 407, ch: 933, hs: [
       { x: 27, y: 66, w: 200, h: 177, go: "sets" }, { x: 234, y: 66, w: 121, h: 143, act: "openCat", t: 0 }, { x: 234, y: 216, w: 121, h: 200, act: "openCat", t: 2 },
@@ -507,7 +545,7 @@ const EASE = "cubic-bezier(.2,.8,.2,1)";
 const enter = (el) => {
   if (reduceMotion) return;
   // list rows and result cards rise in one after another
-  const rows = [...el.querySelectorAll(".items > .item, .res, .tl > div, .chips .chip, .pd-body > *, .pd-hero .thumb, .pd-hero .dot")].slice(0, 14);
+  const rows = [...el.querySelectorAll(".ex-card, .ex-cats button, .items > .item, .res, .tl > div, .chips .chip, .pd-body > *, .pd-hero .thumb, .pd-hero .dot")].slice(0, 14);
   rows.forEach((r, i) => r.animate([{ opacity: 0, transform: "translateY(16px)" }, { opacity: 1, transform: "none" }], { duration: 520, delay: 120 + i * 45, easing: EASE, fill: "backwards" }));
   el.querySelectorAll(".pd-img, .md-hero").forEach((h) => h.animate([{ opacity: 0, transform: "scale(.9)" }, { opacity: 1, transform: "none" }], { duration: 700, delay: 60, easing: EASE, fill: "backwards" }));
   // exported screens: the scrolling layer settles a beat after the header
@@ -652,6 +690,7 @@ const bindPage = (w, id) => {
   if (id === "cart") { const t = w.querySelector(".tot"); if (t) countTo(t, total()); shownTotal = total(); }
   if (id === "set") bindSetCar(w);
   if (id === "cover") bindCover(w);
+  if (id === "explore") bindExplore(w);
   if (id === "customize") bindCustomize(w);
   if (id === "cart") bindCart(w);
   if (id === "modify") bindModify(w);
@@ -839,6 +878,58 @@ const bindCover = (w) => {
 // adding to cart from the cover: a bag pops up where the hint is, takes the item, then slips away
 const coverBag = () => { const w = els.cover; if (cur !== "cover" || !w) return; w.classList.add("cover-bag"); clearTimeout(w._bag); w._bag = setTimeout(() => w.classList.remove("cover-bag"), 2200); };
 
+/* ---------- explore (v2): filter by category, open a piece, quick-add with +, cart preview pill ---------- */
+const EX_CATS = [
+  { k: "all", label: "All" },
+  { k: "sofa", icon: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M4 11V9a3 3 0 013-3h10a3 3 0 013 3v2M3 17v-4a2 2 0 014 0v1h10v-1a2 2 0 014 0v4H3zM5 17v2M19 17v2" stroke="#231a14" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>', label: "Sofas & lounge", ids: ["sofa", "brown", "setsofa", "setchair", "rattan", "armchair"] },
+  { k: "chair", icon: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M7 3v10h10M7 13v8M17 13v8M17 3v10M7 7h10" stroke="#231a14" stroke-width="1.6" stroke-linecap="round"/></svg>', label: "Chairs", ids: ["dining", "armchair", "rattan", "setchair", "sofa", "brown"] },
+  { k: "bed", icon: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M3 18V7M21 18v-5H3M3 13h18M7 13v-2.5a1.5 1.5 0 011.5-1.5H11a1 1 0 011 1v3" stroke="#231a14" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>', label: "Bedroom", ids: ["bed", "bedside", "setbedside"] },
+  { k: "table", icon: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none"><ellipse cx="12" cy="9" rx="9" ry="2.5" stroke="#231a14" stroke-width="1.6"/><path d="M8 11l-2 9M16 11l2 9" stroke="#231a14" stroke-width="1.6" stroke-linecap="round"/></svg>', label: "Tables", ids: ["settable", "bedside", "setbedside"] },
+];
+const EX_ALL = ["sofa", "rattan", "brown", "dining", "armchair", "bed", "setchair", "settable", "bedside", "setsofa", "setbedside"];
+const EX_INFO = { sofa: ["hero_green", 118, "Velvet · tufted"], rattan: [0, 150, "Hand-woven"], brown: [0, 122, "Pleated velvet"], dining: [0, 112, "Walnut · moss"], armchair: [0, 118, "Mid-century"],
+  bed: [0, 104, "Upholstered"], setchair: [0, 116, "Sculpted shell"], settable: [0, 96, "Round oak"], bedside: [0, 120, "Walnut"], setsofa: [0, 84, "Cognac leather"], setbedside: [0, 104, "Two-drawer"] };
+const exCard = (id) => { const it = CATALOG[id], [img, h, tag] = EX_INFO[id];
+  return `<div class="ex-card" data-exopen="${id}" role="button" tabindex="0" aria-label="${it.name}"><img src="${S(img || it.img)}" style="height:${h}px" alt=""><h3>${it.name}</h3><small>${tag}</small><span class="pr">${money(it.price).replace(".00", "")}<i> /mo</i></span>
+    <button class="ex-add" data-add="${id}" aria-label="Add ${it.name} to cart"><svg width="12" height="12" viewBox="0 0 12 12"><path d="M6 1v10M1 6h10" stroke="#fff" stroke-width="1.8" stroke-linecap="round"/></svg></button></div>`; };
+const exGrid = () => {
+  const c = EX_CATS.find((x) => x.k === state.exCat), ids = c.ids || EX_ALL, L = [], R = [];
+  let hl = 0, hr = 0;
+  ids.forEach((id, i) => { const h = EX_INFO[id][1] + 110; (hl <= hr ? L : R).push(exCard(id)); hl <= hr ? (hl += h) : (hr += h);
+    if (state.exCat === "all" && i === 1) { L.push(`<div class="ex-card dark" data-exshow role="button" tabindex="0" aria-label="Showroom"><h3>Showroom</h3><p>366 E Duffy Street<br>Savannah, GA · open daily</p><span class="arr"><svg width="12" height="10" viewBox="0 0 12 10" fill="none"><path d="M1 5h9M7 2l3 3-3 3" stroke="#231a14" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span></div>`); hl += 140; } });
+  return `<div class="ex-col">${L.join("")}</div><div class="ex-col">${R.join("")}</div>`; };
+const exThumbs = () => { const lines = state.cart.slice(-3).reverse(), more = Math.max(0, state.cart.length - 3);
+  return lines.map((c) => `<span><img src="${S(CATALOG[c.id].img)}" alt=""></span>`).join("") + (more ? `<span class="more">+${more}</span>` : ""); };
+PAGES.explore = () => `<div class="ex" style="position:absolute;inset:0"><div class="pg">
+    <div class="ex-top"><button class="ex-rb" data-tab="profile" aria-label="Profile"><img src="${S("avatar")}" alt=""></button>
+      <span style="display:flex;gap:8px"><button class="ex-rb" data-go="search" aria-label="Search"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="7" stroke="#231a14" stroke-width="1.9"/><path d="M20 20l-4-4" stroke="#231a14" stroke-width="1.9" stroke-linecap="round"/></svg></button>
+      <button class="ex-rb" data-tab="favs" aria-label="Favourites"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M12 20s-7-4.4-7-10a4 4 0 017-2.6A4 4 0 0119 10c0 5.6-7 10-7 10z" stroke="#231a14" stroke-width="1.8" stroke-linejoin="round"/></svg></button></span></div>
+    <h1>Rent pieces<br>you'll love</h1>
+    <div class="ex-cats">${EX_CATS.map((c) => `<button class="${c.k === state.exCat ? "on" : ""}" data-excat="${c.k}" aria-label="${c.label}">${c.icon || c.label}</button>`).join("")}</div>
+    <button class="ex-promo" data-go="sets" aria-label="See sets"><p>Rent a whole room,<br><b>save 30%</b></p><span>See sets <svg width="12" height="10" viewBox="0 0 12 10" fill="none"><path d="M1 5h9M7 2l3 3-3 3" stroke="#231a14" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span><img src="${S("set_chair")}" alt=""></button>
+    <div class="ex-sec"><h2>${EX_CATS.find((x) => x.k === state.exCat).k === "all" ? "Popular this week" : EX_CATS.find((x) => x.k === state.exCat).label}</h2><button data-go="categories">See all</button></div>
+    <div class="ex-cols">${exGrid()}</div>
+  </div><div class="ex-fade"></div>
+  <button class="ex-cart" data-tab="cart" aria-label="Open cart">Cart <span class="badge">${count()}</span><span class="ex-thumbs">${exThumbs()}</span></button></div>`;
+const bindExplore = (w) => {
+  const cols = w.querySelector(".ex-cols");
+  const wire = () => {
+    cols.querySelectorAll("[data-exopen]").forEach((c) => c.addEventListener("click", (e) => { e.stopPropagation(); openItem(c.dataset.exopen, c.querySelector("img")); }));
+    cols.querySelectorAll("[data-exshow]").forEach((c) => c.addEventListener("click", (e) => { e.stopPropagation(); actions.showroom(); }));
+    cols.querySelectorAll("[data-add]").forEach((b) => b.addEventListener("click", (e) => { e.stopPropagation(); const id = b.dataset.add, it = CATALOG[id];
+      addToCart(id, it.price, { color: "natural", size: "Regular", lease: 12 }); fly(S((EX_INFO[id][0]) || it.img), b.closest(".ex-card").querySelector("img"));
+      b.classList.remove("ok"); void b.offsetWidth; b.classList.add("ok"); toast(`${it.name} added to your cart`);
+      setTimeout(() => { const t = w.querySelector(".ex-thumbs"); if (t) t.innerHTML = exThumbs(); }, 850); }));
+  };
+  wire();
+  w.querySelectorAll("[data-excat]").forEach((b) => b.addEventListener("click", (e) => { e.stopPropagation(); if (state.exCat === b.dataset.excat) return; state.exCat = b.dataset.excat;
+    w.querySelectorAll("[data-excat]").forEach((x) => x.classList.toggle("on", x === b));
+    const c = EX_CATS.find((x) => x.k === state.exCat); w.querySelector(".ex-sec h2").textContent = c.k === "all" ? "Popular this week" : c.label;
+    cols.animate([{ opacity: 1 }, { opacity: 0, transform: "translateY(8px)" }], { duration: 160, easing: "ease-in" }).onfinish = () => { cols.innerHTML = exGrid(); wire();
+      cols.querySelectorAll(".ex-card").forEach((card, i) => card.animate([{ opacity: 0, transform: "translateY(16px)" }, { opacity: 1, transform: "none" }], { duration: 460, delay: i * 40, easing: EASE, fill: "backwards" })); };
+  }));
+};
+
 /* ---------- AR: In your home (drag, scale, rotate) and View in 3D (spin) ---------- */
 PAGES.ar = () => { const a = state.ar, c = COLORS[a.color];
   return `<div class="ar ${a.mode === "studio" ? "studio" : ""}" style="position:absolute;inset:0">
@@ -896,6 +987,8 @@ const sheet = (html, id, onOpen) => {
   return sh;
 };
 const actions = {
+  showroom: () => sheet(`<h3>Showroom</h3><p>Sit on everything before you rent it. 366 E Duffy Street, Savannah, GA · open 10 am to 7 pm daily.</p>
+    <div class="qv-img cover" style="background:#eee"><img src="${S("map")}" alt="Map to the showroom"></div><button class="btn" id="dir">Get directions</button>`, "showroom", (sh, close) => { sh.querySelector("#dir").onclick = () => { close(); toast("Directions sent to Maps"); }; }),
   quick: (h, srcEl) => {
     if (!CATALOG[h.id].set) return openProduct(h.id, srcEl);
     const it = CATALOG[h.id], ci = cur === "cover" ? COVER.findIndex((c) => c.id === h.id) : -1; let color = ci >= 0 ? state.cover.tint[ci] : 0;
