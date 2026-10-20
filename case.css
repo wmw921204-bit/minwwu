@@ -425,6 +425,11 @@
 
 /* ---------- Lightbox ---------- */
 img.is-zoomable { cursor: zoom-in; }
+/* clickable pictures lift a touch under the pointer (scale, so their own entrance transforms are untouched) */
+@media (hover: hover) and (pointer: fine) {
+  img.is-zoomable:not(.vn__screen img):not(.zoom-reveal img) { transition: transform 1.6s var(--ease), clip-path 1.4s var(--ease), opacity .6s var(--ease), scale .7s var(--ease), box-shadow .7s var(--ease); }
+  img.is-zoomable:not(.vn__screen img):not(.zoom-reveal img):hover { scale: 1.025; }
+}
 .lb-open, .lb-open body { overflow: hidden; }
 .lb { position: fixed; inset: 0; z-index: 200; background: rgba(14, 10, 8, .94); opacity: 0; visibility: hidden; transition: opacity .35s var(--ease), visibility 0s .35s; -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); }
 .lb.is-open { opacity: 1; visibility: visible; transition: opacity .35s var(--ease), visibility 0s; }

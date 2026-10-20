@@ -1394,74 +1394,57 @@ $$("[data-flip]").forEach((flip) => {
   });
 })();
 
-/* ---------- Cursor dot: stands in for the system pointer on every page ---------- */
-// invert + hue-rotate keeps it visible on light and dark; it grows over links and hides while a label circle shows
+/* ---------- Cursor: one dot that stands in for the system pointer and grows into a label ---------- */
+// a small inverting dot everywhere; over links it swells, over [data-cursor] (View, Drag, Next…) it grows and fills
+// with colour, showing the label. One element, so nothing ever floats in from somewhere else.
 if (!reduceMotion && matchMedia("(hover: hover) and (pointer: fine)").matches) {
   const dot = document.createElement("div");
   dot.className = "dot-cursor is-hidden";
   dot.setAttribute("aria-hidden", "true");
+  dot.innerHTML = "<span></span>";
+  const text = dot.firstChild;
   document.body.append(dot);
-  document.documentElement.classList.add("has-dot");
-  let x = -100, y = -100, cx = x, cy = y, seen = false, over = false, away = true;
   const root = document.documentElement;
+  root.classList.add("has-dot");
+  let x = -100, y = -100, cx = x, cy = y, seen = false, away = true, label = null, leaveT = 0;
+  const setLabel = (host) => {
+    clearTimeout(leaveT);
+    if (host) {
+      if (text.textContent !== host.dataset.cursor) text.textContent = host.dataset.cursor;
+      // links can tint it (e.g. "Next" takes the next project's colour)
+      const cs = getComputedStyle(host);
+      dot.style.setProperty("--cursor-bg", cs.getPropertyValue("--next-bg").trim() || "");
+      dot.style.setProperty("--cursor-fg", cs.getPropertyValue("--next-fg").trim() || "");
+      dot.classList.toggle("is-sm", host.dataset.cursorSize === "sm");
+      dot.classList.add("is-label");
+    } else dot.classList.remove("is-label", "is-sm");
+    label = host;
+  };
   addEventListener("pointermove", (e) => {
     if (e.pointerType !== "mouse") return;
-    x = e.clientX; y = e.clientY;
+    x = e.clientX; y = e.clientY; away = false;
     if (!seen) { cx = x; cy = y; seen = true; }
     const t = e.target;
-    dot.classList.toggle("is-big", !!t.closest("a, button, label, select, summary, [role=button], .ch, .play__chips li, [data-talk] .talk__box"));
-    over = !!t.closest("[data-cursor], input, textarea, iframe, [contenteditable]"); away = false;
+    const host = t.closest("[data-cursor]");
+    if (host) setLabel(host);
+    // crossing the small gaps in a grid: hold the label a moment so it doesn't blink
+    else if (label) { clearTimeout(leaveT); leaveT = setTimeout(() => setLabel(null), 140); }
+    dot.classList.toggle("is-big", !host && !!t.closest("a, button, label, select, summary, [role=button], .ch, .play__chips li, [data-talk] .talk__box"));
+    dot.classList.toggle("is-off", !!t.closest("input, textarea, iframe, [contenteditable]"));
   }, { passive: true });
+  // scrolling moves the page under a still pointer: drop back to the dot until the pointer moves again
+  const calm = () => { if (label) setLabel(null); };
+  addEventListener("wheel", calm, { passive: true });
+  addEventListener("scroll", calm, { passive: true });
   document.addEventListener("pointerleave", () => { away = true; });
   addEventListener("blur", () => { away = true; });
   const loop = () => {
-    // checked every frame, so the dot comes back the moment a label circle fades, even if the mouse is still
-    const hidden = away || over || root.classList.contains("cursor-on");
-    if (hidden !== dot.classList.contains("is-hidden")) dot.classList.toggle("is-hidden", hidden);
-    cx += (x - cx) * 0.25; cy += (y - cy) * 0.25;
+    cx += (x - cx) * 0.3; cy += (y - cy) * 0.3;
     dot.style.transform = `translate3d(${cx.toFixed(1)}px, ${cy.toFixed(1)}px, 0)`;
+    if (away !== dot.classList.contains("is-hidden")) dot.classList.toggle("is-hidden", away);
     requestAnimationFrame(loop);
   };
   requestAnimationFrame(loop);
-}
-
-/* ---------- Custom cursor label over projects and galleries ---------- */
-if (!reduceMotion && matchMedia("(hover: hover) and (pointer: fine)").matches && $("[data-cursor], .gallery__track, [data-drag], img")) {
-  const cursor = document.createElement("div");
-  cursor.className = "cursor";
-  cursor.setAttribute("aria-hidden", "true");
-  document.body.append(cursor);
-  const root = document.documentElement;
-  let tx = 0, ty = 0, cx = 0, cy = 0, leaveT = 0;
-  const show = () => { clearTimeout(leaveT); cursor.classList.add("is-on"); root.classList.add("cursor-on"); };
-  const hide = () => { clearTimeout(leaveT); cursor.classList.remove("is-on"); root.classList.remove("cursor-on"); };
-  // scrolling moves the page under a still pointer: hide the label until the pointer moves again
-  addEventListener("wheel", hide, { passive: true });
-  addEventListener("scroll", hide, { passive: true });
-  addEventListener("pointermove", (e) => {
-    tx = e.clientX; ty = e.clientY;
-    const host = e.target.closest("[data-cursor]");
-    // sweeping across a grid crosses small gaps: keep the label up briefly so it doesn't blink
-    if (host) show();
-    else if (cursor.classList.contains("is-on")) { clearTimeout(leaveT); leaveT = setTimeout(hide, 160); }
-    if (host) {
-      cursor.textContent = host.dataset.cursor;
-      cursor.classList.toggle("is-md", host.dataset.cursor === "View" || host.dataset.cursor === "Drag");
-      cursor.classList.toggle("is-sm", host.dataset.cursorSize === "sm");
-      // links can tint the cursor (e.g. "Next" takes the next project's colour)
-      const cs = getComputedStyle(host);
-      cursor.style.setProperty("--cursor-bg", cs.getPropertyValue("--next-bg").trim() || "");
-      cursor.style.setProperty("--cursor-fg", cs.getPropertyValue("--next-fg").trim() || "");
-    }
-  });
-  document.addEventListener("pointerleave", hide);
-  const follow = () => {
-    cx += (tx - cx) * 0.18;
-    cy += (ty - cy) * 0.18;
-    cursor.style.transform = `translate3d(${cx.toFixed(1)}px, ${cy.toFixed(1)}px, 0) translate(-50%, -50%)`;
-    requestAnimationFrame(follow);
-  };
-  requestAnimationFrame(follow);
 }
 
 /* ---------- Magnetic buttons ---------- */

@@ -427,13 +427,6 @@ a.table__row:hover span:last-child::after { opacity: 1; transform: none; }
 }
 
 /* Custom cursor label (desktop) */
-.cursor { position: fixed; left: 0; top: 0; z-index: 90; pointer-events: none; display: grid; place-items: center; width: 92px; height: 92px; border-radius: 50%; background: var(--cursor-bg, var(--theme-bg, var(--accent))); color: var(--cursor-fg, var(--theme-fg, #fff)); box-shadow: 0 0 0 1px rgba(255,255,255,.18); font: 500 14px/1 var(--f-body); letter-spacing: .02em; opacity: 0; scale: .3; transition: opacity .3s var(--ease), scale .5s var(--ease), background-color .3s; }
-.cursor.is-on { opacity: 1; scale: 1; }
-.cursor { transition: opacity .3s var(--ease), scale .5s var(--ease), background-color .3s, width .4s var(--ease), height .4s var(--ease), font-size .3s; }
-.cursor.is-sm { width: 62px; height: 62px; font-size: 12px; }
-.cursor.is-md { width: 80px; height: 80px; font-size: 13px; }
-/* the label stands in for the system pointer while it shows */
-.cursor-on, .cursor-on * { cursor: none !important; }
 [data-cursor] { cursor: none; }
 @media (hover: none) { [data-cursor] { cursor: auto; } }
 
@@ -517,9 +510,17 @@ a.table__row:hover span:last-child::after { opacity: 1; transform: none; }
 
 /* cursor: a solid inverting circle. invert + hue-rotate(180deg) flips light and dark but keeps hues,
    so black turns white while orange stays orange (a plain difference blend turns orange blue) */
-.dot-cursor { position: fixed; left: 0; top: 0; z-index: 99; width: 14px; height: 14px; margin: -7px 0 0 -7px; border-radius: 50%; -webkit-backdrop-filter: invert(1) hue-rotate(180deg); backdrop-filter: invert(1) hue-rotate(180deg); pointer-events: none; transition: width .3s var(--ease), height .3s var(--ease), margin .3s var(--ease), opacity .2s; }
+.dot-cursor { position: fixed; left: 0; top: 0; z-index: 2147483000; width: 14px; height: 14px; margin: -7px 0 0 -7px; border-radius: 50%; -webkit-backdrop-filter: invert(1) hue-rotate(180deg); backdrop-filter: invert(1) hue-rotate(180deg); pointer-events: none; transition: width .3s var(--ease), height .3s var(--ease), margin .3s var(--ease), opacity .2s; }
 .dot-cursor.is-big { width: 46px; height: 46px; margin: -23px 0 0 -23px; }
 .dot-cursor.is-hidden { opacity: 0; }
+/* the dot grows into a label circle */
+.dot-cursor { display: grid; place-items: center; transition: width .35s var(--ease), height .35s var(--ease), margin .35s var(--ease), opacity .2s, background-color .25s; }
+.dot-cursor span { font: 500 13px/1 var(--f-body); letter-spacing: .02em; color: var(--cursor-fg, var(--theme-fg, #fff)); opacity: 0; scale: .6; transition: opacity .2s, scale .35s var(--ease); white-space: nowrap; }
+.dot-cursor.is-label { width: 84px; height: 84px; margin: -42px 0 0 -42px; -webkit-backdrop-filter: none; backdrop-filter: none; background: var(--cursor-bg, var(--theme-bg, var(--accent))); box-shadow: 0 0 0 1px rgba(255,255,255,.18); }
+.dot-cursor.is-label span { opacity: 1; scale: 1; transition-delay: .06s; }
+.dot-cursor.is-label.is-sm { width: 62px; height: 62px; margin: -31px 0 0 -31px; }
+.dot-cursor.is-label.is-sm span { font-size: 12px; }
+.dot-cursor.is-off { opacity: 0; }
 /* with the dot on, the system pointer hides everywhere except where you type */
 .has-dot, .has-dot * { cursor: none !important; }
 .has-dot :is(input, textarea, select, [contenteditable]) { cursor: text !important; }
