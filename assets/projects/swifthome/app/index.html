@@ -8,7 +8,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Manrope:wght@300;700;800&display=swap">
 <style>
-  :root { --ink: #3a271a; --bar: #3f2c1f; --acc: #b68b6a; --soft: #f7f7f7; --line: #c6c3bd; --muted: #8a8079; --f: "Instrument Sans", -apple-system, system-ui, sans-serif; }
+  :root { --ink: #231a14; --bar: #36291f; --acc: #a9845a; --soft: #fff; --line: #ddd3c7; --muted: #8d837b; --ebg: #f0eae2; --epromo: #dcc4a5; --edark: #36291f; --eacc: #a9845a; --d: Manrope, "Instrument Sans", sans-serif; --f: "Instrument Sans", -apple-system, system-ui, sans-serif; }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   html, body { width: 402px; height: 874px; overflow: hidden; overscroll-behavior: none; background: #fff; font-family: var(--f); color: var(--ink); -webkit-font-smoothing: antialiased; }
   button, input { font-family: inherit; color: inherit; }
@@ -159,7 +159,7 @@
   @keyframes cvShadow { 0%, 100% { scale: 1; opacity: 1; } 50% { scale: .92; opacity: .7; } }
   @keyframes cvChev { 0%, 100% { translate: 0 2px; opacity: .6; } 50% { translate: 0 -4px; opacity: 1; } }
   /* explore (v2): warm oat ground, white cards in two staggered columns, round category icons, cart preview pill */
-  .ex { --ebg: #f0eae2; --epromo: #dcc4a5; --edark: #36291f; --eacc: #a9845a; background: var(--ebg); }
+  .ex { background: var(--ebg); }
   .ex .pg { background: var(--ebg); padding-bottom: 120px; }
   .ex-top { display: flex; justify-content: space-between; align-items: center; padding: 58px 20px 0; }
   .ex-rb { position: relative; width: 46px; height: 46px; border-radius: 50%; border: 0; background: #fff; display: grid; place-items: center; cursor: pointer; padding: 0; }
@@ -328,6 +328,149 @@
   .fly { position: absolute; z-index: 90; pointer-events: none; border-radius: 12px; object-fit: contain; }
   .zoomer { position: absolute; z-index: 70; pointer-events: none; overflow: hidden; }
   .zoomer img { width: 100%; height: 100%; object-fit: contain; }
+
+  /* ===== B1 theme: one look for every page ===== */
+  .scr { background: var(--ebg); }
+  .pg { background: var(--ebg); }
+  .pg-head { height: auto; padding: 118px 24px 0 24px; font: 800 30px/1.02 var(--d); letter-spacing: -.02em; text-transform: uppercase; color: var(--ink); }
+  .pg-head .back, .back:not(.glass) { left: 20px; top: 58px; width: 46px; height: 46px; border-radius: 50%; background: #fff; box-shadow: 0 4px 14px rgba(60,40,25,.08); }
+  .pg-head .back svg, .back:not(.glass) svg { width: 18px; }
+  .pg-sub { padding: 8px 24px 0; margin: 0; font-size: 13px; color: var(--muted); }
+  .chip-rate { left: 78px; top: 68px; border-color: rgba(35,26,20,.35); box-shadow: none; }
+  .ex-sec .cz-go { padding: 7px 14px; border-radius: 99px; background: var(--edark); color: #fff; font-size: 12px; font-weight: 600; }
+  .ex-chips { display: flex; gap: 8px; margin: 18px 0 0; padding: 0 20px; overflow-x: auto; scrollbar-width: none; }
+  .ex-chips button { flex: none; padding: 11px 16px; border: 0; border-radius: 99px; background: #fff; font: 600 13px var(--f); color: var(--ink); cursor: pointer; transition: background .25s, color .25s; }
+  .ex-chips button.on { background: var(--edark); color: #fff; }
+  /* lists and cards */
+  .items { padding: 18px 20px 150px; }
+  .item { height: 128px; margin-bottom: 14px; border-radius: 22px; box-shadow: 0 6px 20px rgba(60,40,25,.07); }
+  .item .ph { width: 112px; height: 112px; margin: 8px; border-radius: 16px; }
+  .item .meta { padding: 10px 0 0 6px; font-size: 10px; line-height: 18px; color: var(--muted); }
+  .item .meta b { font: 700 15px/24px var(--d); letter-spacing: -.01em; color: var(--ink); }
+  .item .meta .pr { font: 800 15px/22px var(--d); color: var(--eacc); }
+  .item .del { height: 128px; border-radius: 0 22px 22px 0; }
+  .qty button { border-color: #e2d9cf; }
+  .res { margin: 0 20px 12px; width: calc(100% - 40px); padding: 8px; border-radius: 20px; box-shadow: 0 6px 20px rgba(60,40,25,.07); }
+  .res .ph { width: 70px; height: 70px; border-radius: 14px; }
+  .res span { font: 700 15px var(--d); letter-spacing: -.01em; }
+  .lbl { margin: 24px 24px 10px; font: 700 16px var(--d); }
+  .search-in { margin: 18px 20px 0; height: 50px; border-radius: 25px; background: #fff; }
+  .chips .chip, .chip { background: #fff; }
+  .chip.on { background: var(--edark); }
+  .btn { padding: 16px; border-radius: 28px; background: var(--edark); }
+  .btn.ghost { background: #fff; box-shadow: none; }
+  .totalbar { left: 20px; top: 792px; width: 362px; height: 56px; border-radius: 28px; background: var(--edark); box-shadow: 0 14px 30px rgba(35,26,20,.3); }
+  .totalbar i { opacity: .5; }
+  .save-bar { left: 20px; top: 792px; width: 362px; height: 56px; border-radius: 28px; background: var(--edark); box-shadow: 0 14px 30px rgba(35,26,20,.3); }
+  .empty { margin-top: 90px; }
+  /* product, set and rental bodies */
+  .pd-body { background: var(--ebg); }
+  .pd-title { padding-left: 24px; font: 800 26px/70px var(--d); letter-spacing: -.02em; }
+  .pd-desc { margin-left: 24px; width: 354px; font-size: 11px; line-height: 15px; max-height: 30px; color: #5d5148; }
+  .pd-more { margin-left: 314px; font-size: 10px; color: var(--eacc); }
+  .pd-hr { margin: 8px 24px 0; border-top-color: #ddd3c7; }
+  .pd-h { padding-left: 24px; font: 700 16px var(--d); }
+  .pd-h em { color: var(--eacc); border-color: var(--eacc); }
+  .rent { margin: 0 24px 0 28px; }
+  .sizes { margin: 4px 20px 0; height: 54px; border-radius: 27px; background: #e6ddd1; }
+  .sizes .sel { height: 46px; top: 4px; border-radius: 23px; background: #fff; box-shadow: 0 4px 12px rgba(60,40,25,.12); }
+  .sizes button { color: var(--ink); transition: color .3s; }
+  .gallery { margin: 9px 20px 0; border-radius: 22px; }
+  .md-hero { margin: 8px 20px 0; height: 300px; border-radius: 22px; background: #fff; }
+  .row-opt { margin: 14px 20px 0; width: calc(100% - 40px); height: 56px; border-radius: 18px; background: #fff; }
+  .cal { margin: 14px 20px 0; border: 0; border-radius: 22px; background: #fff; box-shadow: 0 6px 20px rgba(60,40,25,.07); }
+  .ok { background: var(--ebg); }
+  .ok h2 { font: 800 30px var(--d); letter-spacing: -.02em; text-transform: uppercase; }
+  .set-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 0 20px; }
+  .set-pc { display: block; padding: 12px; border: 0; border-radius: 22px; background: #fff; text-align: left; cursor: pointer; box-shadow: 0 6px 20px rgba(60,40,25,.07); }
+  .set-pc img { display: block; width: 100%; height: 100px; object-fit: contain; }
+  .set-pc b { display: block; margin-top: 8px; font: 700 14px var(--d); color: var(--ink); }
+  .set-pc span { display: block; margin-top: 2px; font: 800 14px var(--d); color: var(--eacc); }
+  /* categories */
+  .ct-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 0 20px; }
+  .ct { position: relative; height: 170px; padding: 0; border: 0; border-radius: 22px; background: #fff; overflow: hidden; text-align: left; cursor: pointer; box-shadow: 0 6px 20px rgba(60,40,25,.06); }
+  .ct b { position: absolute; left: 16px; top: 14px; z-index: 1; font: 700 15px var(--d); color: var(--ink); }
+  .ct img { position: absolute; right: 8px; bottom: 8px; width: 74%; height: 70%; object-fit: contain; filter: drop-shadow(0 8px 8px rgba(0,0,0,.1)); transition: transform .5s cubic-bezier(.2,.8,.2,1); }
+  .ct:hover img { transform: scale(1.05); }
+  .ct-grid.fn .ct { height: 128px; }
+  .ct-grid.fn .ct img { width: 56%; height: 66%; }
+  .ct.photo img { inset: 0; width: 100%; height: 100%; object-fit: cover; filter: none; }
+  .ct.photo::after { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(30,20,12,.55), rgba(30,20,12,0) 60%); }
+  .ct.photo b { color: #fff; }
+  .ct.photo span { position: absolute; left: 16px; top: 36px; z-index: 1; font-size: 11px; color: rgba(255,255,255,.85); }
+  /* sets */
+  .sets { display: grid; gap: 14px; margin: 18px 20px 0; }
+  .set-card { position: relative; display: block; padding: 8px; border: 0; border-radius: 26px; background: #fff; text-align: left; cursor: pointer; box-shadow: 0 6px 20px rgba(60,40,25,.07); }
+  .set-card .ph { position: relative; display: block; height: 176px; border-radius: 20px; overflow: hidden; }
+  .set-card .ph img { width: 100%; height: 100%; object-fit: cover; transition: transform .7s cubic-bezier(.2,.8,.2,1); }
+  .set-card:hover .ph img { transform: scale(1.04); }
+  .set-card .ph i { position: absolute; left: 12px; top: 12px; padding: 6px 11px; border-radius: 99px; background: rgba(255,255,255,.9); font: 600 11px var(--f); font-style: normal; color: var(--ink); }
+  .set-card .tx { display: block; padding: 12px 8px 6px; }
+  .set-card b { display: block; font: 800 18px var(--d); letter-spacing: -.01em; color: var(--ink); }
+  .set-card small { display: block; margin-top: 3px; font-size: 12px; color: var(--muted); }
+  .set-card em { display: block; margin-top: 8px; font: 800 18px var(--d); font-style: normal; color: var(--eacc); }
+  .set-card em s { font-size: 13px; font-weight: 400; color: #b5aaa0; } .set-card em i { font: 400 11px var(--f); color: var(--muted); }
+  .set-card .go, .pf-rent .go { position: absolute; right: 18px; bottom: 20px; width: 38px; height: 38px; border-radius: 50%; background: var(--edark); display: grid; place-items: center; }
+  .set-card .go path, .pf-rent .go path { stroke: #fff; }
+  /* checkout */
+  .co-card { margin: 18px 20px 0; padding: 8px 20px; border-radius: 22px; background: #fff; box-shadow: 0 6px 20px rgba(60,40,25,.07); }
+  .co-row { display: flex; justify-content: space-between; padding: 10px 0; font-size: 13px; color: #5d5148; }
+  .co-row s { color: #b5aaa0; margin-right: 4px; }
+  .co-row.tot { margin-top: 4px; padding-top: 14px; border-top: 1px solid #eee6dd; font: 800 17px var(--d); color: var(--ink); }
+  .co-line { display: flex; align-items: center; gap: 12px; width: calc(100% - 40px); margin: 0 20px; height: 62px; padding: 0 18px; border: 0; border-radius: 20px; background: #fff; font: 600 14px var(--f); color: var(--ink); cursor: pointer; text-align: left; }
+  .co-line .visa { width: 44px; height: 28px; border-radius: 6px; background: #1a1f71; color: #fff; font: italic 800 11px var(--f); display: grid; place-items: center; }
+  .co-line em, .co-addr em { margin-left: auto; padding: 6px 12px; border-radius: 99px; background: var(--ebg); font: 600 12px var(--f); font-style: normal; color: var(--ink); }
+  .co-addr { position: relative; display: block; width: calc(100% - 40px); margin: 0 20px; padding: 0; border: 0; border-radius: 22px; background: #fff; overflow: hidden; text-align: left; cursor: pointer; }
+  .co-addr img { display: block; width: 100%; height: 120px; object-fit: cover; }
+  .co-addr > span { display: block; padding: 12px 18px 14px; } .co-addr b { display: block; font: 700 14px var(--d); }
+  .co-addr small { display: block; margin-top: 3px; font-size: 11px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding-right: 60px; }
+  .co-addr em { position: absolute; right: 16px; bottom: 18px; }
+  .co-eta { display: flex; align-items: center; gap: 12px; margin: 14px 20px 0; padding: 16px 18px; border-radius: 20px; background: var(--epromo); font: 600 13px var(--f); }
+  /* profile */
+  .pf-card { display: flex; align-items: center; gap: 16px; margin: 18px 20px 0; padding: 14px; border-radius: 22px; background: #fff; box-shadow: 0 6px 20px rgba(60,40,25,.07); }
+  .pf-card img { width: 72px; height: 72px; border-radius: 18px; object-fit: cover; }
+  .pf-card b { display: block; font: 800 19px var(--d); letter-spacing: -.01em; } .pf-card small { display: block; margin-top: 2px; font-size: 11px; color: var(--muted); }
+  .pf-card em { display: flex; gap: 6px; margin-top: 8px; font-style: normal; } .pf-card em i { padding: 4px 9px; border-radius: 99px; background: var(--ebg); font: 600 10.5px var(--f); font-style: normal; }
+  .pf-tiles { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 12px 20px 0; }
+  .pf-tiles button { display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 16px 0 14px; border: 0; border-radius: 20px; background: #fff; font: 600 12px var(--f); color: var(--ink); cursor: pointer; }
+  .pf-tag { padding: 5px 10px; border-radius: 99px; background: var(--epromo); font-size: 11px; color: var(--ink); }
+  .pf-rent { position: relative; display: flex; gap: 14px; width: calc(100% - 40px); margin: 0 20px 12px; padding: 8px; border: 0; border-radius: 22px; background: #fff; text-align: left; cursor: pointer; box-shadow: 0 6px 20px rgba(60,40,25,.07); }
+  .pf-rent .ph { flex: none; width: 88px; height: 88px; border-radius: 16px; display: grid; place-items: center; }
+  .pf-rent .ph img { width: 84%; height: 84%; object-fit: contain; }
+  .pf-rent .tx { flex: 1; padding: 6px 54px 0 0; } .pf-rent b { display: block; font: 700 15px var(--d); color: var(--ink); }
+  .pf-rent small { display: block; margin-top: 2px; font-size: 10.5px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .pf-rent .bar { display: block; height: 5px; margin-top: 12px; border-radius: 3px; background: #ece4da; overflow: hidden; } .pf-rent .bar i { display: block; height: 100%; border-radius: 3px; background: var(--eacc); }
+  .pf-rent .dates { display: flex; justify-content: space-between; margin-top: 5px; font-size: 9.5px; color: var(--muted); }
+  .pf-rent .go { top: 50%; bottom: auto; right: 14px; margin-top: -19px; width: 34px; height: 34px; }
+
+  /* neutral tiles everywhere, so products sit on the same ground */
+  .item .ph, .res .ph, .pf-rent .ph, .qv-img:not(.cover) { background: #f7f3ee !important; }
+  .ct:not(.photo) { background: #fff !important; }
+  /* product page: product on a soft platform, price tag, specs */
+  .pd-hero { background: var(--ebg) !important; }
+  .pd-hero::before { content: ""; position: absolute; left: 56px; top: 318px; width: 290px; height: 56px; border-radius: 50%; background: radial-gradient(closest-side, #fff 0%, rgba(255,255,255,.7) 60%, rgba(255,255,255,0)); }
+  .pd-img { z-index: 1; }
+  .pd-tag { position: absolute; left: 26px; top: 282px; z-index: 2; padding: 9px 16px 8px; border-radius: 999px; background: var(--epromo); transform: rotate(-8deg); box-shadow: 0 8px 18px rgba(60,40,25,.15); }
+  .pd-tag b { font: 800 22px var(--d); letter-spacing: -.02em; color: var(--ink); } .pd-tag small { font-size: 11px; color: #5d5148; }
+  .heart { left: 336px; top: 58px; width: 46px; height: 46px; border-radius: 50%; background: #fff; box-shadow: 0 4px 14px rgba(60,40,25,.08); z-index: 2; }
+  .heart svg { width: 20px; }
+  .link360 { left: 78px; top: 62px; height: 38px; padding: 0 14px; border-radius: 19px; background: #fff; font-weight: 600; color: var(--ink); z-index: 2; }
+  .thumbs { z-index: 1; } .thumb { background: #fff; opacity: .8; } .thumb div { background: #fff !important; }
+  .vline { background: #d9cfc3; }
+  .pd-title { line-height: 1; padding-top: 22px; text-transform: uppercase; font-size: 28px; }
+  .pd-subline { display: flex; align-items: center; gap: 8px; margin: 8px 24px 10px; font-size: 12px; color: var(--muted); }
+  .pd-subline svg { width: 12px; } .pd-subline i { width: 3px; height: 3px; border-radius: 50%; background: #c9bdb0; }
+  .pd-specs { display: grid; grid-template-columns: 1fr 1fr; gap: 1px; margin: 16px 20px 0; border-radius: 20px; overflow: hidden; background: #ebe3d9; }
+  .pd-specs span { padding: 12px 16px; background: #fff; } .pd-specs small { display: block; font-size: 11px; color: var(--muted); } .pd-specs b { display: block; margin-top: 2px; font: 700 14px var(--d); color: var(--ink); }
+  /* bottom bar: white, price left, dark add button right */
+  .cbar { background: #fff; box-shadow: 0 12px 30px rgba(60,40,25,.16); }
+  .cbar-bag { background: var(--ebg); color: var(--ink); }
+  .pill { height: 42px; margin-top: -2.5px; padding: 0 0 0 6px; background: transparent; justify-content: space-between; }
+  .pill .pp { display: flex; align-items: baseline; gap: 2px; } .pill .pp b { font: 800 21px var(--d); letter-spacing: -.02em; color: var(--ink); } .pill .pp small { font-size: 11px; color: var(--muted); }
+  .pill .pa { display: flex; align-items: center; gap: 7px; height: 42px; padding: 0 18px; border-radius: 21px; background: var(--edark); color: #fff; font: 600 14px var(--f); }
+  .pill .pa svg { color: #fff; }
+  .pill .saved { border-radius: 21px; background: var(--edark); color: #fff; font: 600 15px var(--f); }
+  .pill .saved svg { color: #fff; }
 </style>
 </head>
 <body>
@@ -344,7 +487,7 @@ const money = (n) => "$" + n.toFixed(2);
 const ICON = {
   back: '<svg width="24" height="14" viewBox="0 0 24 14" fill="none"><path d="M23 7H2M7 1L1 7l6 6" stroke="#61534a" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
   bag: '<svg width="16" height="17" viewBox="0 0 16 17" fill="none"><path d="M3 5.5h10l-.8 10H3.8z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M5.5 5.5V4a2.5 2.5 0 015 0v1.5" stroke="currentColor" stroke-width="1.6"/></svg>',
-  heart: (on) => `<svg width="28" height="24" viewBox="0 0 24 21"><path d="M12 19.6S1.6 13.6 1.6 6.9A5 5 0 0112 4.4a5 5 0 0110.4 2.5c0 6.7-10.4 12.7-10.4 12.7z" fill="${on ? "#dc0c0c" : "none"}" stroke="${on ? "#dc0c0c" : "#fff"}" stroke-width="1.7" stroke-linejoin="round"/></svg>`,
+  heart: (on) => `<svg width="28" height="24" viewBox="0 0 24 21"><path d="M12 19.6S1.6 13.6 1.6 6.9A5 5 0 0112 4.4a5 5 0 0110.4 2.5c0 6.7-10.4 12.7-10.4 12.7z" fill="${on ? "#dc0c0c" : "none"}" stroke="${on ? "#dc0c0c" : "#231a14"}" stroke-width="1.7" stroke-linejoin="round"/></svg>`,
   star: '<svg width="11" height="11" viewBox="0 0 24 24"><path d="M12 2l3 7 7 .6-5.4 4.8 1.7 7.1L12 17.8 5.7 21.5l1.7-7.1L2 9.6 9 9z" fill="#61534a"/></svg>',
   arrow: '<svg width="16" height="8" viewBox="0 0 16 8" fill="none"><path d="M0 4h14M11 1l3 3-3 3" stroke="#61534a" stroke-width="1.5"/></svg>',
   cartok: '<svg width="26" height="24" viewBox="0 0 26 24" fill="none"><path d="M2 3h3l2.6 12h12.6L23 7H8" stroke="#fff" stroke-width="1.8" stroke-linejoin="round"/><circle cx="9.5" cy="20" r="1.6" fill="#fff"/><circle cx="18.5" cy="20" r="1.6" fill="#fff"/><path d="M12 10l2 2 4-4" stroke="#fff" stroke-width="1.8"/></svg>',
@@ -408,36 +551,19 @@ const SCREENS = {
   splash: { base: S("splash"), kenburns: true, hs: [{ x: 288, y: 390, w: 76, h: 78, go: "cover", how: "fade" }] },
   cover: { html: "cover" },
   explore: { html: "explore" },
-  categories: { base: S("F5_base"), header: 131, hs: [{ x: 14, y: 74, w: 54, h: 42, back: 1 }],
-    sc: { x: 8, y: 111, w: 371, h: 763, img: S("F5_scroll"), ix: -13, iy: -19, iw: 407, ch: 933, hs: [
-      { x: 27, y: 66, w: 200, h: 177, go: "sets" }, { x: 234, y: 66, w: 121, h: 143, act: "openCat", t: 0 }, { x: 234, y: 216, w: 121, h: 200, act: "openCat", t: 2 },
-      { x: 29, y: 251, w: 196, h: 165, act: "openCat", t: 1 },
-      { x: 29, y: 478, w: 146, h: 155, act: "openCat", t: 2 }, { x: 185, y: 478, w: 170, h: 155, act: "openCat", t: 0 },
-      { x: 29, y: 641, w: 118, h: 158, act: "openCat", t: 0 }, { x: 152, y: 641, w: 203, h: 158, act: "openCat", t: 1 }] },
-    fx: NAVH("nav_home") },
-  catlist: { base: S("F11_base"), tabs: true, hs: [{ x: 14, y: 74, w: 54, h: 46, back: 1 }, { x: 26, y: 151, w: 296, h: 42, go: "search" }, { x: 340, y: 152, w: 40, h: 40, act: "filter" }],
-    sc: { x: 18, y: 291, w: 375, h: 551, grid: true, ch: 781, hs: [] },
-    fx: NAVH("nav_home") },
-  sets: { base: S("F21_base"), hs: [{ x: 24, y: 136, w: 300, h: 45, go: "search" }, { x: 338, y: 138, w: 40, h: 40, act: "filter" }],
-    sc: { x: 20, y: 216, w: 375, h: 659, img: S("F21_scroll"), ix: -20, iy: -16, iw: 400, ch: 1147, hs: [
-      { x: 0, y: 0, w: 360, h: 195, ...qv("simplicity") }, { x: 8, y: 339, w: 347, h: 205, go: "set", zoom: true },
-      { x: 15, y: 576, w: 95, h: 205, ...qv("simplicity") }, { x: 125, y: 576, w: 230, h: 205, ...qv("simplicity") }, { x: 8, y: 809, w: 347, h: 205, ...qv("modern") }] },
-    fx: NAVH("nav_sets") },
+  categories: { html: "categories" },
+  catlist: { html: "catlist" },
+  sets: { html: "sets" },
   set: { html: "setPage", fx: { ...BAR(), pill: "set" } },
   customize: { html: "customize", fx: { ...BAR(), pill: "cz" } },
   product: { html: "product", fx: { ...BAR(), pill: "pd" } },
   ar: { html: "ar", fx: { ...BAR(), pill: "pd" } },
-  cart: { html: "cart", fx: { img: S("nav_cart"), y: 760, h: 114, hs: [
-    { x: 62, y: 808, w: 50, h: 46, tab: "explore" }, { x: 112, y: 808, w: 100, h: 46, tab: "cart" }, { x: 216, y: 808, w: 54, h: 46, tab: "favs" }, { x: 274, y: 808, w: 66, h: 46, tab: "profile" }] } },
-  checkout: { base: S("checkout"), patch: "checkout", hs: [{ x: 14, y: 74, w: 54, h: 46, back: 1 }, { x: 288, y: 388, w: 74, h: 36, act: "payment" }, { x: 288, y: 628, w: 64, h: 30, act: "address" }, { x: 34, y: 478, w: 335, h: 148, act: "address" }, { x: 84, y: 796, w: 230, h: 45, act: "placeOrder" }] },
+  cart: { html: "cart" },
+  checkout: { html: "checkout" },
   success: { html: "success" },
-  profile: { sc: { x: 0, y: 0, w: 402, h: 874, img: S("profile_content"), ix: 0, iy: 0, iw: 402, ch: 1039, hs: [
-    { x: 14, y: 74, w: 54, h: 46, back: 1, to: "explore" }, { x: 36, y: 285, w: 103, h: 90, act: "addressSheet" }, { x: 153, y: 285, w: 104, h: 90, act: "payment" }, { x: 273, y: 285, w: 103, h: 90, act: "help" },
-    { x: 24, y: 458, w: 352, h: 94, act: "rental", id: "armchair" }, { x: 24, y: 582, w: 352, h: 96, act: "rental", id: "bed" }, { x: 24, y: 706, w: 352, h: 96, act: "rental", id: "bedside" },
-    { x: 24, y: 830, w: 352, h: 96, go: "modify" }],
-  }, fx: NAVH("nav_profile") },
+  profile: { html: "profile" },
   modify: { html: "modify" },
-  favs: { html: "favs", fx: NAVH("nav_home") },
+  favs: { html: "favs" },
   search: { html: "search" },
 };
 const START = "splash";
@@ -545,7 +671,7 @@ const EASE = "cubic-bezier(.2,.8,.2,1)";
 const enter = (el) => {
   if (reduceMotion) return;
   // list rows and result cards rise in one after another
-  const rows = [...el.querySelectorAll(".ex-card, .ex-cats button, .items > .item, .res, .tl > div, .chips .chip, .pd-body > *, .pd-hero .thumb, .pd-hero .dot")].slice(0, 14);
+  const rows = [...el.querySelectorAll(".ex-card, .ex-cats button, .ct, .set-card, .pf-rent, .pf-tiles button, .co-card, .co-line, .co-addr, .set-pc, .items > .item, .res, .tl > div, .chips .chip, .pd-body > *, .pd-hero .thumb, .pd-hero .dot")].slice(0, 14);
   rows.forEach((r, i) => r.animate([{ opacity: 0, transform: "translateY(16px)" }, { opacity: 1, transform: "none" }], { duration: 520, delay: 120 + i * 45, easing: EASE, fill: "backwards" }));
   el.querySelectorAll(".pd-img, .md-hero").forEach((h) => h.animate([{ opacity: 0, transform: "scale(.9)" }, { opacity: 1, transform: "none" }], { duration: 700, delay: 60, easing: EASE, fill: "backwards" }));
   // exported screens: the scrolling layer settles a beat after the header
@@ -582,6 +708,7 @@ const renderTabs = (el) => { renderGrid(el); el.querySelector(".tabs i").style.l
 
 /* ---------- pages built in HTML ---------- */
 const backBtn = '<button class="back" data-back aria-label="Back">' + ICON.back + '</button>';
+const head = (title, sub = "") => `<div class="pg-head">${backBtn}${title}</div>${sub ? `<div class="pg-sub">${sub}</div>` : ""}`;
 const PAGES = {
   product: () => {
     const p = state.pd, sofa = p.id === "sofa", it = CATALOG[p.id], fav = state.fav.has(p.id);
@@ -592,7 +719,7 @@ const PAGES = {
       <div class="pd-hero" style="background:${c.bg}">
         <div class="pd-img ${sofa ? "" : "cut"}"><img id="pdimg" src="${S(c.img)}" style="transform:${ZOOM[p.thumb]};filter:${c.filter}" alt="${it.name}"></div>
         ${backBtn}
-        <div class="chip-rate">4.7 / 5.0 ${ICON.star}</div>
+        <div class="pd-tag"><b>${money(pdPrice()).replace(".00", "")}</b><small>/mo</small></div>
         ${sofa ? `<button class="link360" data-go="ar">360° Virtual ${ICON.arrow}</button>` : ""}
         <button class="heart ${fav ? "on" : ""}" data-act="fav" aria-label="Favourite">${ICON.heart(fav)}<span class="burst">${[0, 45, 90, 135, 180, 225, 270, 315].map((a) => `<i style="--a:${a}deg"></i>`).join("")}</span></button>
         <div class="thumbs">${ZOOM.map((z, i) => `<button class="thumb ${i === p.thumb ? "on" : ""}" data-thumb="${i}" aria-label="View ${i + 1}"><div style="background:${c.bg}"><img src="${S(c.img)}" style="transform:${z};filter:${c.filter}" alt=""></div></button>`).join("")}</div>
@@ -601,6 +728,7 @@ const PAGES = {
       </div>
       <div class="pd-body">
         <div class="pd-title">${it.name}</div>
+        <div class="pd-subline">${ICON.star} 4.7 <i></i> ${PD_MAT[p.id] || "Solid wood"} <i></i> Free delivery</div>
         <div class="pd-desc ${p.more ? "open" : ""}">${sofa ? "" : `${it.desc} ${PD_MORE}`}${sofa ? `MAXYOYO Giant ${c.name === "taupe" ? "Oat" : c.name === "cream" ? "Ivory" : "Green"} Velvet Sofa Chair, Oversized Bean Bag Couch for Adults and Kids, Faux Fur Shell-Shaped Large Chair with Filler, Stuffed Big Accent Sofa Lounge Floor Sofa for Gaming, Reading. Solid wood legs, removable cover, fits rooms from 120 sq ft. Delivered assembled; swap or return at the end of your lease.` : ""}</div>
         <button class="pd-more" data-act="more">${p.more ? "Hide" : "Read more"}</button>
         <div class="pd-hr"></div>
@@ -608,49 +736,53 @@ const PAGES = {
         ${rentHTML(p.months)}
         <div class="pd-h" style="margin-top:-6px">Size</div>
         <div class="sizes"><i class="sel" style="left:${[0, 117, 226][p.size]}px;width:${[117, 108, 112][p.size]}px"></i>${["Small", "Regular", "Large"].map((n, i) => `<button data-size="${i}">${n}<small>${["31.5’’x 39.4’’x 28.3’’", "35.4’’x 43.3’’x 31.5’’", "39.4’’x 47.2’’x 33.5’’"][i]}</small></button>`).join("")}</div>
+        <div class="pd-specs">${pdSpecs(p.size)}</div>
         ${sofa ? `<div class="pd-h" style="margin-top:9px">Product Gallery</div>
         <div class="gallery"><img src="${S(c.gal)}" style="filter:${c.filter}" alt="The chair in a living room"></div>` : ""}
       </div></div></div>`;
   },
   setPage: () => {
     const s = state.set, fav = state.fav.has("natural");
-    return `<div class="pg"><div style="position:relative;height:955px">
-      <img src="${S("set_content")}" style="position:absolute;left:0;top:0;width:402px" alt="">
+    return `<div class="pg"><div style="position:relative;height:305px">
       <div class="setcar" style="position:absolute;left:0;top:0;width:402px;height:305px;overflow:hidden;touch-action:pan-y;cursor:grab"><div class="setcar-t" style="display:flex;height:305px;transform:translateX(${-402 * s.view}px);transition:transform .45s cubic-bezier(.25,.8,.25,1)">${["set_hero", "set_view2", "set_view3"].map((k, i) => `<img ${i ? "" : 'id="sethero"'} src="${S(k)}" draggable="false" style="flex:none;width:402px;height:305px;object-fit:cover;${i ? "" : "object-position:67% 50%"}" alt="${["Natural Cozy Set in a living room", "The lounge chair and stool", "The chaise, side table and rug"][i]}">`).join("")}</div></div>
       <div class="chip-rate" style="top:68px;left:70px;background:rgba(255,255,255,.82);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)">4.7 / 5.0 ${ICON.star}</div>
       <button class="back glass" data-back aria-label="Back" style="top:60px">${ICON.back}</button>
       <button class="heart ${fav ? "on" : ""}" data-act="favSet" style="top:66px">${ICON.heart(fav)}<span class="burst">${[0, 60, 120, 180, 240, 300].map((a) => `<i style="--a:${a}deg"></i>`).join("")}</span></button>
       <button class="hs" data-act="setPrev" style="left:16px;top:150px;width:36px;height:54px" aria-label="Previous view"></button><button class="hs" data-act="setNext" style="left:348px;top:150px;width:36px;height:54px" aria-label="Next view"></button>
       <div class="setdots" style="position:absolute;left:166px;top:276px;display:flex;align-items:center;gap:3px">${[0, 1, 2].map((i) => `<button data-setview="${i}" aria-label="View ${i + 1}" style="border:0;background:none;padding:7px 3px;cursor:pointer"><i style="display:block;width:${i === s.view ? 16 : 6}px;height:6px;border-radius:3px;background:#fff;opacity:${i === s.view ? 1 : .6};transition:width .3s,opacity .3s"></i></button>`).join("")}</div>
-      <div style="position:absolute;left:0;top:443px;width:402px;height:52px;background:#fff">${rentHTML(s.months)}</div>
-      <button class="hs" data-act="setMore" style="left:310px;top:378px;width:66px;height:20px" aria-label="Read more"></button>
-      <button class="hs" data-go="customize" style="left:300px;top:520px;width:80px;height:34px" aria-label="Customize"></button>
-      <button class="hs" data-qv="setchair" style="left:36px;top:564px;width:122px;height:122px" aria-label="Chair"></button>
-      <button class="hs" data-qv="setsofa" style="left:169px;top:564px;width:204px;height:122px" aria-label="Sofa"></button>
-      <button class="hs" data-qv="setbedside" style="left:35px;top:707px;width:161px;height:122px" aria-label="Bedside table"></button>
-      <button class="hs" data-qv="settable" style="left:205px;top:707px;width:164px;height:122px" aria-label="Coffee table"></button>
+      </div>
+      <div class="pd-body" style="position:relative;top:0">
+        <div class="pd-title">Natural Cozy Set</div>
+        <div class="pd-desc">A calm living room in one order: sculpted lounge chair, three-seat leather sofa, white bedside table and a round oak coffee table. Delivered and assembled together.</div>
+        <button class="pd-more" data-act="setMore">Read more</button>
+        <div class="pd-hr"></div>
+        <div class="pd-h">Rent <em>More time, less cost!</em></div>
+        ${rentHTML(s.months)}
+        <div class="ex-sec" style="margin:6px 22px 12px 24px"><h2>In this set</h2><button class="cz-go" data-go="customize">Customize</button></div>
+        <div class="set-grid">${[["setchair", "Lounge chair"], ["setsofa", "Leather sofa"], ["setbedside", "Bedside table"], ["settable", "Coffee table"]].map(([id, n]) => `<button class="set-pc" data-qv="${id}" aria-label="${n}"><img src="${S(CATALOG[id].img)}" alt=""><b>${n}</b><span>${money(CATALOG[id].price)}/mo</span></button>`).join("")}</div>
+        <div style="height:130px"></div>
       </div></div>`;
   },
-  customize: () => `<div class="pg"><div class="pg-head">${backBtn}Customize</div><div class="pg-sub">4 items · tune each piece of the set</div>
+  customize: () => `<div class="pg">${head("Customize", "4 pieces · tune each one")}
     <div class="items">${state.cz.map((it, i) => `<div class="item cz"><div class="ph" style="background:${["#efe7dc", "#efe7dc", "#f5f5f5", "#efe7dc"][i]}"><img src="${S(it.img)}" alt=""></div>
       <div class="meta"><b>${it.n}</b>
         <div class="cz-row">Color: ${["#c9a27e", "#e9e2d8", "#5b4a3e"].map((c, j) => `<button class="cz-dot ${j === it.c ? "on" : ""}" data-cz="${i}" data-c="${j}" style="background:${c}" aria-label="Colour ${j + 1}"></button>`).join("")}</div>
         <div class="cz-row" style="margin-top:4px">Size: ${["small", "regular", "large"].map((s, j) => `<button class="cz-size ${j === it.s ? "on" : ""}" data-cz="${i}" data-s="${j}">${s}</button>`).join("")}</div>
         <div class="pr" style="margin-top:2px">${money(czLine(it))}/mo</div></div>
       <div class="qty"><button data-cz="${i}" data-q="-1" aria-label="Less">−</button><b>${it.q}</b><button data-cz="${i}" data-q="1" aria-label="More">+</button></div></div>`).join("")}</div></div>`,
-  cart: () => `<div class="pg"><div class="pg-head no-back">My cart</div><div class="pg-sub">${count()} item${count() === 1 ? "" : "s"} · swipe left to remove</div>
+  cart: () => `<div class="pg">${head("My cart", `${count()} item${count() === 1 ? "" : "s"} · swipe left to remove`)}
     <div class="items">${state.cart.length ? state.cart.map((c, i) => { const it = CATALOG[c.id]; return `<div class="item" data-i="${i}"><div class="ph" data-open="${c.id}" style="background:${it.bg}"><img src="${S(it.img)}" alt="" ${it.cover ? 'style="max-width:none;max-height:none;width:100%;height:100%;object-fit:cover"' : ""}></div>
       <div class="meta"><b>${it.name}</b>Color: ${c.color}<br>Size: ${c.size}<br>Lease term: ${c.lease} mo<div class="pr">${money(unitPrice(c))}/mo</div></div>
       <div class="qty"><button data-q="-1" data-i="${i}" aria-label="Less">−</button><b>${c.qty}</b><button data-q="1" data-i="${i}" aria-label="More">+</button></div>
       <button class="del" data-del="${i}">Remove</button></div>`; }).join("") : `<div class="empty"><svg width="60" height="56" viewBox="0 0 26 24" fill="none"><path d="M2 3h3l2.6 12h12.6L23 7H8" stroke="#c9bdb2" stroke-width="1.4" stroke-linejoin="round"/><circle cx="9.5" cy="20" r="1.4" fill="#c9bdb2"/><circle cx="18.5" cy="20" r="1.4" fill="#c9bdb2"/></svg>Your cart is empty.<br>Rent a piece and it shows up here.<button class="btn" data-tab="explore" style="margin-top:22px">Explore furniture</button></div>`}</div></div>
-    ${state.cart.length ? `<button class="totalbar" data-go="checkout"><b>Total: <em class="tot" data-v="${shownTotal}">${money(shownTotal)}</em></b><i></i><span>${ICON.cartok}</span></button>` : ""}`,
+    ${state.cart.length ? `<button class="totalbar" data-go="checkout"><b>Checkout · <em class="tot" data-v="${shownTotal}">${money(shownTotal)}</em></b><i></i><span>${ICON.cartok}</span></button>` : ""}`,
   success: () => `<div class="pg ok"><svg class="ok-ring" viewBox="0 0 120 120" fill="none"><circle cx="60" cy="60" r="54" stroke="#3f2c1f" stroke-width="4"/><path d="M38 61l15 15 30-32" stroke="#3f2c1f" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/></svg>
     <h2>Order placed</h2><p class="sub">${money(total())} · ${count()} item${count() === 1 ? "" : "s"} on a 12-month lease</p>
     <div class="tl">${[["Order confirmed", "Just now", 1], ["Preparing your pieces", "Cleaned, checked and packed", 0], ["Out for delivery", "Jun 2, 2025", 0], ["Delivered and assembled", "Jun 3, 2025 · we take the boxes", 0]].map(([t, s, d], i) => `<div class="${d ? "done" : ""}" style="animation-delay:${1.2 + i * .12}s">${t}<small>${s}</small></div>`).join("")}</div>
     <div style="margin:10px 40px 0;display:grid;gap:10px;opacity:0;animation:up .5s 1.8s forwards"><button class="btn" data-act="toRentals">View my rentals</button><button class="btn ghost" data-act="toHome">Back to home</button></div></div>`,
   modify: () => {
     const m = state.md, price = PRICE.sofa[m.months] * (m.renew ? .9 : 1);
-    return `<div class="pg"><div class="pg-head">${backBtn}Modify</div>
+    return `<div class="pg">${head("My rental")}
       <div class="md-hero"><img id="mdimg" src="${S("hero_green")}" style="transform:${ZOOM[m.thumb]}" alt="Single Sofa Chair"></div>
       <div class="md-thumbs">${ZOOM.map((z, i) => `<button class="thumb ${i === m.thumb ? "on" : ""}" data-mthumb="${i}"><div style="background:#fff"><img src="${S("hero_green")}" style="transform:${z}" alt=""></div></button>`).join("")}</div>
       <div class="pd-title" style="padding-left:30px;height:50px">Single Sofa Chair</div>
@@ -665,10 +797,10 @@ const PAGES = {
   },
   favs: () => {
     const ids = [...state.fav];
-    return `<div class="pg"><div class="pg-head no-back">Favourites</div><div class="pg-sub">${ids.length} saved</div><div style="height:16px"></div>
+    return `<div class="pg">${head("Saved", `${ids.length} piece${ids.length === 1 ? "" : "s"}`)}<div style="height:16px"></div>
       ${ids.length ? ids.map((id) => resHTML(id)).join("") : `<div class="empty"><svg width="56" height="50" viewBox="0 0 24 21"><path d="M12 19.6S1.6 13.6 1.6 6.9A5 5 0 0112 4.4a5 5 0 0110.4 2.5c0 6.7-10.4 12.7-10.4 12.7z" fill="none" stroke="#c9bdb2" stroke-width="1.3"/></svg>Nothing saved yet.<br>Tap ♡ on anything you like.<button class="btn" data-tab="explore" style="margin-top:22px">Explore furniture</button></div>`}<div style="height:120px"></div></div>`;
   },
-  search: () => `<div class="pg"><div class="pg-head">${backBtn}Search</div><div class="search-in"><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="7" stroke="#8a8079" stroke-width="2"/><path d="M16.5 16.5L21 21" stroke="#8a8079" stroke-width="2" stroke-linecap="round"/></svg><input id="q" placeholder="Search for furniture" autocomplete="off"></div>
+  search: () => `<div class="pg">${head("Search")}<div class="search-in"><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="7" stroke="#8a8079" stroke-width="2"/><path d="M16.5 16.5L21 21" stroke="#8a8079" stroke-width="2" stroke-linecap="round"/></svg><input id="q" placeholder="Search for furniture" autocomplete="off"></div>
     <p class="lbl">Popular</p><div class="chips" style="margin:0 25px">${["chair", "bed", "set", "table", "sofa"].map((t) => `<button class="chip" data-term="${t}">${t}</button>`).join("")}</div>
     <p class="lbl" id="rl">All furniture</p><div id="res"></div><div style="height:60px"></div></div>`,
 };
@@ -691,6 +823,15 @@ const bindPage = (w, id) => {
   if (id === "set") bindSetCar(w);
   if (id === "cover") bindCover(w);
   if (id === "explore") bindExplore(w);
+  w.querySelectorAll("[data-cat]").forEach((b) => b.addEventListener("click", (e) => { e.stopPropagation(); actions.openCat({ t: +b.dataset.cat }); }));
+  w.querySelectorAll("[data-rental]").forEach((b) => b.addEventListener("click", (e) => { e.stopPropagation(); actions.rental({ id: b.dataset.rental }); }));
+  w.querySelectorAll("[data-setopen]").forEach((b) => b.addEventListener("click", (e) => { e.stopPropagation(); const id = b.dataset.setopen;
+    if (id === "natural") { stack.push(cur); zoomFrom(b.querySelector("img"), "set"); } else actions.quick({ id }); }));
+  if (id === "catlist") { const cols = w.querySelector(".ex-cols"); wireCards(w, cols);
+    w.querySelectorAll("[data-cattab]").forEach((b) => b.addEventListener("click", (e) => { e.stopPropagation(); const t = +b.dataset.cattab; if (t === state.catTab) return; state.catTab = t;
+      w.querySelectorAll("[data-cattab]").forEach((x) => x.classList.toggle("on", x === b)); const h = w.querySelector(".pg-head"); h.lastChild.textContent = TABS[t];
+      cols.animate([{ opacity: 1 }, { opacity: 0, transform: "translateY(8px)" }], { duration: 160, easing: "ease-in" }).onfinish = () => { cols.innerHTML = exColumns(ROOMS[t], false); wireCards(w, cols);
+        cols.querySelectorAll(".ex-card").forEach((c, i) => c.animate([{ opacity: 0, transform: "translateY(16px)" }, { opacity: 1, transform: "none" }], { duration: 460, delay: i * 40, easing: EASE, fill: "backwards" })); }; })); }
   if (id === "customize") bindCustomize(w);
   if (id === "cart") bindCart(w);
   if (id === "modify") bindModify(w);
@@ -699,6 +840,9 @@ const bindPage = (w, id) => {
 };
 const openItem = (id, srcEl) => { if (id === "natural") { stack.push(cur); show("set"); } else if (CATALOG[id].set) actions.quick({ id }); else openProduct(id, srcEl); };
 /* product page for any piece: the green sofa keeps its photos and colours, the rest use their cut-out and three tints */
+const PD_MAT = { sofa: "Velvet · solid wood", rattan: "Rattan · linen", brown: "Velvet · steel", dining: "Walnut · velvet", armchair: "Oak · linen", bed: "Linen · oak", bedside: "Walnut", setchair: "Leather · steel", setsofa: "Leather", settable: "Oak", setbedside: "Lacquered wood" };
+const PD_DIMS = [["31.5″", "39.4″", "28.3″"], ["35.4″", "43.3″", "31.5″"], ["39.4″", "47.2″", "33.5″"]];
+const pdSpecs = (size) => [["Width", PD_DIMS[size][1]], ["Depth", PD_DIMS[size][0]], ["Height", PD_DIMS[size][2]], ["Material", PD_MAT[state.pd.id] || "Solid wood"]].map(([k, v]) => `<span><small>${k}</small><b>${v}</b></span>`).join("");
 const PD_MORE = "Solid construction, delivered assembled; swap or return at the end of your lease. Free delivery and pickup.";
 const pdDots = (id) => (COVER.find((c) => c.id === id) || { dots: ["#c9a27e", "#e9e2d8", "#5b4a3e"] }).dots;
 const pdPrice = () => state.pd.id === "sofa" ? PRICE.sofa[state.pd.months] : Math.round(CATALOG[state.pd.id].price * PRICE.sofa[state.pd.months] / 17);
@@ -756,13 +900,14 @@ const bindProduct = (w) => {
   }));
   w.querySelectorAll("[data-tint]").forEach((b) => b.addEventListener("click", (e) => { e.stopPropagation(); p.tint = +b.dataset.tint; p.saved = false;
     w.querySelectorAll("#pdimg, .thumb img").forEach((im) => (im.style.filter = TINT[p.tint])); w.querySelectorAll("[data-tint]").forEach((x) => x.classList.toggle("on", x === b)); els.product.querySelectorAll(".pill").forEach(renderPill); }));
-  w.querySelectorAll("[data-size]").forEach((b) => b.addEventListener("click", (e) => { e.stopPropagation(); p.size = +b.dataset.size; p.saved = false; const sel = w.querySelector(".sizes .sel"); sel.style.left = [0, 117, 226][p.size] + "px"; sel.style.width = [117, 108, 112][p.size] + "px"; els.product.querySelectorAll(".pill").forEach(renderPill); }));
+  w.querySelectorAll("[data-size]").forEach((b) => b.addEventListener("click", (e) => { e.stopPropagation(); p.size = +b.dataset.size; p.saved = false; const sel = w.querySelector(".sizes .sel"); sel.style.left = [0, 117, 226][p.size] + "px"; sel.style.width = [117, 108, 112][p.size] + "px"; els.product.querySelectorAll(".pill").forEach(renderPill); const sp = w.querySelector(".pd-specs"); if (sp) sp.innerHTML = pdSpecs(p.size); }));
 };
 const renderPill = (pl) => {
   const k = pl.dataset.k;
   const price = k === "pd" ? pdPrice() : k === "set" ? PRICE.natural[state.set.months] : czTotal();
   const saved = k === "pd" ? state.pd.saved : k === "set" ? state.set.saved : state.czSaved;
-  pl.innerHTML = `${ICON.bag}<b>${money(price)}</b><small>/mo Add to Cart</small><span class="saved">${ICON.bag} Choice Saved!</span>`;
+  pl.innerHTML = `<span class="pp"><b>${money(price)}</b><small>/mo</small></span><span class="pa">${ICON.bag} Add to cart</span><span class="saved">${ICON.bag} Added · view cart</span>`;
+  if (k === "pd" && els.product) { const t = els.product.querySelector(".pd-tag b"); if (t) t.textContent = money(price).replace(".00", ""); }
   pl.classList.toggle("is-saved", saved); pl.setAttribute("aria-label", saved ? "Choice saved, open cart" : "Add to cart");
 };
 /* adding to the cart: the item flies into the bag icon, the badge bumps, the pill flips to "Choice Saved!" */
@@ -892,11 +1037,12 @@ const EX_INFO = { sofa: ["hero_green", 118, "Velvet · tufted"], rattan: [0, 150
 const exCard = (id) => { const it = CATALOG[id], [img, h, tag] = EX_INFO[id];
   return `<div class="ex-card" data-exopen="${id}" role="button" tabindex="0" aria-label="${it.name}"><img src="${S(img || it.img)}" style="height:${h}px" alt=""><h3>${it.name}</h3><small>${tag}</small><span class="pr">${money(it.price).replace(".00", "")}<i> /mo</i></span>
     <button class="ex-add" data-add="${id}" aria-label="Add ${it.name} to cart"><svg width="12" height="12" viewBox="0 0 12 12"><path d="M6 1v10M1 6h10" stroke="#fff" stroke-width="1.8" stroke-linecap="round"/></svg></button></div>`; };
-const exGrid = () => {
-  const c = EX_CATS.find((x) => x.k === state.exCat), ids = c.ids || EX_ALL, L = [], R = [];
+const exGrid = () => { const c = EX_CATS.find((x) => x.k === state.exCat); return exColumns(c.ids || EX_ALL, state.exCat === "all"); };
+const exColumns = (ids, showroom) => {
+  const L = [], R = [];
   let hl = 0, hr = 0;
   ids.forEach((id, i) => { const h = EX_INFO[id][1] + 110; (hl <= hr ? L : R).push(exCard(id)); hl <= hr ? (hl += h) : (hr += h);
-    if (state.exCat === "all" && i === 1) { L.push(`<div class="ex-card dark" data-exshow role="button" tabindex="0" aria-label="Showroom"><h3>Showroom</h3><p>366 E Duffy Street<br>Savannah, GA · open daily</p><span class="arr"><svg width="12" height="10" viewBox="0 0 12 10" fill="none"><path d="M1 5h9M7 2l3 3-3 3" stroke="#231a14" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span></div>`); hl += 140; } });
+    if (showroom && i === 1) { L.push(`<div class="ex-card dark" data-exshow role="button" tabindex="0" aria-label="Showroom"><h3>Showroom</h3><p>366 E Duffy Street<br>Savannah, GA · open daily</p><span class="arr"><svg width="12" height="10" viewBox="0 0 12 10" fill="none"><path d="M1 5h9M7 2l3 3-3 3" stroke="#231a14" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span></div>`); hl += 140; } });
   return `<div class="ex-col">${L.join("")}</div><div class="ex-col">${R.join("")}</div>`; };
 const exThumbs = () => { const lines = state.cart.slice(-3).reverse(), more = Math.max(0, state.cart.length - 3);
   return lines.map((c) => `<span><img src="${S(CATALOG[c.id].img)}" alt=""></span>`).join("") + (more ? `<span class="more">+${more}</span>` : ""); };
@@ -911,16 +1057,16 @@ PAGES.explore = () => `<div class="ex" style="position:absolute;inset:0"><div cl
     <div class="ex-cols">${exGrid()}</div>
   </div><div class="ex-fade"></div>
   <button class="ex-cart" data-tab="cart" aria-label="Open cart">Cart <span class="badge">${count()}</span><span class="ex-thumbs">${exThumbs()}</span></button></div>`;
-const bindExplore = (w) => {
-  const cols = w.querySelector(".ex-cols");
-  const wire = () => {
+const wireCards = (w, cols) => {
     cols.querySelectorAll("[data-exopen]").forEach((c) => c.addEventListener("click", (e) => { e.stopPropagation(); openItem(c.dataset.exopen, c.querySelector("img")); }));
     cols.querySelectorAll("[data-exshow]").forEach((c) => c.addEventListener("click", (e) => { e.stopPropagation(); actions.showroom(); }));
     cols.querySelectorAll("[data-add]").forEach((b) => b.addEventListener("click", (e) => { e.stopPropagation(); const id = b.dataset.add, it = CATALOG[id];
       addToCart(id, it.price, { color: "natural", size: "Regular", lease: 12 }); fly(S((EX_INFO[id][0]) || it.img), b.closest(".ex-card").querySelector("img"));
       b.classList.remove("ok"); void b.offsetWidth; b.classList.add("ok"); toast(`${it.name} added to your cart`);
       setTimeout(() => { const t = w.querySelector(".ex-thumbs"); if (t) t.innerHTML = exThumbs(); }, 850); }));
-  };
+};
+const bindExplore = (w) => {
+  const cols = w.querySelector(".ex-cols"), wire = () => wireCards(w, cols);
   wire();
   w.querySelectorAll("[data-excat]").forEach((b) => b.addEventListener("click", (e) => { e.stopPropagation(); if (state.exCat === b.dataset.excat) return; state.exCat = b.dataset.excat;
     w.querySelectorAll("[data-excat]").forEach((x) => x.classList.toggle("on", x === b));
@@ -929,6 +1075,43 @@ const bindExplore = (w) => {
       cols.querySelectorAll(".ex-card").forEach((card, i) => card.animate([{ opacity: 0, transform: "translateY(16px)" }, { opacity: 1, transform: "none" }], { duration: 460, delay: i * 40, easing: EASE, fill: "backwards" })); };
   }));
 };
+
+/* ---------- pages rebuilt in the explore style ---------- */
+const CAT_TILES = [["Sets", null, "set_view3", null], ["Living room", 2, "hero_green", "#e6e8cf"], ["Bedroom", 0, "cart_bed", "#efe2d6"], ["Dining room", 1, "p_dining", "#e4e9dc"]];
+const FN_TILES = [["Sitting", 2, "cart_armchair"], ["Sleeping", 0, "cart_bed"], ["Storage", 0, "cart_bedside"], ["Tables", 1, "set_table"]];
+PAGES.categories = () => `<div class="pg">${head("Categories")}
+  <div class="ex-sec"><h2>By room</h2></div>
+  <div class="ct-grid">${CAT_TILES.map(([n, t, img, bg]) => bg ? `<button class="ct" data-cat="${t}" style="background:${bg}"><b>${n}</b><img src="${S(img)}" alt=""></button>`
+    : `<button class="ct photo" data-go="sets"><img src="${S(img)}" alt=""><b>${n}</b><span>Save up to 30%</span></button>`).join("")}</div>
+  <div class="ex-sec"><h2>By function</h2></div>
+  <div class="ct-grid fn">${FN_TILES.map(([n, t, img]) => `<button class="ct" data-cat="${t}"><b>${n}</b><img src="${S(img)}" alt=""></button>`).join("")}</div>
+  <div style="height:60px"></div></div>`;
+PAGES.catlist = () => `<div class="pg">${head(TABS[state.catTab])}
+  <div class="ex-chips">${TABS.map((t, i) => `<button class="${i === state.catTab ? "on" : ""}" data-cattab="${i}">${t}</button>`).join("")}</div>
+  <div class="ex-cols" style="margin-top:16px">${exColumns(ROOMS[state.catTab], false)}</div><div style="height:60px"></div></div>`;
+const SETS = [["natural", "set_hero", "Chair, sofa, bedside and coffee table", "30% off"], ["simplicity", "qv_simplicity", "Grey sofa, coffee table and rug", "Save $30"], ["modern", "qv_modern", "Sectional, lounge chair and table", "12-month lease"]];
+PAGES.sets = () => `<div class="pg">${head("Sets", "Furnish a whole room in one order")}
+  <div class="sets">${SETS.map(([id, img, d, tag]) => { const it = CATALOG[id]; return `<button class="set-card" data-setopen="${id}"><span class="ph"><img src="${S(img)}" alt=""><i>${tag}</i></span>
+    <span class="tx"><b>${it.name}</b><small>${d}</small><em>${it.was ? `<s>$${it.was}</s> ` : ""}${money(it.price).replace(".00", "")}<i> /mo</i></em></span><span class="go">${ICON.arrow}</span></button>`; }).join("")}</div>
+  <div style="height:60px"></div></div>`;
+PAGES.checkout = () => { const t = total(); return `<div class="pg">${head("Checkout", `${count()} piece${count() === 1 ? "" : "s"} · 12-month lease`)}
+  <div class="co-card">${[["Subtotal", money(t)], ["Delivery & assembly", `<s>$30.00</s> Free`], ["Discount", "−$24.00"], ["Tax", "$24.00"]].map(([k, v]) => `<div class="co-row"><span>${k}</span><span>${v}</span></div>`).join("")}
+    <div class="co-row tot"><span>Total per month</span><span>${money(t)}</span></div></div>
+  <div class="ex-sec"><h2>Payment</h2></div>
+  <button class="co-line" data-act="payment"><i class="visa">${state.card === " Pay" ? "" : "VISA"}</i><span>${state.card === " Pay" ? "Apple Pay" : "•••• " + state.card}</span><em>Change</em></button>
+  <div class="ex-sec"><h2>Delivery</h2></div>
+  <button class="co-addr" data-act="address"><img src="${S("map")}" alt=""><span><b>Delivering to Emma</b><small>${state.address}</small></span><em>Edit</em></button>
+  <div class="co-eta"><svg width="22" height="16" viewBox="0 0 22 16" fill="none"><path d="M1 2h12v10H1zM13 6h4l3 3v3h-7" stroke="#36291f" stroke-width="1.5" stroke-linejoin="round"/><circle cx="5" cy="13" r="2" fill="#f0eae2" stroke="#36291f" stroke-width="1.5"/><circle cx="16" cy="13" r="2" fill="#f0eae2" stroke="#36291f" stroke-width="1.5"/></svg>Arriving Jun 2 – Jun 3, 2025</div>
+  <div style="height:140px"></div></div>
+  <button class="totalbar" data-act="placeOrder"><b>Place order · ${money(t)}</b></button>`; };
+const RENTALS = [["armchair", "5/6/2025", "5/6/2026", .46], ["bed", "3/27/2025", "3/27/2026", .58], ["bedside", "5/6/2025", "5/6/2026", .46], ["sofa", "5/6/2025", "5/6/2026", .46]];
+PAGES.profile = () => `<div class="pg">${head("Profile")}
+  <div class="pf-card"><img src="${S("avatar")}" alt=""><span><b>Agatha Scratch</b><small>agathascratch0824@gmail.com</small><em><i>4.8 / 5.0 ★</i><i>Not verified</i></em></span></div>
+  <div class="pf-tiles">${[["addressSheet", "Address", '<path d="M12 21s-6-5.6-6-11a6 6 0 0112 0c0 5.4-6 11-6 11z" stroke="#231a14" stroke-width="1.7"/><circle cx="12" cy="10" r="2.2" stroke="#231a14" stroke-width="1.7"/>'], ["payment", "Payment", '<rect x="3" y="6" width="18" height="13" rx="2.5" stroke="#231a14" stroke-width="1.7"/><path d="M3 10h18" stroke="#231a14" stroke-width="1.7"/>'], ["help", "Help", '<circle cx="12" cy="12" r="9" stroke="#231a14" stroke-width="1.7"/><path d="M9.5 9.5a2.5 2.5 0 114 2c-.9.6-1.5 1.1-1.5 2.2M12 17h.01" stroke="#231a14" stroke-width="1.7" stroke-linecap="round"/>']].map(([a, n, svg]) => `<button data-act="${a}"><svg width="24" height="24" viewBox="0 0 24 24" fill="none">${svg}</svg>${n}</button>`).join("")}</div>
+  <div class="ex-sec"><h2>My rentals</h2><span class="pf-tag">Easy renewal & recycling</span></div>
+  ${RENTALS.map(([id, a, b, k]) => { const it = CATALOG[id]; return `<button class="pf-rent" ${id === "sofa" ? 'data-go="modify"' : `data-rental="${id}"`}><span class="ph" style="background:${it.bg}"><img src="${S(it.img)}" alt=""></span>
+    <span class="tx"><b>${it.name}</b><small>${money(it.price)}/mo · 366 E Duffy Street, Apt B</small><span class="bar"><i style="width:${k * 100}%"></i></span><span class="dates"><span>${a}</span><span>${b}</span></span></span><span class="go">${ICON.arrow}</span></button>`; }).join("")}
+  <div style="height:60px"></div></div>`;
 
 /* ---------- AR: In your home (drag, scale, rotate) and View in 3D (spin) ---------- */
 PAGES.ar = () => { const a = state.ar, c = COLORS[a.color];
@@ -959,7 +1142,8 @@ const bindAR = (w) => {
 };
 
 /* ---------- checkout totals follow the cart ---------- */
-const renderCheckout = (el) => {
+const renderCheckout = () => { if (els.checkout) render("checkout"); };
+const renderCheckoutOld = (el) => {
   const t = total(), box = (x, y, w, h, html, extra = "") => `<div style="position:absolute;left:${x}px;top:${y}px;width:${w}px;height:${h}px;background:#fff;display:flex;align-items:center;justify-content:flex-end;font-size:12px;${extra}">${html}</div>`;
   el.querySelector("#co").innerHTML = box(230, 155, 92, 18, money(t)) + box(226, 278, 98, 19, money(t), "font-weight:700;font-size:13px") +
     `<div style="position:absolute;left:146px;top:396px;width:40px;height:18px;background:#fff;font-size:12px;line-height:18px">${state.card}</div>` +
