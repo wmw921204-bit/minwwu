@@ -506,6 +506,10 @@
   .setcar { left: 0 !important; top: 0 !important; width: 402px !important; height: 340px !important; border-radius: 0 !important; }
   .scr[data-testid=sh-set] .back.glass { left: 20px; top: 58px; } .scr[data-testid=sh-set] .heart { left: 336px; top: 58px; } .scr[data-testid=sh-set] .chip-rate { left: 74px; top: 68px; }
   .scr[data-testid=sh-set] .setdots { top: 290px !important; }
+
+  /* cut-outs get the whole hero, so neither the piece nor its shadow ever meets a box edge */
+  .pd-img.cut { left: 0 !important; top: 40px !important; width: 402px !important; height: 330px !important; }
+  .pd-img.cut img { left: 56px !important; top: 34px !important; width: 290px !important; height: 250px !important; filter: drop-shadow(0 14px 14px rgba(0,0,0,.12)); }
 </style>
 </head>
 <body>
