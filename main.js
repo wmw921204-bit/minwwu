@@ -274,7 +274,7 @@ if (charts.length) {
 }
 
 /* ---------- Drag-to-explore gallery ---------- */
-$$(".gallery__track").forEach((track) => {
+$$(".gallery__track, [data-drag]").forEach((track) => {
   let down = false;
   let startX = 0;
   let startScroll = 0;
@@ -1223,7 +1223,7 @@ $$("[data-flip]").forEach((flip) => {
   if (!imgs.length) return;
 
   const groupOf = (img) => {
-    const own = "[data-deck], [data-flip], .gallery__track";
+    const own = "[data-deck], [data-flip], .gallery__track, [data-drag]";
     const box = img.closest(own) || img.closest("section") || main;
     return $$("img", box).filter(zoomable).filter((i) => box.matches(own) || !i.closest(own));
   };
@@ -1355,7 +1355,7 @@ $$("[data-flip]").forEach((flip) => {
   // hook the page images up
   // images that sit inside another interaction (drag galleries) don't zoom on click;
   // an Enlarge button outside the images opens the one in view instead
-  const dragBox = ".gallery__track";
+  const dragBox = ".gallery__track, [data-drag]";
   imgs.forEach((img) => {
     if (img.closest("[data-deck], [data-flip]")) return; // decks and books open from their own button
     if (img.closest(dragBox)) return;

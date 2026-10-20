@@ -916,7 +916,9 @@ img.is-zoomable { cursor: zoom-in; }
 .zen-pipe p { color: var(--c-muted); line-height: 1.55; font-size: 15px; }
 
 .zen-scroll { margin-top: 44px; overflow-x: auto; overscroll-behavior-x: contain; scrollbar-width: thin; padding: 0 max(var(--gutter), calc((100vw - 1440px) / 2 + var(--gutter))) 14px; }
-.zen-scroll img { display: block; height: clamp(220px, 26vw, 315px); width: auto; max-width: none; border-radius: 14px; }
+.zen-scroll { cursor: grab; }
+.zen-scroll.is-dragging { cursor: grabbing; }
+.zen-scroll img { user-select: none; -webkit-user-drag: none; display: block; height: clamp(220px, 26vw, 315px); width: auto; max-width: none; border-radius: 14px; }
 
 
 @media (max-width: 900px) {
