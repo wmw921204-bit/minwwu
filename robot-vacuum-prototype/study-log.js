@@ -265,7 +265,9 @@
         <div class="st-eyebrow" style="margin-top:16px">Your task</div><div class="st-task">${h(SCRIPT.opening)}</div>
         <div class="st-row"><button data-s="endx">End</button></div>`;
     }else if(p.phase==='guided'){
-      const shown=p.tasks.filter(x=>x.phase==='guided'&&x.result!=='not available').length,total=shown+p.queue.length,n=shown+1;
+      // later tasks that can't be done in the app's current state are left out of the count
+      const left=p.queue.filter((id,i)=>i===0||!byId(id).can||byId(id).can()).length;
+      const shown=p.tasks.filter(x=>x.phase==='guided'&&x.result!=='not available').length,total=shown+left,n=shown+1;
       if(p.justDone)s+=`<div class="st-done">Done</div><p class="st-m">On to the next one.</p>`;
       else if(p.run){const T=byId(p.run.id);
         s+=`<div class="st-eyebrow">${n===1?'The cleaning is done · ':''}Task ${n} of ${total}</div><div class="st-task">${h(T.ask)}</div>
