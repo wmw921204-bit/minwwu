@@ -3,7 +3,9 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=402, initial-scale=1">
+<link rel="icon" href="data:,">
 <title>Kohler wellness app prototype</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Red+Hat+Display:wght@300;400;500&display=swap">
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
   html, body { width: 402px; height: 874px; overflow: hidden; background: #000507; font-family: -apple-system, system-ui, sans-serif; }
@@ -20,8 +22,11 @@
   .page > img { display: block; width: 402px; user-select: none; -webkit-user-drag: none; }
   .bar { position: absolute; left: 0; bottom: 0; width: 402px; height: 110px; background-size: 402px auto; background-position: 0 100%; z-index: 5; }
   .top { position: absolute; left: 0; top: 0; width: 402px; height: 54px; background-size: 402px auto; background-position: 0 0; z-index: 5; pointer-events: none; }
-  .cut { position: absolute; background-size: 402px auto; opacity: 0; transition: opacity .2s; pointer-events: none; z-index: 4; }
+  .cut { position: absolute; background-size: 402px auto; opacity: 0; transition: opacity .25s ease, transform .35s cubic-bezier(.3,1.4,.5,1), box-shadow .35s; pointer-events: none; z-index: 4; border-radius: 15px; }
   .cut.is-on { opacity: 1; }
+  .cut.is-pop { transform: scale(1.06); box-shadow: 0 14px 30px rgba(0,0,0,.45); z-index: 5; }
+  .cut--btn { border-radius: 24px; }
+  .hs[aria-pressed] { border-radius: 15px; }
   .hs { position: absolute; border: 0; background: transparent; cursor: pointer; border-radius: 14px; z-index: 6; }
   .hs:focus-visible { outline: 2px solid #5fd6ca; outline-offset: 2px; }
   .hs:active { background: rgba(95,214,202,.12); }
@@ -33,17 +38,63 @@
   .pop img { display: block; width: 100%; border-radius: 14px; }
   .toast { position: absolute; left: 50%; bottom: 120px; z-index: 80; transform: translate(-50%, 14px); opacity: 0; max-width: 330px; padding: 11px 18px; border-radius: 22px; background: rgba(13,40,40,.94); border: 1px solid rgba(95,214,202,.3); color: #e8f6f4; font-size: 13px; line-height: 1.35; text-align: center; transition: .3s; pointer-events: none; width: max-content; }
   .toast.is-on { opacity: 1; transform: translate(-50%, 0); }
-  /* the brand intro is a swipeable carousel */
-  .intro { position: absolute; inset: 0; overflow: hidden; touch-action: pan-y; cursor: grab; }
-  .intro__t { display: flex; height: 100%; transition: transform .5s cubic-bezier(.25,.8,.25,1); }
-  .intro__t img { flex: none; width: 402px; height: 874px; user-select: none; -webkit-user-drag: none; }
+  /* the brand intro crossfades, so the Start button never moves */
+  .intro { position: absolute; inset: 0; overflow: hidden; touch-action: pan-y; }
+  .intro img { position: absolute; inset: 0; width: 402px; height: 874px; opacity: 0; transform: scale(1.04); transition: opacity 1.1s ease, transform 6s ease-out; user-select: none; -webkit-user-drag: none; }
+  .intro img.is-on { opacity: 1; transform: scale(1); }
   /* a live ring over the ritual dial, so the countdown visibly moves */
   .ring { position: absolute; left: 30.5px; top: 177.6px; width: 340px; height: 340px; z-index: 4; pointer-events: none; }
   .ring circle { fill: none; stroke: #f2fbfa; stroke-width: 5.5; stroke-linecap: round; transform: rotate(-90deg); transform-origin: 50% 50%; filter: drop-shadow(0 0 6px rgba(255,255,255,.6)); }
   .breathe { animation: breathe 4s ease-in-out infinite; }
   @keyframes breathe { 50% { transform: scale(1.03); } }
-  .spin-loader { position: absolute; left: 151px; top: 380px; width: 100px; height: 100px; border-radius: 50%; z-index: 4; pointer-events: none; box-shadow: 0 0 0 0 rgba(95,214,202,.55); animation: ping 1.4s ease-out infinite; }
-  @keyframes ping { to { box-shadow: 0 0 0 46px rgba(95,214,202,0); } }
+  /* searching: the orb breathes and sends out water rings */
+  .search-fx { position: absolute; left: 0; top: 0; width: 402px; height: 874px; pointer-events: none; z-index: 4; }
+  .search-fx i { position: absolute; left: 201px; top: 438px; width: 112px; height: 112px; margin: -56px 0 0 -56px; border-radius: 50%; border: 1px solid rgba(160,215,220,.55); animation: ring 2.8s cubic-bezier(.2,.6,.3,1) infinite; opacity: 0; }
+  .search-fx i:nth-child(2) { animation-delay: .93s; } .search-fx i:nth-child(3) { animation-delay: 1.86s; }
+  .search-fx b { position: absolute; left: 201px; top: 438px; width: 114px; height: 114px; margin: -57px 0 0 -57px; border-radius: 50%; background: radial-gradient(circle, #050c10 0%, #1b3b40 55%, #5d8e8c 100%); animation: orb 2.8s ease-in-out infinite; }
+  @keyframes ring { 0% { transform: scale(1); opacity: .9; } 100% { transform: scale(3.2, 2.2); opacity: 0; } }
+  @keyframes orb { 50% { transform: scale(1.08); filter: brightness(1.2); } }
+  /* the app's overlapping-circle motif, redrawn so it can breathe */
+  .flower { position: absolute; left: 0; top: 0; width: 402px; height: 874px; pointer-events: none; z-index: 4; }
+  .flower__bg { position: absolute; left: -40px; top: 172px; width: 482px; height: 480px; background: #04101a; -webkit-mask-image: radial-gradient(closest-side, #000 82%, transparent 100%); mask-image: radial-gradient(closest-side, #000 82%, transparent 100%); }
+  .flower svg { position: absolute; left: 201px; top: 412px; width: 360px; height: 360px; margin: -180px 0 0 -180px; overflow: visible; animation: spin 40s linear infinite; }
+  .flower circle { fill: none; stroke: rgba(130,185,200,.5); stroke-width: 1; transform-box: fill-box; transform-origin: center; animation: petal 4s ease-in-out infinite; animation-delay: calc(var(--i) * -.6s); }
+  .flower__t { position: absolute; left: 0; right: 0; top: 400px; text-align: center; font: 400 20px "Red Hat Display", system-ui, sans-serif; color: #f1f7f8; letter-spacing: .01em; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  @keyframes petal { 50% { transform: scale(1.08); stroke: rgba(150,215,225,.75); } }
+  .badge-dots { position: absolute; left: 224px; top: 480px; width: 34px; height: 34px; border-radius: 50%; background: #5d8a9a; display: grid; place-items: center; z-index: 4; pointer-events: none; }
+  .badge-dots span { display: flex; gap: 3px; } .badge-dots span i { width: 3.5px; height: 3.5px; border-radius: 50%; background: #e8f2f5; animation: dot 1s ease-in-out infinite; } .badge-dots span i:nth-child(2) { animation-delay: .15s; } .badge-dots span i:nth-child(3) { animation-delay: .3s; }
+  @keyframes dot { 50% { transform: translateY(-3px); opacity: .5; } }
+  .fade-in { animation: fadeUp .6s ease both; }
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(10px); } }
+  /* sliders and other live controls drawn over the design */
+  .patch { position: absolute; background-size: 402px auto; pointer-events: none; z-index: 4; }
+  .sld { position: absolute; z-index: 6; height: 30px; cursor: pointer; touch-action: none; }
+  .sld__track { position: absolute; left: 0; right: 0; top: 13px; height: 4px; border-radius: 2px; background: rgba(160,175,185,.28); }
+  .sld__fill { position: absolute; left: 0; top: 13px; height: 4px; border-radius: 2px; background: #3a9d97; }
+  .sld__thumb { position: absolute; top: 5px; width: 20px; height: 20px; margin-left: -10px; border-radius: 50%; background: #fff; box-shadow: 0 2px 6px rgba(0,0,0,.4); transition: transform .15s; }
+  .sld:active .sld__thumb { transform: scale(1.15); }
+  .val { position: absolute; z-index: 5; font: 400 13px "Red Hat Display", system-ui, sans-serif; color: rgba(220,230,235,.7); text-align: right; pointer-events: none; }
+  .bigtime { position: absolute; left: 40px; right: 40px; top: 393px; text-align: center; font: 300 54px/1 "Red Hat Display", system-ui, sans-serif; letter-spacing: .02em; color: #f4f8f9; z-index: 5; pointer-events: none; font-variant-numeric: tabular-nums; }
+  .uline { position: absolute; height: 2px; border-radius: 1px; background: #f0f6f7; z-index: 5; transition: left .35s cubic-bezier(.3,1.2,.5,1), width .35s; pointer-events: none; }
+  .tabcover { position: absolute; z-index: 4; pointer-events: none; }
+  .dimcard { position: absolute; z-index: 5; border-radius: 16px; background: rgba(3,10,13,.72); opacity: 0; transition: opacity .35s; pointer-events: none; }
+  .dimcard.is-on { opacity: 1; }
+  /* sheets */
+  .sheet { position: absolute; left: 0; right: 0; bottom: 0; z-index: 70; padding: 18px 20px 34px; border-radius: 24px 24px 0 0; background: #0d1d23; border-top: 1px solid rgba(160,200,210,.18); transform: translateY(100%); transition: transform .4s cubic-bezier(.25,.8,.25,1); font-family: "Red Hat Display", system-ui, sans-serif; color: #eaf3f5; }
+  .sheet.is-on { transform: none; }
+  .sheet h4 { font-weight: 500; font-size: 18px; margin: 6px 0 14px; }
+  .sheet .grab { width: 40px; height: 4px; border-radius: 2px; background: rgba(255,255,255,.25); margin: 0 auto 8px; }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; }
+  .chips button { font: 400 15px "Red Hat Display", system-ui, sans-serif; color: #dfeaee; background: #172a33; border: 1px solid rgba(190,215,225,.2); border-radius: 12px; padding: 11px 14px; cursor: pointer; transition: background .2s, transform .2s; }
+  .chips button:active { transform: scale(.96); }
+  .chips button.is-on { background: #24414e; border-color: rgba(220,240,245,.75); color: #fff; }
+  .sheet input { width: 100%; padding: 12px 14px; border-radius: 12px; border: 1px solid rgba(190,215,225,.25); background: #142630; color: #fff; font: 400 16px "Red Hat Display", system-ui, sans-serif; outline: none; }
+  .results { margin-top: 12px; display: grid; gap: 4px; max-height: 330px; overflow: auto; }
+  .results button { text-align: left; padding: 13px 12px; border-radius: 10px; border: 0; background: transparent; color: #e5eff2; font: 400 16px "Red Hat Display", system-ui, sans-serif; cursor: pointer; display: flex; justify-content: space-between; }
+  .results button:hover, .results button:active { background: #172a33; }
+  .results small { color: #8aa3ab; }
+  .sheet .done { margin-top: 18px; width: 100%; padding: 13px; border-radius: 24px; border: 0; background: #3a8b8a; color: #fff; font: 500 16px "Red Hat Display", system-ui, sans-serif; cursor: pointer; }
 </style>
 </head>
 <body>
@@ -61,22 +112,25 @@ const back = { x: 6, y: 66, w: 52, h: 48, back: 1, label: "Back" };
 const bottomBtn = (y, go, label, extra = {}) => ({ x: 20, y, w: 362, h: 50, go, label, ...extra });
 
 /* h = page height in points (402-wide frame) */
+const BTN_L = (go, label = "Skip") => ({ x: 21, y: 772, w: 168, h: 48, go, label });
 const SCREENS = {
   intro: { h: 874, intro: true, hs: [{ x: 24, y: 705, w: 354, h: 74, go: "signin", label: "Start" }] },
   signin: { h: 874, hs: [
     { x: 18, y: 320, w: 364, h: 64, act: "terms", label: "Continue with Email" }, { x: 18, y: 410, w: 364, h: 64, act: "terms", label: "Continue with Google" },
-    { x: 18, y: 502, w: 364, h: 62, act: "terms", label: "Continue with Apple" }, { x: 18, y: 588, w: 364, h: 62, act: "terms", label: "Sign in as guest" }] },
+    { x: 18, y: 502, w: 364, h: 62, act: "terms", label: "Continue with Apple" }, { x: 18, y: 588, w: 364, h: 62, act: "terms", label: "Sign in as guest" },
+    { x: 110, y: 676, w: 190, h: 38, act: "terms", label: "Other Sign-In Options" }] },
   wear: { h: 874, hs: [back, { x: 213, y: 773, w: 170, h: 50, go: "wearsearch", label: "Connect" }, { x: 21, y: 773, w: 168, h: 50, go: "asp0", label: "Skip" }] },
-  wearsearch: { h: 874, auto: ["wearlist", 1700], loader: true, hs: [back] },
-  wearlist: { h: 874, hs: [back, { x: 21, y: 725, w: 168, h: 48, go: "asp0", label: "Skip" }],
-    sel: { src: "wearpick", items: [{ x: 21, y: 303, w: 361, h: 62, label: "Garmin Fenix 7" }], enable: { x: 214, y: 725, w: 168, h: 48, go: "wearok", label: "Connect" } } },
+  wearsearch: { h: 874, auto: ["wearlist", 2600], search: true, hs: [back] },
+  wearlist: { h: 874, appear: [{ x: 21, y: 303, w: 361, h: 62 }], hs: [back, { x: 21, y: 725, w: 168, h: 48, go: "asp0", label: "Skip" }, { x: 140, y: 785, w: 150, h: 30, act: "help", label: "Help" }],
+    sel: { src: "wearpick", single: true, items: [{ x: 21, y: 303, w: 361, h: 62, label: "Garmin Fenix 7" }], enable: { x: 214, y: 725, w: 168, h: 48, go: "wearok", label: "Connect" } } },
   wearok: { h: 874, hs: [back, { x: 21, y: 725, w: 361, h: 48, go: "asp0", label: "Continue" }] },
-  asp0: { h: 874, hs: [back, { x: 21, y: 772, w: 168, h: 48, go: "allset", label: "Skip" }],
-    sel: { src: "asp2", items: [{ x: 21, y: 307, w: 171, h: 100, label: "Deeper Sleep" }, { x: 210, y: 307, w: 171, h: 100, label: "Lower Fatigue" }], enable: { x: 213, y: 772, w: 168, h: 48, go: "allset", label: "Done" } } },
-  allset: { h: 874, hs: [{ x: 20, y: 772, w: 362, h: 48, act: "home", label: "Get Started" }] },
+  asp0: { h: 874, hs: [back, BTN_L("allset"), { x: 20, y: 549, w: 362, h: 66, act: "addAsp", label: "Add Aspiration" }],
+    sel: { src: "asp0_on", items: [{x: 20, y: 186, w: 173, h: 104, label: "Mental Clarity"}, {x: 209, y: 186, w: 173, h: 104, label: "Decrease Stress"}, {x: 20, y: 306, w: 173, h: 104, label: "Deeper Sleep"}, {x: 209, y: 306, w: 173, h: 104, label: "Lower Fatigue"}, {x: 20, y: 426, w: 173, h: 104, label: "Feel Younger"}, {x: 209, y: 426, w: 173, h: 104, label: "Bounce Back"}], enable: { x: 213, y: 772, w: 168, h: 48, src: "asp2", go: "allset", label: "Done" } } },
+  allset: { h: 874, hs: [back, { x: 20, y: 772, w: 362, h: 48, act: "home", label: "Get Started" }] },
 
   today: { h: 2195, tab: "today", hs: [
     { x: 20, y: 200, w: 60, h: 75, go: "shower", label: "Shower quick start" }, { x: 100, y: 200, w: 75, h: 75, tab: "learn", label: "Find More" },
+    { x: 340, y: 145, w: 52, h: 34, act: "editQuick", label: "Edit quick start" }, { x: 300, y: 708, w: 92, h: 36, tab: "learn", label: "View More" },
     { x: 60, y: 760, w: 340, h: 80, go: "capability", label: "Contrast Therapy" }, { x: 140, y: 845, w: 120, h: 125, go: "capability", label: "Contrast Therapy image" },
     { x: 108, y: 1083, w: 252, h: 50, go: "comp0", label: "Compose Products (Contrast Therapy)" }, { x: 40, y: 1083, w: 58, h: 50, act: "save", label: "Save" },
     { x: 60, y: 1180, w: 340, h: 70, go: "capability", label: "Hydrotherapy" },
@@ -84,64 +138,74 @@ const SCREENS = {
     { x: 20, y: 1625, w: 362, h: 88, go: "ritual", label: "Default Red Light" }, { x: 20, y: 1730, w: 362, h: 90, go: "ritual", label: "Contrast Ritual 1" },
     { x: 20, y: 1840, w: 362, h: 200, go: "pasp", label: "Wellness Aspirations" }] },
   capability: { h: 1608, hs: [back, { x: 20, y: 478, w: 362, h: 64, go: "recovery", label: "Muscle Recovery" }, { x: 20, y: 562, w: 362, h: 64, go: "recovery", label: "Circulation Boost" },
-    { x: 20, y: 646, w: 362, h: 64, go: "recovery", label: "Inflammation Reduction" }, { x: 136, y: 913, w: 130, h: 38, act: "soon", label: "Read More" },
-    { x: 260, y: 1120, w: 112, h: 32, go: "shower", label: "View Product" }, { x: 260, y: 1280, w: 112, h: 32, act: "soon", label: "View Product (Sauna)" },
-    { x: 260, y: 1440, w: 112, h: 32, act: "soon", label: "View Product (Ice Bath)" }, { x: 20, y: 1496, w: 362, h: 50, go: "comp0", label: "Compose Products" }] },
+    { x: 20, y: 646, w: 362, h: 64, go: "recovery", label: "Inflammation Reduction" }, { x: 136, y: 913, w: 130, h: 38, act: "readMore", label: "Read More" },
+    { x: 260, y: 1120, w: 112, h: 32, go: "shower", label: "View Product" }, { x: 260, y: 1280, w: 112, h: 32, tab: "products", label: "View Product (Sauna)" },
+    { x: 260, y: 1440, w: 112, h: 32, tab: "products", label: "View Product (Ice Bath)" }, { x: 20, y: 1496, w: 362, h: 50, go: "comp0", label: "Compose Products" }] },
   comp0: { h: 874, hs: [back],
-    sel: { src: "comp1", items: [{ x: 140, y: 395, w: 120, h: 120, label: "Shower" }], enable: { x: 20, y: 772, w: 362, h: 48, go: "comp2", how: "none", label: "Continue" } } },
-  comp2: { h: 874, auto: ["comp3", 1500], hs: [back] },
+    sel: { src: "comp1", single: true, items: [{ x: 140, y: 395, w: 120, h: 120, label: "Shower", round: true }], enable: { x: 20, y: 772, w: 362, h: 48, go: "comp2", how: "none", label: "Continue" } } },
+  comp2: { h: 874, auto: ["comp3", 1800], dots: true, hs: [back] },
   comp3: { h: 874, hs: [back, { x: 20, y: 772, w: 362, h: 48, go: "ritual", label: "Continue" }] },
-  ritual: { h: 874, img: "genritual", crop: 1022, pad: 190, top: 118, foot: 186, hs: [{ ...back, fixed: 1 }, { x: 330, y: 66, w: 64, h: 44, act: "soon", label: "Edit", fixed: 1 },
+  ritual: { h: 874, img: "genritual", crop: 1022, pad: 190, top: 118, foot: 186, hs: [{ ...back, fixed: 1 }, { x: 330, y: 66, w: 64, h: 44, act: "editRitual", label: "Edit", fixed: 1 },
     { x: 20, y: 712, w: 362, h: 52, act: "start", label: "Start · 26 min", fixed: 1 }, { x: 20, y: 778, w: 362, h: 52, act: "saveLater", label: "Save for later", fixed: 1 },
     { x: 100, y: 175, w: 322, h: 320, go: "shower", label: "Wellness Shower" }, { x: 100, y: 625, w: 322, h: 320, go: "shower", label: "Wellness Shower (cold)" }] },
-  run0: { h: 874, run: 0, hs: [{ x: 20, y: 772, w: 362, h: 48, act: "stop", label: "Stop" }] },
+  run0: { h: 874, run: 0, flower: "Starting in", count: 3, hs: [{ x: 20, y: 772, w: 362, h: 48, act: "stop", label: "Stop" }] },
   run1: { h: 874, run: 1, ring: [59, 59], hs: [back, { x: 20, y: 708, w: 362, h: 48, act: "stop", label: "Stop" }, { x: 20, y: 772, w: 362, h: 48, act: "pause", label: "Pause" }] },
   run2: { h: 874, run: 2, ring: [600, 600], hs: [back, { x: 20, y: 708, w: 362, h: 48, act: "stop", label: "Stop" }, { x: 20, y: 772, w: 362, h: 48, act: "pause", label: "Pause" }] },
   run3: { h: 874, run: 3, ring: [120, 120], hs: [back, { x: 20, y: 708, w: 362, h: 48, act: "stop", label: "Stop" }, { x: 20, y: 772, w: 362, h: 48, act: "pause", label: "Pause" }] },
   done_share: { h: 874, hs: [{ x: 20, y: 772, w: 362, h: 48, act: "home", label: "Go Home" }, { x: 30, y: 130, w: 340, h: 70, act: "shared", label: "Share" }] },
   done: { h: 874, hs: [{ x: 20, y: 772, w: 362, h: 48, act: "home", label: "Go Home" }, { x: 350, y: 70, w: 44, h: 40, go: "done_share", how: "none", label: "Share" }] },
 
-  learn: { h: 1258, tab: "learn", hs: [{ x: 0, y: 345, w: 402, h: 295, go: "recovery", label: "Muscle Recovery" },
-    { x: 18, y: 708, w: 192, h: 266, go: "capability", label: "Contrast Therapy" }, { x: 18, y: 120, w: 366, h: 50, act: "soon", label: "Search" }] },
+  learn: { h: 1258, tab: "learn", hs: [{ x: 18, y: 125, w: 366, h: 46, act: "search", label: "Search" }, { x: 330, y: 300, w: 62, h: 32, go: "recovery", label: "See All goals" },
+    { x: 0, y: 345, w: 402, h: 295, go: "recovery", label: "Muscle Recovery" }, { x: 330, y: 664, w: 62, h: 32, go: "capability", label: "See All capabilities" },
+    { x: 20, y: 710, w: 173, h: 262, go: "capability", label: "Contrast Therapy" }, { x: 209, y: 710, w: 173, h: 141, go: "capability", label: "Programmable Thermal Shower" },
+    { x: 209, y: 868, w: 173, h: 104, go: "capability", label: "Aromatherapy" }, { x: 20, y: 990, w: 362, h: 140, go: "capability", label: "Red Light Therapy" }] },
   recovery: { h: 1170, hs: [back, { x: 18, y: 240, w: 366, h: 62, go: "capability", label: "Contrast Therapy" }, { x: 38, y: 440, w: 326, h: 48, go: "shower", label: "View Products" },
     { x: 38, y: 712, w: 326, h: 48, go: "shower", label: "View Products" }, { x: 38, y: 1004, w: 326, h: 48, go: "shower", label: "View Products" }] },
 
-  room: { h: 1428, tab: "products", hs: [{ x: 20, y: 668, w: 362, h: 140, go: "shower", label: "KOHLER Wellness Shower" }, { x: 360, y: 70, w: 40, h: 40, act: "soon", label: "Add" }] },
-  shower: { h: 1234, hs: [back, { x: 210, y: 132, w: 120, h: 44, go: "showerctl", how: "none", label: "Controls" }, { x: 18, y: 487, w: 190, h: 102, go: "capability", label: "Contrast Therapy" }] },
-  showerctl: { h: 1311, hs: [back, { x: 60, y: 132, w: 140, h: 44, go: "shower", how: "none", label: "Description" }, { x: 20, y: 245, w: 172, h: 122, go: "showerctl1", how: "none", label: "Rainhead 1" }] },
-  showerctl1: { h: 1311, hs: [back, { x: 60, y: 132, w: 140, h: 44, go: "shower", how: "none", label: "Description" }, { x: 20, y: 245, w: 172, h: 122, go: "rainhead", label: "Rainhead 1" }, { x: 20, y: 578, w: 362, h: 130, go: "showerctl2", how: "none", label: "Steam" }] },
-  showerctl2: { h: 1311, hs: [back, { x: 60, y: 132, w: 140, h: 44, go: "shower", how: "none", label: "Description" }, { x: 20, y: 245, w: 172, h: 122, go: "rainhead", label: "Rainhead 1" }] },
+  room: { h: 1428, tab: "products", hs: [{ x: 20, y: 668, w: 362, h: 140, go: "shower", label: "KOHLER Wellness Shower" }, { x: 352, y: 70, w: 44, h: 40, act: "addProduct", label: "Add" },
+    { x: 120, y: 68, w: 130, h: 42, act: "homes", label: "Home 1" }, { x: 36, y: 522, w: 46, h: 46, act: "rooms", label: "Previous room" }, { x: 320, y: 522, w: 46, h: 46, act: "rooms", label: "Next room" },
+    { x: 310, y: 836, w: 80, h: 32, go: "others", label: "View All profiles" }, { x: 20, y: 918, w: 362, h: 152, go: "pinfo", label: "Daniel" }, { x: 20, y: 1128, w: 362, h: 152, act: "private", label: "Sarah" }] },
+  shower: { h: 1234, hs: [back, { x: 210, y: 132, w: 120, h: 44, go: "showerctl", how: "none", label: "Controls" }, { x: 316, y: 440, w: 76, h: 32, tab: "learn", label: "View More" },
+    { x: 20, y: 487, w: 173, h: 98, go: "capability", label: "Contrast Therapy" }, { x: 209, y: 487, w: 173, h: 98, go: "capability", label: "Red Light Therapy" },
+    { x: 20, y: 605, w: 173, h: 98, go: "capability", label: "Aromatherapy" }, { x: 209, y: 605, w: 173, h: 98, go: "capability", label: "Hydrotherapy" },
+    { x: 20, y: 776, w: 148, h: 34, go: "recovery", label: "Muscle Recovery" }, { x: 174, y: 776, w: 96, h: 34, act: "goalInfo", label: "Skincare" }, { x: 280, y: 776, w: 92, h: 34, act: "goalInfo", label: "Haircare" },
+    { x: 20, y: 886, w: 362, h: 56, act: "support", label: "Help Center" }, { x: 20, y: 942, w: 362, h: 56, act: "support", label: "Activity Log" },
+    { x: 20, y: 999, w: 362, h: 56, act: "support", label: "Water Usage" }, { x: 20, y: 1055, w: 362, h: 56, act: "support", label: "How It Works" }, { x: 20, y: 1112, w: 362, h: 56, act: "support", label: "Maintenance" }] },
+  showerctl: { h: 1311, ctl: true, hs: [back, { x: 40, y: 132, w: 140, h: 44, go: "shower", how: "none", label: "Description" }, { x: 20, y: 245, w: 173, h: 120, go: "showerctl1", how: "none", label: "Rainhead 1" }] },
+  showerctl1: { h: 1311, ctl: true, hs: [back, { x: 40, y: 132, w: 140, h: 44, go: "shower", how: "none", label: "Description" }, { x: 20, y: 245, w: 173, h: 120, go: "rainhead", label: "Rainhead 1" }] },
   rainhead: { h: 874, hs: [back, { x: 18, y: 328, w: 50, h: 46, go: "rainhead0", how: "none", label: "Lower temperature" }] },
   rainhead0: { h: 874, hs: [back, { x: 335, y: 328, w: 50, h: 46, go: "rainhead", how: "none", label: "Raise temperature" }] },
 
-  rituals: { h: 947, tab: "rituals", hs: [{ x: 358, y: 68, w: 40, h: 44, act: "addpop", label: "Add ritual" }, { x: 30, y: 210, w: 340, h: 70, go: "ritual", label: "Default Red Light" },
-    { x: 50, y: 427, w: 315, h: 48, act: "start", label: "Start · 30 min" }, { x: 30, y: 530, w: 340, h: 70, go: "ritual", label: "Contrast Ritual 1" }, { x: 50, y: 742, w: 315, h: 48, act: "start", label: "Start · 39 min" }] },
-  q5: { h: 874, hs: [back, { x: 20, y: 772, w: 168, h: 48, go: "q2", label: "Skip" }],
-    sel: { src: "q1", items: [{ x: 20, y: 222, w: 172, h: 92, label: "Energized" }], enable: { x: 212, y: 772, w: 170, h: 48, go: "q2", label: "Continue" } } },
-  q2: { h: 874, hs: [back, { x: 20, y: 772, w: 168, h: 48, go: "q3", label: "Skip" }],
-    sel: { src: "q6", items: [{ x: 20, y: 338, w: 172, h: 92, label: "Sore" }], enable: { x: 212, y: 772, w: 170, h: 48, go: "q3", label: "Continue" } } },
-  q3: { h: 874, hs: [back, { x: 20, y: 772, w: 168, h: 48, go: "q8", label: "Skip" }],
-    sel: { src: "q7", items: [{ x: 20, y: 222, w: 172, h: 92, label: "Muscle Recovery" }], enable: { x: 212, y: 772, w: 170, h: 48, go: "q8", label: "Continue" } } },
-  q8: { h: 874, hs: [back, { x: 212, y: 772, w: 170, h: 48, go: "gen", label: "Continue" }, { x: 20, y: 772, w: 168, h: 48, go: "gen", label: "Skip" }] },
-  gen: { h: 874, auto: ["genok", 1800], hs: [] },
-  genok: { h: 874, auto: ["genritual", 1100], hs: [] },
+  rituals: { h: 947, tab: "rituals", filters: true, hs: [{ x: 352, y: 68, w: 44, h: 44, act: "addpop", label: "Add ritual" }, { x: 20, y: 203, w: 362, h: 110, go: "ritual", label: "Default Red Light" },
+    { x: 43, y: 427, w: 316, h: 48, act: "start", label: "Start · 30 min" }, { x: 20, y: 519, w: 362, h: 110, go: "ritual", label: "Contrast Ritual 1" }, { x: 43, y: 742, w: 316, h: 48, act: "start", label: "Start · 39 min" }] },
+  q5: { h: 874, hs: [back, BTN_L("q2"), { x: 20, y: 572, w: 362, h: 68, act: "addFeeling", label: "Add Feeling" }],
+    sel: { src: "q5_on", items: [{x: 20, y: 222, w: 173, h: 92, label: "Energized"}, {x: 209, y: 222, w: 173, h: 92, label: "Great"}, {x: 20, y: 338, w: 173, h: 92, label: "Calm"}, {x: 209, y: 338, w: 173, h: 92, label: "Anxious"}, {x: 20, y: 454, w: 173, h: 92, label: "Sad"}, {x: 209, y: 454, w: 173, h: 92, label: "Tired"}], enable: { x: 212, y: 772, w: 170, h: 48, src: "q1", go: "q2", label: "Continue" } } },
+  q2: { h: 874, hs: [back, BTN_L("q3"), { x: 20, y: 572, w: 362, h: 68, act: "addFeeling", label: "Add Feeling" }],
+    sel: { src: "q2_on", items: [{x: 20, y: 222, w: 173, h: 92, label: "Relaxed"}, {x: 209, y: 222, w: 173, h: 92, label: "Light"}, {x: 20, y: 338, w: 173, h: 92, label: "Sore"}, {x: 209, y: 338, w: 173, h: 92, label: "Tense"}, {x: 20, y: 454, w: 173, h: 92, label: "Tired"}, {x: 209, y: 454, w: 173, h: 92, label: "Bloated"}], enable: { x: 212, y: 772, w: 170, h: 48, src: "q6", go: "q3", label: "Continue" } } },
+  q3: { h: 874, hs: [back, BTN_L("q4")],
+    sel: { src: "q3_on", items: [{x: 20, y: 222, w: 173, h: 92, label: "Muscle Recovery"}, {x: 209, y: 222, w: 173, h: 92, label: "Hair Care"}, {x: 20, y: 338, w: 173, h: 92, label: "Skin Care"}, {x: 209, y: 338, w: 173, h: 92, label: "Performance"}], enable: { x: 212, y: 772, w: 170, h: 48, src: "q7", go: "q4", label: "Continue" } } },
+  q4: { h: 874, time: true, hs: [back, { x: 212, y: 772, w: 170, h: 48, go: "gen", how: "fade", label: "Continue" }, BTN_L("gen")] },
+  gen: { h: 874, auto: ["genok", 2400], flower: "Generating…", hs: [] },
+  genok: { h: 874, auto: ["genritual", 1200], flower: "Complete", hs: [] },
   genritual: { h: 1202, hs: [{ x: 6, y: 66, w: 52, h: 48, act: "toRituals", label: "Back" }, { x: 20, y: 1035, w: 362, h: 50, act: "start", label: "Start · 26 min" }, { x: 20, y: 1100, w: 362, h: 50, act: "saveLater", label: "Save for later" }] },
 
   profile: { h: 1408, tab: "profile", hs: [{ x: 20, y: 255, w: 362, h: 64, go: "pinfo", label: "Personal Info" }, { x: 20, y: 393, w: 362, h: 58, go: "pritual", label: "My Rituals" },
     { x: 20, y: 452, w: 362, h: 58, go: "pasp", label: "Wellness Aspirations" }, { x: 20, y: 511, w: 362, h: 60, go: "others", label: "View Other Profiles" },
     { x: 20, y: 655, w: 362, h: 60, go: "privacy", label: "Privacy" }, { x: 20, y: 716, w: 362, h: 60, go: "notifs", label: "Notifications" },
     { x: 20, y: 777, w: 362, h: 60, go: "voice", label: "Voice Connect" }, { x: 20, y: 838, w: 362, h: 60, go: "myproducts", label: "My Kohler Products" },
-    { x: 20, y: 978, w: 362, h: 80, go: "connected", label: "Connected Devices & Apps" }] },
+    { x: 20, y: 978, w: 362, h: 80, go: "connected", label: "Connected Devices & Apps" }, { x: 20, y: 1140, w: 362, h: 58, act: "support", label: "Help Center" },
+    { x: 20, y: 1200, w: 362, h: 58, act: "signOut", label: "Sign Out" }] },
   pinfo: { h: 1013, hs: [back] },
   pritual: { h: 1180, hs: [back] },
   pasp: { h: 874, hs: [back] },
-  others: { h: 874, hs: [back, { x: 20, y: 130, w: 362, h: 105, go: "psebastian", label: "Sebastian" }] },
+  others: { h: 874, hs: [back, { x: 20, y: 130, w: 362, h: 105, go: "psebastian", label: "Sebastian" }, { x: 20, y: 250, w: 362, h: 105, act: "private", label: "Sarah" },
+    { x: 20, y: 370, w: 362, h: 105, act: "private", label: "Kai" }, { x: 20, y: 490, w: 362, h: 105, act: "private", label: "Lily" }, { x: 20, y: 620, w: 362, h: 68, act: "addProfile", label: "Add New Profile" }] },
   psebastian: { h: 874, hs: [back] },
   privacy: { h: 874, hs: [back] }, notifs: { h: 874, hs: [back] }, voice: { h: 874, hs: [back] }, connected: { h: 874, hs: [back] }, myproducts: { h: 874, hs: [back] },
 };
 const POPS = {
   terms: { img: "terms", x: 58, y: 264, w: 286, h: 346, hs: [{ x: 29, y: 195, w: 226, h: 54, act: "agree", label: "Agree" }, { x: 29, y: 266, w: 226, h: 56, act: "close", label: "Cancel" }] },
-  addpop: { img: "addpop", x: 205, y: 108, w: 183, h: 112, light: true, hs: [{ x: 0, y: 0, w: 183, h: 56, act: "soon", label: "Create My Own" }, { x: 0, y: 56, w: 183, h: 56, act: "smart", label: "Smart Generate" }] },
+  addpop: { img: "addpop", x: 205, y: 108, w: 183, h: 112, light: true, hs: [{ x: 0, y: 0, w: 183, h: 56, act: "createOwn", label: "Create My Own" }, { x: 0, y: 56, w: 183, h: 56, act: "smart", label: "Smart Generate" }] },
   paused: { img: "paused", x: 69, y: 326, w: 264, h: 223, hs: [{ x: 60, y: 146, w: 144, h: 44, act: "resume", label: "Resume" }] },
   stopask: { img: "stopask", x: 20, y: 322, w: 362, h: 231, hs: [{ x: 18, y: 152, w: 156, h: 44, act: "close", label: "No, Keep Going" }, { x: 186, y: 152, w: 156, h: 44, act: "stopYes", label: "Yes, Stop" }] },
 };
@@ -157,7 +221,7 @@ const make = (id) => {
   const s = SCREENS[id], el = document.createElement("div");
   el.className = "scr" + (s.tab ? " tabbed" : ""); el.dataset.testid = "kh-" + id;
   if (s.intro) {
-    el.innerHTML = `<div class="intro"><div class="intro__t">${[1, 2, 3, 4].map((i) => `<img src="${S("intro" + i)}" alt="" draggable="false">`).join("")}</div></div>`;
+    el.innerHTML = `<div class="intro">${[1, 2, 3, 4].map((i) => `<img src="${S("intro" + i)}" alt="" draggable="false"${i === 1 ? ' class="is-on"' : ""}>`).join("")}</div>`;
     bindIntro(el);
     s.hs.forEach((x) => el.append(btn(x)));
   } else {
@@ -182,32 +246,86 @@ const make = (id) => {
       BAR_HS.forEach((x) => { const b = btn(x); b.style.zIndex = 7; el.append(b); });
     }
     if (s.ring) el.insertAdjacentHTML("beforeend", `<svg class="ring" viewBox="0 0 340 340"><circle class="ring__track" cx="170" cy="170" r="166.5" style="stroke:#19333f;stroke-width:7;filter:none"/><circle cx="170" cy="170" r="166.5" pathLength="1000" stroke-dasharray="0 1000"/></svg>`);
-    if (s.loader) el.insertAdjacentHTML("beforeend", `<i class="spin-loader"></i>`);
+    if (s.search) el.insertAdjacentHTML("beforeend", `<div class="search-fx"><i></i><i></i><i></i><b></b></div>`);
+    if (s.dots) el.insertAdjacentHTML("beforeend", `<div class="badge-dots"><span><i></i><i></i><i></i></span></div>`);
+    if (s.flower) {
+      const R = 70, c = [[0, 0]].concat([0, 1, 2, 3, 4, 5].map((k) => [Math.cos(k * Math.PI / 3 + Math.PI / 6) * R, Math.sin(k * Math.PI / 3 + Math.PI / 6) * R]));
+      el.insertAdjacentHTML("beforeend", `<div class="flower"><div class="flower__bg"></div><svg viewBox="-180 -180 360 360">${c.map(([x, y], i) => `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${R}" style="--i:${i}"/>`).join("")}</svg><p class="flower__t">${s.flower}${s.count ? " 3…" : ""}</p></div>`);
+    }
+    if (s.appear) s.appear.forEach((r) => { const pg = el.querySelector(".page"); const d = document.createElement("div"); d.className = "patch"; d.style.cssText = `left:${r.x}px;top:${r.y}px;width:${r.w}px;height:${r.h}px;background:#020b10;transition:opacity .6s .5s`; pg.append(d); el._appear = d; });
+    if (s.time) bindTime(el);
+    if (s.filters) bindFilters(el);
+    if (s.ctl) bindControls(el, id);
   }
   app.append(el); els[id] = el; return el;
 };
-/* tiles that toggle on and off independently: the selected look is cut from the design's selected state */
+/* tiles that toggle on and off independently; the selected look comes from the design's own selected style.
+   A tapped tile lifts forward and settles, as in the presentation film */
 const bindSel = (sel, page, id) => {
   const on = new Set();
-  const cut = (r) => { const d = document.createElement("div"); d.className = "cut"; d.style.cssText = `left:${r.x}px;top:${r.y}px;width:${r.w}px;height:${r.h}px;background-image:url(${S(sel.src)});background-position:${-r.x}px ${-r.y}px`; page.append(d); return d; };
-  const go = sel.enable ? cut(sel.enable) : null; let goBtn = null;
-  if (go) { goBtn = btn({ ...sel.enable, label: sel.enable.label || "Continue" }); goBtn.hidden = true; page.append(goBtn); }
+  const cut = (r, src) => { const d = document.createElement("div"); d.className = "cut"; d.style.cssText = `left:${r.x}px;top:${r.y}px;width:${r.w}px;height:${r.h}px;background-image:url(${S(src)});background-position:${-r.x}px ${-r.y}px` + (r.round ? ";border-radius:50%" : ""); page.append(d); return d; };
+  const go = sel.enable ? cut(sel.enable, sel.enable.src || sel.src) : null; let goBtn = null;
+  if (go) { go.classList.add("cut--btn"); goBtn = btn({ ...sel.enable, label: sel.enable.label || "Continue" }); goBtn.hidden = true; page.append(goBtn); }
+  const cuts = [], btns = [];
   sel.items.forEach((r, i) => {
-    const c = cut(r); const b = btn({ ...r, act: null, go: null });
-    b.setAttribute("aria-pressed", "false");
-    b.onclick = (e) => { e.stopPropagation(); on.has(i) ? on.delete(i) : on.add(i); c.classList.toggle("is-on", on.has(i)); b.setAttribute("aria-pressed", on.has(i));
-      if (go) { go.classList.toggle("is-on", on.size > 0); goBtn.hidden = !on.size; } };
-    page.append(b);
+    const c = cut(r, sel.src); const b = btn({ ...r, act: null, go: null });
+    b.setAttribute("aria-pressed", "false"); if (r.round) b.style.borderRadius = "50%";
+    b.onclick = (e) => {
+      e.stopPropagation();
+      if (sel.single && !on.has(i)) { on.forEach((j) => { cuts[j].classList.remove("is-on"); btns[j].setAttribute("aria-pressed", "false"); }); on.clear(); }
+      on.has(i) ? on.delete(i) : on.add(i);
+      c.classList.toggle("is-on", on.has(i)); b.setAttribute("aria-pressed", on.has(i));
+      if (on.has(i)) { c.classList.add("is-pop"); setTimeout(() => c.classList.remove("is-pop"), 260); }
+      if (go) { go.classList.toggle("is-on", on.size > 0); goBtn.hidden = !on.size; }
+    };
+    cuts.push(c); btns.push(b); page.append(b);
   });
 };
+/* time limit: drag the slider, the clock follows (10 to 80 minutes, in steps of 5) */
+const bindTime = (el) => {
+  const pg = el.querySelector(".page");
+  pg.insertAdjacentHTML("beforeend", `<div class="patch" style="left:60px;top:388px;width:282px;height:112px;background:#01070a"></div><div class="bigtime">00:30:00</div><div class="sld" style="left:75px;top:466px;width:253px"><div class="sld__track"></div><div class="sld__fill"></div><div class="sld__thumb"></div></div>`);
+  const sld = pg.querySelector(".sld"), fill = sld.querySelector(".sld__fill"), th = sld.querySelector(".sld__thumb"), t = pg.querySelector(".bigtime");
+  const set = (f) => { f = Math.max(0, Math.min(1, f)); const m = Math.round((10 + f * 70) / 5) * 5; const g = (m - 10) / 70; fill.style.width = g * 100 + "%"; th.style.left = g * 100 + "%"; t.textContent = `00:${String(m).padStart(2, "0")}:00`; };
+  set((30 - 10) / 70);
+  let drag = false; const at = (e) => { const r = sld.getBoundingClientRect(); set((e.clientX - r.left) / r.width); };
+  sld.addEventListener("pointerdown", (e) => { drag = true; sld.setPointerCapture(e.pointerId); at(e); });
+  sld.addEventListener("pointermove", (e) => drag && at(e)); sld.addEventListener("pointerup", () => (drag = false));
+};
+/* My Rituals filters: the underline moves and rituals that don't match fade back */
+const bindFilters = (el) => {
+  const pg = el.querySelector(".page"), tabs = [["All", 22, 40], ["Cleanse", 95, 68], ["Recover", 197, 66], ["Enhance", 296, 74]];
+  pg.insertAdjacentHTML("beforeend", `<div class="patch" style="left:14px;top:166px;width:70px;height:5px;background-image:url(${S("rituals")});background-position:-14px -171px"></div><i class="uline" style="left:26px;top:167px;width:30px"></i><div class="dimcard" style="left:20px;top:519px;width:362px;height:293px"></div>`);
+  const ul = pg.querySelector(".uline"), dim = pg.querySelector(".dimcard");
+  tabs.forEach(([n, x, w], i) => { const b = btn({ x, y: 136, w, h: 32, label: n }); b.onclick = (e) => { e.stopPropagation(); ul.style.left = x + 4 + "px"; ul.style.width = w - 8 + "px"; dim.classList.toggle("is-on", n === "Recover"); }; pg.append(b); });
+};
+/* shower controls: every head opens its control, every slider drags, presets can be added */
+const bindControls = (el, id) => {
+  const pg = el.querySelector(".page");
+  [[209, 245, "Rainhead 2"], [20, 385, "Body Spray"], [209, 385, "Hand Shower"]].forEach(([x, y, n]) => { const b = btn({ x, y, w: 173, h: 120, go: "rainhead", label: n }); pg.append(b); });
+  if (id === "showerctl1") { /* Rainhead 1 is already on here */ }
+  const sliders = [[677, 651, "Steam"], [822, 796, "Aroma"], [967, 941, "Brightness"], [1031, 1005, "Warmth"], [1095, 1069, "Hue"]];
+  sliders.forEach(([ty, oy, n]) => {
+    pg.insertAdjacentHTML("beforeend", `<div class="patch" style="left:38px;top:${ty - 12}px;width:30px;height:24px;background-image:url(${S(id)});background-position:-200px ${-(ty - 12)}px"></div>
+      <div class="patch" style="left:318px;top:${oy - 11}px;width:50px;height:22px;background-image:url(${S(id)});background-position:-250px ${-(oy - 11)}px"></div>
+      <span class="val" style="left:300px;top:${oy - 9}px;width:62px">Off</span>
+      <div class="sld" style="left:45px;top:${ty - 15}px;width:326px" aria-label="${n}"><div class="sld__track" style="opacity:0"></div><div class="sld__fill"></div><div class="sld__thumb"></div></div>`);
+    const sl = pg.querySelectorAll(".sld"), sld = sl[sl.length - 1], vals = pg.querySelectorAll(".val"), val = vals[vals.length - 1];
+    const fill = sld.querySelector(".sld__fill"), th = sld.querySelector(".sld__thumb");
+    const set = (f) => { f = Math.max(0, Math.min(1, f)); fill.style.width = f * 100 + "%"; th.style.left = f * 100 + "%"; val.textContent = f < .02 ? "Off" : Math.round(f * 100) + "%"; val.style.color = f < .02 ? "" : "#e8f3f5"; };
+    set(0); let drag = false; const at = (e) => { const r = sld.getBoundingClientRect(); set((e.clientX - r.left) / r.width); };
+    sld.addEventListener("pointerdown", (e) => { e.stopPropagation(); drag = true; sld.setPointerCapture(e.pointerId); at(e); });
+    sld.addEventListener("pointermove", (e) => drag && at(e)); sld.addEventListener("pointerup", () => (drag = false));
+  });
+  pg.append(btn({ x: 330, y: 1150, w: 60, h: 34, act: "presets", label: "Edit presets" }), btn({ x: 20, y: 1193, w: 362, h: 64, act: "presets", label: "Add a Preset" }));
+};
 const bindIntro = (el) => {
-  const t = el.querySelector(".intro__t"), box = el.querySelector(".intro"); let i = 0, d = null, auto;
-  const go = (n) => { i = (n + 4) % 4; t.style.transform = `translateX(${-402 * i}px)`; };
-  const loop = () => { clearInterval(auto); auto = setInterval(() => { if (cur === "intro") go(i + 1); }, 3600); };
-  box.addEventListener("pointerdown", (e) => { d = { x: e.clientX }; t.style.transition = "none"; });
-  box.addEventListener("pointermove", (e) => { if (!d) return; t.style.transform = `translateX(${-402 * i + (e.clientX - d.x)}px)`; });
-  const end = (e) => { if (!d) return; const dx = e.clientX - d.x; d = null; t.style.transition = ""; go(i + (dx < -50 ? 1 : dx > 50 ? -1 : 0)); loop(); };
-  box.addEventListener("pointerup", end); box.addEventListener("pointercancel", end);
+  const imgs = el.querySelectorAll(".intro img"), box = el.querySelector(".intro"); let i = 0, d = null, auto;
+  const go = (n) => { imgs[i].classList.remove("is-on"); i = (n + 4) % 4; imgs[i].classList.add("is-on"); };
+  const loop = () => { clearInterval(auto); auto = setInterval(() => { if (cur === "intro" && !document.hidden) go(i + 1); }, 3800); };
+  box.addEventListener("pointerdown", (e) => { d = e.clientX; });
+  const end = (e) => { if (d === null) return; const dx = e.clientX - d; d = null; if (Math.abs(dx) > 40) { go(i + (dx < 0 ? 1 : -1)); loop(); } };
+  box.addEventListener("pointerup", end); box.addEventListener("pointercancel", () => (d = null));
   loop();
 };
 
@@ -215,7 +333,7 @@ const bindIntro = (el) => {
 const show = (id, how = "push") => {
   const next = make(id), prev = cur && els[cur];
   if (prev === next) return;
-  closePop(true);
+  closePop(true); closeSheet(true);
   clearTimeout(autoTimer); stopRun();
   const sc = next.querySelector(".sc"); if (sc && how !== "none" && how !== "back") sc.scrollTop = 0;
   Object.values(els).forEach((e) => { if (e !== prev && e !== next) { e.className = e.className.replace(/ is-\w+| dim/g, ""); e.style.transform = ""; e.style.opacity = ""; } });
@@ -230,6 +348,7 @@ const show = (id, how = "push") => {
   const s = SCREENS[id];
   if (s.auto) autoTimer = setTimeout(() => { if (cur === id) show(s.auto[0], "none"); }, s.auto[1]);
   if (s.run !== undefined) startRun(id);
+  if (els[id]._appear) { const a = els[id]._appear; a.style.transition = "none"; a.style.opacity = 1; void a.offsetWidth; a.style.transition = ""; a.style.opacity = 0; }
 };
 const act = (h) => {
   if (h.back) { show(stack.pop() || "today", "back"); return; }
@@ -260,7 +379,7 @@ const closePop = (now) => {
 };
 
 /* ---------- the ritual runs on its own: a ring sweeps each step, then the next step comes in ---------- */
-const RUN = ["run0", "run1", "run2", "run3"], STEP_MS = [2600, 4200, 4200, 4200];
+const RUN = ["run0", "run1", "run2", "run3"], STEP_MS = [3000, 4200, 4200, 4200];
 let runStart = 0, runLeft = 0;
 const stopRun = () => { cancelAnimationFrame(runTimer); runTimer = 0; };
 const startRun = (id) => {
@@ -271,6 +390,7 @@ const startRun = (id) => {
     if (!paused) {
       const k = Math.min(1, 1 - (runLeft - (t - runStart)) / STEP_MS[SCREENS[id].run]);
       if (circle) circle.setAttribute("stroke-dasharray", `${(k * 1000).toFixed(1)} 1000`);
+      if (SCREENS[id].count) { const n = Math.max(1, 3 - Math.floor(k * 3)); const tx = els[id].querySelector(".flower__t"); const v = `Starting in ${n}…`; if (tx.textContent !== v) tx.textContent = v; }
       if (t - runStart >= runLeft) { const i = SCREENS[id].run; show(i < 3 ? RUN[i + 1] : "done", "none"); return; }
     }
     runTimer = requestAnimationFrame(tick);
@@ -280,14 +400,50 @@ const startRun = (id) => {
 const pauseRun = () => { if (paused) return; paused = true; runLeft -= performance.now() - runStart; };
 const resumeRun = () => { if (!paused) return; paused = false; runStart = performance.now(); };
 
+/* bottom sheets for things the design leaves to a follow-up screen */
+let sheetEl = null;
+const sheet = (html, wire) => {
+  closeSheet(true);
+  const v = document.createElement("div"); v.className = "veil"; v.style.zIndex = 69; v.onclick = () => closeSheet();
+  const sh = document.createElement("div"); sh.className = "sheet"; sh.innerHTML = `<div class="grab"></div>` + html;
+  app.append(v, sh); sheetEl = [v, sh]; requestAnimationFrame(() => { v.classList.add("is-on"); sh.classList.add("is-on"); });
+  if (wire) wire(sh);
+};
+const closeSheet = (now) => { if (!sheetEl) return; const [v, sh] = sheetEl; sheetEl = null; if (now) { v.remove(); sh.remove(); return; } v.classList.remove("is-on"); sh.classList.remove("is-on"); setTimeout(() => { v.remove(); sh.remove(); }, 400); };
+const chipSheet = (title, items, done) => sheet(`<h4>${title}</h4><div class="chips">${items.map((t) => `<button type="button">${t}</button>`).join("")}</div><button class="done" type="button">Add</button>`, (sh) => {
+  sh.querySelectorAll(".chips button").forEach((b) => (b.onclick = () => b.classList.toggle("is-on")));
+  sh.querySelector(".done").onclick = () => { const n = sh.querySelectorAll(".chips .is-on").length; closeSheet(); toast(n ? done(n) : "Nothing added"); };
+});
+const SEARCH = [["Muscle Recovery", "Wellness goal", "recovery"], ["Contrast Therapy", "Capability", "capability"], ["Hydrotherapy", "Capability", "capability"], ["Red Light Therapy", "Capability", "capability"], ["Aromatherapy", "Capability", "capability"], ["Programmable Thermal Shower", "Capability", "capability"], ["KOHLER Wellness Shower", "Product", "shower"]];
 const actions = {
+  help: () => sheet(`<h4>Not seeing your device?</h4><p style="color:#9fb4ba;line-height:1.5">Make sure Bluetooth is on and your watch is awake and nearby, then search again.</p><button class="done" type="button">Search again</button>`, (sh) => (sh.querySelector(".done").onclick = () => { closeSheet(); show("wearsearch", "none"); })),
+  addAsp: () => chipSheet("Add an aspiration", ["Better Focus", "Healthy Skin", "Pain Relief", "Stronger Immunity", "Better Mood"], (n) => `${n} aspiration${n > 1 ? "s" : ""} added`),
+  addFeeling: () => chipSheet("Add a feeling", ["Restless", "Focused", "Overwhelmed", "Grateful", "Stiff"], (n) => `${n} feeling${n > 1 ? "s" : ""} added`),
+  editQuick: () => chipSheet("Quick Start shortcuts", ["Shower", "Bath", "Steam", "Sauna", "Cold Plunge"], () => "Quick Start updated"),
+  readMore: () => { const sc = els[cur].querySelector(".sc"); sc.scrollTo({ top: 980, behavior: "smooth" }); },
+  editRitual: () => sheet(`<h4>Edit ritual</h4><div class="results"><button type="button">Warm shower <small>100°F · 10 min</small></button><button type="button">Cold shower <small>55°F · 2 min</small></button><button type="button">Rest <small>2 min</small></button></div><button class="done" type="button">Done</button>`, (sh) => (sh.querySelector(".done").onclick = () => closeSheet())),
+  search: () => sheet(`<h4>Search</h4><input type="search" placeholder="Search goals, capabilities, products" autocomplete="off"><div class="results"></div>`, (sh) => {
+    const inp = sh.querySelector("input"), res = sh.querySelector(".results");
+    const draw = () => { const q = inp.value.trim().toLowerCase(); res.innerHTML = SEARCH.filter(([n]) => !q || n.toLowerCase().includes(q)).map(([n, k, go]) => `<button type="button" data-go="${go}">${n}<small>${k}</small></button>`).join("") || `<p style="color:#8aa3ab;padding:12px">No results</p>`;
+      res.querySelectorAll("button").forEach((b) => (b.onclick = () => { closeSheet(); stack.push(cur); show(b.dataset.go); })); };
+    inp.oninput = draw; draw(); setTimeout(() => inp.focus({ preventScroll: true }), 420);
+  }),
+  addProduct: () => chipSheet("Add a product", ["Bath", "Steam", "Sauna", "Cold Plunge", "Toilet"], (n) => `${n} product${n > 1 ? "s" : ""} added to this room`),
+  homes: () => sheet(`<h4>Homes</h4><div class="results"><button type="button">Home 1 <small>Current</small></button><button type="button">Lake House <small>2 rooms</small></button></div>`, (sh) => sh.querySelectorAll(".results button").forEach((b) => (b.onclick = () => closeSheet()))),
+  rooms: () => toast("Master Bathroom is the only room set up so far"),
+  private: (h) => toast(`${h.label}'s profile is private`),
+  goalInfo: (h) => toast(`${h.label}: rituals for this goal are coming soon`),
+  support: (h) => sheet(`<h4>${h.label}</h4><p style="color:#9fb4ba;line-height:1.5">Opens Kohler support for your Wellness Shower.</p><button class="done" type="button">Close</button>`, (sh) => (sh.querySelector(".done").onclick = () => closeSheet())),
+  signOut: () => { stack = []; show("intro", "fade"); },
+  addProfile: () => chipSheet("Who is joining?", ["Partner", "Child", "Parent", "Guest"], () => "Invite sent"),
+  createOwn: () => { closePop(); stack.push(cur); show("ritual"); },
+  presets: () => chipSheet("Save a preset", ["Morning Rinse", "Post-Workout", "Evening Wind-Down"], () => "Preset saved"),
   terms: () => openPop("terms"),
   agree: () => { closePop(); stack.push(cur); show("wear"); },
   close: () => { if (popEl && popEl.dataset.testid === "kh-ov-stopask") resumeRun(); closePop(); },
   home: () => { stack = []; show("today", "fade"); },
   save: () => toast("Saved to My Rituals"),
   saveLater: () => { toast("Saved for later"); stack = []; show("rituals", "fade"); },
-  soon: () => toast("Not part of this walkthrough"),
   start: () => { stack.push(cur); show("run0", "up"); },
   pause: () => { pauseRun(); openPop("paused"); },
   resume: () => { closePop(); resumeRun(); },
