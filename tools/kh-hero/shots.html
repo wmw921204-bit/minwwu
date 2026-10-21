@@ -22,6 +22,7 @@
 </style></head>
 <body>
 <div class="bg"></div>
+<svg id="fx" width="1920" height="1080" viewBox="0 0 1920 1080" style="position:absolute;inset:0"></svg>
 <div class="stage" id="stage"></div>
 <div class="type" id="type"></div>
 <div class="vig"></div><div class="grain" id="grain"></div>
@@ -34,9 +35,11 @@ const stage = document.getElementById("stage"), type = document.getElementById("
 const ph = document.createElement("div"); ph.className = "ph";
 const scr = document.createElement("div"); scr.className = "scr"; ph.append(scr); stage.append(ph);
 const k = 380 / 402; // screen inside the 11px bezel
+const FX = { O: { w: [960, 990], f: [960, 520, 270] }, A: { w: [1160, 1010], f: [1160, 520, 300] }, B: { w: [660, 1010], f: [660, 540, 300] }, C: { w: [1240, 1050], f: [1250, 640, 360] } };
 const S = {
   A: { img: "today", text: "Your day, read.<small>From your wearable</small>", tx: [330, 360], gx: "68%", dur: 3.8 },
   B: { img: "capability", text: "A ritual,<br>composed.<small>From what you own</small>", tx: [1080, 380], gx: "32%", dur: 3.6 },
+  O: { img: "today", text: "", tx: [0, 0], gx: "50%", dur: 4.2 },
   C: { img: "run1", text: "The space,<br>prepared.<small>Before you step in</small>", tx: [330, 380], gx: "62%", dur: 3.8 },
 }[shot];
 document.querySelector(".bg").style.setProperty("--gx", S.gx);
@@ -48,14 +51,52 @@ if (shot === "C") {
   ringC = document.getElementById("rc");
 }
 const glare = document.createElement("div"); glare.className = "glare"; scr.append(glare);
+const sides = [];
+if (shot === "O") {
+  for (const n of ["learn", "rituals"]) {
+    const p2 = document.createElement("div"); p2.className = "ph"; const s2 = document.createElement("div"); s2.className = "scr";
+    const i2 = document.createElement("img"); i2.src = IMG(n); s2.append(i2); const g2 = document.createElement("div"); g2.className = "glare"; s2.append(g2);
+    p2.append(s2); stage.insertBefore(p2, ph); sides.push([p2, g2]);
+  }
+  const top = document.createElement("div"); top.style.cssText = `position:absolute;left:0;top:0;width:100%;height:${56 * k}px;background:url(${IMG("today")}) 0 0/100% auto;z-index:2`; scr.append(top);
+  const bar = document.createElement("div"); bar.style.cssText = `position:absolute;left:0;bottom:0;width:100%;height:${110 * k}px;background:url(${IMG("today")}) 0 100%/100% auto;z-index:2`; scr.append(bar);
+}
 type.innerHTML = S.text; type.style.left = S.tx[0] + "px"; type.style.top = S.tx[1] + "px";
+const NS = "http://www.w3.org/2000/svg", fx = document.getElementById("fx");
+const mk = (tag, a) => { const e = document.createElementNS(NS, tag); for (const k in a) e.setAttribute(k, a[k]); fx.append(e); return e; };
+const rings = Array.from({ length: 7 }, () => mk("ellipse", { fill: "none", stroke: "#5fd6ca", "stroke-width": 1.3 }));
+const flower = document.createElementNS(NS, "g"); fx.append(flower);
+const petals = Array.from({ length: 13 }, () => { const c = document.createElementNS(NS, "circle"); c.setAttribute("fill", "none"); c.setAttribute("stroke", "#9fe6de"); c.setAttribute("stroke-width", 1); flower.append(c); return c; });
+function drawFx(t) {
+  const F = FX[shot], [wx, wy] = F.w, P = 4.2;
+  // ripples spreading over a water plane beneath the phone
+  rings.forEach((r, i) => { const f = ((t / P) + i / rings.length) % 1, R = 40 + f * 1150;
+    r.setAttribute("cx", wx); r.setAttribute("cy", wy); r.setAttribute("rx", R); r.setAttribute("ry", R * 0.22);
+    r.setAttribute("opacity", (Math.pow(1 - f, 1.4) * 0.8 * Math.min(1, f * 6)).toFixed(3)); });
+  // the app's overlapping-circle motif, thin, turning slowly and breathing
+  const [fxx, fyy, R0] = F.f, R = R0 * (1 + Math.sin(t * 1.1) * 0.03);
+  const pts = [[0, 0], ...Array.from({ length: 6 }, (_, i) => [Math.cos(i * Math.PI / 3) * R, Math.sin(i * Math.PI / 3) * R]), ...Array.from({ length: 6 }, (_, i) => [Math.cos(i * Math.PI / 3 + Math.PI / 6) * R * 1.732, Math.sin(i * Math.PI / 3 + Math.PI / 6) * R * 1.732])];
+  petals.forEach((c, i) => { c.setAttribute("cx", pts[i][0]); c.setAttribute("cy", pts[i][1]); c.setAttribute("r", R); c.setAttribute("opacity", i < 7 ? 0.28 : 0.12); });
+  flower.setAttribute("transform", `translate(${fxx} ${fyy}) rotate(${t * 5})`);
+}
 function setT(t) {
+  drawFx(t);
   const p = t / S.dur, e = ease(p);
   let x, y, sc, ry, rx, rz;
   if (shot === "A") { sc = lerp(1.62, 1.74, e); x = lerp(1180, 1150, e); y = lerp(560, 520, e); ry = lerp(-24, -16, e); rx = 6; rz = 0; img.style.transform = `translateY(${-lerp(0, 120, ease((t - .6) / 3)) * k}px)`; }
   if (shot === "B") { sc = lerp(1.7, 1.82, e); x = lerp(640, 660, e); y = lerp(600, 560, e); ry = lerp(22, 15, e); rx = 5; rz = 0; img.style.transform = `translateY(${-lerp(0, 330, ease((t - .3) / 3.2)) * k}px)`; }
+  if (shot === "O") {
+    // wide: the whole app, three screens; the camera then pushes into the middle one
+    const push = ease((t - 1.6) / 2.6);
+    sc = lerp(0.98, 1.0, e) * lerp(1, 1.55, push); x = 960; y = lerp(560, 600, push); ry = lerp(-8, -2, e); rx = lerp(6, 3, e); rz = 0;
+    sides.forEach(([p2, g2], i) => { const dir = i ? 1 : -1;
+      const sx = 960 + dir * lerp(470, 760, push), ss = lerp(0.86, 1.1, push);
+      p2.style.transform = `translate(${sx - 201}px, ${lerp(600, 640, push) - 437}px) translateZ(-300px) scale(${ss}) rotateY(${dir * lerp(-16, -24, push)}deg) rotateX(5deg)`;
+      p2.style.opacity = 1 - push * 0.85; p2.style.filter = `brightness(${lerp(.55, .35, push)}) blur(${push * 6}px)`; g2.style.backgroundPosition = `${lerp(110, -10, e)}% 0`; });
+  }
   if (shot === "C") { sc = lerp(2.5, 2.7, e); x = lerp(1250, 1230, e); y = lerp(1060, 1030, e); ry = lerp(-14, -9, e); rx = 4; rz = 0;
     ringC.setAttribute("stroke-dasharray", `${(ease((t - .4) / 3.2) * 1000).toFixed(1)} 1000`); }
+  y += Math.sin(t * 1.3) * 8; ry += Math.sin(t * 0.9) * 1.5;
   ph.style.transform = `translate(${x - 201}px, ${y - 437}px) scale(${sc}) rotateY(${ry}deg) rotateX(${rx}deg) rotateZ(${rz}deg)`;
   glare.style.backgroundPosition = `${lerp(110, -10, e)}% 0`;
   // type rises in, letter-spacing relaxes
