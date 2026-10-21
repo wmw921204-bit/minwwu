@@ -359,7 +359,8 @@ button.tile{font:inherit;width:100%}
 .notice{position:absolute;left:14px;right:14px;top:54px;z-index:25;background:var(--glass);border:1px solid var(--glass-line);backdrop-filter:blur(22px);-webkit-backdrop-filter:blur(22px);border-radius:22px;padding:12px 14px;display:flex;gap:12px;align-items:center;box-shadow:0 18px 40px -16px rgba(20,30,80,.45);font-size:14px;line-height:1.35}
 .notice .body{flex:1}
 /* tapping anywhere on the notice does what its button does */
-.notice .btn{position:static}.notice .btn::after{content:"";position:absolute;inset:0;border-radius:22px}
+.notice .btn{position:static}
+.notice.dec{padding-left:40px}.notice-x{position:absolute;z-index:2;left:6px;top:50%;transform:translateY(-50%);width:30px;height:30px;border:0;border-radius:50%;background:transparent;color:var(--muted);display:grid;place-items:center}.notice .btn::after{content:"";position:absolute;inset:0;border-radius:22px}
 
 .modal-bg{position:absolute;inset:0;background:rgba(12,16,34,.38);backdrop-filter:blur(3px);z-index:40;display:flex;align-items:flex-end}
 .modal{background:var(--bg);width:100%;border-radius:32px 32px 0 0;padding:14px 20px 28px;max-height:90%;overflow:auto}
@@ -561,6 +562,7 @@ const I={
   activity:'<path d="M3 12h4l3-7 4 14 3-7h4"/>',
   settings:'<path d="M4 7h9M18 7h2M4 17h3M12 17h8"/><circle cx="15.5" cy="7" r="2.5"/><circle cx="9.5" cy="17" r="2.5"/>',
   back:'<path d="M15 5l-7 7 7 7"/>',
+  x:'<path d="M6 6l12 12M18 6L6 18"/>',
   chev:'<path d="M9 5l7 7-7 7"/>',
   check:'<path d="M5 12.5l4.5 4.5L19 7.5"/>',
   alert:'<path d="M12 7.5v6M12 16.8v.2"/><circle cx="12" cy="12" r="9"/>',
@@ -762,8 +764,13 @@ function notice(ev){
   if(ev.later&&!ev.reminded)return; // asked to be reminded later
   if(S.ui.away){pushLock({id:ev.id,title:noticeTitle(ev),body:SHORT[ev.key]?SHORT[ev.key].q:DEFS[ev.key].title});return}
   if(quietNow()){if(!S.missed.includes(ev.id))S.missed.push(ev.id);return}
-  S.ui.notice=ev.id;clearTimeout(notice.t);notice.t=setTimeout(()=>{S.ui.notice=null;nextBanner();commit()},NOTICE_MS);
+  // decision notices wait in line and stay until opened or closed, so a newer one never swaps itself in under a finger
+  const q=S.ui.decQ||(S.ui.decQ=[]);if(!q.includes(ev.id))q.push(ev.id);commit();
 }
+/* the decision notice to show: the oldest one still worth answering */
+function decHead(){const q=S.ui.decQ||(S.ui.decQ=[]);
+  S.ui.decQ=q.filter(id=>{const e=findEvent(id);return e&&!e.archived&&!e.later&&(e.status==='needsReview'||(e.autonomous&&!e.changed))});
+  return S.ui.decQ.length?findEvent(S.ui.decQ[0]):null}
 function laterLabel(ev){return !ev.later?'':ev.later.task?'After this cleaning':'At '+atLabel(ev.later.until)}
 function checkReminders(){
   const t=nowT();
@@ -1093,7 +1100,9 @@ function evItem(ev){
   const d=DEFS[ev.key];const icC=ev.status==='resolved'||ev.status==='info'?'ok':ev.status==='skipped'?'gray':ev.status==='inProgress'?'blue':'warn';
   const icN=ev.status==='resolved'?'check':ev.status==='skipped'?'skip':ev.status==='inProgress'?'robot':ev.status==='info'?'robot':'alert';
   const room=ROOM[ZONES[d.zone].room].name;
-  return `<button class="item" data-a="openEvent" data-v="${ev.id}"><span class="ico ${icC}">${ic(icN,20)}</span><span class="body"><span class="t">${esc(ev.suggest&&ev.status==='needsReview'?'Extra pass suggested':d.title)}</span><span class="s">${room} · ${mine?'You chose: '+esc(SHORT[ev.key].labels[ev.lastAct]||ev.lastAct)+' · ':''}${hhmm(ev.at)}${ev.retryFailed?' · retry didn’t work':''}</span></span>${mine?'<span class="pill edit">Change</span>':`<span class="pill ${ev.status}">${ev.status==='info'&&!ev.autonomous?'Done':stLabel(ev)}</span>`}</button>`;
+  // once answered, the row says what they chose instead of repeating the robot's open question
+  const ans=ev.lastAct&&ev.status!=='needsReview'&&SHORT[ev.key]?SHORT[ev.key].labels[ev.lastAct]||'':'';
+  return `<button class="item" data-a="openEvent" data-v="${ev.id}"><span class="ico ${icC}">${ic(icN,20)}</span><span class="body"><span class="t">${ans?'You chose: '+esc(ans):esc(ev.suggest&&ev.status==='needsReview'?'Extra pass suggested':d.title)}</span><span class="s">${ans?esc(SHORT[ev.key].q)+' · ':''}${room} · ${hhmm(ev.at)}${ev.retryFailed?' · retry didn’t work':''}</span></span>${mine?'<span class="pill edit">Change</span>':`<span class="pill ${ev.status}">${ev.status==='info'&&!ev.autonomous?'Done':ev.status==='inProgress'&&running()?'Robot is on it':stLabel(ev)}</span>`}</button>`;
 }
 /* Your own choice that can still be changed: skipped, put off, or marked no-go. */
 function userMadeEv(ev){return !ev.archived&&!(ev.autonomous&&!ev.changed)&&!!ev.lastAct&&(['skipped','deferred'].includes(ev.status)||(ev.status==='resolved'&&ev.lastAct==='nogo'))}
@@ -1241,10 +1250,11 @@ function scrEvent(id){
   else if(ev.status==='inProgress')h+=`<p class="ev-line">The robot is heading there now.</p>`;
   else if(ev.outcome&&(!active||isAuto))h+=`<p class="ev-line">${esc(ev.outcome)}</p>`;
   else h+=`<p class="ev-line">${esc(sh.line)}</p>`;
-  if(userMade)h+=`<div class="mode-note">${ic('check',18)}<span>You chose <b>${esc(sh.labels[ev.lastAct]||ev.lastAct)}</b>. Pick another option below to change it.</span></div>`;
+  const docking=S.device.status==='returning';
+  if(userMade)h+=`<div class="mode-note">${ic('check',18)}<span>You chose <b>${esc(sh.labels[ev.lastAct]||ev.lastAct)}</b>${docking?'.':'. Pick another option below to change it.'}</span></div>`;
   // an extra pass that's already done (or the cleaning is over) can't be changed any more: say so instead of pointing at options
   const spent=d.type==='decision'&&ev.status==='info'&&(!running()||!S.sim.queue.some(x=>x.kind==='extra'));
-  if(isAuto)h+=`<div class="mode-note">${ic('robot',18)}<span>Robot chose <b>${esc(ev.autoChoice?sh.labels[ev.autoChoice]:'your saved preference')}</b>${ev.status==='inProgress'?' and is on it now':spent?'. It has already done this, so there’s nothing left to change. You can turn extra passes off in Saved preferences.':'. Pick another option below to change it.'}</span></div>`;
+  if(isAuto)h+=`<div class="mode-note">${ic('robot',18)}<span>Robot chose <b>${esc(ev.autoChoice?sh.labels[ev.autoChoice]:'your saved preference')}</b>${ev.status==='inProgress'?' and is on it now':docking?'.':spent?'. It has already done this, so there’s nothing left to change. You can turn extra passes off in Saved preferences.':'. Pick another option below to change it.'}</span></div>`;
   if(!ev.archived&&S.waitEv===ev.id)h+=`<div class="mode-note wait">${ic('pause',18)}<span>The robot stopped and is <b>waiting for you</b></span></div>`;
   if(active){
     const blocked=S.device.status==='returning'||(S.cmd&&S.cmd.state==='sending')||S.conn!=='connected';
@@ -1506,8 +1516,10 @@ function groupModal(room){
 /* The levels sheet, opened from Home. A level can be set for a while and then switch back. */
 function modeModal(){
   const sh=S.ui.sheet,opt=[['always','Until I change it'],['1h','For 1 hour']].concat(running()?[['task','Until this cleaning ends']]:[]);
-  return {title:'How involved do you want to be?',body:levelPicker(sh.mode,'sheetMode',true)+`<div class="small muted" style="font-weight:800;margin:14px 2px 8px">For how long?</div><div class="chips">${opt.map(([k,l])=>`<button class="chip ${sh.for===k?'on':''}" data-a="sheetFor" data-v="${k}">${l}</button>`).join('')}</div>`+
-      (sh.for!=='always'?`<p class="small muted" style="margin:10px 2px 0">Then it goes back to ${esc(MODES[S.temp?S.temp.prev:S.autonomy].name)} by itself.</p>`:''),
+  // how long comes first, in view as the sheet opens; the levels follow
+  return {title:'How involved do you want to be?',body:`<div class="small muted" style="font-weight:800;margin:0 2px 8px">For how long?</div><div class="chips">${opt.map(([k,l])=>`<button class="chip ${sh.for===k?'on':''}" data-a="sheetFor" data-v="${k}">${l}</button>`).join('')}</div>`+
+      (sh.for!=='always'?`<p class="small muted" style="margin:10px 2px 0">Then it goes back to ${esc(MODES[S.temp?S.temp.prev:S.autonomy].name)} by itself.</p>`:'')+
+      `<div class="small muted" style="font-weight:800;margin:16px 2px 8px">Level</div>`+levelPicker(sh.mode,'sheetMode',true),
     buttons:[{label:'Use '+MODES[sh.mode].name,a:'sheetApply',cls:'primary'},{label:'Cancel',a:'closeModal'}]};
 }
 function tempLabel(){const t=S.temp;if(!t)return '';if(t.task)return 'this cleaning';return 'until '+(t.live?(d=>String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0'))(new Date(t.until)):hhmm(t.until))}
@@ -1689,7 +1701,7 @@ function render(){
   else if(S.ui.notice==='missed'){h+=`<div class="notice" role="status"><span class="ico blue" style="width:34px;height:34px;border-radius:10px;display:grid;place-items:center">${ic('bell',18)}</span><span class="body"><b>While notices were paused</b><br><span class="muted">${S.missedN} thing${S.missedN>1?'s':''} came up</span></span><button class="btn soft" style="height:36px;padding:0 12px;font-size:13px" data-a="tab" data-v="activity">Inbox</button></div>`}
   else if(S.ui.notice==='done'&&S.task&&S.task.done){h+=`<div class="notice" role="status"><span class="ico ok" style="width:34px;height:34px;border-radius:10px;display:grid;place-items:center">${ic('check',18)}</span><span class="body"><b>Cleaning finished</b><br><span class="muted">${esc(RESULTLABEL[S.task.result]||'Done')}</span></span><button class="btn soft" style="height:36px;padding:0 12px;font-size:13px" data-a="openReport" data-v="${S.task.id}">Report</button></div>`}
   else if(S.ui.notice==='objs'){const n=pendingObjs().length;if(n)h+=`<div class="notice" role="status"><span class="ico warn" style="width:34px;height:34px;border-radius:10px;display:grid;place-items:center;font-size:18px">${OBJ[pendingObjs()[0].label].e}</span><span class="body"><b>Cleaning done</b><br><span class="muted">${n} object${n>1?'s':''} to check</span></span><button class="btn soft" style="height:36px;padding:0 12px;font-size:13px" data-a="reviewRoom" data-v="${CELLROOM[pendingObjs()[0].k]}">Check</button></div>`}
-  else if(S.ui.notice&&c.name!=='event'){const ev=findEvent(S.ui.notice);if(ev)h+=`<div class="notice" role="status"><span class="ico warn" style="width:34px;height:34px;border-radius:10px;display:grid;place-items:center">${ic('alert',18)}</span><span class="body"><b>${esc(noticeTitle(ev))}</b><br><span class="muted">${esc(SHORT[ev.key].q)}${ev.autonomous&&ev.autoChoice?' · '+esc(SHORT[ev.key].labels[ev.autoChoice]):''}</span></span><button class="btn soft" style="height:36px;padding:0 12px;font-size:13px" data-a="openEvent" data-v="${ev.id}">${ev.autonomous&&!ev.changed?'Change':'Review'}</button></div>`}
+  else{const ev=c.name!=='event'&&!S.ui.away?decHead():null;const more=ev?S.ui.decQ.length-1:0;if(ev)h+=`<div class="notice dec" role="status"><button class="notice-x" data-a="dismissNotice" data-v="${ev.id}" aria-label="Close this notice">${ic('x',16)}</button><span class="ico warn" style="width:34px;height:34px;border-radius:10px;display:grid;place-items:center">${ic('alert',18)}</span><span class="body"><b>${esc(noticeTitle(ev))}</b><br><span class="muted">${esc(SHORT[ev.key].q)}${ev.autonomous&&ev.autoChoice?' · '+esc(SHORT[ev.key].labels[ev.autoChoice]):''}${more?` · ${more} more`:''}</span></span><button class="btn soft" style="height:36px;padding:0 12px;font-size:13px" data-a="openEvent" data-v="${ev.id}">${ev.autonomous&&!ev.changed?'Change':'Review'}</button></div>`}
   if(S.cmd){const m=S.cmd;
     if(m.state==='sending')h+=`<div class="cmd" role="status"><span class="spin"></span>Sending: ${esc(m.label)}…</div>`;
     else if(m.state==='confirmed')h+=`<div class="cmd" role="status">${ic('check',18)}${esc(m.label)}</div>`;
@@ -1782,6 +1794,7 @@ const A={
     objNext()},
   objNone(){const o=S.objects.find(x=>x.id===S.ui.objId);S.objects=S.objects.filter(x=>x!==o);tl('you',`You said nothing was there (robot thought: ${OBJ[o.orig].n.toLowerCase()})`);objNext()},
   map3d(v){S.ui.map3d=v==='1';commit()},
+  dismissNotice(v){S.ui.decQ=(S.ui.decQ||[]).filter(x=>x!==v);commit()},
   tab(v){S.ui.tab=v;S.ui.stack=[];if(S.ui.notice!=='stuck')S.ui.notice=null;commit(true)},
   toNeeds(){const el=document.getElementById('needs-you');if(el)el.scrollIntoView({behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth',block:'start'})},
   go(v){go(v)},back(){back()},
@@ -1796,7 +1809,7 @@ const A={
     const left=unfinishedRooms();
     S.ui.modal={title:'End cleaning and return?',body:`<p>${left.length?`Not finished yet: ${esc(left.join(', '))}. They’ll be listed as not cleaned in the report.`:'The robot is almost done. Remaining spots will be listed in the report.'}</p>`,buttons:[{label:'End and return to dock',a:'confirmEnd',cls:'danger'},{label:'Keep cleaning',a:'closeModal'}]};commit()},
   confirmEnd(){S.ui.modal=null;command('End and return','Returning to dock',()=>{S.task.endedEarly=true;tl('you','You ended cleaning early');S.sim.queue=[];S.sim.hold=0;S.device.status='cleaning';finishRun()})},
-  openEvent(v){S.ui.notice=null;const c=cur();if(c.name==='event'&&c.id===v)return;go('event',v)},
+  openEvent(v){S.ui.notice=null;S.ui.decQ=(S.ui.decQ||[]).filter(x=>x!==v);const c=cur();if(c.name==='event'&&c.id===v)return;go('event',v)},
   openReport(v){go('report',v)},openTimeline(v){go('timeline',v)},
   remember(v,el){S.ui.remember[v]=el.checked},
   evAct(v){

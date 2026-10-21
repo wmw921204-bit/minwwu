@@ -245,8 +245,12 @@ test('a robot decision shows a Change label in the list and on the banner', asyn
   const ev = "S.events.find(e=>e.key==='cable')";
   assert.match(app.run(`evItem(${ev})`), /pill edit">Change</);
   assert.match(app.run(`evItem(${ev})`), /Robot decided: /);
-  app.run(`S.ui.notice=${ev}.id;render()`);
-  assert.match(app.run("document.querySelector('.notice').textContent"), /Change$/);
+  // decision notices queue and stay until opened or closed
+  app.run(`S.ui.decQ=[${ev}.id];render()`);
+  assert.match(app.run("document.querySelector('.notice.dec').textContent"), /Change$/);
+  assert.equal(app.run(`S.ui.decQ.includes(${ev}.id)`), true);
+  app.run(`A.dismissNotice(${ev}.id);render()`);
+  assert.equal(app.run("!!document.querySelector('.notice.dec')"), false);
   app.close();
 });
 
