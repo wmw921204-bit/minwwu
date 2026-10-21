@@ -132,36 +132,77 @@
     };
     go(0); requestAnimationFrame(tick);
 
-    /* ---------- Background: still water that ripples where the cursor rests ---------- */
+    {
+    /* ---------- Background: a real water surface. Waves spread, bend the pool floor and catch the light;
+       the cursor trails ripples, a click drops a stone, and the odd drop keeps it alive ---------- */
     const canvas = document.querySelector(".lock__maze"), ctx = canvas.getContext("2d");
-    let W = 0, H = 0, dpr = 1, rings = [], last = 0;
-    const light = { x: 0, y: 0, tx: 0, ty: 0, moved: 0 };
+    const buf = document.createElement("canvas"), bctx = buf.getContext("2d");
+    const CELL = 4, DAMP = 0.986;
+    let W = 0, H = 0, gw = 0, gh = 0, cur, prev, floor, img;
     const build = () => {
-      const r = canvas.getBoundingClientRect();
-      dpr = Math.min(2, devicePixelRatio || 1); W = r.width; H = r.height;
-      canvas.width = W * dpr; canvas.height = H * dpr;
-      light.x = light.tx = W * 0.5; light.y = light.ty = H * 0.55;
+      const r = canvas.getBoundingClientRect(), dpr = Math.min(2, devicePixelRatio || 1);
+      W = r.width; H = r.height; canvas.width = W * dpr; canvas.height = H * dpr;
+      gw = Math.ceil(W / CELL) + 2; gh = Math.ceil(H / CELL) + 2;
+      cur = new Float32Array(gw * gh); prev = new Float32Array(gw * gh);
+      buf.width = gw; buf.height = gh; img = bctx.createImageData(gw, gh);
+      // the pool floor: deep teal, lighter toward the middle, with soft drifting patches of light
+      floor = new Float32Array(gw * gh * 3);
+      const blobs = Array.from({ length: 14 }, () => [Math.random() * gw, Math.random() * gh, (0.08 + Math.random() * 0.18) * Math.max(gw, gh), Math.random()]);
+      for (let y = 0; y < gh; y++) for (let x = 0; x < gw; x++) {
+        const nx = x / gw - 0.5, ny = y / gh - 0.55, v = Math.max(0, 1 - Math.hypot(nx * 1.1, ny * 1.4) * 1.5);
+        let l = 0; for (const [bx, by, br, bs] of blobs) { const d = Math.hypot(x - bx, y - by) / br; l += Math.exp(-d * d * 2) * (0.35 + bs * 0.5); }
+        const k = (y * gw + x) * 3;
+        floor[k] = 4 + 10 * v + 10 * l; floor[k + 1] = 18 + 44 * v + 34 * l; floor[k + 2] = 22 + 46 * v + 32 * l;
+      }
     };
-    const draw = (t) => {
-      if (performance.now() - light.moved > 2500) { light.tx = W * (0.5 + 0.28 * Math.cos(t / 4200)); light.ty = H * (0.55 + 0.22 * Math.sin(t / 3100)); }
-      light.x += (light.tx - light.x) * 0.06; light.y += (light.ty - light.y) * 0.06;
-      // a new ring every so often, from wherever the light is
-      if (t - last > 900) { rings.push({ x: light.x, y: light.y, t }); last = t; }
-      const life = 6000, maxR = Math.hypot(W, H) * 0.55;
-      rings = rings.filter((r) => t - r.t < life);
-      ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.clearRect(0, 0, W, H);
-      const glow = ctx.createRadialGradient(light.x, light.y, 0, light.x, light.y, Math.max(W, H) * 0.45);
-      glow.addColorStop(0, "rgba(63,193,181,.22)"); glow.addColorStop(1, "rgba(63,193,181,0)");
-      ctx.fillStyle = glow; ctx.fillRect(0, 0, W, H);
-      rings.forEach((r) => {
-        const k = (t - r.t) / life, rad = 8 + k * maxR, a = (1 - k) * (1 - k) * 0.5;
-        ctx.beginPath(); ctx.ellipse(r.x, r.y, rad, rad * 0.62, 0, 0, Math.PI * 2);
-        ctx.lineWidth = 1.4 + (1 - k) * 1.6; ctx.strokeStyle = `rgba(150,230,222,${a.toFixed(3)})`; ctx.stroke();
-      });
-      if (!reduce) requestAnimationFrame(draw);
+    const drop = (px, py, r, amp) => {
+      const cx = px / CELL + 1, cy = py / CELL + 1;
+      for (let y = Math.max(1, Math.floor(cy - r)); y < Math.min(gh - 1, cy + r + 1); y++)
+        for (let x = Math.max(1, Math.floor(cx - r)); x < Math.min(gw - 1, cx + r + 1); x++) {
+          const d = Math.hypot(x - cx, y - cy) / r; if (d < 1) cur[y * gw + x] -= amp * (Math.cos(d * Math.PI) + 1) / 2;
+        }
     };
-    addEventListener("pointermove", (e) => { const r = canvas.getBoundingClientRect(); light.tx = e.clientX - r.left; light.ty = e.clientY - r.top; light.moved = performance.now(); }, { passive: true });
+    const step = () => {
+      for (let y = 1; y < gh - 1; y++) for (let x = 1, i = y * gw + 1; x < gw - 1; x++, i++)
+        prev[i] = ((cur[i - 1] + cur[i + 1] + cur[i - gw] + cur[i + gw]) / 2 - prev[i]) * DAMP;
+      const t = cur; cur = prev; prev = t;
+    };
+    const render = () => {
+      const d = img.data;
+      for (let y = 1; y < gh - 1; y++) for (let x = 1, i = y * gw + 1; x < gw - 1; x++, i++) {
+        const dx = cur[i - 1] - cur[i + 1], dy = cur[i - gw] - cur[i + gw];
+        // refraction: look at the floor a little off to the side, along the slope
+        let sx = x + Math.round(dx * 14), sy = y + Math.round(dy * 14);
+        sx = sx < 0 ? 0 : sx >= gw ? gw - 1 : sx; sy = sy < 0 ? 0 : sy >= gh ? gh - 1 : sy;
+        const k = (sy * gw + sx) * 3;
+        // light from the upper left: slopes facing it brighten, the far side darkens a touch
+        const sh = dx * 0.7 + dy * 0.9, spec = sh > 0 ? sh * sh * 900 : sh * 60;
+        const o = i * 4;
+        d[o] = floor[k] + spec * 0.75; d[o + 1] = floor[k + 1] + spec; d[o + 2] = floor[k + 2] + spec; d[o + 3] = 255;
+      }
+      bctx.putImageData(img, 0, 0);
+      ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = "high";
+      ctx.drawImage(buf, 1, 1, gw - 2, gh - 2, 0, 0, canvas.width, canvas.height);
+    };
+    let lastDrop = 0, lp = null;
+    const frame = (t) => {
+      if (!canvas.isConnected) return;
+      if (t - lastDrop > 1100 + Math.random() * 900) { drop(Math.random() * W, Math.random() * H, 2.2, 0.55); lastDrop = t; }
+      step(); step(); render();
+      requestAnimationFrame(frame);
+    };
+    const pos = (e) => { const r = canvas.getBoundingClientRect(); return [e.clientX - r.left, e.clientY - r.top]; };
+    addEventListener("pointermove", (e) => {
+      const [x, y] = pos(e); if (lp && Math.hypot(x - lp[0], y - lp[1]) < 10) return;
+      lp = [x, y]; drop(x, y, 2.4, 0.22);
+    }, { passive: true });
+    addEventListener("pointerdown", (e) => {
+      if (e.target.closest(".lock__card, .lock-more, a, button, input")) return;
+      const [x, y] = pos(e); drop(x, y, 4.5, 2.4);
+    });
     addEventListener("resize", build);
-    build(); requestAnimationFrame(draw);
+    build();
+    if (reduce) render(); else { for (let i = 0; i < 6; i++) drop(Math.random() * W, Math.random() * H, 3, 0.8); requestAnimationFrame(frame); }
+    }
   })();
   </script>

@@ -20,6 +20,8 @@
   .page > img { display: block; width: 402px; user-select: none; -webkit-user-drag: none; }
   .bar { position: absolute; left: 0; bottom: 0; width: 402px; height: 110px; background-size: 402px auto; background-position: 0 100%; z-index: 5; }
   .top { position: absolute; left: 0; top: 0; width: 402px; height: 54px; background-size: 402px auto; background-position: 0 0; z-index: 5; pointer-events: none; }
+  .cut { position: absolute; background-size: 402px auto; opacity: 0; transition: opacity .2s; pointer-events: none; z-index: 4; }
+  .cut.is-on { opacity: 1; }
   .hs { position: absolute; border: 0; background: transparent; cursor: pointer; border-radius: 14px; z-index: 6; }
   .hs:focus-visible { outline: 2px solid #5fd6ca; outline-offset: 2px; }
   .hs:active { background: rgba(95,214,202,.12); }
@@ -66,12 +68,11 @@ const SCREENS = {
     { x: 18, y: 502, w: 364, h: 62, act: "terms", label: "Continue with Apple" }, { x: 18, y: 588, w: 364, h: 62, act: "terms", label: "Sign in as guest" }] },
   wear: { h: 874, hs: [back, { x: 213, y: 773, w: 170, h: 50, go: "wearsearch", label: "Connect" }, { x: 21, y: 773, w: 168, h: 50, go: "asp0", label: "Skip" }] },
   wearsearch: { h: 874, auto: ["wearlist", 1700], loader: true, hs: [back] },
-  wearlist: { h: 874, hs: [back, { x: 21, y: 303, w: 361, h: 62, go: "wearpick", how: "none", label: "Garmin Fenix 7" }, { x: 21, y: 725, w: 168, h: 48, go: "asp0", label: "Skip" }] },
-  wearpick: { h: 874, hs: [back, { x: 214, y: 725, w: 168, h: 48, go: "wearok", label: "Connect" }, { x: 21, y: 725, w: 168, h: 48, go: "asp0", label: "Skip" }] },
+  wearlist: { h: 874, hs: [back, { x: 21, y: 725, w: 168, h: 48, go: "asp0", label: "Skip" }],
+    sel: { src: "wearpick", items: [{ x: 21, y: 303, w: 361, h: 62, label: "Garmin Fenix 7" }], enable: { x: 214, y: 725, w: 168, h: 48, go: "wearok", label: "Connect" } } },
   wearok: { h: 874, hs: [back, { x: 21, y: 725, w: 361, h: 48, go: "asp0", label: "Continue" }] },
-  asp0: { h: 874, hs: [back, { x: 21, y: 307, w: 171, h: 100, go: "asp1", how: "none", label: "Deeper Sleep" }, { x: 210, y: 307, w: 171, h: 100, go: "asp1", how: "none", label: "Lower Fatigue" }, { x: 21, y: 772, w: 168, h: 48, go: "allset", label: "Skip" }] },
-  asp1: { h: 874, hs: [back, { x: 210, y: 307, w: 171, h: 100, go: "asp2", how: "none", label: "Lower Fatigue" }, { x: 21, y: 307, w: 171, h: 100, go: "asp0", how: "none", label: "Deeper Sleep" }, { x: 213, y: 772, w: 168, h: 48, go: "allset", label: "Done" }, { x: 21, y: 772, w: 168, h: 48, go: "allset", label: "Skip" }] },
-  asp2: { h: 874, hs: [back, { x: 213, y: 772, w: 168, h: 48, go: "allset", label: "Done" }, { x: 21, y: 772, w: 168, h: 48, go: "allset", label: "Skip" }] },
+  asp0: { h: 874, hs: [back, { x: 21, y: 772, w: 168, h: 48, go: "allset", label: "Skip" }],
+    sel: { src: "asp2", items: [{ x: 21, y: 307, w: 171, h: 100, label: "Deeper Sleep" }, { x: 210, y: 307, w: 171, h: 100, label: "Lower Fatigue" }], enable: { x: 213, y: 772, w: 168, h: 48, go: "allset", label: "Done" } } },
   allset: { h: 874, hs: [{ x: 20, y: 772, w: 362, h: 48, act: "home", label: "Get Started" }] },
 
   today: { h: 2195, tab: "today", hs: [
@@ -86,11 +87,13 @@ const SCREENS = {
     { x: 20, y: 646, w: 362, h: 64, go: "recovery", label: "Inflammation Reduction" }, { x: 136, y: 913, w: 130, h: 38, act: "soon", label: "Read More" },
     { x: 260, y: 1120, w: 112, h: 32, go: "shower", label: "View Product" }, { x: 260, y: 1280, w: 112, h: 32, act: "soon", label: "View Product (Sauna)" },
     { x: 260, y: 1440, w: 112, h: 32, act: "soon", label: "View Product (Ice Bath)" }, { x: 20, y: 1496, w: 362, h: 50, go: "comp0", label: "Compose Products" }] },
-  comp0: { h: 874, hs: [back, { x: 140, y: 395, w: 120, h: 120, go: "comp1", how: "none", label: "Shower" }] },
-  comp1: { h: 874, hs: [back, { x: 140, y: 395, w: 120, h: 120, go: "comp0", how: "none", label: "Shower" }, { x: 20, y: 772, w: 362, h: 48, go: "comp2", how: "none", label: "Continue" }] },
+  comp0: { h: 874, hs: [back],
+    sel: { src: "comp1", items: [{ x: 140, y: 395, w: 120, h: 120, label: "Shower" }], enable: { x: 20, y: 772, w: 362, h: 48, go: "comp2", how: "none", label: "Continue" } } },
   comp2: { h: 874, auto: ["comp3", 1500], hs: [back] },
   comp3: { h: 874, hs: [back, { x: 20, y: 772, w: 362, h: 48, go: "ritual", label: "Continue" }] },
-  ritual: { h: 874, hs: [back, { x: 20, y: 725, w: 362, h: 48, act: "start", label: "Start · 26 min" }, { x: 20, y: 790, w: 362, h: 48, act: "saveLater", label: "Save for later" }, { x: 330, y: 70, w: 64, h: 40, act: "soon", label: "Edit" }] },
+  ritual: { h: 874, img: "genritual", crop: 1022, pad: 190, top: 118, foot: 186, hs: [{ ...back, fixed: 1 }, { x: 330, y: 66, w: 64, h: 44, act: "soon", label: "Edit", fixed: 1 },
+    { x: 20, y: 712, w: 362, h: 52, act: "start", label: "Start · 26 min", fixed: 1 }, { x: 20, y: 778, w: 362, h: 52, act: "saveLater", label: "Save for later", fixed: 1 },
+    { x: 100, y: 175, w: 322, h: 320, go: "shower", label: "Wellness Shower" }, { x: 100, y: 625, w: 322, h: 320, go: "shower", label: "Wellness Shower (cold)" }] },
   run0: { h: 874, run: 0, hs: [{ x: 20, y: 772, w: 362, h: 48, act: "stop", label: "Stop" }] },
   run1: { h: 874, run: 1, ring: [59, 59], hs: [back, { x: 20, y: 708, w: 362, h: 48, act: "stop", label: "Stop" }, { x: 20, y: 772, w: 362, h: 48, act: "pause", label: "Pause" }] },
   run2: { h: 874, run: 2, ring: [600, 600], hs: [back, { x: 20, y: 708, w: 362, h: 48, act: "stop", label: "Stop" }, { x: 20, y: 772, w: 362, h: 48, act: "pause", label: "Pause" }] },
@@ -113,12 +116,12 @@ const SCREENS = {
 
   rituals: { h: 947, tab: "rituals", hs: [{ x: 358, y: 68, w: 40, h: 44, act: "addpop", label: "Add ritual" }, { x: 30, y: 210, w: 340, h: 70, go: "ritual", label: "Default Red Light" },
     { x: 50, y: 427, w: 315, h: 48, act: "start", label: "Start · 30 min" }, { x: 30, y: 530, w: 340, h: 70, go: "ritual", label: "Contrast Ritual 1" }, { x: 50, y: 742, w: 315, h: 48, act: "start", label: "Start · 39 min" }] },
-  q5: { h: 874, hs: [back, { x: 20, y: 222, w: 172, h: 92, go: "q1", how: "none", label: "Energized" }, { x: 20, y: 772, w: 168, h: 48, go: "q2", label: "Skip" }] },
-  q1: { h: 874, hs: [back, { x: 20, y: 222, w: 172, h: 92, go: "q5", how: "none", label: "Energized" }, { x: 212, y: 772, w: 170, h: 48, go: "q2", label: "Continue" }, { x: 20, y: 772, w: 168, h: 48, go: "q2", label: "Skip" }] },
-  q2: { h: 874, hs: [back, { x: 20, y: 338, w: 172, h: 92, go: "q6", how: "none", label: "Sore" }, { x: 20, y: 772, w: 168, h: 48, go: "q3", label: "Skip" }] },
-  q6: { h: 874, hs: [back, { x: 20, y: 338, w: 172, h: 92, go: "q2", how: "none", label: "Sore" }, { x: 212, y: 772, w: 170, h: 48, go: "q3", label: "Continue" }, { x: 20, y: 772, w: 168, h: 48, go: "q3", label: "Skip" }] },
-  q3: { h: 874, hs: [back, { x: 20, y: 222, w: 172, h: 92, go: "q7", how: "none", label: "Muscle Recovery" }, { x: 20, y: 772, w: 168, h: 48, go: "q8", label: "Skip" }] },
-  q7: { h: 874, hs: [back, { x: 20, y: 222, w: 172, h: 92, go: "q3", how: "none", label: "Muscle Recovery" }, { x: 212, y: 772, w: 170, h: 48, go: "q8", label: "Continue" }, { x: 20, y: 772, w: 168, h: 48, go: "q8", label: "Skip" }] },
+  q5: { h: 874, hs: [back, { x: 20, y: 772, w: 168, h: 48, go: "q2", label: "Skip" }],
+    sel: { src: "q1", items: [{ x: 20, y: 222, w: 172, h: 92, label: "Energized" }], enable: { x: 212, y: 772, w: 170, h: 48, go: "q2", label: "Continue" } } },
+  q2: { h: 874, hs: [back, { x: 20, y: 772, w: 168, h: 48, go: "q3", label: "Skip" }],
+    sel: { src: "q6", items: [{ x: 20, y: 338, w: 172, h: 92, label: "Sore" }], enable: { x: 212, y: 772, w: 170, h: 48, go: "q3", label: "Continue" } } },
+  q3: { h: 874, hs: [back, { x: 20, y: 772, w: 168, h: 48, go: "q8", label: "Skip" }],
+    sel: { src: "q7", items: [{ x: 20, y: 222, w: 172, h: 92, label: "Muscle Recovery" }], enable: { x: 212, y: 772, w: 170, h: 48, go: "q8", label: "Continue" } } },
   q8: { h: 874, hs: [back, { x: 212, y: 772, w: 170, h: 48, go: "gen", label: "Continue" }, { x: 20, y: 772, w: 168, h: 48, go: "gen", label: "Skip" }] },
   gen: { h: 874, auto: ["genok", 1800], hs: [] },
   genok: { h: 874, auto: ["genritual", 1100], hs: [] },
@@ -160,20 +163,42 @@ const make = (id) => {
   } else {
     const sc = document.createElement("div"); sc.className = "sc";
     const page = document.createElement("div"); page.className = "page";
-    const h = s.tab ? s.h - 110 : s.h;
-    page.style.height = h + "px"; page.style.overflow = "hidden";
-    page.innerHTML = `<img src="${S(id)}" alt="" draggable="false">`;
-    s.hs.filter((x) => !x.tab).forEach((x) => page.append(btn(x)));
+    const img = s.img || id, h = s.crop || (s.tab ? s.h - 110 : s.h);
+    page.style.height = h + (s.pad || 0) + "px"; page.style.overflow = "hidden";
+    page.innerHTML = `<img src="${S(img)}" alt="" draggable="false">`;
+    // long pages keep their navigation header pinned, like an iOS nav bar
+    const pin = s.top || (s.h > 874 && !s.tab ? 116 : 0);
+    const fixed = (x) => x.fixed || (pin && x.back) || (pin && x.y < pin && x.y >= 54);
+    s.hs.filter((x) => !x.tab && !fixed(x)).forEach((x) => page.append(btn(x)));
+    if (s.sel) bindSel(s.sel, page, id);
     sc.append(page); el.append(sc);
-    if (s.h > 874) { const top = document.createElement("div"); top.className = "top"; top.style.backgroundImage = `url(${S(id)})`; el.append(top); }
+    // pinned strips cut from the screen's own design: status bar / header on top, buttons below
+    const strip = (cls, src, hh, pos) => { const d = document.createElement("div"); d.className = cls; d.style.cssText = `background-image:url(${S(src)});height:${hh}px;background-position:${pos}`; el.append(d); };
+    if (pin) strip("top", img, pin, "0 0"); else if (s.h > 874) strip("top", img, 54, "0 0");
+    if (s.foot) strip("bar", id, s.foot, "0 100%");
+    s.hs.filter((x) => !x.tab && fixed(x)).forEach((x) => { const b = btn(x); b.style.zIndex = 7; el.append(b); });
     if (s.tab) {
-      const bar = document.createElement("div"); bar.className = "bar"; bar.style.backgroundImage = `url(${S(id)})`; el.append(bar);
-      BAR_HS.forEach((x) => { const b = btn({ ...x, y: x.y }); b.style.zIndex = 7; el.append(b); });
+      strip("bar", id, 110, "0 100%");
+      BAR_HS.forEach((x) => { const b = btn(x); b.style.zIndex = 7; el.append(b); });
     }
     if (s.ring) el.insertAdjacentHTML("beforeend", `<svg class="ring" viewBox="0 0 340 340"><circle cx="170" cy="170" r="166" pathLength="1000" stroke-dasharray="0 1000"/></svg>`);
     if (s.loader) el.insertAdjacentHTML("beforeend", `<i class="spin-loader"></i>`);
   }
   app.append(el); els[id] = el; return el;
+};
+/* tiles that toggle on and off independently: the selected look is cut from the design's selected state */
+const bindSel = (sel, page, id) => {
+  const on = new Set();
+  const cut = (r) => { const d = document.createElement("div"); d.className = "cut"; d.style.cssText = `left:${r.x}px;top:${r.y}px;width:${r.w}px;height:${r.h}px;background-image:url(${S(sel.src)});background-position:${-r.x}px ${-r.y}px`; page.append(d); return d; };
+  const go = sel.enable ? cut(sel.enable) : null; let goBtn = null;
+  if (go) { goBtn = btn({ ...sel.enable, label: sel.enable.label || "Continue" }); goBtn.hidden = true; page.append(goBtn); }
+  sel.items.forEach((r, i) => {
+    const c = cut(r); const b = btn({ ...r, act: null, go: null });
+    b.setAttribute("aria-pressed", "false");
+    b.onclick = (e) => { e.stopPropagation(); on.has(i) ? on.delete(i) : on.add(i); c.classList.toggle("is-on", on.has(i)); b.setAttribute("aria-pressed", on.has(i));
+      if (go) { go.classList.toggle("is-on", on.size > 0); goBtn.hidden = !on.size; } };
+    page.append(b);
+  });
 };
 const bindIntro = (el) => {
   const t = el.querySelector(".intro__t"), box = el.querySelector(".intro"); let i = 0, d = null, auto;
@@ -231,7 +256,7 @@ const closePop = (now) => {
   const v = veilEl, p = popEl; veilEl = popEl = null;
   if (!p) return;
   if (now) { v.remove(); p.remove(); return; }
-  v.classList.remove("is-on"); p.classList.remove("is-on"); setTimeout(() => { v.remove(); p.remove(); }, 300);
+  v.classList.remove("is-on"); p.classList.remove("is-on"); v.style.pointerEvents = p.style.pointerEvents = "none"; setTimeout(() => { v.remove(); p.remove(); }, 300);
 };
 
 /* ---------- the ritual runs on its own: a ring sweeps each step, then the next step comes in ---------- */
