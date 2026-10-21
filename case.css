@@ -2013,6 +2013,10 @@ img.is-zoomable { cursor: zoom-in; }
 .kh-ia > div { padding: 22px 20px; border-radius: 18px; background: var(--c-soft); border: 1px solid var(--c-line); }
 .kh-ia b { font: 600 18px var(--f-display); color: var(--c-accent-ink); }
 .kh-ia p { margin-top: 10px; color: var(--c-muted); line-height: 1.55; font-size: 15px; }
+.kh-phone { background: #000507; box-shadow: 0 0 0 9px #0b1a1c, 0 0 0 10px rgba(95,214,202,.28), 0 40px 90px -20px rgba(0,0,0,.7), 0 0 120px -30px rgba(63,193,181,.35); }
+.kh-demo .fin-guide__count span, .kh-demo .fin-try b { color: #5fd6ca; }
+.kh-demo .fin-guide__list li.is-active { background: #3fc1b5; border-color: #3fc1b5; color: #04201d; }
+.kh-demo .fin-guide__list li.is-done { border-color: rgba(95,214,202,.45); color: var(--c-fg); }
 .kh-wide video { display: block; width: 100%; aspect-ratio: 18 / 5; object-fit: contain; background: #000; border-radius: 16px; }
 @media (max-width: 900px) {
   .kh-cre, .kh-ia { grid-template-columns: 1fr; }
