@@ -358,6 +358,8 @@ button.tile{font:inherit;width:100%}
 @keyframes sp{to{transform:rotate(360deg)}}
 .notice{position:absolute;left:14px;right:14px;top:54px;z-index:25;background:var(--glass);border:1px solid var(--glass-line);backdrop-filter:blur(22px);-webkit-backdrop-filter:blur(22px);border-radius:22px;padding:12px 14px;display:flex;gap:12px;align-items:center;box-shadow:0 18px 40px -16px rgba(20,30,80,.45);font-size:14px;line-height:1.35}
 .notice .body{flex:1}
+/* tapping anywhere on the notice does what its button does */
+.notice .btn{position:static}.notice .btn::after{content:"";position:absolute;inset:0;border-radius:22px}
 
 .modal-bg{position:absolute;inset:0;background:rgba(12,16,34,.38);backdrop-filter:blur(3px);z-index:40;display:flex;align-items:flex-end}
 .modal{background:var(--bg);width:100%;border-radius:32px 32px 0 0;padding:14px 20px 28px;max-height:90%;overflow:auto}
@@ -518,6 +520,8 @@ const SCEN={
   missed:{label:'Missed area',keys:['bed']},
   all:{label:'All events',keys:['rug','extra','cable','bed']},
 };
+// a change made after docking runs on the next cleaning, so don't call it in progress while the robot sits on the dock
+const stLabel=ev=>ev.status==='inProgress'&&!running()?'Next cleaning':STATUSLABEL[ev.status];
 const STATUSLABEL={needsReview:'Needs review',inProgress:'In progress',resolved:'Resolved',deferred:'Clean later',skipped:'Skipped',info:'Robot decided'};
 const RESULTLABEL={completed:'Completed',partial:'Partially completed',ended:'Ended early'};
 const MODES={
@@ -723,7 +727,7 @@ function fire(key){
   if(rule){applyAction(ev,rule.act,'rule');return}
   const m=S.autonomy;ev.mode=m;
   if(m==='manual'){evLog(ev,'robot','Stopped. Waiting for your choice');S.device.status='paused';S.waitEv=ev.id;notice(ev);return}
-  if(m==='assist'){ev.suggestion=SUGGEST[key];evLog(ev,'robot',`Skipped for now. Suggests: ${SHORT[key].labels[SUGGEST[key]]}`);notice(ev);return}
+  if(m==='assist'){ev.suggestion=SUGGEST[key];evLog(ev,'robot',`Left this spot and asked you. Suggests: ${SHORT[key].labels[SUGGEST[key]]}`);notice(ev);return}
   applyAction(ev,SUGGEST[key],'auto');ev.quiet=m==='fullAuto';if(!ev.quiet||S.notif.decisions)notice(ev);
 }
 function queueExtra(ev){
@@ -740,11 +744,17 @@ function noticeTitle(ev){return ev.reminded?'Reminder':ev.retryFailed?'Retry did
 function pushLock(n){S.lockNotes=[{...n,at:S.clock}].concat(S.lockNotes.filter(x=>x.id!==n.id)).slice(0,6);commit()}
 function nextBanner(){if(S.bannerNext){const k=S.bannerNext;S.bannerNext=null;banner(k)}}
 /* Banners that aren't one event: finished, objects to check, stuck, map updated, missed while paused. */
+// short (they used to linger), but a notice under the pointer or finger stays until it moves off; the whole card is the button
+const NOTICE_MS=5000;
+function holdNotice(on){if(!S.ui.notice||S.ui.notice==='stuck')return;clearTimeout(notice.t);
+  if(!on)notice.t=setTimeout(()=>{S.ui.notice=null;nextBanner();commit()},2500)}
+document.addEventListener('pointerover',e=>{if(e.target.closest&&e.target.closest('.notice'))holdNotice(true)});
+document.addEventListener('pointerout',e=>{const n=e.target.closest&&e.target.closest('.notice');if(n&&!n.contains(e.relatedTarget))holdNotice(false)});
 function banner(key,lock){
   if(S.ui.away){if(lock)pushLock(lock);return}
   if(quietNow()&&key!=='missed'){S.missed.push(key);return}
   S.ui.notice=key;clearTimeout(notice.t);
-  if(key!=='stuck')notice.t=setTimeout(()=>{S.ui.notice=null;nextBanner();commit()},4500);
+  if(key!=='stuck')notice.t=setTimeout(()=>{S.ui.notice=null;nextBanner();commit()},NOTICE_MS);
 }
 function notice(ev){
   const own=ev.autonomous&&!ev.changed;
@@ -752,7 +762,7 @@ function notice(ev){
   if(ev.later&&!ev.reminded)return; // asked to be reminded later
   if(S.ui.away){pushLock({id:ev.id,title:noticeTitle(ev),body:SHORT[ev.key]?SHORT[ev.key].q:DEFS[ev.key].title});return}
   if(quietNow()){if(!S.missed.includes(ev.id))S.missed.push(ev.id);return}
-  S.ui.notice=ev.id;clearTimeout(notice.t);notice.t=setTimeout(()=>{S.ui.notice=null;nextBanner();commit()},4000);
+  S.ui.notice=ev.id;clearTimeout(notice.t);notice.t=setTimeout(()=>{S.ui.notice=null;nextBanner();commit()},NOTICE_MS);
 }
 function laterLabel(ev){return !ev.later?'':ev.later.task?'After this cleaning':'At '+atLabel(ev.later.until)}
 function checkReminders(){
@@ -935,7 +945,7 @@ function applyAction(ev,act,byRule){
   }
 }
 const NEEDS_DEVICE={avoid:1,retry:1,retryCleared:1,asRug:1,asHard:1,nogo:1,pauseCheck:1,skipOnce:1,allow:1};
-const CMDTEXT={avoid:['Avoid spot','Spot will be avoided'],retry:['Retry area','Retry sent'],retryCleared:['Retry area','Retry sent'],asRug:['Clean as rug','Sent'],asHard:['Clean as hard floor','Sent'],nogo:['Save no-go zone','No-go zone saved'],pauseCheck:['Pause','Paused'],skipOnce:['Skip extra pass','Extra pass skipped'],allow:['Keep extra pass','Confirmed']};
+const CMDTEXT={avoid:['Avoid spot','Spot will be avoided'],retry:['Retry area','It will go back and try that spot again'],retryCleared:['Retry area','It will go back and clean that spot again'],asRug:['Clean as rug','Got it: that patch counts as a rug'],asHard:['Clean as hard floor','Got it: that patch counts as hard floor'],nogo:['Save no-go zone','No-go zone saved'],pauseCheck:['Pause','Paused'],skipOnce:['Skip extra pass','Extra pass skipped'],allow:['Keep extra pass','Extra pass kept']};
 /* A choice you made can be changed later: undo what it did to the area first. */
 function resetForChange(ev,act){
   if(!ev.lastAct||ev.lastAct===act||!['skipped','deferred','resolved'].includes(ev.status))return;
@@ -1083,7 +1093,7 @@ function evItem(ev){
   const d=DEFS[ev.key];const icC=ev.status==='resolved'||ev.status==='info'?'ok':ev.status==='skipped'?'gray':ev.status==='inProgress'?'blue':'warn';
   const icN=ev.status==='resolved'?'check':ev.status==='skipped'?'skip':ev.status==='inProgress'?'robot':ev.status==='info'?'robot':'alert';
   const room=ROOM[ZONES[d.zone].room].name;
-  return `<button class="item" data-a="openEvent" data-v="${ev.id}"><span class="ico ${icC}">${ic(icN,20)}</span><span class="body"><span class="t">${esc(ev.suggest&&ev.status==='needsReview'?'Extra pass suggested':d.title)}</span><span class="s">${room} · ${mine?'You chose: '+esc(SHORT[ev.key].labels[ev.lastAct]||ev.lastAct)+' · ':''}${hhmm(ev.at)}${ev.retryFailed?' · retry didn’t work':''}</span></span>${mine?'<span class="pill edit">Change</span>':`<span class="pill ${ev.status}">${ev.status==='info'&&!ev.autonomous?'Done':STATUSLABEL[ev.status]}</span>`}</button>`;
+  return `<button class="item" data-a="openEvent" data-v="${ev.id}"><span class="ico ${icC}">${ic(icN,20)}</span><span class="body"><span class="t">${esc(ev.suggest&&ev.status==='needsReview'?'Extra pass suggested':d.title)}</span><span class="s">${room} · ${mine?'You chose: '+esc(SHORT[ev.key].labels[ev.lastAct]||ev.lastAct)+' · ':''}${hhmm(ev.at)}${ev.retryFailed?' · retry didn’t work':''}</span></span>${mine?'<span class="pill edit">Change</span>':`<span class="pill ${ev.status}">${ev.status==='info'&&!ev.autonomous?'Done':stLabel(ev)}</span>`}</button>`;
 }
 /* Your own choice that can still be changed: skipped, put off, or marked no-go. */
 function userMadeEv(ev){return !ev.archived&&!(ev.autonomous&&!ev.changed)&&!!ev.lastAct&&(['skipped','deferred'].includes(ev.status)||(ev.status==='resolved'&&ev.lastAct==='nogo'))}
@@ -1132,7 +1142,9 @@ function attention(){
   if(leftOut.length)h+=`<p class="small muted" style="margin:12px 4px 0">${leftOut.length} area${leftOut.length>1?'s':''} left uncleaned today · ${leftOut.map(e=>`<button class="link" data-a="openEvent" data-v="${e.id}">${esc(ZONES[DEFS[e.key].zone].name)}</button>`).join(', ')}</p>`;
   const unchecked=visibleObjs().filter(o=>o.status==='ignored');
   if(unchecked.length)h+=`<p class="small muted" style="margin:8px 4px 0">${unchecked.length} object${unchecked.length>1?'s':''} not checked yet · <button class="link" data-a="recheckObjs">Check now</button></p>`;
-  if(done.length)h+=`<p class="small muted" style="margin:12px 4px 0">${done.length} you handled · <button class="link" data-a="openTimeline" data-v="${S.task.id}">See timeline</button></p>`;
+  // count what they actually answered (including keeping the robot's choice), not what happens to be resolved
+  const answered=visibleEvents().filter(e=>e.lastAct).length;
+  if(answered)h+=`<p class="small muted" style="margin:12px 4px 0">${answered} you answered · <button class="link" data-a="openTimeline" data-v="${S.task.id}">See timeline</button></p>`;
   if(auto.length){
     h+=`<div class="sec-h">Robot decided<small>${auto.length}</small></div>`;
     if(auto.every(e=>e.quiet))h+=`<button class="item" data-a="openTimeline" data-v="${S.task.id}"><span class="ico blue">${ic('robot',20)}</span><span class="body"><span class="t">${auto.length} decision${auto.length>1?'s':''} made on its own</span><span class="s">Full auto · open to review any of them</span></span>${ic('chev',18)}</button>`;
@@ -1176,7 +1188,7 @@ function scrMap(){
     if(!off&&(d.status==='paused'||d.status==='error'))h+=`<div class="btn-row"><button class="btn primary" data-a="resume" ${sending?'disabled':''}>Resume</button><button class="btn plain" data-a="endReturn" ${sending?'disabled':''}>End and return</button></div>`;
     h+='</div>';
   }else h+=`<div class="calm" style="margin-top:12px">${ic('robot',20)}<span>No cleaning yet today. Start one from Home, then watch progress here.</span></div>`;
-  const stuck=inbox().stuck,nc=evs.filter(e=>e.status==='needsReview'&&!e.later).length+(stuck?1:0);
+  const stuck=inbox().stuck,nc=waitingN();
   if(evs.length||stuck)h+=`<div class="sec-h">This cleaning<small>${nc?nc+' waiting for you':'nothing waiting for you'}</small></div>`+(stuck?stuckItem():'')+evs.map(evItem).join('');
   const objs=visibleObjs();
   if(objs.length){
@@ -1216,7 +1228,7 @@ const OPTICON={retryCleared:'retry',retry:'retry',avoid:'avoid',later:'clock',cl
 function scrEvent(id){
   const ev=findEvent(id);if(!ev)return topbar('')+'<p>Not found.</p>';
   const d=DEFS[ev.key];const z=ZONES[d.zone];const sh=SHORT[ev.key];
-  let h=`<div class="topbar"><button class="icon-btn" data-a="back" aria-label="Back">${ic('back')}</button><span style="flex:1"></span><span class="pill ${ev.status}">${STATUSLABEL[ev.status]}</span></div>`;
+  let h=`<div class="topbar"><button class="icon-btn" data-a="back" aria-label="Back">${ic('back')}</button><span style="flex:1"></span><span class="pill ${ev.status}">${stLabel(ev)}</span></div>`;
   h+=`<div class="ev-art">${eventArt(ev.key)}<button class="ev-loc" data-a="tab" data-v="map">${ic('pin',15)}${ROOM[z.room].name} · ${z.name}</button></div>`;
   const q=ev.suggest&&ev.status==='needsReview'?'Allow an extra pass?':sh.q;
   h+=`<div class="h-screen" style="margin-top:18px">${esc(q)}</div>`;
@@ -1230,7 +1242,9 @@ function scrEvent(id){
   else if(ev.outcome&&(!active||isAuto))h+=`<p class="ev-line">${esc(ev.outcome)}</p>`;
   else h+=`<p class="ev-line">${esc(sh.line)}</p>`;
   if(userMade)h+=`<div class="mode-note">${ic('check',18)}<span>You chose <b>${esc(sh.labels[ev.lastAct]||ev.lastAct)}</b>. Pick another option below to change it.</span></div>`;
-  if(isAuto)h+=`<div class="mode-note">${ic('robot',18)}<span>Robot chose <b>${esc(ev.autoChoice?sh.labels[ev.autoChoice]:'your saved preference')}</b>${ev.status==='inProgress'?' and is on it now':'. Pick another option below to change it.'}</span></div>`;
+  // an extra pass that's already done (or the cleaning is over) can't be changed any more: say so instead of pointing at options
+  const spent=d.type==='decision'&&ev.status==='info'&&(!running()||!S.sim.queue.some(x=>x.kind==='extra'));
+  if(isAuto)h+=`<div class="mode-note">${ic('robot',18)}<span>Robot chose <b>${esc(ev.autoChoice?sh.labels[ev.autoChoice]:'your saved preference')}</b>${ev.status==='inProgress'?' and is on it now':spent?'. It has already done this, so there’s nothing left to change. You can turn extra passes off in Saved preferences.':'. Pick another option below to change it.'}</span></div>`;
   if(!ev.archived&&S.waitEv===ev.id)h+=`<div class="mode-note wait">${ic('pause',18)}<span>The robot stopped and is <b>waiting for you</b></span></div>`;
   if(active){
     const blocked=S.device.status==='returning'||(S.cmd&&S.cmd.state==='sending')||S.conn!=='connected';
@@ -1325,9 +1339,11 @@ function eventArt(key){
   return `<svg viewBox="0 0 320 170" class="art" role="img" aria-label="${esc(DEFS[key].title)}">${a}</svg>`;
 }
 function findArchCells(id){for(const hi of S.history)if(hi.snap.events.some(e=>e.id===id))return hi.snap.cells}
+// a timeline entry offers Change while its event can still be changed, otherwise just Details
+function tlCanChange(id){const ev=findEvent(id);return !!ev&&!ev.archived&&(ev.status==='needsReview'||(ev.autonomous&&!ev.changed&&ev.status!=='info')||userMadeEv(ev)||(ev.autonomous&&!ev.changed&&ev.status==='info'&&DEFS[ev.key].type!=='decision'))}
 function tlRows(rows,link=true){
   return `<div class="tl">${rows.map(r=>{const who=r.a==='you'?'You':r.a==='result'?'Result':'Robot';const inner=`<div class="who a-${r.a}">${who}</div><div class="tx">${esc(r.x)}</div>`;
-    return `<div class="tl-row a-${r.a}"><span class="tm">${hhmm(r.t)}</span>${link&&r.ev?`<button data-a="openEvent" data-v="${r.ev}">${inner}<span class="small" style="color:var(--primary);font-weight:700">Open event</span></button>`:`<div>${inner}</div>`}</div>`}).join('')}</div>`;
+    return `<div class="tl-row a-${r.a}"><span class="tm">${hhmm(r.t)}</span>${link&&r.ev?`<button data-a="openEvent" data-v="${r.ev}">${inner}<span class="small" style="color:var(--primary);font-weight:700">${tlCanChange(r.ev)?'Change':'Details'}</span></button>`:`<div>${inner}</div>`}</div>`}).join('')}</div>`;
 }
 function taskById(id){if(S.task&&S.task.id===id)return {t:S.task,live:true};const h=S.history.find(x=>x.id===id);return h?{t:h,live:false}:null}
 /* Everything that still needs you, in one place, whether or not a notice was seen. */
@@ -1380,7 +1396,7 @@ function scrReport(id){
   h+=`<div class="stat-grid"><div class="stat"><b>${r.dur} min</b><span>Time</span></div><div class="stat"><b>${r.m2} m²</b><span>Cleaned</span></div><div class="stat"><b>${pct(r.cells)}%</b><span>Of the plan</span></div></div>`;
   h+=`<div class="map-wrap" style="margin-top:12px">${mapSVG({cells:r.live?undefined:r.cells,events:evs,robot:r.live})}</div>`;
   const sec=(title,list,empty,fn)=>`<div class="sec-h">${title}<small>${list.length}</small></div>`+(list.length?list.map(fn).join(''):`<p class="small muted" style="margin:0 4px">${empty}</p>`);
-  const evRow=e=>r.live?evItem(e):`<div class="item"><span class="ico ${e.status==='info'||e.status==='resolved'?'ok':'gray'}">${ic(e.status==='info'||e.status==='resolved'?'check':'skip',20)}</span><span class="body"><span class="t">${esc(DEFS[e.key].title)}</span><span class="s">${esc(e.outcome||'')}</span></span><span class="pill ${e.status}">${STATUSLABEL[e.status]}</span></div>`;
+  const evRow=e=>r.live?evItem(e):`<div class="item"><span class="ico ${e.status==='info'||e.status==='resolved'?'ok':'gray'}">${ic(e.status==='info'||e.status==='resolved'?'check':'skip',20)}</span><span class="body"><span class="t">${esc(DEFS[e.key].title)}</span><span class="s">${esc(e.outcome||'')}</span></span><span class="pill ${e.status}">${stLabel(e)}</span></div>`;
   h+=sec('Not cleaned',notCleaned,'Every planned area was cleaned or deliberately excluded.',evRow);
   h+=sec('Robot decided',auto,'The robot made no decisions on its own.',evRow);
   h+=sec('Needed your call',you,'Nothing needed your input.',e=>{const yl=e.log.filter(l=>l.a==='you'&&!/changed your choice|undid/.test(l.x)),acts=yl.length?yl[yl.length-1].x+(yl.length>1?' (changed)':''):'';return r.live?evItem(e).replace('</span></span><span class="pill',`${acts?` · ${esc(acts)}`:' · no response yet'}</span></span><span class="pill`):evRow(e)});
@@ -1673,7 +1689,7 @@ function render(){
   else if(S.ui.notice==='missed'){h+=`<div class="notice" role="status"><span class="ico blue" style="width:34px;height:34px;border-radius:10px;display:grid;place-items:center">${ic('bell',18)}</span><span class="body"><b>While notices were paused</b><br><span class="muted">${S.missedN} thing${S.missedN>1?'s':''} came up</span></span><button class="btn soft" style="height:36px;padding:0 12px;font-size:13px" data-a="tab" data-v="activity">Inbox</button></div>`}
   else if(S.ui.notice==='done'&&S.task&&S.task.done){h+=`<div class="notice" role="status"><span class="ico ok" style="width:34px;height:34px;border-radius:10px;display:grid;place-items:center">${ic('check',18)}</span><span class="body"><b>Cleaning finished</b><br><span class="muted">${esc(RESULTLABEL[S.task.result]||'Done')}</span></span><button class="btn soft" style="height:36px;padding:0 12px;font-size:13px" data-a="openReport" data-v="${S.task.id}">Report</button></div>`}
   else if(S.ui.notice==='objs'){const n=pendingObjs().length;if(n)h+=`<div class="notice" role="status"><span class="ico warn" style="width:34px;height:34px;border-radius:10px;display:grid;place-items:center;font-size:18px">${OBJ[pendingObjs()[0].label].e}</span><span class="body"><b>Cleaning done</b><br><span class="muted">${n} object${n>1?'s':''} to check</span></span><button class="btn soft" style="height:36px;padding:0 12px;font-size:13px" data-a="reviewRoom" data-v="${CELLROOM[pendingObjs()[0].k]}">Check</button></div>`}
-  else if(S.ui.notice&&!(c.name==='event'&&c.id===S.ui.notice)){const ev=findEvent(S.ui.notice);if(ev)h+=`<div class="notice" role="status"><span class="ico warn" style="width:34px;height:34px;border-radius:10px;display:grid;place-items:center">${ic('alert',18)}</span><span class="body"><b>${esc(noticeTitle(ev))}</b><br><span class="muted">${esc(SHORT[ev.key].q)}${ev.autonomous&&ev.autoChoice?' · '+esc(SHORT[ev.key].labels[ev.autoChoice]):''}</span></span><button class="btn soft" style="height:36px;padding:0 12px;font-size:13px" data-a="openEvent" data-v="${ev.id}">${ev.autonomous&&!ev.changed?'Change':'Review'}</button></div>`}
+  else if(S.ui.notice&&c.name!=='event'){const ev=findEvent(S.ui.notice);if(ev)h+=`<div class="notice" role="status"><span class="ico warn" style="width:34px;height:34px;border-radius:10px;display:grid;place-items:center">${ic('alert',18)}</span><span class="body"><b>${esc(noticeTitle(ev))}</b><br><span class="muted">${esc(SHORT[ev.key].q)}${ev.autonomous&&ev.autoChoice?' · '+esc(SHORT[ev.key].labels[ev.autoChoice]):''}</span></span><button class="btn soft" style="height:36px;padding:0 12px;font-size:13px" data-a="openEvent" data-v="${ev.id}">${ev.autonomous&&!ev.changed?'Change':'Review'}</button></div>`}
   if(S.cmd){const m=S.cmd;
     if(m.state==='sending')h+=`<div class="cmd" role="status"><span class="spin"></span>Sending: ${esc(m.label)}…</div>`;
     else if(m.state==='confirmed')h+=`<div class="cmd" role="status">${ic('check',18)}${esc(m.label)}</div>`;
@@ -1842,6 +1858,16 @@ function schedModal(){
   buttons:[{label:'Save schedule',a:'schedSave',cls:'primary'}].concat(f.id!=='new'?[{label:'Delete schedule',a:'schedDelete',cls:'danger'}]:[]).concat([{label:'Cancel',a:'closeModal'}])};
   commit();
 }
+/* The app redraws while the robot works. When a redraw lands between finger down and up, the pressed button is
+   replaced and the browser drops the click, so taps went missing mid-cleaning. Finish such a tap here when the
+   finger comes up on the same control (same action and value) without having moved. */
+let press=null;
+document.addEventListener('pointerdown',e=>{const el=e.target.closest&&e.target.closest('[data-a]');press=el?{el,a:el.dataset.a,v:el.dataset.v||'',x:e.clientX,y:e.clientY}:null},true);
+document.addEventListener('pointerup',e=>{const p=press;press=null;if(!p||p.el.isConnected)return;
+  if(Math.abs(e.clientX-p.x)>10||Math.abs(e.clientY-p.y)>10)return;
+  const hit=document.elementFromPoint(e.clientX,e.clientY),el=hit&&hit.closest('[data-a]');
+  if(el&&el.dataset.a===p.a&&(el.dataset.v||'')===p.v&&!el.disabled&&el.type!=='checkbox'){const f=A[el.dataset.a];if(f)f(el.dataset.v,el,e)}
+},true);
 document.addEventListener('click',e=>{
   const el=e.target.closest('[data-a]');if(!el||el.disabled)return;
   if(el.type==='checkbox')return;
