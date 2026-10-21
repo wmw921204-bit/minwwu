@@ -2022,39 +2022,33 @@ img.is-zoomable { cursor: zoom-in; }
 .case--kohler .fin-orbit__stats b { color: #5fd6ca; }
 .case--kohler .fin-orbit__stats p { border-color: var(--c-line); }
 
-/* Kohler: no divider lines; water and the app's circle motif behind */
+/* Kohler: a faint pool-floor caustic behind the page, strongest at the edges */
+.kh-caustic { position: fixed; inset: -10%; z-index: 0; pointer-events: none; opacity: .07;
+  background: url("assets/projects/kohler/caustic.webp?v=1") 0 0 / 1100px 1100px repeat;
+  -webkit-mask-image: linear-gradient(90deg, #000 0%, rgba(0,0,0,.25) 28%, rgba(0,0,0,.1) 50%, rgba(0,0,0,.25) 72%, #000 100%);
+  mask-image: linear-gradient(90deg, #000 0%, rgba(0,0,0,.25) 28%, rgba(0,0,0,.1) 50%, rgba(0,0,0,.25) 72%, #000 100%);
+  animation: kh-drift 140s linear infinite; }
+@keyframes kh-drift { to { background-position: 1100px 550px; } }
+@media (prefers-reduced-motion: reduce) { .kh-caustic { animation: none; } }
+
+/* Kohler: no divider lines */
 .case--kohler .c-chapter { border-top: 0; padding-top: 0; }
 .case--kohler .c-stat, .case--kohler .fin-lessons p, .case--kohler .kh-out, .case--kohler .kh-out button { border-top: 0; }
 .case--kohler .c-next { border-top: 0; }
 .case--kohler .c-facts dl > div { border-top-color: rgba(95,214,202,.08); }
-.kh-water { position: fixed; inset: 0; width: 100vw; height: 100vh; pointer-events: none; z-index: 0; }
 .case--kohler main { position: relative; z-index: 1; overflow-x: clip; }
 .case--kohler .c-sec { position: relative; }
-.kh-motif { position: absolute; z-index: -1; width: clamp(380px, 46vw, 720px); height: auto; top: 0; fill: none; stroke: #5fd6ca; stroke-width: .9; opacity: .14; pointer-events: none; transform: rotate(calc(var(--sy, 0) * .03deg)); }
-.kh-motif .o { opacity: .45; }
-.kh-motif--r { right: -14vw; } .kh-motif--l { left: -16vw; }
-@media (max-width: 760px) { .kh-motif { width: 120vw; opacity: .08; } .kh-motif--r { right: -60vw; } .kh-motif--l { left: -60vw; } }
-@media (prefers-reduced-motion: reduce) { .kh-motif { transform: none; } }
-
 /* Kohler: the tank */
 .kh-tank { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: clamp(28px, 5vw, 80px); align-items: center; margin-top: 48px; }
 .kh-tank__num { font: 600 clamp(84px, 11vw, 168px)/1 var(--f-display); letter-spacing: -0.05em; color: #5fd6ca; font-variant-numeric: tabular-nums; }
 .kh-tank__label { margin-top: 14px; max-width: 20em; font: 500 clamp(18px, 1.7vw, 24px)/1.4 var(--f-display); }
 .kh-tank__label b { color: #5fd6ca; font-weight: 600; }
 .kh-tank__punch { margin-top: 22px; color: var(--c-muted); }
-.kh-tank__glass { position: relative; justify-self: center; width: min(100%, 300px); aspect-ratio: 1 / 1.9; border-radius: 150px 150px 48px 48px; overflow: hidden;
-  background: radial-gradient(120% 60% at 50% 0%, rgba(95,214,202,.10), transparent 60%), rgba(255,255,255,.015);
-  box-shadow: inset 0 0 0 1px rgba(160,240,232,.22), inset 14px 0 30px -18px rgba(255,255,255,.25), inset -10px 0 30px -18px rgba(255,255,255,.12), 0 60px 120px -40px rgba(63,193,181,.45); }
-.kh-tank__glass::after { content: ""; position: absolute; left: 50%; bottom: -30px; width: 120%; height: 60px; transform: translateX(-50%); background: radial-gradient(closest-side, rgba(63,193,181,.35), transparent); filter: blur(10px); }
-.kh-tank__shine { position: absolute; left: 14%; top: 8%; bottom: 10%; width: 7%; border-radius: 99px; background: linear-gradient(180deg, rgba(255,255,255,.28), rgba(255,255,255,.04)); pointer-events: none; }
-.kh-tank__bubbles i { position: absolute; left: var(--x); bottom: 2%; width: var(--s); height: var(--s); border-radius: 50%; border: 1px solid rgba(220,255,250,.7); background: rgba(255,255,255,.12); opacity: 0; animation: kh-rise var(--t) ease-in infinite; animation-delay: var(--d); }
-@keyframes kh-rise { 0% { transform: translate(0, 0); opacity: 0; } 10% { opacity: .9; } 50% { transform: translate(6px, -22vh); } 70% { opacity: .7; } 100% { transform: translate(-4px, -38vh); opacity: 0; } }
-.kh-tank:not(.is-on) .kh-tank__bubbles i { animation-play-state: paused; }
-.kh-tank__level { position: absolute; right: 18px; transform: translateY(150%); font: 500 13px var(--f-body); color: #04201d; background: rgba(238,247,246,.9); padding: 4px 10px; border-radius: 99px; white-space: nowrap; }
-.kh-tank__level b { font-weight: 600; font-variant-numeric: tabular-nums; }
+.kh-tank__glass { position: relative; justify-self: center; width: min(100%, 280px); aspect-ratio: 1 / 2; border-radius: 40px; border: 1px solid rgba(95,214,202,.35); overflow: hidden;
+  background: linear-gradient(90deg, rgba(255,255,255,.05), transparent 30%, transparent 70%, rgba(255,255,255,.04)); box-shadow: inset 0 0 40px rgba(95,214,202,.08); }
 .kh-tank__water { position: absolute; inset: 0; width: 100%; height: 100%; }
-.kh-tank__back { fill: rgba(95,214,202,.28); }
-.kh-tank__front { fill: url(#khWater); }
+.kh-tank__back { fill: rgba(63,193,181,.35); }
+.kh-tank__front { fill: rgba(63,193,181,.75); }
 .kh-tank__mark { position: absolute; right: 14px; bottom: calc(var(--m) * 1% - 8px); font: 500 11px var(--f-body); color: rgba(238,247,246,.5); letter-spacing: .06em; }
 .kh-tank__mark:first-of-type { bottom: auto; top: 12px; }
 .kh-tank__mark:last-of-type { bottom: 10px; }
