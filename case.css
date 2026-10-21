@@ -2023,7 +2023,7 @@ img.is-zoomable { cursor: zoom-in; }
 .case--kohler .fin-orbit__stats p { border-color: var(--c-line); }
 
 /* Kohler: slow flowing water light behind the page */
-.kh-flow { position: fixed; inset: 0; width: 100vw; height: 100vh; z-index: 0; pointer-events: none; filter: blur(24px); transform: scale(1.1); opacity: .9; }
+.kh-flow { position: fixed; inset: 0; width: 100vw; height: 100vh; z-index: 0; pointer-events: none; filter: blur(20px); transform: scale(1.1); opacity: 1; }
 
 /* Kohler: no divider lines */
 .case--kohler .c-chapter { border-top: 0; padding-top: 0; }
