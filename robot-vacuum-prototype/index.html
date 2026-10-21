@@ -899,7 +899,7 @@ function command(label,done,fn){
   if(S.conn!=='connected'){flash("You're offline. Reconnect to send commands.");return}
   S.cmd={label,state:'sending'};commit();
   setTimeout(()=>{
-    if(S.ctl.failNext||Math.random()<0.08){S.ctl.failNext=false;S.cmd={label,state:'failed',retry:()=>command(label,done,fn)};commit();renderPanel();return}
+    if(S.ctl.failNext||(!S.ctl.calm&&Math.random()<0.08)){S.ctl.failNext=false;S.cmd={label,state:'failed',retry:()=>command(label,done,fn)};commit();renderPanel();return}
     fn();if(S.undoNext){const u=S.undoNext;S.undoNext=null;offerUndo(u.ev,u.act,u.snap,done);commit();return}S.cmd={label:done,state:'confirmed'};commit();
     setTimeout(()=>{if(S.cmd&&S.cmd.state==='confirmed'){S.cmd=null;commit()}},1700);
   },850);
@@ -1124,7 +1124,7 @@ function statusCard(){
     h+=`<p class="status-sub">${d.status==='error'?esc(S.device.error):d.status==='paused'&&S.waitEv?`Stopped at ${ZONES[DEFS[findEvent(S.waitEv).key].zone].name.toLowerCase()}. It won’t continue until you choose.`:nY.length?`${nY.length} ${nY.length===1?'thing needs':'things need'} your review. Cleaning continues elsewhere.`:d.status==='paused'&&S.waitEv?`Stopped at ${ZONES[DEFS[findEvent(S.waitEv).key].zone].name.toLowerCase()}. It won’t continue until you choose.`:d.status==='paused'&&S.checkEv?'Check the area under the bed, then resume.':'Everything is running normally.'}</p>`;
     h+=`<div class="progress"><i data-live="bar" style="width:${LIVE.bar()}"></i></div><div class="meta-row">${live('pct')}${live('elapsed')}${d.status==='cleaning'?live('remain'):''}</div>`;
     const latest=[...visibleEvents()].reverse().find(e=>!e.quiet&&(e.autonomous||e.status==='info'||e.status==='needsReview'||e.status==='inProgress'));
-    if(latest&&d.status!=='returning')h+=`<button class="why-chip" data-a="openEvent" data-v="${latest.id}">${ic('robot',18)}<b>${esc(S.waitEv===latest.id?'Waiting: '+SHORT[latest.key].q:latest.status==='inProgress'?'Heading back: '+ZONES[DEFS[latest.key].zone].name:DEFS[latest.key].chip)}</b><span class="why-link">Why this?</span></button>`;
+    if(latest&&d.status!=='returning')h+=`<button class="why-chip" data-a="openEvent" data-v="${latest.id}">${ic('robot',18)}<b>${esc(S.waitEv===latest.id?'Waiting: '+SHORT[latest.key].q:latest.status==='inProgress'?'Will go back to: '+ZONES[DEFS[latest.key].zone].name.toLowerCase():DEFS[latest.key].chip)}</b><span class="why-link">Why this?</span></button>`;
     const sending=S.cmd&&S.cmd.state==='sending';
     if(d.status==='cleaning')h+=`<div class="btn-row"><button class="btn plain" data-a="pause" ${sending?'disabled':''}>Pause</button><button class="btn plain" data-a="endReturn" ${sending?'disabled':''}>Return to dock</button></div>`;
     if(d.status==='paused'&&S.waitEv)h+=`<div class="btn-row"><button class="btn primary" data-a="openEvent" data-v="${S.waitEv}">Choose now</button><button class="btn plain" data-a="resume" ${sending?'disabled':''}>Skip, keep going</button></div>`;
@@ -1158,7 +1158,7 @@ function attention(){
   const unchecked=visibleObjs().filter(o=>o.status==='ignored');
   if(unchecked.length)h+=`<p class="small muted" style="margin:8px 4px 0">${unchecked.length} object${unchecked.length>1?'s':''} not checked yet · <button class="link" data-a="recheckObjs">Check now</button></p>`;
   // count what they actually answered (including keeping the robot's choice), not what happens to be resolved
-  const answered=visibleEvents().filter(e=>e.lastAct).length;
+  const answered=visibleEvents().filter(e=>e.lastAct&&(!e.autonomous||e.changed)).length;
   if(answered)h+=`<p class="small muted" style="margin:12px 4px 0">${answered} you answered · <button class="link" data-a="openTimeline" data-v="${S.task.id}">See timeline</button></p>`;
   if(auto.length){
     h+=`<div class="sec-h">Robot decided<small>${auto.length}</small></div>`;
@@ -1231,7 +1231,7 @@ function scrSetup(){
 }
 const SHORT={
   cable:{q:'Cable near the sofa?',line:'The robot skipped this spot to be safe.',primary:'retryCleared',
-    labels:{retryCleared:'I moved it, retry',avoid:'Leave it',later:'Later'}},
+    labels:{retryCleared:'I moved it, retry',avoid:'Leave it, skip this spot',later:'Ask me after cleaning'}},
   rug:{q:'Rug or hard floor?',line:'The robot left this patch until you tell it.',primary:null,
     labels:{asRug:'Rug',asHard:'Hard floor',skipNow:'Skip for now'}},
   bed:{q:'Can’t get under the bed',line:'Tried 3 times. Something is in the way.',primary:'retry',
@@ -1243,7 +1243,7 @@ const OPTICON={retryCleared:'retry',retry:'retry',avoid:'avoid',later:'clock',cl
 function scrEvent(id){
   const ev=findEvent(id);if(!ev)return topbar('')+'<p>Not found.</p>';
   const d=DEFS[ev.key];const z=ZONES[d.zone];const sh=SHORT[ev.key];
-  let h=`<div class="topbar"><button class="icon-btn" data-a="back" aria-label="Back">${ic('back')}</button><span style="flex:1"></span><span class="pill ${ev.status}">${stLabel(ev)}</span></div>`;
+  let h=`<div class="topbar"><button class="icon-btn" data-a="back" aria-label="Back">${ic('back')}</button><span style="flex:1"></span>${ev.autonomous&&!ev.changed?'<span class="pill info">Robot decided</span>':`<span class="pill ${ev.status}">${stLabel(ev)}</span>`}</div>`;
   h+=`<div class="ev-art">${eventArt(ev.key)}<button class="ev-loc" data-a="tab" data-v="map">${ic('pin',15)}${ROOM[z.room].name} · ${z.name}</button></div>`;
   const q=ev.suggest&&ev.status==='needsReview'?'Allow an extra pass?':sh.q;
   h+=`<div class="h-screen" style="margin-top:18px">${esc(q)}</div>`;
@@ -1480,6 +1480,8 @@ function scrStuck(){
   h+=`<div class="sec-h">What to do</div><div class="card"><ol style="margin:0;padding-left:20px;font-size:15px;line-height:1.6"><li>Go to the robot in ${esc(curRoom().the)}.</li><li>Lift it onto open floor, or remove what’s caught.</li><li>Check the wheels for hair or a cable.</li><li>Tap Resume.</li></ol></div>`;
   const sending=S.cmd&&S.cmd.state==='sending';
   h+=`<div class="btn-row" style="margin-top:16px"><button class="btn primary" data-a="resume" ${sending?'disabled':''}>Resume</button><button class="btn plain" data-a="endReturn" ${sending?'disabled':''}>End and return</button></div>`;
+  // not at home: say what waiting means, so Resume isn't the only obvious way out
+  h+=`<p class="small muted" style="margin:12px 4px 0">Not at home? It’s safe to leave it: the robot stays put and this stays in your Inbox until you’re back. Or end the cleaning and it will try to drive back to the dock.</p>`;
   return h;
 }
 function scrHelp(){
@@ -1512,7 +1514,7 @@ function objModal(id){
   ${sel==='other'?`<label class="field" style="margin-top:10px"><span>What is it?</span><input id="obj-custom" data-obj-input maxlength="30" placeholder="e.g. Charging cable box" value="${esc(S.ui.objCustom||'')}" autocomplete="off"></label>`:''}`;
   const last=!q||q.indexOf(id)===q.length-1;
   const primary=sel==='other'?'Save my label':unsure?(sel===o.label?`Yes, ${OBJ[sel].n.toLowerCase()}`:`Save as ${OBJ[sel].n.toLowerCase()}`):(sel===o.label?'Looks right':`Change to ${OBJ[sel].n.toLowerCase()}`);
-  return {full:true,title:unsure?`Is this ${/^[aeiou]/i.test(OBJ[o.label].n)?'an':'a'} ${OBJ[o.label].n.toLowerCase()}?`:OBJ[o.label].n,body,
+  return {full:true,title:unsure?(/s$/i.test(OBJ[o.label].n)?`Are these ${OBJ[o.label].n.toLowerCase()}?`:`Is this ${/^[aeiou]/i.test(OBJ[o.label].n)?'an':'a'} ${OBJ[o.label].n.toLowerCase()}?`):OBJ[o.label].n,body,
     buttons:[{label:primary+(q&&!last?' · Next':''),a:'objSave',cls:'primary'},{label:'Nothing there',a:'objNone',cls:'plain'}]};
 }
 function groupModal(room){
