@@ -1149,7 +1149,7 @@ function attention(){
   const all=visibleEvents();const auto=all.filter(e=>e.autonomous&&!e.changed);
   const evs=all.filter(e=>e.status!=='info'&&!(e.autonomous&&!e.changed));
   const open=evs.filter(e=>e.status==='needsReview'&&!e.later), prog=evs.filter(e=>e.status==='inProgress'), later=evs.filter(e=>e.status==='deferred'), done=evs.filter(e=>e.status==='resolved'||e.status==='skipped');
-  let h=`<div class="sec-h" id="needs-you">Needs your call${open.length?`<small>${open.length}</small>`:''}</div>`;
+  let h=`<div class="sec-h" id="needs-you">Needs your call${waitingN()?`<small>${waitingN()}</small>`:''}</div>`;
   if(S.conn!=='connected')h+=`<div class="calm">${ic('wifi',20)}<span>Can’t check for new issues while the app is offline. Items below are from ${hhmm(S.snap.clock)}.</span></div>`;
   if(!open.length&&!prog.length&&!later.length&&!(pendingObjs().length&&S.task&&S.task.done)&&S.conn==='connected')h+=`<div class="calm">${ic('check',20)}<span>Nothing needs you right now. The robot will let you know if something comes up.</span></div>`;
   h+=open.concat(prog).map(evItem).join('');
@@ -1296,7 +1296,7 @@ function scrEvent(id){
     }
   }
   if(ev.status==='needsReview'&&!ev.archived&&!ev.suggest)h+=`<div class="later-row">${ic('clock',16)}<span>Ask me later${S.waitEv===ev.id?' (it carries on meanwhile)':''}:</span><button class="chip" data-a="askLater" data-v="${ev.id}|30">In 30 min</button><button class="chip" data-a="askLater" data-v="${ev.id}|60">In 1 hour</button>${running()?`<button class="chip" data-a="askLater" data-v="${ev.id}|task">After this cleaning</button>`:''}</div>`;
-  h+=`<details class="why" open><summary>Why did this happen?</summary><p>${esc(d.why)}</p>${d.basis?`<p><b>What the robot measured:</b> ${esc(d.basis)}</p>`:''}${d.unsure?`<p><b>Not sure:</b> ${esc(d.unsure)}</p>`:''}${ev.log.length?tlRows(ev.log,false):''}</details>`;
+  h+=`<details class="why" open><summary>Why did this happen?</summary><p>${esc(d.why)}</p>${d.basis?(([t,n])=>`<p><b>What the robot measured:</b> ${esc(t.trim())}${n?`<br><span class="small muted">${esc(n.replace(/\)\.?$/,''))}</span>`:''}</p>`)(d.basis.split(' (')):''}${d.unsure?`<p><b>Not sure:</b> ${esc(d.unsure)}</p>`:''}${ev.log.length?tlRows(ev.log,false):''}</details>`;
   return h;
 }
 
@@ -1512,7 +1512,7 @@ function objModal(id){
   const o=(S.objects||[]).find(x=>x.id===id);if(!o)return null;
   const sel=S.ui.objSel||o.label;const unsure=o.status==='pending'||o.status==='ignored';
   // the same order for every object, so a quick tap lands on the same answer each time; the robot's guesses are tagged instead
-  const order=Object.keys(OBJ).filter(t=>t!=='other'),guess=new Set([...(o.guesses||[]),o.orig||o.label]);
+  const order=Object.keys(OBJ).filter(t=>t!=='other'),guess=new Set([o.orig&&o.orig!=='unknown'?o.orig:(o.guesses||[])[0]].filter(Boolean));
   const q=S.ui.objQueue;const step=q&&q.length>1?`<div class="small muted" style="font-weight:800;margin-bottom:4px">${q.indexOf(id)+1} of ${q.length}</div>`:'';
   const ph=objPhoto(o);
   const body=`${step}<div class="obj-hero ${ph?'has-photo':''}">${ph?`<img src="${ph}" alt="What the robot’s camera saw" onerror="this.parentNode.classList.remove('has-photo');this.remove()">`:''}<span>${sel==='other'?'✏️':OBJ[sel].e}</span><span class="pill ${unsure?'needsReview':o.status==='auto'?'info':'resolved'}">${unsure?'Robot isn’t sure':o.status==='auto'?'Robot is sure':'Checked by you'}</span></div>
@@ -1526,6 +1526,8 @@ function objModal(id){
   return {full:true,title:unsure&&sel==='other'?'What is it?':unsure&&tl!==o.label?`It’s ${/s$/i.test(OBJ[tl].n)?'':/^[aeiou]/i.test(OBJ[tl].n)?'an ':'a '}${OBJ[tl].n.toLowerCase()}`:unsure?(/s$/i.test(OBJ[o.label].n)?`Are these ${OBJ[o.label].n.toLowerCase()}?`:`Is this ${/^[aeiou]/i.test(OBJ[o.label].n)?'an':'a'} ${OBJ[o.label].n.toLowerCase()}?`):OBJ[o.label].n,body,
     buttons:[{label:primary+(q&&!last?' · Next':''),a:'objSave',cls:'primary'},{label:'Nothing there',a:'objNone',cls:'plain'}]};
 }
+// the next room that still has objects to check, so one notice walks through all of them
+function nextRoomModal(){const o=pendingObjs()[0];return o?groupModal(CELLROOM[o.k]):null}
 function groupModal(room){
   const items=pendingObjs().filter(o=>CELLROOM[o.k]===room);if(!items.length)return null;
   const name=ROOM[room]?ROOM[room].name:'Home',guessed=items.filter(o=>o.label!=='unknown');
@@ -1802,10 +1804,10 @@ const A={
   reviewRoom(v){S.ui.notice=null;const m=groupModal(v);if(m){S.ui.modal=m;commit()}},
   groupOk(v){const items=pendingObjs().filter(o=>CELLROOM[o.k]===v&&o.label!=='unknown');items.forEach(o=>{o.status=o.label===o.orig?'confirmed':'corrected'});
     tl('you',`You confirmed ${items.length} object${items.length>1?'s':''} in ${ROOM[v]?ROOM[v].the:'the home'}`);if(window.onObjChange)window.onObjChange(items);
-    S.ui.modal=groupModal(v);flash('Checked and removed from your list');commit()},
+    S.ui.modal=groupModal(v)||nextRoomModal();flash(S.ui.modal&&!groupModal(v)?'Done here. Next room':'Checked and removed from your list');commit()},
   groupIgnore(v){const items=pendingObjs().filter(o=>CELLROOM[o.k]===v);items.forEach(o=>{o.status='ignored'});
     tl('you',`You left ${items.length} object${items.length>1?'s':''} in ${ROOM[v]?ROOM[v].the:'the home'} unchecked for now`);if(window.onObjChange)window.onObjChange(items);
-    S.ui.modal=null;flash('Ignored for now. The robot keeps going around them.');commit()},
+    S.ui.modal=nextRoomModal();flash('Ignored for now. The robot keeps going around them.');commit()},
   recheckObjs(){const items=visibleObjs().filter(o=>o.status==='ignored');if(!items.length)return;items.forEach(o=>{o.status='pending'});if(window.onObjChange)window.onObjChange(items);A.reviewRoom(CELLROOM[items[0].k])},
   fixObj(v){const o=S.objects.find(x=>x.id===v);S.ui.objFrom=o?CELLROOM[o.k]:null;S.ui.objId=v;S.ui.objSel=null;S.ui.objCustom='';S.ui.objQueue=null;S.ui.modal=objModal(v);commit()},
   reviewObjs(){const q=pendingObjs().map(o=>o.id);if(!q.length)return;S.ui.notice=null;S.ui.objQueue=q;S.ui.objId=q[0];S.ui.objSel=null;S.ui.modal=objModal(q[0]);commit()},
@@ -1885,7 +1887,7 @@ function objNext(){
   S.ui.modal=null;S.ui.objQueue=null;
   // changed from a room's list: back to that list while it still has items
   const from=S.ui.objFrom;S.ui.objFrom=null;
-  if(!q&&from){const m=groupModal(from);if(m){S.ui.modal=m;flash('Saved');return}flash('All checked here. Map updated.');return}
+  if(!q&&from){const m=groupModal(from)||nextRoomModal();if(m){S.ui.modal=m;flash(groupModal(from)?'Saved':'Done here. Next room');return}flash('All checked. Map updated.');return}
   if(q){flash('All objects checked. Map updated.')}else commit();
 }
 function schedModal(){
