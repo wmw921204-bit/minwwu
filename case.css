@@ -2003,6 +2003,25 @@ img.is-zoomable { cursor: zoom-in; }
 .kh-cre b { display: block; font: 600 30px/1 var(--f-display); letter-spacing: -0.02em; }
 .kh-cre span { display: block; margin-top: 8px; font-size: 13px; letter-spacing: .1em; text-transform: uppercase; color: var(--c-accent-ink); }
 .kh-cre p { margin-top: 16px; color: var(--c-muted); line-height: 1.6; }
+/* Kohler in FINRA's language, recoloured teal */
+.case--kohler .fin-bounce__num, .case--kohler .fin-bounce__label b { color: #5fd6ca; }
+.case--kohler .fin-bounce__grid i { background: #d8f3ef; }
+.case--kohler .fin-bounce__grid i.is-stay, .case--kohler .fin-bounce__legend i { background: #3fc1b5; }
+.case--kohler .fin-bounce__legend i.is-gone-key { background: transparent; border-color: rgba(216,243,239,.5); }
+.case--kohler .fin-orb__ring { stroke: rgba(95,214,202,.25); }
+.case--kohler .fin-orb__ring--in { stroke: rgba(95,214,202,.14); }
+.case--kohler .fin-orb__spokes line { stroke: #5fd6ca; }
+.case--kohler .fin-orb__hub { background: radial-gradient(circle at 35% 30%, #ffffff, #c9f1ec); color: #04201d; font-size: clamp(14px, 1.5vw, 22px); box-shadow: 0 0 0 10px rgba(95,214,202,.08), 0 0 80px rgba(95,214,202,.45); }
+.case--kohler .fin-orb__node { border-color: rgba(95,214,202,.5); background: #0b2224; color: #e6f7f5; }
+.case--kohler .fin-orb__node:hover, .case--kohler .fin-orb__node.is-active { background: #5fd6ca; border-color: #5fd6ca; color: #04201d; }
+.case--kohler .fin-lessons p { border-top-color: #3fc1b5; }
+.case--kohler .fin-jr__col.is-active, .case--kohler .fin-jr__col:nth-child(2).is-active, .case--kohler .fin-jr__col:nth-child(3).is-active { border-color: #5fd6ca; }
+.case--kohler .fin-jr__dot, .case--kohler .fin-jr[data-at="1"] .fin-jr__dot, .case--kohler .fin-jr[data-at="2"] .fin-jr__dot { stroke: #5fd6ca; filter: drop-shadow(0 0 10px rgba(95,214,202,.9)); }
+.case--kohler .fin-jr__cards b { color: #5fd6ca; }
+.kh-jr { margin-top: 48px; }
+.case--kohler .fin-orbit__stats b { color: #5fd6ca; }
+.case--kohler .fin-orbit__stats p { border-color: var(--c-line); }
+
 /* Kohler: the brief, as a tension */
 .kh-ask { margin: 56px 0 0; padding: 0; border: 0; }
 .kh-ask p { max-width: 1100px; font: 500 clamp(30px, 3.6vw, 58px)/1.12 var(--f-display); letter-spacing: -0.03em;

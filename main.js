@@ -598,13 +598,14 @@ const inView = (el, fn, opts = { threshold: 0.35 }) => {
 $$("[data-bounce]").forEach((box) => {
   const dots = $$(".fin-bounce__grid i", box), num = $("[data-bounce-num]", box);
   // the top 62 leave row by row; the bottom 38 stay as a neat block
-  const gone = new Set(dots.map((_, i) => i).slice(0, 62));
+  const goneN = +(box.dataset.gone || 62), val = parseFloat(box.dataset.val || 62.2);
+  const gone = new Set(dots.map((_, i) => i).slice(0, goneN));
   dots.forEach((d, i) => { if (gone.has(i)) d.style.setProperty("--d", (0.15 + Math.floor(i / 10) * 0.22 + (i % 10) * 0.025).toFixed(2) + "s"); });
   inView(box, () => {
     box.classList.add("is-in");
     dots.forEach((d, i) => d.classList.add(gone.has(i) ? "is-gone" : "is-stay"));
     const t0 = performance.now(), T = reduceMotion ? 1 : 2000;
-    const tick = (t) => { const k = Math.min(1, (t - t0) / T), e = 1 - Math.pow(1 - k, 3); num.textContent = (62.2 * e).toFixed(1); if (k < 1) requestAnimationFrame(tick); };
+    const tick = (t) => { const k = Math.min(1, (t - t0) / T), e = 1 - Math.pow(1 - k, 3); num.textContent = (val * e).toFixed(1); if (k < 1) requestAnimationFrame(tick); };
     requestAnimationFrame(tick);
   }, { threshold: 0.45 });
 });
