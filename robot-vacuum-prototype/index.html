@@ -403,6 +403,8 @@ button.tile{font:inherit;width:100%}
 .grp-row{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--line)}
 .grp-row:last-child{border-bottom:0}
 .grp-row .e{font-size:22px;width:34px;text-align:center}
+.grp-row .e img{width:34px;height:34px;border-radius:9px;object-fit:cover;display:block}
+.obj-hero img{width:100%;max-height:210px;object-fit:cover;border-radius:16px;display:block}.obj-hero.has-photo>span:first-of-type{display:none}
 .grp-row .t{flex:1;font-weight:700;font-size:14px}
 .grp-row button{height:32px;padding:0 12px;border-radius:99px;border:1px solid var(--line);background:var(--surface);font:inherit;font-size:12.5px;font-weight:800;color:var(--primary);cursor:pointer}
 .detect{background:var(--warn-soft);border-radius:16px;padding:12px 14px;margin-top:12px;font-size:13.5px;line-height:1.45}
@@ -1503,13 +1505,16 @@ const demoHeroCellsMarker='';
 function demoHeroCells(){const c=blankCells('out');['kitchen','hall'].forEach(r=>ROOMCELLS[r].forEach(k=>c[k]='cleaned'));ROOMCELLS.living.slice(0,30).forEach(k=>c[k]='cleaned');return c}
 
 /* ============ modal / overlays ============ */
+/* the robot's own photo of an object, when live mode has one (the bridge fetches it from the robot) */
+const objPhoto=o=>o&&o.photoName&&window.HA_LIVE?'/api/photo?name='+encodeURIComponent(o.photoName):null;
 function objModal(id){
   const o=(S.objects||[]).find(x=>x.id===id);if(!o)return null;
   const sel=S.ui.objSel||o.label;const unsure=o.status==='pending'||o.status==='ignored';
   // the same order for every object, so a quick tap lands on the same answer each time; the robot's guesses are tagged instead
   const order=Object.keys(OBJ).filter(t=>t!=='other'),guess=new Set([...(o.guesses||[]),o.orig||o.label]);
   const q=S.ui.objQueue;const step=q&&q.length>1?`<div class="small muted" style="font-weight:800;margin-bottom:4px">${q.indexOf(id)+1} of ${q.length}</div>`:'';
-  const body=`${step}<div class="obj-hero"><span>${sel==='other'?'✏️':OBJ[sel].e}</span><span class="pill ${unsure?'needsReview':o.status==='auto'?'info':'resolved'}">${unsure?'Robot isn’t sure':o.status==='auto'?'Robot is sure':'Checked by you'}</span></div>
+  const ph=objPhoto(o);
+  const body=`${step}<div class="obj-hero ${ph?'has-photo':''}">${ph?`<img src="${ph}" alt="What the robot’s camera saw" onerror="this.parentNode.classList.remove('has-photo');this.remove()">`:''}<span>${sel==='other'?'✏️':OBJ[sel].e}</span><span class="pill ${unsure?'needsReview':o.status==='auto'?'info':'resolved'}">${unsure?'Robot isn’t sure':o.status==='auto'?'Robot is sure':'Checked by you'}</span></div>
   <p class="small" style="text-align:center;margin-top:8px">${ROOM[CELLROOM[o.k]].name} · ${hhmm(o.at)}</p>
   <div class="small muted" style="font-weight:800;margin:16px 2px 8px">${unsure?'What is it?':'Wrong? Pick what it really is'}</div>
   <div class="obj-grid">${order.map(t=>`<button class="obj-opt ${t===sel?'on':''}" data-a="objPick" data-v="${t}"><span>${OBJ[t].e}</span>${esc(OBJ[t].n)}${unsure&&guess.has(t)?'<i class="g">Robot’s guess</i>':''}</button>`).join('')}<button class="obj-opt ${sel==='other'?'on':''}" data-a="objPick" data-v="other"><span>✏️</span>Other…</button></div>
@@ -1523,7 +1528,7 @@ function groupModal(room){
   const items=pendingObjs().filter(o=>CELLROOM[o.k]===room);if(!items.length)return null;
   const name=ROOM[room]?ROOM[room].name:'Home',guessed=items.filter(o=>o.label!=='unknown');
   return {full:true,title:`${name}: ${items.length} item${items.length>1?'s':''} to check`,body:`<p class="small muted" style="margin-bottom:6px">${items.length>1?'The robot wasn’t sure about these. If its guesses look right, confirm them all at once.':'The robot wasn’t sure about this one. If its guess looks right, confirm it.'}</p>
-    ${items.map(o=>`<div class="grp-row"><span class="e">${OBJ[o.label].e}</span><span class="t">${o.label==='unknown'?'Unknown object':'Maybe '+esc(OBJ[o.label].n.toLowerCase())+'?'}</span><button data-a="fixObj" data-v="${esc(o.id)}">Change</button></div>`).join('')}
+    ${items.map(o=>`<div class="grp-row"><span class="e">${objPhoto(o)?`<img src="${objPhoto(o)}" alt="" onerror="this.replaceWith('${OBJ[o.label].e}')">`:OBJ[o.label].e}</span><span class="t">${o.label==='unknown'?'Unknown object':'Maybe '+esc(OBJ[o.label].n.toLowerCase())+'?'}</span><button data-a="fixObj" data-v="${esc(o.id)}">Change</button></div>`).join('')}
     <p class="small muted" style="margin-top:10px">Ignore for now: the robot keeps going around them, and they stay on the map as not checked.</p>`,
     buttons:[guessed.length?{label:guessed.length<items.length?`Confirm the ${guessed.length} guessed`:items.length>1?'All look right':'Looks right',a:'groupOk',v:room,cls:'primary'}:null,{label:items.length>1?'Ignore these for now':'Ignore for now',a:'groupIgnore',v:room},{label:'Cancel',a:'closeModal'}].filter(Boolean)};
 }

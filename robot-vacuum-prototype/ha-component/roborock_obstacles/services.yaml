@@ -1,0 +1,8 @@
+read:
+photo:
+  fields:
+    photo_name:
+      required: true
+      selector:
+        text:
+photo_status:

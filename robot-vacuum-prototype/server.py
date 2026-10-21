@@ -3,6 +3,7 @@
 The browser never sees the Home Assistant token. The bridge only returns the
 selected robot's entities and only forwards an allowlist of robot commands.
 """
+import base64
 import hmac
 import json
 import os
@@ -80,6 +81,20 @@ def ha(path, data=None, method=None):
         raise BridgeError('Home Assistant request failed (%s).' % exc.code)
     except (URLError, TimeoutError, OSError):
         raise BridgeError('Can’t reach Home Assistant at %s.' % HA_URL)
+
+
+PHOTO_NAME = re.compile(r'^[A-Za-z0-9_.-]{1,80}$')
+
+
+def obstacle_photo(name):
+    """An obstacle photo from the robot, through the reader's photo action. Only names from the cached map work."""
+    if not PHOTO_NAME.match(name or ''):
+        raise BridgeError('Not a photo name.')
+    result = ha('services/roborock_obstacles/photo?return_response', {'photo_name': name}).get('service_response') or {}
+    if result.get('error') or not result.get('data'):
+        raise BridgeError('No photo: %s.' % (result.get('error') or 'empty reply'))
+    mime = result.get('content_type') if result.get('content_type') in ('image/jpeg', 'image/png') else 'image/jpeg'
+    return base64.b64decode(result['data']), mime
 
 
 def clean(state):
@@ -355,6 +370,11 @@ class Handler(BaseHTTPRequestHandler):
                                        'vacuum': config().get('vacuum', '')})
             if path == '/api/schedules':
                 return self.send(200, {'schedules': schedule_list()})
+            if path == '/api/photo':
+                body, mime = obstacle_photo((parse_qs(query).get('name') or [''])[0])
+                return self.send(200, body, mime)
+            if path == '/api/photo-status':
+                return self.send(200, ha('services/roborock_obstacles/photo_status?return_response', {}).get('service_response') or {})
             if path == '/api/map':
                 data = snapshot(ha('states'))
                 image = next((s for s in data['entities'] if s['entity_id'].startswith('image.')), None)

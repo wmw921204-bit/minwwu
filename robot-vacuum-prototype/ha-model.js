@@ -115,7 +115,7 @@
       const orig=known||'unknown';
       const o={id,k:'live',mm:{x:raw.x,y:raw.y},orig,label:orig,guesses:known?[]:GUESSES.slice(),
         status:known?'auto':'pending',typeCode:raw.type_code,description:raw.description||null,
-        ignored:/^ignored/.test(raw.group||''),source:map.source_updated_at||null};
+        ignored:/^ignored/.test(raw.group||''),source:map.source_updated_at||null,photoName:raw.photo_name||null};
       if(note&&note.label){o.label=note.label;o.status=note.label===orig?'confirmed':'corrected';o.customName=note.name||null}
       out.push(o);
     }

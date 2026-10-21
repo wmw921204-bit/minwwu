@@ -56,6 +56,16 @@ test('obstacles become app objects with one stable id', () => {
   assert.deepEqual([after[0].label, after[0].orig, after[0].status], ['cable', 'unknown', 'corrected']);
 });
 
+test('an obstacle photo name from the reader travels with the object', () => {
+  const map = { map_id: 0, obstacles: [
+    { group: 'obstacles_with_photo', x: 1000, y: 2000, type_code: 2, description: 'shoes', photo_name: '1697000000_abc' },
+    { group: 'obstacles', x: 3000, y: 4000, type_code: 34, description: 'clothes' },
+  ] };
+  const [withPhoto, without] = M.objects('vacuum.s6', map);
+  assert.equal(withPhoto.photoName, '1697000000_abc');
+  assert.equal(without.photoName, null);
+});
+
 test('selected map follows the robot select entity', () => {
   const s = { geometry: { maps: [{ map_id: 0 }, { map_id: 1 }] }, entities: [ent('select.s6_selected_map', 'Map 1')] };
   assert.equal(M.selectedMap(s).map_id, 1);

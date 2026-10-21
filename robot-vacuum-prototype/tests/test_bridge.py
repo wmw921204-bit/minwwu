@@ -240,3 +240,25 @@ class BridgeTests(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
+
+
+class PhotoTests(unittest.TestCase):
+    def test_photo_names_are_checked_before_asking(self):
+        with patch.object(server, 'ha') as ha:
+            for bad in ('', '../map', 'a/b', 'x' * 81):
+                with self.assertRaises(server.BridgeError):
+                    server.obstacle_photo(bad)
+            ha.assert_not_called()
+
+    def test_photo_comes_back_as_image_bytes(self):
+        import base64
+        png = b'\x89PNG\r\n\x1a\nfake'
+        reply = {'service_response': {'photo_name': 'p1', 'content_type': 'image/png', 'data': base64.b64encode(png).decode()}}
+        with patch.object(server, 'ha', return_value=reply) as ha:
+            self.assertEqual(server.obstacle_photo('p1'), (png, 'image/png'))
+            self.assertEqual(ha.call_args[0][1], {'photo_name': 'p1'})
+
+    def test_no_photo_is_an_error(self):
+        with patch.object(server, 'ha', return_value={'service_response': {'error': 'unknown photo name'}}):
+            with self.assertRaises(server.BridgeError):
+                server.obstacle_photo('p2')
