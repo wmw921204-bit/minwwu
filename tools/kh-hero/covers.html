@@ -1,0 +1,47 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>Kohler covers</title>
+<style>
+  * { margin: 0; box-sizing: border-box; }
+  html, body { width: 1600px; height: 1000px; overflow: hidden; }
+  body { position: relative; }
+  .ph { position: absolute; width: 402px; height: 874px; border-radius: 60px; padding: 12px; background: #0a1719;
+        box-shadow: 0 0 0 1.5px rgba(150,230,222,.25), 0 50px 100px -30px rgba(0,0,0,.75); }
+  .ph .s { position: relative; width: 100%; height: 100%; border-radius: 49px; overflow: hidden; background: #000507; }
+  .ph img { width: 100%; display: block; }
+  .ring { position: absolute; }
+  .ring circle { fill: none; stroke: #f2fbfa; stroke-width: 5; stroke-linecap: round; transform: rotate(-90deg); transform-origin: 50% 50%; filter: drop-shadow(0 0 6px rgba(255,255,255,.7)); }
+  /* 1: onboarding, three phones in a row, cropped by the bottom edge */
+  .c1 { background: radial-gradient(80% 90% at 50% 100%, #1a5753 0%, #0b2829 55%, #061315 100%); }
+  /* 2: learning, two phones offset */
+  .c2 { background: radial-gradient(70% 80% at 30% 20%, #193a5c 0%, #0b1a2c 55%, #050c14 100%); }
+  /* 3: the ritual, on a pale steam backdrop */
+  .c3 { background: radial-gradient(70% 90% at 65% 40%, #d8efec 0%, #9fcfca 45%, #4f8f8b 100%); }
+  .c3 .ph { box-shadow: 0 0 0 1.5px rgba(255,255,255,.4), 0 60px 110px -30px rgba(10,40,40,.55); }
+  .mist { position: absolute; inset: 0; background: radial-gradient(40% 30% at 20% 85%, rgba(255,255,255,.55), transparent 70%), radial-gradient(35% 25% at 85% 15%, rgba(255,255,255,.45), transparent 70%); }
+</style></head>
+<body>
+<script>
+const c = +new URLSearchParams(location.search).get("c") || 1;
+document.body.className = "c" + c;
+const S = (n) => `../../assets/projects/kohler/app/s/${n}.webp`;
+const phone = (img, x, y, scale = 1, rot = 0, extra = "") => {
+  const d = document.createElement("div"); d.className = "ph";
+  d.style.cssText = `left:${x}px;top:${y}px;transform:scale(${scale}) rotate(${rot}deg);transform-origin:0 0;${extra}`;
+  d.innerHTML = `<div class="s"><img src="${S(img)}"></div>`; document.body.append(d); return d;
+};
+if (c === 1) {
+  phone("wearok", 170, 190, 1.0); phone("asp2", 599, 130, 1.0); phone("allset", 1028, 190, 1.0);
+}
+if (c === 2) {
+  phone("learn", 330, 120, 1.05, -6);
+  phone("capability", 830, 70, 1.05, 6);
+}
+if (c === 3) {
+  document.body.insertAdjacentHTML("beforeend", '<div class="mist"></div>');
+  phone("done", 930, 150, 0.92, 8, "filter:saturate(.9)");
+  const p = phone("run1", 420, 70, 1.02, -5);
+  const k = 378 / 402; // screen width inside the frame
+  p.querySelector(".s").insertAdjacentHTML("beforeend", `<svg class="ring" style="left:${31 * k}px;top:${177 * k}px;width:${340 * k}px;height:${340 * k}px" viewBox="0 0 340 340"><circle cx="170" cy="170" r="166" pathLength="1000" stroke-dasharray="700 1000"/></svg>`);
+}
+</script>
+</body></html>
