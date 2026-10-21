@@ -736,7 +736,8 @@ const countTo = (node, to) => {
   const from = parseFloat((node.dataset.v || node.textContent).replace(/[^0-9.]/g, "")) || 0; node.dataset.v = to;
   if (reduceMotion || from === to) { node.textContent = money(to); return; }
   const t0 = performance.now(), d = 500;
-  const step = (t) => { const k = Math.min(1, (t - t0) / d), e = 1 - Math.pow(1 - k, 3); node.textContent = money(from + (to - from) * e); if (k < 1) requestAnimationFrame(step); };
+  // time from the clock, clamped: a throttled frame can hand back a timestamp from before t0
+  const step = () => { const k = Math.max(0, Math.min(1, (performance.now() - t0) / d)), e = 1 - Math.pow(1 - k, 3); node.textContent = money(from + (to - from) * e); if (k < 1) requestAnimationFrame(step); else node.textContent = money(to); };
   requestAnimationFrame(step);
 };
 

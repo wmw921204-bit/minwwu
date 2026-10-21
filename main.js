@@ -605,7 +605,7 @@ $$("[data-bounce]").forEach((box) => {
     box.classList.add("is-in");
     dots.forEach((d, i) => d.classList.add(gone.has(i) ? "is-gone" : "is-stay"));
     const t0 = performance.now(), T = reduceMotion ? 1 : 2000;
-    const tick = (t) => { const k = Math.min(1, (t - t0) / T), e = 1 - Math.pow(1 - k, 3); num.textContent = (val * e).toFixed(1); if (k < 1) requestAnimationFrame(tick); };
+    const tick = (t) => { const k = Math.max(0, Math.min(1, (t - t0) / T)), e = 1 - Math.pow(1 - k, 3); num.textContent = (val * e).toFixed(1); if (k < 1) requestAnimationFrame(tick); };
     requestAnimationFrame(tick);
   }, { threshold: 0.45 });
 });
@@ -681,7 +681,7 @@ $$("[data-journey]").forEach((jr) => {
     cancelAnimationFrame(raf);
     const from = pos, t0 = performance.now();
     const step = (t) => {
-      const k = Math.min(1, (t - t0) / ms), e = k < 0.5 ? 2 * k * k : 1 - Math.pow(-2 * k + 2, 2) / 2;
+      const k = Math.max(0, Math.min(1, (t - t0) / ms)), e = k < 0.5 ? 2 * k * k : 1 - Math.pow(-2 * k + 2, 2) / 2;
       place(from + (to - from) * e);
       if (k < 1) raf = requestAnimationFrame(step);
     };
