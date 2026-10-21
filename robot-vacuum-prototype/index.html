@@ -215,6 +215,7 @@ button.tile{font:inherit;width:100%}
 .obj-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
 .obj-opt{border:0;background:var(--surface);box-shadow:inset 0 0 0 1.5px var(--line);border-radius:18px;padding:10px 4px;display:flex;flex-direction:column;align-items:center;gap:4px;font-size:12.5px;font-weight:800}
 .obj-opt span{font-size:22px}
+.obj-opt .g{font-style:normal;font-size:10px;font-weight:800;color:var(--warn);line-height:1}
 .obj-opt.on{box-shadow:inset 0 0 0 2px var(--primary);background:var(--primary-soft);color:var(--primary)}
 .map .obj{cursor:pointer}
 .ex-demo{margin-top:14px;padding:14px 14px 12px}
@@ -378,6 +379,8 @@ button.tile{font:inherit;width:100%}
 /* round 3: inbox badge, full-screen sheets, lock screen, ask later */
 .tab .badge{position:absolute;top:3px;left:50%;margin-left:5px;min-width:17px;height:17px;border-radius:9px;background:var(--warn-line);color:#fff;font-size:10.5px;font-weight:800;display:grid;place-items:center;padding:0 4px;box-shadow:0 0 0 2px var(--surface)}
 .modal{position:relative}
+/* the sheet's buttons stay in view at the bottom while its content scrolls */
+.modal .m-acts{position:sticky;bottom:-28px;margin:18px -20px -28px;padding:12px 20px 28px;background:var(--bg);box-shadow:0 -10px 16px -12px rgba(12,16,34,.25)}
 .modal.full{max-height:none;height:100%;border-radius:0;padding-top:58px}
 .modal .close-full{position:absolute;top:12px;left:14px}
 .later-row{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:14px 4px 0;font-size:13px;color:var(--muted);font-weight:700}
@@ -634,6 +637,8 @@ function running(){return S.task&&!S.task.done}
 function findEvent(id){let e=S.events.find(x=>x.id===id);if(e)return e;for(const h of S.history){e=h.snap.events.find(x=>x.id===id);if(e)return e}return null}
 function unfinishedRooms(){const set=new Set();S.sim.queue.forEach(it=>{if(it.kind==='normal')set.add(CELLROOM[it.k])});return [...set].map(id=>ROOM[id].name)}
 function needsYou(){return visibleEvents().filter(e=>e.status==='needsReview')}
+// one number everywhere (Home tile, map list, Inbox badge): questions, groups of objects to check, and a stuck robot
+function waitingN(){return inbox().count}
 function computeResult(){if(S.task.endedEarly)return 'ended';return scopeKeys().some(k=>!['cleaned','cleaned2','nogo'].includes(S.cells[k]))?'partial':'completed'}
 
 /* ============ simulation ============ */
@@ -947,8 +952,12 @@ function offerUndo(ev,act,snap,label){
   S.undo={ev:ev.id,snap};S.cmd={label:label||('You chose “'+((SHORT[ev.key]&&SHORT[ev.key].labels[act])||act)+'”'),state:'undo'};
   clearTimeout(offerUndo.t);offerUndo.t=setTimeout(()=>{if(S.cmd&&S.cmd.state==='undo'){S.cmd=null;S.undo=null;commit()}},6000);
 }
+/* After an answer: back to where they opened it (Inbox, map list, report…) at the same scroll.
+   With nothing beneath it (opened from a notice), go to the map, or stay on the tab for robot problems. */
+function leaveEvent(toMap){const c=cur();if(c.name==='event'&&S.ui.stack.length){S.ui.stack.pop();restoreTop=c.ret||0;return}
+  S.ui.stack=[];if(toMap)S.ui.tab='map';S.ui.scrollTop=0;forceTop=true}
 function doAction(ev,act,saveRule){
-  if(!ev.archived){S.ui.stack=[];S.ui.tab='map';S.ui.scrollTop=0;forceTop=true}
+  if(!ev.archived)leaveEvent(true);
   const snap=snapFor(ev);
   const run=()=>{resetForChange(ev,act);applyAction(ev,act,false);if(saveRule){const r=DEFS[ev.key].remember[act];S.rules=S.rules.filter(x=>x.key!==ev.key);S.rules.push({id:'r'+(++seq),key:ev.key,act,text:r.text,scope:r.scope})}};
   if(NEEDS_DEVICE[act]){const [l,d]=CMDTEXT[act];command(l,d,()=>{run();S.undoNext={ev,act,snap}})}
@@ -957,8 +966,10 @@ function doAction(ev,act,saveRule){
 
 /* ============ navigation ============ */
 const cur=()=>S.ui.stack[S.ui.stack.length-1]||{name:S.ui.tab};
-function go(name,id){S.ui.stack.push({name,id});S.ui.scrollTop=0;if(S.ui.notice!=='stuck')S.ui.notice=null;commit(true)}
-function back(){S.ui.stack.pop();commit(true)}
+// each screen remembers how far the one beneath it was scrolled, so Back and answering return to the same place
+const scrollNow=()=>{const s=document.querySelector('#app .scroll');return s?s.scrollTop:0};
+function go(name,id){S.ui.stack.push({name,id,ret:scrollNow()});S.ui.scrollTop=0;if(S.ui.notice!=='stuck')S.ui.notice=null;commit(true)}
+function back(){const c=S.ui.stack.pop();restoreTop=c&&c.ret||0;commit()}
 
 /* ============ map ============ */
 function mapSVG(o={}){
@@ -1079,7 +1090,7 @@ function userMadeEv(ev){return !ev.archived&&!(ev.autonomous&&!ev.changed)&&!!ev
 function statusCard(){
   const d=dev();const off=S.conn!=='connected';
   const nY=needsYou();
-  let dotC=off?'off':d.status==='error'?'stop':nY.length?'warn':d.status==='cleaning'||d.status==='returning'?'':'off';
+  let dotC=off?'off':d.status==='error'?'stop':waitingN()?'warn':d.status==='cleaning'||d.status==='returning'?'':'off';
   let kicker=off?'Disconnected':({cleaning:'Cleaning',paused:'Paused',returning:'Returning',docked:'Docked',error:'Needs help'})[d.status];
   let h=`<div class="card"><div class="status-kicker"><span class="live-dot ${dotC}"></span>${kicker}</div>`;
   h+=`<div class="status-title">${live('status')}</div>`;
@@ -1138,14 +1149,14 @@ function scrHome(){
   if(active){
     hero=`<button style="all:unset;display:block;cursor:pointer;margin-top:12px" data-a="tab" data-v="map" aria-label="Open live map"><div class="map-wrap">${mapSVG({mini:true,dim:off})}</div></button>`;
   }else{
-    const bub=nY?`<span class="bubble warn">${ic('alert',26)}</span>`:`<span class="bubble ok">${ic('bolt',26)}</span>`;
+    const bub=waitingN()?`<span class="bubble warn">${ic('alert',26)}</span>`:`<span class="bubble ok">${ic('bolt',26)}</span>`;
     hero=`<div class="hero">${isoRobot()}${bub}</div>`;
   }
   const doneP=S.task?(S.conn==='connected'?pct():S.snap.pct):null;
   const tiles=`<div class="tiles">
     <div class="tile"><span class="ti">${ic('bolt',24)}</span><b data-live="battery">${LIVE.battery()}</b><span>Battery</span></div>
     <button class="tile ${active?'on':''}" data-a="${S.task?'openReport':'setup'}" data-v="${S.task?S.task.id:''}"><span class="ti">${ic('map',24)}</span><b>${active?`<span data-live="barText" style="display:inline;font:inherit;color:inherit;margin:0">${LIVE.bar()}</span>`:doneP!==null?doneP+'%':'—'}</b><span>${active?'Cleaned so far':S.task?'Last cleaning':'No cleaning yet'}</span></button>
-    <button class="tile ${nY+(S.task&&S.task.done?pendingObjs().length:0)?'warn':''}" data-a="toNeeds" aria-label="Jump to what needs you"><span class="ti">${ic(nY+(S.task&&S.task.done?pendingObjs().length:0)?'alert':'check',24)}</span><b>${nY+(S.task&&S.task.done?pendingObjs().length:0)}</b><span>Needs you</span></button>
+    <button class="tile ${waitingN()?'warn':''}" data-a="toNeeds" aria-label="Jump to what needs you"><span class="ti">${ic(waitingN()?'alert':'check',24)}</span><b>${waitingN()}</b><span>Needs you</span></button>
   </div>`;
   return `<div class="hero-name"><b>Roborock</b><span>S6 MaxV</span></div><div class="hero-sub"><span class="live-dot ${off?'off':''}"></span>${off?'Offline':'Online'} · <button class="mode-pill" data-a="modeSheet" aria-label="Change how involved you are">${ic('robot',15)}${MODES[S.autonomy].name}${S.temp?' · '+esc(tempLabel()):''}<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button></div>
   ${hero}${tiles}
@@ -1155,17 +1166,18 @@ function scrHome(){
 }
 function scrMap(){
   const d=dev();const off=S.conn!=='connected';
-  const evs=visibleEvents().filter(e=>DEFS[e.key].type!=='decision');
+  const evs=visibleEvents();
   let h=`<div style="display:flex;align-items:center;justify-content:space-between"><div class="page-title">Live map</div><div class="seg" style="width:112px"><button class="${S.ui.map3d?'':'on'}" data-a="map3d" data-v="0" aria-label="Flat map">2D</button><button class="${S.ui.map3d?'on':''}" data-a="map3d" data-v="1" aria-label="Tilted 3D map">3D</button></div></div>`;
   h+=S.ui.map3d&&typeof THREE!=='undefined'?`<div class="map-wrap" style="padding:8px"><div class="map3d" id="map3d-host"><span class="hint">Drag to turn · pinch or scroll to zoom</span></div></div>${legend()}${mapUpdateRow()}`:`<div class="map-wrap">${mapSVG({dim:off})}</div>${legend()}${mapUpdateRow()}`;
   if(S.task){
-    h+=`<div class="card" style="margin-top:12px"><div class="status-kicker"><span class="live-dot ${off?'off':needsYou().length?'warn':''}"></span>${live('status')}</div><div class="progress"><i data-live="bar" style="width:${LIVE.bar()}"></i></div><div class="meta-row">${live('pct')}${live('elapsed')}${d.status==='cleaning'&&!off?live('remain'):''}</div>`;
+    h+=`<div class="card" style="margin-top:12px"><div class="status-kicker"><span class="live-dot ${off?'off':d.status==='error'?'stop':waitingN()?'warn':''}"></span>${live('status')}</div><div class="progress"><i data-live="bar" style="width:${LIVE.bar()}"></i></div><div class="meta-row">${live('pct')}${live('elapsed')}${d.status==='cleaning'&&!off?live('remain'):''}</div>`;
     const sending=S.cmd&&S.cmd.state==='sending';
     if(!off&&d.status==='cleaning')h+=`<div class="btn-row"><button class="btn plain" data-a="pause" ${sending?'disabled':''}>Pause</button><button class="btn plain" data-a="endReturn" ${sending?'disabled':''}>Return to dock</button></div>`;
     if(!off&&(d.status==='paused'||d.status==='error'))h+=`<div class="btn-row"><button class="btn primary" data-a="resume" ${sending?'disabled':''}>Resume</button><button class="btn plain" data-a="endReturn" ${sending?'disabled':''}>End and return</button></div>`;
     h+='</div>';
   }else h+=`<div class="calm" style="margin-top:12px">${ic('robot',20)}<span>No cleaning yet today. Start one from Home, then watch progress here.</span></div>`;
-  if(evs.length)h+=`<div class="sec-h">This cleaning<small>${evs.filter(e=>e.status==='needsReview').length} need your call</small></div>`+evs.map(evItem).join('');
+  const stuck=inbox().stuck,nc=evs.filter(e=>e.status==='needsReview'&&!e.later).length+(stuck?1:0);
+  if(evs.length||stuck)h+=`<div class="sec-h">This cleaning<small>${nc?nc+' waiting for you':'nothing waiting for you'}</small></div>`+(stuck?stuckItem():'')+evs.map(evItem).join('');
   const objs=visibleObjs();
   if(objs.length){
     const pend=objs.filter(x=>x.status==='pending');
@@ -1230,6 +1242,8 @@ function scrEvent(id){
     if(userMade)opts=opts.filter(o=>o!==ev.lastAct);
     if(fails>=2)opts=opts.filter(o=>o!=='retry'&&o!=='retryCleared'); // stop suggesting what failed twice
     if(d.type==='decision'&&ev.status==='info'&&(!running()||!S.sim.queue.some(x=>x.kind==='extra')))opts=[];
+    // heading to the dock: don't offer buttons that can't be pressed yet; say when it can be answered instead
+    if(opts.length&&S.device.status==='returning'){h+=`<div class="mode-note">${ic('home',18)}<span>It’s heading back to the dock. You can answer this <b>once it has docked</b>; it stays in your Inbox until then.</span></div>`;opts=[]}
     if(opts.length){
       const want=fails>=2?['nogo','skipNow','avoid'].find(o=>opts.includes(o)):isAuto||userMade||ev.mode==='manual'?null:ev.mode==='assist'?(ev.suggestion||sh.primary):sh.primary;
       const prim=opts.includes(want)?want:null;
@@ -1240,7 +1254,6 @@ function scrEvent(id){
       h+=`<div class="choices">`;
       if(prim)h+=`<button class="choice main" data-a="evAct" data-v="${ev.id}|${prim}" ${dis}>${ic(OPTICON[prim],22)}<b>${esc(sh.labels[prim])}</b></button>`;
       h+=`<div class="choice-grid ${rest.length===1?'one':''}">${rest.map(o=>`<button class="choice" data-a="evAct" data-v="${ev.id}|${o}" ${dis}><span class="ci">${ic(OPTICON[o],22)}</span><b>${esc(sh.labels[o])}</b></button>`).join('')}</div></div>`;
-      if(S.device.status==='returning')h+=`<p class="small muted" style="margin:10px 4px 0">Available once the robot is docked.</p>`;
       if(d.remember&&opts.some(o=>d.remember[o])){
         const can=opts.filter(x=>d.remember[x]),one=opts.filter(x=>!d.remember[x]);
         h+=`<label class="check"><input type="checkbox" data-a="remember" data-v="${ev.id}" ${S.ui.remember[ev.id]?'checked':''}><span>Remember my choice<small style="display:block;color:var(--muted);font-weight:600;margin-top:2px">Next time, the robot does what you pick here without asking. ${esc(d.remember[can[0]].scope)}${one.length?` ${esc(one.map(o=>sh.labels[o]).join(' and '))} ${one.length>1?'are':'is'} only for now.`:''} You can change it in Saved preferences.</small></span></label>`;
@@ -1329,11 +1342,12 @@ function evSummary(evs){
   const dec=evs.filter(e=>e.autonomous&&!e.changed).length,you=evs.filter(e=>!e.problem&&(!e.autonomous||e.changed)).length,pr=evs.filter(e=>e.problem).length;
   return [dec?dec+' robot decided':'',you?you+' your call':'',pr?pr+' problem'+(pr>1?'s':''):''].filter(Boolean).join(' · ');
 }
+const stuckItem=()=>`<button class="item" data-a="go" data-v="stuck"><span class="ico" style="background:var(--stop-soft);color:var(--stop)">${ic('alert',20)}</span><span class="body"><span class="t">Robot is stuck</span><span class="s">${esc(S.device.error||'It needs a hand.')}</span></span>${ic('chev',18)}</button>`;
 function scrInbox(){
   const it=inbox();
   let h=`<div class="page-title">Inbox</div><p class="small muted" style="margin:-4px 4px 12px">What still needs you. Things stay here after a notice is gone.</p>`;
   if(!it.count&&!it.later.length&&!it.deferred.length&&!it.ignored.length)h+=`<div class="calm">${ic('check',20)}<span>Nothing waiting for you.</span></div>`;
-  if(it.stuck)h+=`<div class="sec-h">Robot problem</div><button class="item" data-a="go" data-v="stuck"><span class="ico" style="background:var(--stop-soft);color:var(--stop)">${ic('alert',20)}</span><span class="body"><span class="t">Robot is stuck</span><span class="s">${esc(S.device.error||'It needs a hand.')}</span></span>${ic('chev',18)}</button>`;
+  if(it.stuck)h+=`<div class="sec-h">Robot problem</div>`+stuckItem();
   if(it.needs.length)h+=`<div class="sec-h">Needs your call<small>${it.needs.length}</small></div>`+it.needs.map(evItem).join('');
   if(it.po.length)h+=`<div class="sec-h">Objects to check</div>`+objGroups(it.po).map(g=>`<button class="item" data-a="reviewRoom" data-v="${g.room}"><span class="ico warn" style="font-size:17px">${g.items.slice(0,2).map(o=>OBJ[o.label].e).join('')}</span><span class="body"><span class="t">${esc(g.name)}: ${g.items.length} item${g.items.length>1?'s':''}</span><span class="s">Confirm together, or ignore for now.</span></span><span class="pill needsReview">Check</span></button>`).join('');
   if(it.later.length)h+=`<div class="sec-h">Remind me later<small>${it.later.length}</small></div>`+it.later.map(e=>evItem(e).replace(/<span class="pill [^"]*">[^<]*<\/span>/,`<span class="pill deferred">${esc(laterLabel(e))}</span>`)).join('');
@@ -1452,12 +1466,13 @@ function demoHeroCells(){const c=blankCells('out');['kitchen','hall'].forEach(r=
 function objModal(id){
   const o=(S.objects||[]).find(x=>x.id===id);if(!o)return null;
   const sel=S.ui.objSel||o.label;const unsure=o.status==='pending'||o.status==='ignored';
-  const order=[...new Set([...(o.guesses||[]),o.label,...Object.keys(OBJ)])].filter(t=>t!=='other');
+  // the same order for every object, so a quick tap lands on the same answer each time; the robot's guesses are tagged instead
+  const order=Object.keys(OBJ).filter(t=>t!=='other'),guess=new Set([...(o.guesses||[]),o.orig||o.label]);
   const q=S.ui.objQueue;const step=q&&q.length>1?`<div class="small muted" style="font-weight:800;margin-bottom:4px">${q.indexOf(id)+1} of ${q.length}</div>`:'';
   const body=`${step}<div class="obj-hero"><span>${sel==='other'?'✏️':OBJ[sel].e}</span><span class="pill ${unsure?'needsReview':o.status==='auto'?'info':'resolved'}">${unsure?'Robot isn’t sure':o.status==='auto'?'Robot is sure':'Checked by you'}</span></div>
   <p class="small" style="text-align:center;margin-top:8px">${ROOM[CELLROOM[o.k]].name} · ${hhmm(o.at)}</p>
   <div class="small muted" style="font-weight:800;margin:16px 2px 8px">${unsure?'What is it?':'Wrong? Pick what it really is'}</div>
-  <div class="obj-grid">${order.map(t=>`<button class="obj-opt ${t===sel?'on':''}" data-a="objPick" data-v="${t}"><span>${OBJ[t].e}</span>${esc(OBJ[t].n)}</button>`).join('')}<button class="obj-opt ${sel==='other'?'on':''}" data-a="objPick" data-v="other"><span>✏️</span>Other…</button></div>
+  <div class="obj-grid">${order.map(t=>`<button class="obj-opt ${t===sel?'on':''}" data-a="objPick" data-v="${t}"><span>${OBJ[t].e}</span>${esc(OBJ[t].n)}${unsure&&guess.has(t)?'<i class="g">Robot’s guess</i>':''}</button>`).join('')}<button class="obj-opt ${sel==='other'?'on':''}" data-a="objPick" data-v="other"><span>✏️</span>Other…</button></div>
   ${sel==='other'?`<label class="field" style="margin-top:10px"><span>What is it?</span><input id="obj-custom" data-obj-input maxlength="30" placeholder="e.g. Charging cable box" value="${esc(S.ui.objCustom||'')}" autocomplete="off"></label>`:''}`;
   const last=!q||q.indexOf(id)===q.length-1;
   const primary=sel==='other'?'Save my label':unsure?(sel===o.label?`Yes, ${OBJ[sel].n.toLowerCase()}`:`Save as ${OBJ[sel].n.toLowerCase()}`):(sel===o.label?'Looks right':`Change to ${OBJ[sel].n.toLowerCase()}`);
@@ -1467,15 +1482,16 @@ function objModal(id){
 function groupModal(room){
   const items=pendingObjs().filter(o=>CELLROOM[o.k]===room);if(!items.length)return null;
   const name=ROOM[room]?ROOM[room].name:'Home',guessed=items.filter(o=>o.label!=='unknown');
-  return {full:true,title:`${name}: ${items.length} item${items.length>1?'s':''} to check`,body:`<p class="small muted" style="margin-bottom:6px">The robot wasn’t sure about these. If its guesses look right, confirm them all at once.</p>
+  return {full:true,title:`${name}: ${items.length} item${items.length>1?'s':''} to check`,body:`<p class="small muted" style="margin-bottom:6px">${items.length>1?'The robot wasn’t sure about these. If its guesses look right, confirm them all at once.':'The robot wasn’t sure about this one. If its guess looks right, confirm it.'}</p>
     ${items.map(o=>`<div class="grp-row"><span class="e">${OBJ[o.label].e}</span><span class="t">${o.label==='unknown'?'Unknown object':'Maybe '+esc(OBJ[o.label].n.toLowerCase())+'?'}</span><button data-a="fixObj" data-v="${esc(o.id)}">Change</button></div>`).join('')}
     <p class="small muted" style="margin-top:10px">Ignore for now: the robot keeps going around them, and they stay on the map as not checked.</p>`,
-    buttons:[guessed.length?{label:guessed.length<items.length?`Confirm the ${guessed.length} guessed`:'All look right',a:'groupOk',v:room,cls:'primary'}:null,{label:'Ignore these for now',a:'groupIgnore',v:room},{label:'Cancel',a:'closeModal'}].filter(Boolean)};
+    buttons:[guessed.length?{label:guessed.length<items.length?`Confirm the ${guessed.length} guessed`:items.length>1?'All look right':'Looks right',a:'groupOk',v:room,cls:'primary'}:null,{label:items.length>1?'Ignore these for now':'Ignore for now',a:'groupIgnore',v:room},{label:'Cancel',a:'closeModal'}].filter(Boolean)};
 }
 /* The levels sheet, opened from Home. A level can be set for a while and then switch back. */
 function modeModal(){
   const sh=S.ui.sheet,opt=[['always','Until I change it'],['1h','For 1 hour']].concat(running()?[['task','Until this cleaning ends']]:[]);
-  return {title:'How involved do you want to be?',body:levelPicker(sh.mode,'sheetMode',true)+`<div class="small muted" style="font-weight:800;margin:14px 2px 8px">For how long?</div><div class="chips">${opt.map(([k,l])=>`<button class="chip ${sh.for===k?'on':''}" data-a="sheetFor" data-v="${k}">${l}</button>`).join('')}</div>`,
+  return {title:'How involved do you want to be?',body:levelPicker(sh.mode,'sheetMode',true)+`<div class="small muted" style="font-weight:800;margin:14px 2px 8px">For how long?</div><div class="chips">${opt.map(([k,l])=>`<button class="chip ${sh.for===k?'on':''}" data-a="sheetFor" data-v="${k}">${l}</button>`).join('')}</div>`+
+      (sh.for!=='always'?`<p class="small muted" style="margin:10px 2px 0">Then it goes back to ${esc(MODES[S.temp?S.temp.prev:S.autonomy].name)} by itself.</p>`:''),
     buttons:[{label:'Use '+MODES[sh.mode].name,a:'sheetApply',cls:'primary'},{label:'Cancel',a:'closeModal'}]};
 }
 function tempLabel(){const t=S.temp;if(!t)return '';if(t.task)return 'this cleaning';return 'until '+(t.live?(d=>String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0'))(new Date(t.until)):hhmm(t.until))}
@@ -1486,7 +1502,7 @@ function checkTemp(){
 }
 function modalHTML(){
   const m=S.ui.modal;if(!m)return '';
-  return `<div class="modal-bg" data-a="closeModalBg"><div class="modal ${m.full?'full':''}" role="dialog" aria-modal="true" aria-label="${esc(m.title)}">${m.full?`<button class="icon-btn close-full" data-a="closeModal" aria-label="Close">${ic('back')}</button>`:''}<h2>${esc(m.title)}</h2>${m.body}<div style="margin-top:18px">${m.buttons.map((b,i)=>`<button class="btn ${b.cls||'plain'} block" style="${i?'margin-top:8px':''}" data-a="${b.a}" data-v="${esc(b.v||'')}">${esc(b.label)}</button>`).join('')}</div></div></div>`;
+  return `<div class="modal-bg" data-a="closeModalBg"><div class="modal ${m.full?'full':''}" role="dialog" aria-modal="true" aria-label="${esc(m.title)}">${m.full?`<button class="icon-btn close-full" data-a="closeModal" aria-label="Close">${ic('back')}</button>`:''}<h2>${esc(m.title)}</h2>${m.body}<div class="m-acts">${m.buttons.map((b,i)=>`<button class="btn ${b.cls||'plain'} block" style="${i?'margin-top:8px':''}" data-a="${b.a}" data-v="${esc(b.v||'')}">${esc(b.label)}</button>`).join('')}</div></div></div>`;
 }
 function snapshotModal(ev){
   const d=DEFS[ev.key];
@@ -1620,11 +1636,28 @@ function mount3D(){
 }
 
 /* ============ render ============ */
-let rq=false,forceTop=false;
+let rq=false,forceTop=false,restoreTop=null;
 function commit(top){if(top)forceTop=true;if(rq)return;rq=true;requestAnimationFrame(()=>{rq=false;render()})}
+/* Keeps what's under the finger still when cards appear or shrink above it: before a redraw, note the tappable element
+   nearest the last pointer position (or the top of the view) and where it sits; afterwards scroll so it sits there again. */
+let lastPtrY=null;
+document.addEventListener('pointermove',e=>{lastPtrY=e.clientY},{passive:true});
+document.addEventListener('pointerdown',e=>{lastPtrY=e.clientY},{passive:true});
+// tappable elements keyed by action, value and which repeat of that pair it is
+function keyed(sc){const n={};return [...sc.querySelectorAll('[data-a]')].map(el=>{const k=el.dataset.a+'|'+(el.dataset.v||'');n[k]=(n[k]||0)+1;return [k+'#'+n[k],el]})}
+function findAnchor(sc){
+  const box=sc.getBoundingClientRect();const y=lastPtrY!=null&&lastPtrY>box.top&&lastPtrY<box.bottom?lastPtrY:box.top+8;
+  let best=null,bd=1e9;
+  for(const [k,el] of keyed(sc)){const r=el.getBoundingClientRect();if(r.bottom<box.top||r.top>box.bottom||!r.height)continue;
+    const d=y<r.top?r.top-y:y>r.bottom?y-r.bottom:0;if(d<bd){bd=d;best={k,top:r.top}}}
+  return best;
+}
 function render(){
   const app=document.getElementById('app');
-  const prev=app.querySelector('.scroll');const st=prev&&!forceTop?prev.scrollTop:0;forceTop=false;
+  const prev=app.querySelector('.scroll');
+  const same=prev&&!forceTop&&restoreTop==null;const anchor=same?findAnchor(prev):null;
+  const pm=app.querySelector('.modal'),modalTop=pm&&S.ui.modal&&pm.getAttribute('aria-label')===S.ui.modal.title?pm.scrollTop:0;
+  const st=restoreTop!=null?restoreTop:same?prev.scrollTop:0;forceTop=false;restoreTop=null;
   let h=`<div class="sbar"><span>${live('clock')}</span><span style="display:flex;gap:6px;align-items:center">${ic('wifi',17)}<svg width="25" height="12" viewBox="0 0 25 12" aria-hidden="true"><rect x=".5" y=".5" width="21" height="11" rx="3" fill="none" stroke="currentColor" opacity=".45"/><rect x="2.5" y="2.5" width="16" height="7" rx="1.5" fill="currentColor"/><rect x="22.5" y="4" width="1.8" height="4" rx=".8" fill="currentColor" opacity=".45"/></svg></span></div>`;
   if(S.onboarding){app.innerHTML=h+obScreen()+modalHTML();renderPanel();return}
   if(S.conn==='disconnected')h+=`<div class="banner"><span><b>Disconnected</b>Last update ${hhmm(S.snap.clock)}. Current status can’t be confirmed.</span><button class="btn primary" style="height:38px;font-size:13px;padding:0 12px" data-a="reconnect">Reconnect</button></div>`;
@@ -1654,6 +1687,8 @@ function render(){
     <button class="lock-open" data-a="lockBack">Open the app</button></div>`;
   app.innerHTML=h;
   const sc=app.querySelector('.scroll');if(sc)sc.scrollTop=st;
+  if(sc&&anchor){const m=keyed(sc).find(([k])=>k===anchor.k);if(m)sc.scrollTop+=m[1].getBoundingClientRect().top-anchor.top}
+  if(modalTop){const nm=app.querySelector('.modal');if(nm)nm.scrollTop=modalTop}
   mount3D();
   dirty.clear();
   renderPanel();
@@ -1720,7 +1755,7 @@ const A={
     tl('you',`You left ${items.length} object${items.length>1?'s':''} in ${ROOM[v]?ROOM[v].the:'the home'} unchecked for now`);if(window.onObjChange)window.onObjChange(items);
     S.ui.modal=null;flash('Ignored for now. The robot keeps going around them.');commit()},
   recheckObjs(){const items=visibleObjs().filter(o=>o.status==='ignored');if(!items.length)return;items.forEach(o=>{o.status='pending'});if(window.onObjChange)window.onObjChange(items);A.reviewRoom(CELLROOM[items[0].k])},
-  fixObj(v){S.ui.objId=v;S.ui.objSel=null;S.ui.objCustom='';S.ui.objQueue=null;S.ui.modal=objModal(v);commit()},
+  fixObj(v){const o=S.objects.find(x=>x.id===v);S.ui.objFrom=o?CELLROOM[o.k]:null;S.ui.objId=v;S.ui.objSel=null;S.ui.objCustom='';S.ui.objQueue=null;S.ui.modal=objModal(v);commit()},
   reviewObjs(){const q=pendingObjs().map(o=>o.id);if(!q.length)return;S.ui.notice=null;S.ui.objQueue=q;S.ui.objId=q[0];S.ui.objSel=null;S.ui.modal=objModal(q[0]);commit()},
   objPick(v){S.ui.objSel=v;S.ui.modal=objModal(S.ui.objId);commit();if(v==='other')setTimeout(()=>{const i=document.getElementById('obj-custom');if(i)i.focus()},60)},
   objSave(){const o=S.objects.find(x=>x.id===S.ui.objId);let sel=S.ui.objSel||o.label;
@@ -1757,7 +1792,7 @@ const A={
   },
   evGo(v){const [id,act,save]=v.split('|');S.ui.modal=null;doAction(findEvent(id),act,save==='1');commit()},
   snapshot(v){S.ui.modal=snapshotModal(findEvent(v));commit()},
-  closeModal(){S.ui.modal=null;S.ui.objQueue=null;S.ui.objSel=null;S.ui.objCustom='';commit()},
+  closeModal(){S.ui.modal=null;S.ui.objQueue=null;S.ui.objFrom=null;S.ui.objSel=null;S.ui.objCustom='';commit()},
   closeModalBg(v,el,e){if(e.target===el){S.ui.modal=null;commit()}},
   cmdRetry(){const r=S.cmd.retry;S.cmd=null;r()},
   cmdRefresh(){S.cmd={label:'Refreshing status',state:'sending'};commit();setTimeout(()=>{S.cmd={label:'Status refreshed',state:'confirmed'};commit();setTimeout(()=>{S.cmd=null;commit()},1500)},700)},
@@ -1794,6 +1829,9 @@ function objNext(){
   const q=S.ui.objQueue;S.ui.objSel=null;S.ui.objCustom='';
   if(q){const i=q.indexOf(S.ui.objId);const nx=q.slice(i+1).find(id=>S.objects.some(o=>o.id===id));if(nx){S.ui.objId=nx;S.ui.modal=objModal(nx);commit();return}}
   S.ui.modal=null;S.ui.objQueue=null;
+  // changed from a room's list: back to that list while it still has items
+  const from=S.ui.objFrom;S.ui.objFrom=null;
+  if(!q&&from){const m=groupModal(from);if(m){S.ui.modal=m;flash('Saved');return}flash('All checked here. Map updated.');return}
   if(q){flash('All objects checked. Map updated.')}else commit();
 }
 function schedModal(){

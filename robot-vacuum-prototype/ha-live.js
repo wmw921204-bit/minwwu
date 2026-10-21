@@ -990,7 +990,7 @@
     };
     window.doAction=(ev,act,saveRule)=>{
       if(ev.problem){
-        if(!ev.archived){S.ui.stack=[];S.ui.scrollTop=0;forceTop=true}
+        if(!ev.archived)leaveEvent(false);
         const done=(st,text)=>{ev.status=st;ev.outcome=text;evLog(ev,'you',text.replace(/\.$/,''));HA.snooze[ev.key]=Date.now()};
         if(act==='pResume'){
           if(S.conn==='connected'&&['error','paused','idle'].includes(dev().status))return liveCommand('start',{label:'Resume',done:'Cleaning resumed',expect:['cleaning']},()=>done('resolved','You fixed it and the robot carried on.'));
@@ -1005,7 +1005,7 @@
         if(act==='pFinish'){done('resolved','You finished the cleaning here.');if(S.task&&!S.task.done){S.task.endedEarly=true;finishLiveTask()}return commit()}
         done('resolved','Seen.');return commit();
       }
-      if(!ev.archived){S.ui.stack=[];S.ui.tab='map';S.ui.scrollTop=0;forceTop=true}
+      if(!ev.archived)leaveEvent(true);
       const snap=snapFor(ev);
       const run=()=>{resetForChange(ev,act);applyAction(ev,act,false);if(saveRule){const r=DEFS[ev.key].remember[act];S.rules=S.rules.filter(x=>x.key!==ev.key);S.rules.push({id:'r'+(++seq),key:ev.key,act,text:r.text,scope:r.scope})}};
       if(act==='pauseCheck')return liveCommand('pause',{label:'Pause',done:'Paused',expect:['paused','idle']},run);
