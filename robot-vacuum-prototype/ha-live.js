@@ -26,6 +26,8 @@
   const SPOT_CELLS=2;          // a study event's spot, and a retry zone, is 2 x 2 cells (1 x 1 m)
   const CELL_MM=500;           // map grid, the same 0.5 m cells as the demo map
   const FIRE_AFTER=[90,180,270,360]; // seconds into a real cleaning when study events appear
+  const SHORT_RUN_MS=3*60000; // the robot going home on its own sooner than this is a stopped cleaning, not a finished one
+  const MIN_REF_AREA=10;      // m²; smaller areas can't stand for a full clean of the home
   const HA={snap:null,dev:null,map:null,tf:null,ppm:null,foot:null,error:'',pending:null,expectStart:null,
     retryQueue:[],spotEv:null,spotStarted:false,spotError:false,notes:{},refArea:null,prevStatus:null,
     fetching:false,lastMap:0,editing:false,sig:'',prompted:false,restoreMode:null,removedZones:[],notified:{},rooms:[],savedZones:[],view:null,objs:[],objSnap:'',align:null,retryWhen:'now',recent:[],areaMark:null,returnSince:0,snooze:{},careDay:{},appPauseAt:0,alignDraft:null,poseRaw:null,footKey:'',lastErr:null,lastStatusProblem:null,schedLoaded:false,schedError:''};
@@ -68,7 +70,8 @@
     S.sim.pending=s.pending||[];S.sim.queue=[];
     seq=Math.max(seq,s.seq||0);
     HA.rooms=s.rooms||[];HA.savedZones=s.savedZones||[];HA.objs=s.objs||[];HA.objSnap=s.objSnap||'';HA.align=s.align||null;HA.retryWhen=s.retryWhen||'now';HA.lastErr=s.lastErr||null;HA.lastStatusProblem=s.lastStatusProblem||null;
-    HA.notes=s.notes||{};HA.refArea=s.refArea||null;HA.retryQueue=s.retryQueue||[];HA.spotEv=s.spotEv||null;HA.spotStarted=!!s.spotStarted;HA.prevStatus=s.prevStatus||null;S.quietUntil=s.quietUntil||null;HA.careDay=s.careDay||{};
+    HA.notes=s.notes||{};HA.refArea=s.refArea>=MIN_REF_AREA?s.refArea:null; // older versions could save a tiny reference from a short run
+   HA.retryQueue=s.retryQueue||[];HA.spotEv=s.spotEv||null;HA.spotStarted=!!s.spotStarted;HA.prevStatus=s.prevStatus||null;S.quietUntil=s.quietUntil||null;HA.careDay=s.careDay||{};
     SCEN.none={label:'No study events',keys:[]};
     S.ctl.scenario=s.scenario&&SCEN[s.scenario]?s.scenario:'none'; // study events only when a facilitator turns them onS.temp=s.temp||null;
     S.clock=now();S.conn='connecting';S.device={status:'docked',battery:null,error:null};
@@ -277,7 +280,8 @@
     HA.expectStart=null;
     S.cells=blankCells('out');S.events=[];S.timeline=[];S.ui.remember={};
     S.sim.pending=(SCEN[S.ctl.scenario]||SCEN.none).keys.slice();S.sim.fired={};S.sim.queue=[];S.waitEv=null;S.checkEv=null;
-    S.task={id:'t'+Date.now(),day:'Today',startedAt:Date.now(),start:S.clock,end:null,scopeLabel:label,result:null,done:false,endedEarly:false,real:true,kind,parts,baseSig:pathSig(HA.map?.path)};
+    S.task={id:'t'+Date.now(),day:'Today',startedAt:Date.now(),start:S.clock,end:null,scopeLabel:label,result:null,done:false,endedEarly:false,real:true,kind,parts,baseSig:pathSig(HA.map?.path),
+      areaBase:HA.dev?.area??null,minBase:HA.dev?.minutes??null,fresh:false};
     tl(fromApp||sch?'you':'robot',fromApp?'You started cleaning: '+label:sch?'Your schedule started the cleaning ('+sch.time+')':'Cleaning was started from the Roborock app or the robot');
     tl('robot','Cleaning started');
     const unsure=HA.objs.filter(o=>o.status==='pending'||o.status==='ignored');
@@ -285,17 +289,21 @@
   }
   function finishLiveTask(){
     const t=S.task;
-    t.done=true;t.end=S.clock;t.endedAt=Date.now();t.area=HA.dev?.area??null;t.minutes=HA.dev?.minutes??Math.round((t.endedAt-t.startedAt)/60000);
+    const dv=liveDev(t);
+    t.done=true;t.end=S.clock;t.endedAt=Date.now();t.area=dv?.area??null;t.minutes=dv?.minutes??Math.round((t.endedAt-t.startedAt)/60000);
+    // the app may notice the dock a while after the robot got there, so the robot's own counter measures the run
+    const ranMs=dv?.minutes!=null?dv.minutes*60000:t.endedAt-t.startedAt;
+    t.stoppedEarly=!t.endedEarly&&ranMs<SHORT_RUN_MS;
     t.path=(mapFresh(t)?M().simplifyPath(HA.map?.path):[]).concat(trailOf(t));
     S.sim.pending=[];S.sim.queue=[];S.waitEv=null;S.checkEv=null;
     t.result=computeResult();t.pct=taskPct(t);
-    if(t.result==='completed'&&t.area>0&&t.scopeLabel==='Entire home')HA.refArea=Math.max(HA.refArea||0,t.area);
+    if(t.result==='completed'&&t.area>=MIN_REF_AREA&&t.minutes>=10&&t.scopeLabel==='Entire home')HA.refArea=Math.max(HA.refArea||0,t.area);
     const nc=S.events.filter(e=>e.status!=='resolved'&&e.status!=='info'&&DEFS[e.key].type!=='decision').length;
     tl('result',t.result==='completed'?'Task completed':t.result==='ended'?'Task ended early':`Task partially completed: ${nc} area${nc===1?'':'s'} not cleaned`);
     if(S.notif.finished)banner(pendingObjs().length?'objs':'done',{id:'done',title:'Cleaning finished',body:RESULTLABEL[t.result]});
     restoreMode(); // e.g. vacuum only, chosen because the water tank was empty
     checkGone(t);
-    if(!t.endedEarly&&t.endedAt-t.startedAt<120000)raiseProblem('p_short',{title:'Cleaning stopped early',what:'The cleaning ended after '+Math.max(1,Math.round((t.endedAt-t.startedAt)/1000))+' seconds without you stopping it.',
+    if(t.stoppedEarly)raiseProblem('p_short',{title:'Cleaning stopped early',what:'The cleaning ended after '+(ranMs<90000?Math.max(1,Math.round(ranMs/1000))+' seconds':Math.round(ranMs/60000)+' minutes')+' without you stopping it.',
       fix:'The robot may have failed to find its position on the map. Make sure it starts from the dock with the room lights on, then try again.',why:'The robot went back to the dock much sooner than a normal cleaning.',options:['pRetry','pLater']},true);
     const po=pendingObjs().length;
     push('finished',t.id+':done','Cleaning finished',RESULTLABEL[t.result]+(t.area!=null?' · '+Math.round(t.area)+' m²':'')+(nc?' · '+nc+' area'+(nc>1?'s':'')+' not cleaned':'')+(po?' · '+po+' object'+(po>1?'s':'')+' to check':''));
@@ -533,7 +541,7 @@
       HA.map=HA.map.stale?{...HA.map,path:[],obstacles:[],robot:null}:{...HA.goodMap,path:[],obstacles:[],robot:null,stale:true}; // the bridge may already fill it from its cache
     }
     HA.tf=HA.map&&HA.map.calibration?M().transform(HA.map.calibration):null;HA.ppm=HA.map?M().pxPerMm(HA.map.calibration):null;
-    if(!HA.refArea&&status==='docked'&&d.area>0)HA.refArea=d.area;
+    if(!HA.refArea&&status==='docked'&&d.area>=MIN_REF_AREA)HA.refArea=d.area;
     seedRobotRecord(snap,status);
     lifecycle(status);
     takePosition(snap);
@@ -594,12 +602,19 @@
   }
 
   /* ---------- derived values ---------- */
+  /* the robot's area and time counters for this cleaning, or null while they still show the previous one */
+  function liveDev(t){
+    if(!t||!HA.dev)return null;
+    if(t.done||t.fresh||t.areaBase===undefined)return HA.dev;
+    if(HA.dev.minutes!==t.minBase||HA.dev.area!==t.areaBase){t.fresh=true;return HA.dev}
+    return null;
+  }
   function taskPct(t){
     if(t&&t.kind&&t.kind!=='home')return null; // a full-home estimate means nothing for one room
-    const area=t&&!t.done?HA.dev?.area:t?.area;
+    const area=t&&!t.done?liveDev(t)?.area:t?.area;
     return HA.refArea&&area!=null?Math.min(100,Math.round(area/HA.refArea*100)):null;
   }
-  const area=()=>{const a=S.task&&S.task.done?S.task.area:HA.dev?.area;return a==null?'—':Math.round(a*10)/10};
+  const area=()=>{const t=S.task;const a=t&&t.done?t.area:t?liveDev(t)?.area:HA.dev?.area;return a==null?'—':Math.round(a*10)/10};
   function statusText(){
     if(S.conn!=='connected')return 'Status can’t be confirmed right now';
     const d=dev(),room=HA.dev?.room;
@@ -925,7 +940,7 @@
     window.visibleObjs=()=>S.objects||[];
     window.updateLive=()=>document.querySelectorAll('[data-live]').forEach(el=>{const n=el.dataset.live;if(n==='bar')el.style.width=LIVE.bar();else el.textContent=LIVE[n]()});
     window.pct=cells=>{const v=cells&&cells.__task?S.history.find(h=>h.id===cells.__task)?.snap.pct:taskPct(S.task);return v??0};
-    window.computeResult=()=>S.task.endedEarly?'ended':S.events.some(e=>DEFS[e.key].type!=='decision'&&['needsReview','deferred','skipped','inProgress'].includes(e.status))?'partial':'completed';
+    window.computeResult=()=>S.task.endedEarly?'ended':S.task.stoppedEarly?'partial':S.events.some(e=>DEFS[e.key].type!=='decision'&&['needsReview','deferred','skipped','inProgress'].includes(e.status))?'partial':'completed';
     window.archiveTask=()=>{
       const t=S.task;
       S.history.unshift({id:t.id,day:dayLabel(t.endedAt||t.startedAt),startedAt:t.startedAt,endedAt:t.endedAt,start:t.start,end:t.end??S.clock,scopeLabel:t.scopeLabel,result:t.result||computeResult(),real:true,
@@ -936,7 +951,7 @@
     window.reportData=id=>{
       const f=taskById(id);if(!f)return null;const t=f.t;
       if(!f.live)return {t,cells:{__task:t.id},events:t.snap.events,timeline:t.snap.timeline,m2:t.snap.cleanedM2==null?'—':Math.round(t.snap.cleanedM2*10)/10,rooms:'—',result:t.result,dur:t.snap.minutes!=null?Math.round(t.snap.minutes):mins(t.end-t.start),live:false};
-      const minsNow=t.done?t.minutes:(HA.dev?.minutes??(Date.now()-t.startedAt)/60000);
+      const minsNow=t.done?t.minutes:(liveDev(t)?.minutes??(Date.now()-t.startedAt)/60000);
       return {t,cells:S.cells,events:S.events,timeline:S.timeline,m2:area(),rooms:'—',result:t.done?t.result:null,dur:Math.round(minsNow??0),live:true};
     };
     Object.assign(LIVE,{
@@ -944,7 +959,7 @@
       pct:()=>{const p=taskPct(S.task);return p==null?area()+' m² cleaned':'≈'+p+'% of a full clean'},
       bar:()=>(taskPct(S.task)??0)+'%',
       barText:()=>area()==='—'?'—':area()+' m²',
-      elapsed:()=>{const t=S.task;if(!t)return '';const m=t.done?t.minutes:(HA.dev?.minutes??(Date.now()-t.startedAt)/60000);return Math.round(m||0)+' min elapsed'},
+      elapsed:()=>{const t=S.task;if(!t)return '';const m=t.done?t.minutes:(liveDev(t)?.minutes??(Date.now()-t.startedAt)/60000);return Math.round(m||0)+' min elapsed'},
       remain:()=>{const p=taskPct(S.task),m=HA.dev?.minutes;return p&&m&&p<100?'about '+Math.max(1,Math.round(m*(100-p)/p))+' min left (est.)':'time left unknown'},
       battery:()=>{const b=dev().battery;return b==null?'—':b+'%'},
     });

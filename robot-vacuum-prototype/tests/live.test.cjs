@@ -33,7 +33,7 @@ function fakeBridge(init = {}) {
     vacuum: { entity_id: 'vacuum.s6', state: st.vacuum, attributes: { friendly_name: 'S6' } },
     vacuums: [{ entity_id: 'vacuum.s6', name: 'S6' }],
     entities: [ent('sensor.s6_battery', String(st.battery)), ent('sensor.s6_status', st.detail), ent('sensor.s6_vacuum_error', st.err),
-      ent('sensor.s6_cleaning_area', String(st.area)), ent('select.s6_cleaning_mode', st.mode),
+      ent('sensor.s6_cleaning_area', String(st.area)), ent('sensor.s6_cleaning_time', String(st.minutes ?? 0)), ent('select.s6_cleaning_mode', st.mode),
       ent('binary_sensor.s6_water_shortage', st.water), ent('binary_sensor.s6_mop_attached', st.mop), ent('select.s6_selected_map', 'Map 0')],
     position: { x: 25600, y: 25600, at: Date.now() / 1000 },
     geometry: { maps: [{ map_id: 0, source_updated_at: '2026-10-01T00:00:00Z', calibration: CAL, obstacles: [], no_go_areas: [],
@@ -329,5 +329,30 @@ test('saved sessions can be viewed, deleted one by one or all at once, only betw
   tap('#study [data-s="clear"]');
   tap('#study [data-s="clearyes"]');
   assert.equal(app.run('Object.keys(STUDY.data().people).length'), 0);
+  app.close();
+});
+
+test('the robot going home on its own after a minute or two is a stopped cleaning, not a completed one', async () => {
+  const b = fakeBridge({ area: 0.4, minutes: 1.7 }); // counters still show the last cleaning
+  const app = await boot(b);
+  app.run('A.startTask()');
+  await app.poll(3);
+  assert.equal(app.run('LIVE.barText()'), '—', 'last cleaning\'s area is not shown as this one');
+  assert.match(app.run('LIVE.elapsed()'), /^0 min/);
+  Object.assign(b.st, { area: 0.3, minutes: 1.0 });
+  await app.poll();
+  assert.equal(app.run('LIVE.barText()'), '0.3 m²');
+  Object.assign(b.st, { vacuum: 'docked', detail: 'charging' });
+  await app.poll();
+  assert.equal(app.run('S.task.done'), true);
+  assert.equal(app.run('S.task.result'), 'partial');
+  assert.equal(app.run("S.events.some(e=>e.key==='p_short'&&e.status==='needsReview')"), true);
+  assert.equal(app.run('HA.refArea'), null, 'a short run never becomes the full-clean reference');
+  app.close();
+});
+
+test('a tiny full-clean reference saved by an older version is dropped', async () => {
+  const app = await boot(fakeBridge(), { onboarded: true, refArea: 0.4 });
+  assert.equal(app.run('HA.refArea'), null);
   app.close();
 });
