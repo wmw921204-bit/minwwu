@@ -369,6 +369,7 @@ button.tile{font:inherit;width:100%}
 .modal p{font-size:15px;line-height:1.5;color:var(--muted)}
 
 .ob{flex:1;display:flex;flex-direction:column;padding:6px 24px 28px;overflow-y:auto}
+.ob-go{position:sticky;bottom:-28px;margin:0 -24px -28px;padding:12px 24px 28px;background:linear-gradient(to bottom,transparent,var(--bg) 30%)}
 .ob h1{font-family:"Barlow Condensed","Arial Narrow",sans-serif;font-size:40px;line-height:1;font-weight:700;margin:8px 0 12px}
 .ob .lead{font-size:16px;line-height:1.5;color:var(--muted)}
 .ob .grow{flex:1}
@@ -483,7 +484,7 @@ const DEFS={
     next:'It skipped this spot and is cleaning the rest of the living room.',
     dflt:'This area will remain skipped while the robot cleans elsewhere.',
     options:['avoid','retryCleared','later'],retryControlled:true,snapshot:'cable',
-    basis:'The front camera saw a thin line about 30 cm long. It was 62% sure it is a cable; below 80% it asks instead of driving over.',
+    basis:'The camera saw something thin, about 30 cm long, that might be a cable. It wasn’t sure enough to drive over it (62% sure; it needs 80%).',
     failWhy:'Still detecting a thin object about 30 cm long in the same place.',failNext:'If it is a cable, move it and try once more. Otherwise leave this spot for today.',
     remember:{avoid:{text:'Avoid possible cables near the sofa',scope:'Living room, near the sofa. Other rooms still ask.'}}},
   rug:{type:'rug',zone:'rug',kind:'Floor type unclear',title:'Not sure about this floor',chip:'Left a hallway patch for now',
@@ -493,7 +494,7 @@ const DEFS={
     next:'It left this patch alone and moved on.',
     dflt:'The patch stays uncleaned until you choose.',
     options:['asRug','asHard','skipNow'],retryControlled:false,
-    basis:'The carpet sensor read 0.4. It treats 0.6 and above as rug and below 0.2 as hard floor, so this was in between.',
+    basis:'It couldn’t tell rug from hard floor here. (Carpet sensor 0.4: rug is 0.6 and up, hard floor below 0.2.)',
     remember:{asRug:{text:'Treat the hallway patch as a rug (vacuum only)',scope:'Hallway only. Other floors still ask.'},
       asHard:{text:'Treat the hallway patch as hard floor (vacuum and mop)',scope:'Hallway only. Other floors still ask.'}}},
   bed:{type:'nav',zone:'bed',kind:'Navigation issue',title:"Couldn't get under the bed",chip:'Gave up on the area under the bed',
@@ -511,7 +512,7 @@ const DEFS={
     unsure:null,
     next:'After the extra pass it moves on. This adds about a minute.',
     dflt:'The extra pass goes ahead.',
-    options:['allow','skipOnce'],basis:'The dirt sensor read about 2× the usual level for this spot on the first pass.',
+    options:['allow','skipOnce'],basis:'It found about twice the usual dirt here on the first pass.',
     remember:{skipOnce:{text:'Skip extra passes in the kitchen',scope:'Kitchen only. The robot still does one normal pass.'},
       allow:{text:'Always allow extra passes in the kitchen',scope:'Kitchen only. It won’t ask or tell you each time.'}}},
 };
@@ -770,7 +771,7 @@ function notice(ev){
 /* the decision notice to show: the oldest one still worth answering */
 const DEC_MIN=8000;
 function decHead(){const q=S.ui.decQ||(S.ui.decQ=[]),seen=S.ui.decSeen||(S.ui.decSeen={});
-  S.ui.decQ=q.filter(id=>{const e=findEvent(id);return e&&!e.archived&&!e.later&&(e.status==='needsReview'||(e.autonomous&&!e.changed&&running()&&S.notif.decisions))});
+  S.ui.decQ=q.filter(id=>{const e=findEvent(id);return e&&!e.archived&&!e.later&&(e.status==='needsReview'||(e.autonomous&&!e.changed&&running()&&S.notif.decisions&&!decisionSpent(e)))});
   // a newer notice waits until the current one has been up for DEC_MIN, so it never swaps in under a finger, and an old one never sits forever
   while(S.ui.decQ.length>1&&seen[S.ui.decQ[0]]&&Date.now()-seen[S.ui.decQ[0]]>DEC_MIN)S.ui.decQ.shift();
   const id=S.ui.decQ[0];if(!id)return null;
@@ -1124,7 +1125,7 @@ function statusCard(){
     h+=`<p class="status-sub">${d.status==='error'?esc(S.device.error):d.status==='paused'&&S.waitEv?`Stopped at ${ZONES[DEFS[findEvent(S.waitEv).key].zone].name.toLowerCase()}. It won’t continue until you choose.`:nY.length?`${nY.length} ${nY.length===1?'thing needs':'things need'} your review. Cleaning continues elsewhere.`:d.status==='paused'&&S.waitEv?`Stopped at ${ZONES[DEFS[findEvent(S.waitEv).key].zone].name.toLowerCase()}. It won’t continue until you choose.`:d.status==='paused'&&S.checkEv?'Check the area under the bed, then resume.':'Everything is running normally.'}</p>`;
     h+=`<div class="progress"><i data-live="bar" style="width:${LIVE.bar()}"></i></div><div class="meta-row">${live('pct')}${live('elapsed')}${d.status==='cleaning'?live('remain'):''}</div>`;
     const latest=[...visibleEvents()].reverse().find(e=>!e.quiet&&(e.autonomous||e.status==='info'||e.status==='needsReview'||e.status==='inProgress'));
-    if(latest&&d.status!=='returning')h+=`<button class="why-chip" data-a="openEvent" data-v="${latest.id}">${ic('robot',18)}<b>${esc(S.waitEv===latest.id?'Waiting: '+SHORT[latest.key].q:latest.status==='inProgress'?'Will go back to: '+ZONES[DEFS[latest.key].zone].name.toLowerCase():DEFS[latest.key].chip)}</b><span class="why-link">Why this?</span></button>`;
+    if(latest&&d.status!=='returning')h+=`<button class="why-chip" data-a="openEvent" data-v="${latest.id}">${ic('robot',18)}<b>${esc(S.waitEv===latest.id?'Waiting: '+SHORT[latest.key].q:latest.status==='inProgress'?'Will go back to: '+ZONES[DEFS[latest.key].zone].name.toLowerCase():latest.lastAct&&(!latest.autonomous||latest.changed)&&SHORT[latest.key]?'You chose: '+SHORT[latest.key].labels[latest.lastAct]:DEFS[latest.key].chip)}</b><span class="why-link">Why this?</span></button>`;
     const sending=S.cmd&&S.cmd.state==='sending';
     if(d.status==='cleaning')h+=`<div class="btn-row"><button class="btn plain" data-a="pause" ${sending?'disabled':''}>Pause</button><button class="btn plain" data-a="endReturn" ${sending?'disabled':''}>Return to dock</button></div>`;
     if(d.status==='paused'&&S.waitEv)h+=`<div class="btn-row"><button class="btn primary" data-a="openEvent" data-v="${S.waitEv}">Choose now</button><button class="btn plain" data-a="resume" ${sending?'disabled':''}>Skip, keep going</button></div>`;
@@ -1133,7 +1134,8 @@ function statusCard(){
   }else{
     if(S.task&&S.task.done){
       const nc=S.events.filter(e=>['needsReview','deferred','skipped'].includes(e.status)&&DEFS[e.key].type!=='decision').length;
-      h+=`<p class="status-sub">Last cleaning finished at ${hhmm(S.task.end)}: <span class="pill ${S.task.result}">${RESULTLABEL[S.task.result]}</span>${nc?` · ${nc} area${nc>1?'s':''} not cleaned`:''}</p>`;
+      const left=S.events.filter(e=>['needsReview','deferred','skipped'].includes(e.status)&&DEFS[e.key].type!=='decision');
+      h+=`<p class="status-sub">Last cleaning finished at ${hhmm(S.task.end)}: <span class="pill ${S.task.result}">${RESULTLABEL[S.task.result]}</span>${nc?` · not cleaned: ${left.map(e=>`<button class="link" data-a="openEvent" data-v="${e.id}">${esc(ZONES[DEFS[e.key].zone].name.toLowerCase())}</button>`).join(', ')}`:''}</p>`;
       h+=`<div class="btn-row"><button class="btn soft" data-a="openReport" data-v="${S.task.id}">View report</button><button class="btn primary" data-a="setup">Start cleaning</button></div>`;
     }else{
       h+=`<p class="status-sub">On the dock and ready for the next cleaning.</p><div class="btn-row"><button class="btn primary block" data-a="setup">Start cleaning</button></div>`;
@@ -1495,7 +1497,7 @@ function obScreen(){
   const heroMap=`<div class="map-wrap" style="margin-top:8px">${mapSVG({cells:demoHeroCells(),robot:false,noEvents:true})}</div>`;
   if(o==='intro')return `<div class="ob"><div class="hero-name" style="margin-top:4px"><b>Roborock</b><span>S6 MaxV</span></div><div class="hero">${isoRobot()}</div><h1 style="font-size:32px">The robot handles routine cleaning. You stay informed and step in when needed.</h1><p class="lead">See what it’s doing, why it made a call, and fix only the part that needs you.</p><div class="grow"></div><button class="btn primary block" data-a="ob" data-v="mapping">Get started</button></div>`;
   if(o==='mapping')return `<div class="ob"><h1 style="margin-top:6px;font-size:34px">This is your home’s map</h1>${heroMap}<p class="lead" style="margin-top:14px">The robot made it on its first cleaning by scanning each room with its laser. It keeps updating the map as it cleans, so moved furniture shows up next time.</p><div class="grow"></div><button class="btn primary block" data-a="ob" data-v="mode">Next</button></div>`;
-  if(o==='mode')return `<div class="ob"><h1 style="margin-top:6px;font-size:34px">How involved do you want to be?</h1><p class="lead" style="margin-bottom:12px;font-size:14.5px">You can change this any time in Settings.</p>${levelPicker(S.ui.obMode,'obMode')}<div class="grow" style="min-height:14px"></div><button class="btn primary block" data-a="obDone">Go to home</button></div>`;
+  if(o==='mode')return `<div class="ob"><h1 style="margin-top:6px;font-size:34px">How involved do you want to be?</h1><p class="lead" style="margin-bottom:12px;font-size:14.5px">You can change this any time in Settings.</p>${levelPicker(S.ui.obMode,'obMode')}<div class="grow" style="min-height:14px"></div><div class="ob-go"><button class="btn primary block" data-a="obDone">Go to home</button></div></div>`;
 }
 const demoHeroCellsMarker='';
 function demoHeroCells(){const c=blankCells('out');['kitchen','hall'].forEach(r=>ROOMCELLS[r].forEach(k=>c[k]='cleaned'));ROOMCELLS.living.slice(0,30).forEach(k=>c[k]='cleaned');return c}
@@ -1532,7 +1534,7 @@ function modeModal(){
   return {title:'How involved do you want to be?',body:`<div class="small muted" style="font-weight:800;margin:0 2px 8px">For how long?</div><div class="chips">${opt.map(([k,l])=>`<button class="chip ${sh.for===k?'on':''}" data-a="sheetFor" data-v="${k}">${l}</button>`).join('')}</div>`+
       (sh.for!=='always'?`<p class="small muted" style="margin:10px 2px 0">Then it goes back to ${esc(MODES[S.temp?S.temp.prev:S.autonomy].name)} by itself.</p>`:'')+
       `<div class="small muted" style="font-weight:800;margin:16px 2px 8px">Level</div>`+levelPicker(sh.mode,'sheetMode',true),
-    buttons:[{label:'Use '+MODES[sh.mode].name,a:'sheetApply',cls:'primary'},{label:'Cancel',a:'closeModal'}]};
+    buttons:[{label:'Use '+MODES[sh.mode].name+(sh.for==='1h'?' for 1 hour':sh.for==='task'?' until this cleaning ends':''),a:'sheetApply',cls:'primary'},{label:'Cancel',a:'closeModal'}]};
 }
 function tempLabel(){const t=S.temp;if(!t)return '';if(t.task)return 'this cleaning';return 'until '+(t.live?(d=>String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0'))(new Date(t.until)):hhmm(t.until))}
 function checkTemp(){
@@ -1713,7 +1715,7 @@ function render(){
   else if(S.ui.notice==='missed'){h+=`<div class="notice" role="status"><span class="ico blue" style="width:34px;height:34px;border-radius:10px;display:grid;place-items:center">${ic('bell',18)}</span><span class="body"><b>While notices were paused</b><br><span class="muted">${S.missedN} thing${S.missedN>1?'s':''} came up</span></span><button class="btn soft" style="height:36px;padding:0 12px;font-size:13px" data-a="tab" data-v="activity">Inbox</button></div>`}
   else if(S.ui.notice==='done'&&S.task&&S.task.done){h+=`<div class="notice" role="status"><span class="ico ok" style="width:34px;height:34px;border-radius:10px;display:grid;place-items:center">${ic('check',18)}</span><span class="body"><b>Cleaning finished</b><br><span class="muted">${esc(RESULTLABEL[S.task.result]||'Done')}</span></span><button class="btn soft" style="height:36px;padding:0 12px;font-size:13px" data-a="openReport" data-v="${S.task.id}">Report</button></div>`}
   else if(S.ui.notice==='objs'){const n=pendingObjs().length;if(n)h+=`<div class="notice" role="status"><span class="ico warn" style="width:34px;height:34px;border-radius:10px;display:grid;place-items:center;font-size:18px">${OBJ[pendingObjs()[0].label].e}</span><span class="body"><b>Cleaning done</b><br><span class="muted">${n} object${n>1?'s':''} to check</span></span><button class="btn soft" style="height:36px;padding:0 12px;font-size:13px" data-a="reviewRoom" data-v="${CELLROOM[pendingObjs()[0].k]}">Check</button></div>`}
-  else{const ev=c.name!=='event'&&!S.ui.away?decHead():null;const more=ev?S.ui.decQ.length-1:0;if(ev)h+=`<div class="notice dec" role="status"><button class="notice-x" data-a="dismissNotice" data-v="${ev.id}" aria-label="Close this notice">${ic('x',16)}</button><span class="ico warn" style="width:34px;height:34px;border-radius:10px;display:grid;place-items:center">${ic('alert',18)}</span><span class="body"><b>${esc(noticeTitle(ev))}</b><br><span class="muted">${esc(SHORT[ev.key].q)}${ev.autonomous&&ev.autoChoice?' · '+esc(SHORT[ev.key].labels[ev.autoChoice]):''}${more?` · ${more} more`:''}</span></span><button class="btn soft" style="height:36px;padding:0 12px;font-size:13px" data-a="openEvent" data-v="${ev.id}">${ev.autonomous&&!ev.changed?'Change':'Review'}</button></div>`}
+  else{const ev=c.name!=='event'&&c.name!=='stuck'&&!S.ui.away?decHead():null;const more=ev?S.ui.decQ.length-1:0;if(ev)h+=`<div class="notice dec" role="status"><button class="notice-x" data-a="dismissNotice" data-v="${ev.id}" aria-label="Close this notice">${ic('x',16)}</button><span class="ico warn" style="width:34px;height:34px;border-radius:10px;display:grid;place-items:center">${ic('alert',18)}</span><span class="body"><b>${esc(noticeTitle(ev))}</b><br><span class="muted">${esc(SHORT[ev.key].q)}${ev.autonomous&&ev.autoChoice?' · '+esc(SHORT[ev.key].labels[ev.autoChoice]):''}${more?` · ${more} more`:''}</span></span><button class="btn soft" style="height:36px;padding:0 12px;font-size:13px" data-a="openEvent" data-v="${ev.id}">${ev.autonomous&&!ev.changed?'Change':'Review'}</button></div>`}
   if(S.cmd){const m=S.cmd;
     if(m.state==='sending')h+=`<div class="cmd" role="status"><span class="spin"></span>Sending: ${esc(m.label)}…</div>`;
     else if(m.state==='confirmed')h+=`<div class="cmd" role="status">${ic('check',18)}${esc(m.label)}</div>`;
