@@ -768,9 +768,14 @@ function notice(ev){
   const q=S.ui.decQ||(S.ui.decQ=[]);if(!q.includes(ev.id))q.push(ev.id);commit();
 }
 /* the decision notice to show: the oldest one still worth answering */
-function decHead(){const q=S.ui.decQ||(S.ui.decQ=[]);
-  S.ui.decQ=q.filter(id=>{const e=findEvent(id);return e&&!e.archived&&!e.later&&(e.status==='needsReview'||(e.autonomous&&!e.changed))});
-  return S.ui.decQ.length?findEvent(S.ui.decQ[0]):null}
+const DEC_MIN=8000;
+function decHead(){const q=S.ui.decQ||(S.ui.decQ=[]),seen=S.ui.decSeen||(S.ui.decSeen={});
+  S.ui.decQ=q.filter(id=>{const e=findEvent(id);return e&&!e.archived&&!e.later&&(e.status==='needsReview'||(e.autonomous&&!e.changed&&running()&&S.notif.decisions))});
+  // a newer notice waits until the current one has been up for DEC_MIN, so it never swaps in under a finger, and an old one never sits forever
+  while(S.ui.decQ.length>1&&seen[S.ui.decQ[0]]&&Date.now()-seen[S.ui.decQ[0]]>DEC_MIN)S.ui.decQ.shift();
+  const id=S.ui.decQ[0];if(!id)return null;
+  if(!seen[id]){seen[id]=Date.now();if(S.ui.decQ.length>1)setTimeout(commit,DEC_MIN+50)}
+  return findEvent(id)}
 function laterLabel(ev){return !ev.later?'':ev.later.task?'After this cleaning':'At '+atLabel(ev.later.until)}
 function checkReminders(){
   const t=nowT();
@@ -1093,8 +1098,9 @@ function objItem(o){
   const ic2=o.status==='pending'?'warn':o.status==='ignored'?'gray':o.status==='auto'?'blue':'ok';
   return `<button class="item" data-a="openObj" data-v="${o.id}"><span class="ico ${ic2}" style="font-size:20px">${OBJ[o.label].e}</span><span class="body"><span class="t">${o.status==='pending'||o.status==='ignored'?'Maybe '+OBJ[o.label].n.toLowerCase()+'?':OBJ[o.label].n}</span><span class="s">${ROOM[CELLROOM[o.k]].name} · ${esc(objStatus(o))}</span></span>${o.status==='pending'?'<span class="pill needsReview">Check</span>':ic('chev',18)}</button>`;
 }
+function decisionSpent(ev){return DEFS[ev.key].type==='decision'&&ev.status==='info'&&(!running()||!S.sim.queue.some(x=>x.kind==='extra'))}
 function evItem(ev){
-  if(ev.autonomous&&!ev.changed){const d=DEFS[ev.key];const lab=ev.autoChoice?SHORT[ev.key].labels[ev.autoChoice]:'Saved preference';
+  if(ev.autonomous&&!ev.changed&&!decisionSpent(ev)){const d=DEFS[ev.key];const lab=ev.autoChoice?SHORT[ev.key].labels[ev.autoChoice]:'Saved preference';
     return `<button class="item" data-a="openEvent" data-v="${ev.id}" aria-label="${esc(SHORT[ev.key].q)} Robot decided: ${esc(lab)}. Change it"><span class="ico blue">${ic('robot',20)}</span><span class="body"><span class="t">${esc(SHORT[ev.key].q)}</span><span class="s">Robot decided: ${esc(lab)} · ${hhmm(ev.at)}</span></span><span class="pill edit">Change</span></button>`}
   const mine=userMadeEv(ev);
   const d=DEFS[ev.key];const icC=ev.status==='resolved'||ev.status==='info'?'ok':ev.status==='skipped'?'gray':ev.status==='inProgress'?'blue':'warn';
@@ -1198,7 +1204,7 @@ function scrMap(){
     h+='</div>';
   }else h+=`<div class="calm" style="margin-top:12px">${ic('robot',20)}<span>No cleaning yet today. Start one from Home, then watch progress here.</span></div>`;
   const stuck=inbox().stuck,nc=waitingN();
-  if(evs.length||stuck)h+=`<div class="sec-h">This cleaning<small>${nc?nc+' waiting for you':'nothing waiting for you'}</small></div>`+(stuck?stuckItem():'')+evs.map(evItem).join('');
+  if(evs.length||stuck)h+=`<div class="sec-h">This cleaning<small>${nc?nc+' waiting for you':running()&&pendingObjs().length?pendingObjs().length+' to check after cleaning':'nothing waiting for you'}</small></div>`+(stuck?stuckItem():'')+evs.map(evItem).join('');
   const objs=visibleObjs();
   if(objs.length){
     const pend=objs.filter(x=>x.status==='pending');
@@ -1253,7 +1259,7 @@ function scrEvent(id){
   const docking=S.device.status==='returning';
   if(userMade)h+=`<div class="mode-note">${ic('check',18)}<span>You chose <b>${esc(sh.labels[ev.lastAct]||ev.lastAct)}</b>${docking?'.':'. Pick another option below to change it.'}</span></div>`;
   // an extra pass that's already done (or the cleaning is over) can't be changed any more: say so instead of pointing at options
-  const spent=d.type==='decision'&&ev.status==='info'&&(!running()||!S.sim.queue.some(x=>x.kind==='extra'));
+  const spent=decisionSpent(ev);
   if(isAuto)h+=`<div class="mode-note">${ic('robot',18)}<span>Robot chose <b>${esc(ev.autoChoice?sh.labels[ev.autoChoice]:'your saved preference')}</b>${ev.status==='inProgress'?' and is on it now':docking?'.':spent?'. It has already done this, so there’s nothing left to change. You can turn extra passes off in Saved preferences.':'. Pick another option below to change it.'}</span></div>`;
   if(!ev.archived&&S.waitEv===ev.id)h+=`<div class="mode-note wait">${ic('pause',18)}<span>The robot stopped and is <b>waiting for you</b></span></div>`;
   if(active){
@@ -1286,7 +1292,7 @@ function scrEvent(id){
     }
   }
   if(ev.status==='needsReview'&&!ev.archived&&!ev.suggest)h+=`<div class="later-row">${ic('clock',16)}<span>Ask me later${S.waitEv===ev.id?' (it carries on meanwhile)':''}:</span><button class="chip" data-a="askLater" data-v="${ev.id}|30">In 30 min</button><button class="chip" data-a="askLater" data-v="${ev.id}|60">In 1 hour</button>${running()?`<button class="chip" data-a="askLater" data-v="${ev.id}|task">After this cleaning</button>`:''}</div>`;
-  h+=`<details class="why"><summary>Why did this happen?</summary><p>${esc(d.why)}</p>${d.basis?`<p><b>What the robot measured:</b> ${esc(d.basis)}</p>`:''}${d.unsure?`<p><b>Not sure:</b> ${esc(d.unsure)}</p>`:''}${ev.log.length?tlRows(ev.log,false):''}</details>`;
+  h+=`<details class="why" open><summary>Why did this happen?</summary><p>${esc(d.why)}</p>${d.basis?`<p><b>What the robot measured:</b> ${esc(d.basis)}</p>`:''}${d.unsure?`<p><b>Not sure:</b> ${esc(d.unsure)}</p>`:''}${ev.log.length?tlRows(ev.log,false):''}</details>`;
   return h;
 }
 
@@ -1443,7 +1449,11 @@ function scrSettings(){
   <p class="small muted" style="margin:6px 4px 0">For studies: shows how notices arrive while the app isn’t open.</p>`;
 }
 function scrAutonomy(){
-  return topbar('Automation level')+`<p class="small muted" style="margin:0 4px 12px">How much the robot decides on its own.</p>`+levelPicker(S.autonomy,'setAutonomy',true);
+  const f=S.ui.setFor||'always',opt=[['always','Until I change it'],['1h','For 1 hour']].concat(running()?[['task','Until this cleaning ends']]:[]);
+  return topbar('Automation level')+`<p class="small muted" style="margin:0 4px 12px">How much the robot decides on its own.</p>
+    <div class="small muted" style="font-weight:800;margin:0 2px 8px">For how long?</div><div class="chips" style="margin-bottom:6px">${opt.map(([k,l])=>`<button class="chip ${f===k?'on':''}" data-a="setFor" data-v="${k}">${l}</button>`).join('')}</div>`+
+    (S.temp?`<p class="small muted" style="margin:6px 2px 0">Now: ${esc(MODES[S.autonomy].name)} ${esc(tempLabel())}, then back to ${esc(MODES[S.temp.prev].name)}.</p>`:'')+
+    `<div class="small muted" style="font-weight:800;margin:14px 2px 8px">Level</div>`+levelPicker(S.autonomy,'setAutonomy',true);
 }
 function scrRules(){
   let h=topbar('Saved preferences')+`<p class="small muted" style="margin:0 2px 14px">Rules you saved on purpose. Each one lists where it applies. One-time choices never show up here.</p>`;
@@ -1827,7 +1837,8 @@ const A={
   cmdRefresh(){S.cmd={label:'Refreshing status',state:'sending'};commit();setTimeout(()=>{S.cmd={label:'Status refreshed',state:'confirmed'};commit();setTimeout(()=>{S.cmd=null;commit()},1500)},700)},
   cmdDismiss(){S.cmd=null;commit()},
   reconnect(){S.conn='connecting';commit();setTimeout(()=>{S.conn='connected';S.snap=null;dirtyAll();S.cmd={label:'Status updated',state:'confirmed'};commit();setTimeout(()=>{if(S.cmd&&S.cmd.state==='confirmed'){S.cmd=null;commit()}},1600)},1300)},
-  setAutonomy(v){S.autonomy=v;S.temp=null;levelNotif(v);commit()},
+  setFor(v){S.ui.setFor=v;commit()},
+  setAutonomy(v){const f=S.ui.setFor||'always';if(f!=='always'){S.ui.sheet={mode:v,for:f};A.sheetApply();return}S.autonomy=v;S.temp=null;levelNotif(v);commit()},
   notif(v){S.notif[v]=!S.notif[v];commit()},
   delRule(v){S.rules=S.rules.filter(r=>r.id!==v);commit()},
   delNogo(v){S.nogo=S.nogo.filter(z=>z!==v);ZONES[v].keys.forEach(k=>{if(S.cells[k]==='nogo')setCell(k,S.task&&!S.task.done?'todo':'out')});commit()},
@@ -1895,7 +1906,7 @@ function maybeFault(){
   const t=S.task;if(!t||t.done||t.fault||t.spot||S.conn!=='connected'||S.device.status!=='cleaning'||S.ui.modal)return;
   t.ticks=(t.ticks||0)+1;if(t.ticks<20||S.sim.hold>0)return;
   const r=Math.random();
-  if(r<0.0025){t.fault='disconnect';A.ctlDisconnect()}
+  if(r<0.0025){if(!S.ctl.calm){t.fault='disconnect';A.ctlDisconnect()}}
   else if(r<0.005){t.fault='stuck';A.ctlStuck()}
 }
 /* ============ fit phone frame to window (keeps iPhone proportions) ============ */

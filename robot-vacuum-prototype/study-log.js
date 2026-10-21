@@ -109,7 +109,7 @@
   /* 1 start: free exploration, which is one cleaning */
   function begin(pid){
     // in the simulation every participant starts fresh, with the study events on
-    if(!live()){try{A.ctlRestart();if(S.ctl.scenario==='none')S.ctl.scenario='all';commit(true)}catch(e){}}
+    if(!live()){try{A.ctlRestart();if(S.ctl.scenario==='none')S.ctl.scenario='all';S.ctl.calm=true;commit(true)}catch(e){}} // calm: no random disconnects mid-session
     D.pid=pid;
     const ctx={};TASKS.forEach(T=>{let base=null;try{base=T.base?T.base():null}catch(e){}ctx[T.id]={base,seen:false,log:[]}});
     D.people[pid]={mode:live()?'real robot':'simulation',started:new Date().toISOString(),phase:'explore',
