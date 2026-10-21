@@ -38,8 +38,8 @@
   .intro__t { display: flex; height: 100%; transition: transform .5s cubic-bezier(.25,.8,.25,1); }
   .intro__t img { flex: none; width: 402px; height: 874px; user-select: none; -webkit-user-drag: none; }
   /* a live ring over the ritual dial, so the countdown visibly moves */
-  .ring { position: absolute; left: 31px; top: 177px; width: 340px; height: 340px; z-index: 4; pointer-events: none; }
-  .ring circle { fill: none; stroke: #f2fbfa; stroke-width: 5; stroke-linecap: round; transform: rotate(-90deg); transform-origin: 50% 50%; filter: drop-shadow(0 0 6px rgba(255,255,255,.6)); }
+  .ring { position: absolute; left: 30.5px; top: 177.6px; width: 340px; height: 340px; z-index: 4; pointer-events: none; }
+  .ring circle { fill: none; stroke: #f2fbfa; stroke-width: 5.5; stroke-linecap: round; transform: rotate(-90deg); transform-origin: 50% 50%; filter: drop-shadow(0 0 6px rgba(255,255,255,.6)); }
   .breathe { animation: breathe 4s ease-in-out infinite; }
   @keyframes breathe { 50% { transform: scale(1.03); } }
   .spin-loader { position: absolute; left: 151px; top: 380px; width: 100px; height: 100px; border-radius: 50%; z-index: 4; pointer-events: none; box-shadow: 0 0 0 0 rgba(95,214,202,.55); animation: ping 1.4s ease-out infinite; }
@@ -181,7 +181,7 @@ const make = (id) => {
       strip("bar", id, 110, "0 100%");
       BAR_HS.forEach((x) => { const b = btn(x); b.style.zIndex = 7; el.append(b); });
     }
-    if (s.ring) el.insertAdjacentHTML("beforeend", `<svg class="ring" viewBox="0 0 340 340"><circle cx="170" cy="170" r="166" pathLength="1000" stroke-dasharray="0 1000"/></svg>`);
+    if (s.ring) el.insertAdjacentHTML("beforeend", `<svg class="ring" viewBox="0 0 340 340"><circle class="ring__track" cx="170" cy="170" r="166.5" style="stroke:#19333f;stroke-width:7;filter:none"/><circle cx="170" cy="170" r="166.5" pathLength="1000" stroke-dasharray="0 1000"/></svg>`);
     if (s.loader) el.insertAdjacentHTML("beforeend", `<i class="spin-loader"></i>`);
   }
   app.append(el); els[id] = el; return el;
@@ -265,7 +265,7 @@ let runStart = 0, runLeft = 0;
 const stopRun = () => { cancelAnimationFrame(runTimer); runTimer = 0; };
 const startRun = (id) => {
   paused = false; runLeft = STEP_MS[SCREENS[id].run]; runStart = performance.now();
-  const circle = els[id].querySelector(".ring circle");
+  const circle = els[id].querySelector(".ring circle:not(.ring__track)");
   const tick = (t) => {
     if (cur !== id) return;
     if (!paused) {

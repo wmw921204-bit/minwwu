@@ -17,7 +17,7 @@
   .main { width: 446px; height: 968px; }
   .side { filter: brightness(.42) saturate(.8); }
   .ring { position: absolute; left: 30px; top: 175px; width: 314px; height: 314px; }
-  .ring circle { fill: none; stroke: #f2fbfa; stroke-width: 5; stroke-linecap: round; transform: rotate(-90deg); transform-origin: 50% 50%; filter: drop-shadow(0 0 6px rgba(255,255,255,.7)); }
+  .ring circle { fill: none; stroke: #f2fbfa; stroke-width: 5.5; stroke-linecap: round; transform: rotate(-90deg); transform-origin: 50% 50%; filter: drop-shadow(0 0 6px rgba(255,255,255,.7)); }
 </style></head>
 <body>
 <div class="bg"></div><div class="glow"></div>
@@ -28,7 +28,7 @@
     <div class="lay" id="s0"><img src="../../assets/projects/kohler/app/s/intro1.webp"></div>
     <div class="lay" id="s1"><img id="todayImg" src="../../assets/projects/kohler/app/s/today.webp"><div style="position:absolute;left:0;top:0;width:100%;height:60px;background:url(../../assets/projects/kohler/app/s/today.webp) 0 0/100% auto"></div><img id="todayBar" src="../../assets/projects/kohler/app/s/today.webp" style="top:auto;bottom:0;height:110px;object-fit:cover;object-position:0 100%"></div>
     <div class="lay" id="s2"><img src="../../assets/projects/kohler/app/s/capability.webp"></div>
-    <div class="lay" id="s3"><img src="../../assets/projects/kohler/app/s/run1.webp"><svg class="ring" viewBox="0 0 340 340"><circle id="ringC" cx="170" cy="170" r="166" pathLength="1000" stroke-dasharray="0 1000"/></svg></div>
+    <div class="lay" id="s3"><img src="../../assets/projects/kohler/app/s/run1.webp"><svg class="ring" viewBox="0 0 340 340"><circle cx="170" cy="170" r="166.5" style="stroke:#19333f;stroke-width:7;filter:none"/><circle id="ringC" cx="170" cy="170" r="166.5" pathLength="1000" stroke-dasharray="0 1000"/></svg></div>
     <div class="lay" id="s4"><img src="../../assets/projects/kohler/app/s/done.webp"></div>
   </div></div>
 </div>
@@ -39,7 +39,7 @@ const DUR = 14;
 const ease = (x) => x < 0 ? 0 : x > 1 ? 1 : x * x * (3 - 2 * x);
 const seg = [[0, 2.6], [2.6, 6.6], [6.6, 9.0], [9.0, 11.8], [11.8, 14]]; // intro, today, capability, ritual, done
 const F = 0.55; // crossfade
-const sc = 446 / 402; // main phone screen scale vs 402pt design
+const sc = 420 / 402; // the main phone's screen (446 minus the 13px bezel each side) vs the 402pt design
 function setT(t) {
   t = ((t % DUR) + DUR) % DUR;
   const ph = (t / DUR) * Math.PI * 2;
@@ -63,7 +63,7 @@ function setT(t) {
   const r = ease((t - 9.2) / 2.5);
   document.getElementById("ringC").setAttribute("stroke-dasharray", `${(r * 1000).toFixed(1)} 1000`);
 }
-const ringBox = document.querySelector(".ring"); ringBox.style.cssText = `left:${31 * sc}px;top:${177 * sc}px;width:${340 * sc}px;height:${340 * sc}px`;
+const ringBox = document.querySelector(".ring"); ringBox.style.cssText = `left:${30.5 * sc}px;top:${177.6 * sc}px;width:${340 * sc}px;height:${340 * sc}px`;
 setT(0);
 </script>
 </body></html>
