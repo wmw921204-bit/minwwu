@@ -775,7 +775,7 @@ const DEC_MIN=8000;
 function decHead(){const q=S.ui.decQ||(S.ui.decQ=[]),seen=S.ui.decSeen||(S.ui.decSeen={});
   S.ui.decQ=q.filter(id=>{const e=findEvent(id);return e&&!e.archived&&!e.later&&(e.status==='needsReview'||(e.autonomous&&!e.changed&&running()&&S.notif.decisions&&!decisionSpent(e)))});
   // a newer notice waits until the current one has been up for DEC_MIN, so it never swaps in under a finger, and an old one never sits forever
-  while(S.ui.decQ.length>1&&seen[S.ui.decQ[0]]&&Date.now()-seen[S.ui.decQ[0]]>DEC_MIN)S.ui.decQ.shift();
+  while(S.ui.decQ.length>1&&seen[S.ui.decQ[0]]&&Date.now()-seen[S.ui.decQ[0]]>DEC_MIN&&findEvent(S.ui.decQ[0]).status!=='needsReview')S.ui.decQ.shift();
   const id=S.ui.decQ[0];if(!id)return null;
   if(!seen[id]){seen[id]=Date.now();if(S.ui.decQ.length>1)setTimeout(commit,DEC_MIN+50)}
   return findEvent(id)}
@@ -1111,7 +1111,7 @@ function evItem(ev){
   const room=ROOM[ZONES[d.zone].room].name;
   // once answered, the row says what they chose instead of repeating the robot's open question
   const ans=ev.lastAct&&ev.status!=='needsReview'&&SHORT[ev.key]?SHORT[ev.key].labels[ev.lastAct]||'':'';
-  return `<button class="item" data-a="openEvent" data-v="${ev.id}"><span class="ico ${icC}">${ic(icN,20)}</span><span class="body"><span class="t">${ans?'You chose: '+esc(ans):esc(ev.suggest&&ev.status==='needsReview'?'Extra pass suggested':d.title)}</span><span class="s">${ans?esc(SHORT[ev.key].q)+' · ':''}${room} · ${hhmm(ev.at)}${ev.retryFailed?' · retry didn’t work':''}</span></span>${mine?'<span class="pill edit">Change</span>':`<span class="pill ${ev.status}">${ev.status==='info'&&!ev.autonomous?'Done':ev.status==='inProgress'&&running()?'Robot is on it':stLabel(ev)}</span>`}</button>`;
+  return `<button class="item" data-a="openEvent" data-v="${ev.id}"><span class="ico ${icC}">${ic(icN,20)}</span><span class="body"><span class="t">${ans?'You chose: '+esc(ans):esc(ev.suggest&&ev.status==='needsReview'?'Extra pass suggested':d.title)}</span><span class="s">${ans?esc(SHORT[ev.key].q)+' · ':''}${room} · ${hhmm(ev.at)}${ev.retryFailed?' · retry didn’t work':''}</span></span>${mine||(ans&&!ev.archived&&ev.status==='resolved'&&!ev.problem)?'<span class="pill edit">Change</span>':`<span class="pill ${ev.status}">${ev.status==='info'&&!ev.autonomous?'Done':ev.status==='inProgress'&&running()?'Robot is on it':stLabel(ev)}</span>`}</button>`;
 }
 /* Your own choice that can still be changed: skipped, put off, or marked no-go. */
 function userMadeEv(ev){return !ev.archived&&!(ev.autonomous&&!ev.changed)&&!!ev.lastAct&&(['skipped','deferred'].includes(ev.status)||(ev.status==='resolved'&&ev.lastAct==='nogo'))}
@@ -1137,7 +1137,7 @@ function statusCard(){
     if(S.task&&S.task.done){
       const nc=S.events.filter(e=>['needsReview','deferred','skipped'].includes(e.status)&&DEFS[e.key].type!=='decision').length;
       const left=S.events.filter(e=>['needsReview','deferred','skipped'].includes(e.status)&&DEFS[e.key].type!=='decision');
-      h+=`<p class="status-sub">Last cleaning finished at ${hhmm(S.task.end)}: <span class="pill ${S.task.result}">${RESULTLABEL[S.task.result]}</span>${nc?` · not cleaned: ${left.map(e=>`<button class="link" data-a="openEvent" data-v="${e.id}">${esc(ZONES[DEFS[e.key].zone].name.toLowerCase())}</button>`).join(', ')}`:''}</p>`;
+      h+=`<p class="status-sub">Last cleaning finished at ${hhmm(S.task.end)}: <span class="pill ${S.task.result}">${RESULTLABEL[S.task.result]}</span>${nc?` · not cleaned: ${left.map(e=>`<button class="link" data-a="openEvent" data-v="${e.id}">${esc(ZONES[DEFS[e.key].zone].name.toLowerCase())}</button>${e.status==='needsReview'?' (needs you)':e.status==='deferred'?' (later)':' (skipped)'}`).join(', ')}`:''}</p>`;
       h+=`<div class="btn-row"><button class="btn soft" data-a="openReport" data-v="${S.task.id}">View report</button><button class="btn primary" data-a="setup">Start cleaning</button></div>`;
     }else{
       h+=`<p class="status-sub">On the dock and ready for the next cleaning.</p><div class="btn-row"><button class="btn primary block" data-a="setup">Start cleaning</button></div>`;
@@ -1476,7 +1476,7 @@ function scrSchedule(){
 function scrStuck(){
   const d=S.device;let h=`<div class="topbar"><button class="icon-btn" data-a="back" aria-label="Back">${ic('back')}</button><span style="flex:1"></span>${d.status==='error'?'<span class="pill needsReview">Needs you</span>':'<span class="pill resolved">Moving again</span>'}</div>`;
   h+=`<div class="h-screen" style="margin-top:14px">${d.status==='error'?'The robot is stuck':'The robot is moving again'}</div>`;
-  if(d.status!=='error')return h+`<p class="ev-line">It’s free and back to cleaning. Nothing else to do.</p>`;
+  if(d.status!=='error')return h+`<p class="ev-line">It’s free and back to cleaning. Nothing else to do.</p><p class="small muted" style="margin:10px 4px 0">If it gets stuck again you’ll get a notice.</p><div class="btn-row" style="margin-top:16px"><button class="btn primary" data-a="tab" data-v="map">Watch on the map</button><button class="btn plain" data-a="tab" data-v="home">Home</button></div>`;
   h+=`<p class="ev-line">In ${esc(curRoom().the)}.</p>`;
   h+=`<div class="map-wrap" style="margin-top:14px">${mapSVG({mini:true})}</div>`;
   h+=`<div class="sec-h">What happened</div><div class="card"><p style="font-size:15px;line-height:1.5">${esc(d.error||'It can’t move.')}</p></div>`;
