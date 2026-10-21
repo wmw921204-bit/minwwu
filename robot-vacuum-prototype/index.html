@@ -985,7 +985,7 @@ function doAction(ev,act,saveRule){
   if(!ev.archived)leaveEvent(true);
   const snap=snapFor(ev);
   const run=()=>{resetForChange(ev,act);applyAction(ev,act,false);if(saveRule){const r=DEFS[ev.key].remember[act];S.rules=S.rules.filter(x=>x.key!==ev.key);S.rules.push({id:'r'+(++seq),key:ev.key,act,text:r.text,scope:r.scope})}};
-  if(NEEDS_DEVICE[act]){const [l,d]=CMDTEXT[act];command(l,d,()=>{run();S.undoNext={ev,act,snap}})}
+  if(NEEDS_DEVICE[act]){const [l,d0]=CMDTEXT[act],d=!running()&&/^retry/.test(act)?'It will clean that spot on the next cleaning':d0;command(l,d,()=>{run();S.undoNext={ev,act,snap}})}
   else{run();offerUndo(ev,act,snap);commit()}
 }
 
@@ -1111,7 +1111,7 @@ function evItem(ev){
   const room=ROOM[ZONES[d.zone].room].name;
   // once answered, the row says what they chose instead of repeating the robot's open question
   const ans=ev.lastAct&&ev.status!=='needsReview'&&SHORT[ev.key]?SHORT[ev.key].labels[ev.lastAct]||'':'';
-  return `<button class="item" data-a="openEvent" data-v="${ev.id}"><span class="ico ${icC}">${ic(icN,20)}</span><span class="body"><span class="t">${ans?'You chose: '+esc(ans):esc(ev.suggest&&ev.status==='needsReview'?'Extra pass suggested':d.title)}</span><span class="s">${ans?esc(SHORT[ev.key].q)+' · ':''}${room} · ${hhmm(ev.at)}${ev.retryFailed?' · retry didn’t work':''}</span></span>${mine||(ans&&!ev.archived&&ev.status==='resolved'&&!ev.problem)?'<span class="pill edit">Change</span>':`<span class="pill ${ev.status}">${ev.status==='info'&&!ev.autonomous?'Done':ev.status==='inProgress'&&running()?'Robot is on it':stLabel(ev)}</span>`}</button>`;
+  return `<button class="item" data-a="openEvent" data-v="${ev.id}"><span class="ico ${icC}">${ic(icN,20)}</span><span class="body"><span class="t">${ans?'You chose: '+esc(ans):esc(ev.suggest&&ev.status==='needsReview'?'Extra pass suggested':d.title)}</span><span class="s">${ans?esc(SHORT[ev.key].q)+' · ':''}${room} · ${hhmm(ev.at)}${ev.retryFailed?' · retry didn’t work, tap to see why':''}</span></span>${mine||(ans&&!ev.archived&&ev.status==='resolved'&&!ev.problem)?'<span class="pill edit">Change</span>':`<span class="pill ${ev.status}">${ev.status==='info'&&!ev.autonomous?'Done':ev.status==='inProgress'&&running()?'Robot is on it':stLabel(ev)}</span>`}</button>`;
 }
 /* Your own choice that can still be changed: skipped, put off, or marked no-go. */
 function userMadeEv(ev){return !ev.archived&&!(ev.autonomous&&!ev.changed)&&!!ev.lastAct&&(['skipped','deferred'].includes(ev.status)||(ev.status==='resolved'&&ev.lastAct==='nogo'))}
@@ -1212,7 +1212,7 @@ function scrMap(){
   const objs=visibleObjs();
   if(objs.length){
     const pend=objs.filter(x=>x.status==='pending');
-    h+=`<div class="sec-h">Objects found<small>${objs.length}</small></div>`;
+    h+=`<div class="sec-h">Objects found<small>${pend.length?pend.length+' to check'+(running()?' after cleaning':'')+' · ':''}${objs.length} found</small></div>`;
     if(pend.length&&running())h+=`<p class="small muted" style="margin:-4px 4px 10px">${pend.length} not sure. They don’t block cleaning, so the robot will ask you after it’s done.</p>`;
     h+=objs.map(objItem).join('');
   }
@@ -1256,7 +1256,7 @@ function scrEvent(id){
   const userMade=userMadeEv(ev);
   const active=!ev.archived&&(['needsReview','info','deferred'].includes(ev.status)||(isAuto&&ev.status!=='inProgress')||userMade);
   const fails=ev.retryFails||0;
-  if(ev.retryFailed&&ev.status==='needsReview')h+=`<p class="ev-line" style="color:var(--warn)">${fails>=2?'Retried twice. It’s still blocked.':'Retry didn’t work. It’s still blocked.'}</p>${d.failWhy?`<div class="detect"><b>What the robot detects</b>${esc(d.failWhy)}<br><span class="muted">${esc(fails>=2?'Another retry is unlikely to help. Mark it as no-go or leave it for today.':d.failNext||'')}</span></div>`:''}`;
+  if(ev.retryFailed&&ev.status==='needsReview')h+=`<p class="ev-line" style="color:var(--warn)">${fails>=2?'Retried twice. It’s still blocked.':'Retry didn’t work. It’s still blocked.'}</p><div class="detect"><b>What the robot detects</b>${esc(d.failWhy||'It went back, but something is still in the way.')}<br><span class="muted">${esc(fails>=2?'Another retry is unlikely to help. Mark it as no-go or leave it for today.':d.failNext||'If you’ve cleared it, retry once more. If not, leave it for today.')}</span></div>`;
   else if(ev.status==='inProgress')h+=`<p class="ev-line">The robot is heading there now.</p>`;
   else if(ev.outcome&&(!active||isAuto))h+=`<p class="ev-line">${esc(ev.outcome)}</p>`;
   else h+=`<p class="ev-line">${esc(sh.line)}</p>`;
@@ -1479,11 +1479,12 @@ function scrStuck(){
   if(d.status!=='error')return h+`<p class="ev-line">It’s free and back to cleaning. Nothing else to do.</p><p class="small muted" style="margin:10px 4px 0">If it gets stuck again you’ll get a notice.</p><div class="btn-row" style="margin-top:16px"><button class="btn primary" data-a="tab" data-v="map">Watch on the map</button><button class="btn plain" data-a="tab" data-v="home">Home</button></div>`;
   h+=`<p class="ev-line">In ${esc(curRoom().the)}.</p>`;
   h+=`<div class="map-wrap" style="margin-top:14px">${mapSVG({mini:true})}</div>`;
+  // the way out comes first; what happened and what to do follow
+  const sending=S.cmd&&S.cmd.state==='sending';
+  h+=`<div class="btn-row" style="margin-top:16px"><button class="btn primary" data-a="resume" ${sending?'disabled':''}>Resume</button><button class="btn plain" data-a="endReturn" ${sending?'disabled':''}>End and return</button></div>`;
   h+=`<div class="sec-h">What happened</div><div class="card"><p style="font-size:15px;line-height:1.5">${esc(d.error||'It can’t move.')}</p></div>`;
   h+=`<div class="sec-h">Why it needs you</div><div class="card"><p style="font-size:15px;line-height:1.5">It already tried to free itself 3 times. It can’t move on its own now, so someone has to lift it or clear the way.</p></div>`;
   h+=`<div class="sec-h">What to do</div><div class="card"><ol style="margin:0;padding-left:20px;font-size:15px;line-height:1.6"><li>Go to the robot in ${esc(curRoom().the)}.</li><li>Lift it onto open floor, or remove what’s caught.</li><li>Check the wheels for hair or a cable.</li><li>Tap Resume.</li></ol></div>`;
-  const sending=S.cmd&&S.cmd.state==='sending';
-  h+=`<div class="btn-row" style="margin-top:16px"><button class="btn primary" data-a="resume" ${sending?'disabled':''}>Resume</button><button class="btn plain" data-a="endReturn" ${sending?'disabled':''}>End and return</button></div>`;
   // not at home: say what waiting means, so Resume isn't the only obvious way out
   h+=`<p class="small muted" style="margin:12px 4px 0">Not at home? It’s safe to leave it: the robot stays put and this stays in your Inbox until you’re back. Or end the cleaning and it will try to drive back to the dock.</p>`;
   return h;
@@ -1521,7 +1522,8 @@ function objModal(id){
   ${sel==='other'?`<label class="field" style="margin-top:10px"><span>What is it?</span><input id="obj-custom" data-obj-input maxlength="30" placeholder="e.g. Charging cable box" value="${esc(S.ui.objCustom||'')}" autocomplete="off"></label>`:''}`;
   const last=!q||q.indexOf(id)===q.length-1;
   const primary=sel==='other'?'Save my label':unsure?(sel===o.label?`Yes, ${OBJ[sel].n.toLowerCase()}`:`Save as ${OBJ[sel].n.toLowerCase()}`):(sel===o.label?'Looks right':`Change to ${OBJ[sel].n.toLowerCase()}`);
-  return {full:true,title:unsure?(/s$/i.test(OBJ[o.label].n)?`Are these ${OBJ[o.label].n.toLowerCase()}?`:`Is this ${/^[aeiou]/i.test(OBJ[o.label].n)?'an':'a'} ${OBJ[o.label].n.toLowerCase()}?`):OBJ[o.label].n,body,
+  const tl=unsure&&S.ui.objSel&&sel!=='other'?sel:o.label;
+  return {full:true,title:unsure&&sel==='other'?'What is it?':unsure&&tl!==o.label?`It’s ${/s$/i.test(OBJ[tl].n)?'':/^[aeiou]/i.test(OBJ[tl].n)?'an ':'a '}${OBJ[tl].n.toLowerCase()}`:unsure?(/s$/i.test(OBJ[o.label].n)?`Are these ${OBJ[o.label].n.toLowerCase()}?`:`Is this ${/^[aeiou]/i.test(OBJ[o.label].n)?'an':'a'} ${OBJ[o.label].n.toLowerCase()}?`):OBJ[o.label].n,body,
     buttons:[{label:primary+(q&&!last?' · Next':''),a:'objSave',cls:'primary'},{label:'Nothing there',a:'objNone',cls:'plain'}]};
 }
 function groupModal(room){
@@ -1703,6 +1705,8 @@ function render(){
   const app=document.getElementById('app');
   const prev=app.querySelector('.scroll');
   const same=prev&&!forceTop&&restoreTop==null;const anchor=same?findAnchor(prev):null;
+  // a text box being typed in keeps its focus and caret through a redraw (the robot keeps redrawing the screen)
+  const fa=document.activeElement,fid=fa&&fa.id&&app.contains(fa)&&/^(input|textarea)$/i.test(fa.tagName)?fa.id:null,caret=fid?[fa.selectionStart,fa.selectionEnd]:null;
   const pm=app.querySelector('.modal'),modalTop=pm&&S.ui.modal&&pm.getAttribute('aria-label')===S.ui.modal.title?pm.scrollTop:0;
   const st=restoreTop!=null?restoreTop:same?prev.scrollTop:0;forceTop=false;restoreTop=null;
   let h=`<div class="sbar"><span>${live('clock')}</span><span style="display:flex;gap:6px;align-items:center">${ic('wifi',17)}<svg width="25" height="12" viewBox="0 0 25 12" aria-hidden="true"><rect x=".5" y=".5" width="21" height="11" rx="3" fill="none" stroke="currentColor" opacity=".45"/><rect x="2.5" y="2.5" width="16" height="7" rx="1.5" fill="currentColor"/><rect x="22.5" y="4" width="1.8" height="4" rx=".8" fill="currentColor" opacity=".45"/></svg></span></div>`;
@@ -1736,6 +1740,7 @@ function render(){
   const sc=app.querySelector('.scroll');if(sc)sc.scrollTop=st;
   if(sc&&anchor){const m=keyed(sc).find(([k])=>k===anchor.k);if(m)sc.scrollTop+=m[1].getBoundingClientRect().top-anchor.top}
   if(modalTop){const nm=app.querySelector('.modal');if(nm)nm.scrollTop=modalTop}
+  if(fid){const el=document.getElementById(fid);if(el){el.focus({preventScroll:true});try{el.setSelectionRange(caret[0],caret[1])}catch(e){}}}
   mount3D();
   dirty.clear();
   renderPanel();
@@ -1804,7 +1809,7 @@ const A={
   recheckObjs(){const items=visibleObjs().filter(o=>o.status==='ignored');if(!items.length)return;items.forEach(o=>{o.status='pending'});if(window.onObjChange)window.onObjChange(items);A.reviewRoom(CELLROOM[items[0].k])},
   fixObj(v){const o=S.objects.find(x=>x.id===v);S.ui.objFrom=o?CELLROOM[o.k]:null;S.ui.objId=v;S.ui.objSel=null;S.ui.objCustom='';S.ui.objQueue=null;S.ui.modal=objModal(v);commit()},
   reviewObjs(){const q=pendingObjs().map(o=>o.id);if(!q.length)return;S.ui.notice=null;S.ui.objQueue=q;S.ui.objId=q[0];S.ui.objSel=null;S.ui.modal=objModal(q[0]);commit()},
-  objPick(v){S.ui.objSel=v;S.ui.modal=objModal(S.ui.objId);commit();if(v==='other')setTimeout(()=>{const i=document.getElementById('obj-custom');if(i)i.focus()},60)},
+  objPick(v){S.ui.objSel=v;S.ui.modal=objModal(S.ui.objId);commit();if(v==='other')setTimeout(()=>{const i=document.getElementById('obj-custom');if(i){i.focus({preventScroll:true});i.scrollIntoView({block:'center'})}},60)},
   objSave(){const o=S.objects.find(x=>x.id===S.ui.objId);let sel=S.ui.objSel||o.label;
     if(sel==='other'){const t=(S.ui.objCustom||'').trim();if(!t){const i=document.getElementById('obj-custom');if(i){i.focus();i.placeholder='Type a name first'}return}
       sel='c_'+t.toLowerCase().replace(/[^a-z0-9]+/g,'_');if(!OBJ[sel])OBJ[sel]={n:t.charAt(0).toUpperCase()+t.slice(1),e:'🏷️',custom:true};S.ui.objCustom='';}
