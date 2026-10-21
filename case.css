@@ -1987,3 +1987,44 @@ img.is-zoomable { cursor: zoom-in; }
 .proto-veil:focus-visible { outline: 3px solid #fff; outline-offset: -6px; }
 .proto-veil.is-gone { opacity: 0; pointer-events: none; }
 @media (prefers-reduced-motion: reduce) { .proto-veil, .proto-veil__btn { transition: none; } }
+
+/* ---------- Kohler × SCADpro ---------- */
+.case--kohler {
+  --c-bg: #071315; --c-fg: #eef7f6; --c-muted: #93aeac;
+  --c-accent: #3fc1b5; --c-accent-ink: #5fd6ca; --c-soft: #0d2224;
+  --c-line: rgba(95, 214, 202, .16); --accent: #3fc1b5;
+  --theme-bg: #3fc1b5; --theme-fg: #04201d;
+}
+.case--kohler .chapter { --chapter-accent: #5fd6ca; }
+.case--kohler .c-covers--natural img { border-radius: 16px; }
+.case--kohler .c-list__text em { font-style: normal; color: var(--c-accent-ink); }
+.kh-personas { display: grid; gap: clamp(10px, 1.4vw, 18px); margin-top: 48px; }
+.kh-persona { position: relative; margin: 0; overflow: hidden; }
+.kh-persona img { display: block; width: 100%; height: auto; }
+.kh-persona figcaption { width: min(100% - 2 * var(--gutter), 1440px - 2 * var(--gutter)); margin: 14px auto 0; color: var(--c-muted); line-height: 1.6; font-size: 16px; }
+.kh-persona figcaption b { color: var(--c-fg); font-weight: 600; }
+.kh-persona figcaption em { font-style: normal; color: var(--c-accent-ink); }
+.kh-cre { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-top: 44px; }
+.kh-cre > div { position: relative; padding: 30px 26px 28px; border-radius: 22px; background: linear-gradient(160deg, rgba(63,193,181,.14), rgba(63,193,181,.02) 60%), var(--c-soft); border: 1px solid var(--c-line); overflow: hidden; }
+.kh-cre b { display: block; font: 600 30px/1 var(--f-display); letter-spacing: -0.02em; }
+.kh-cre span { display: block; margin-top: 8px; font-size: 13px; letter-spacing: .1em; text-transform: uppercase; color: var(--c-accent-ink); }
+.kh-cre p { margin-top: 16px; color: var(--c-muted); line-height: 1.6; }
+.kh-ia { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; margin-top: 36px; }
+.kh-ia > div { padding: 22px 20px; border-radius: 18px; background: var(--c-soft); border: 1px solid var(--c-line); }
+.kh-ia b { font: 600 18px var(--f-display); color: var(--c-accent-ink); }
+.kh-ia p { margin-top: 10px; color: var(--c-muted); line-height: 1.55; font-size: 15px; }
+.kh-wide video { display: block; width: 100%; aspect-ratio: 18 / 5; object-fit: contain; background: #000; border-radius: 16px; }
+@media (max-width: 900px) {
+  .kh-cre, .kh-ia { grid-template-columns: 1fr; }
+}
+/* the Kohler gate: still water instead of the FINRA maze */
+.case--kohler .lock { background: radial-gradient(ellipse 80% 70% at 50% 45%, #0d3532, #071315 70%); }
+.case--kohler .lock__card { background: rgba(7, 19, 21, .78); border-color: rgba(95,214,202,.22); }
+.case--kohler .lock__eyebrow { color: #5fd6ca; }
+.case--kohler .lock__icon { background: rgba(95,214,202,.14); }
+.case--kohler .lock__icon svg { stroke: #5fd6ca; }
+.case--kohler .lock__lead { color: #cfe6e3; }
+.case--kohler .lock__form input { border-color: rgba(95,214,202,.35); }
+.case--kohler .lock__form input:focus { border-color: #5fd6ca; box-shadow: 0 0 0 4px rgba(95,214,202,.18); }
+.case--kohler .lock__form button { background: #5fd6ca; color: #04201d; }
+.case--kohler .lock__form button .pill__arrow { background-color: #04201d; }

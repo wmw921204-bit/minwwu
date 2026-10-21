@@ -31,7 +31,9 @@ const scripts = [...footer.matchAll(scriptRe)].map((m) => m[1]);
 footer = footer.replace(scriptRe, "");
 const payload = JSON.stringify({ v: 1, iter: ITER, salt: b64(salt), iv: b64(iv), data: b64(data) });
 
-const out = head.replace(/<meta name="description" content="[^"]*">/, '<meta name="description" content="FINRA × SCADpro: an industry partnership case study. Password protected; contact Minwei Wu for access.">')
+// each gate can carry its own public description: <!-- desc: ... -->
+const desc = (gate.match(/<!-- desc: ([\s\S]*?) -->/) || [, "FINRA × SCADpro: an industry partnership case study. Password protected; contact Minwei Wu for access."])[1];
+const out = head.replace(/<meta name="description" content="[^"]*">/, `<meta name="description" content="${desc}">`)
   + gate.replace("__PAYLOAD__", payload).replace("__SCRIPTS__", JSON.stringify(scripts))
   + footer;
 writeFileSync(`projects/${name}.html`, out);
