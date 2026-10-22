@@ -127,7 +127,7 @@ const SCREENS = {
   signin: { h: 874, hs: [
     { x: 18, y: 320, w: 364, h: 64, act: "terms", label: "Continue with Email" }, { x: 18, y: 410, w: 364, h: 64, act: "terms", label: "Continue with Google" },
     { x: 18, y: 502, w: 364, h: 62, act: "terms", label: "Continue with Apple" }, { x: 18, y: 588, w: 364, h: 62, act: "terms", label: "Sign in as guest" },
-    { x: 110, y: 676, w: 190, h: 38, act: "terms", label: "Other Sign-In Options" }] },
+    { x: 110, y: 676, w: 190, h: 38, act: "otherSignin", label: "Other Sign-In Options" }] },
   wear: { h: 874, hs: [back, { x: 213, y: 773, w: 170, h: 50, go: "wearsearch", label: "Connect" }, { x: 21, y: 773, w: 168, h: 50, go: "asp0", label: "Skip" }] },
   wearsearch: { h: 874, auto: ["wearlist", 2600], search: true, hs: [back] },
   wearlist: { h: 874, appear: [{ x: 21, y: 303, w: 361, h: 62 }], hs: [back, { x: 21, y: 725, w: 168, h: 48, go: "asp0", label: "Skip" }, { x: 140, y: 785, w: 150, h: 30, act: "help", label: "Help" }],
@@ -158,9 +158,9 @@ const SCREENS = {
     { x: 20, y: 712, w: 362, h: 52, act: "start", label: "Start · 26 min", fixed: 1 }, { x: 20, y: 778, w: 362, h: 52, act: "saveLater", label: "Save for later", fixed: 1 },
     { x: 100, y: 175, w: 322, h: 320, go: "shower", label: "Wellness Shower" }, { x: 100, y: 625, w: 322, h: 320, go: "shower", label: "Wellness Shower (cold)" }] },
   run0: { h: 874, run: 0, flower: "Starting in", count: 3, hs: [{ x: 20, y: 772, w: 362, h: 48, act: "stop", label: "Stop" }] },
-  run1: { h: 874, run: 1, ring: [59, 59], hs: [back, { x: 20, y: 708, w: 362, h: 48, act: "stop", label: "Stop" }, { x: 20, y: 772, w: 362, h: 48, act: "pause", label: "Pause" }] },
-  run2: { h: 874, run: 2, ring: [600, 600], hs: [back, { x: 20, y: 708, w: 362, h: 48, act: "stop", label: "Stop" }, { x: 20, y: 772, w: 362, h: 48, act: "pause", label: "Pause" }] },
-  run3: { h: 874, run: 3, ring: [120, 120], hs: [back, { x: 20, y: 708, w: 362, h: 48, act: "stop", label: "Stop" }, { x: 20, y: 772, w: 362, h: 48, act: "pause", label: "Pause" }] },
+  run1: { h: 874, run: 1, ring: [59, 59], hs: [{ ...back, back: 0, act: "stop" }, { x: 20, y: 708, w: 362, h: 48, act: "stop", label: "Stop" }, { x: 20, y: 772, w: 362, h: 48, act: "pause", label: "Pause" }] },
+  run2: { h: 874, run: 2, ring: [600, 600], hs: [{ ...back, back: 0, act: "stop" }, { x: 20, y: 708, w: 362, h: 48, act: "stop", label: "Stop" }, { x: 20, y: 772, w: 362, h: 48, act: "pause", label: "Pause" }] },
+  run3: { h: 874, run: 3, ring: [120, 120], hs: [{ ...back, back: 0, act: "stop" }, { x: 20, y: 708, w: 362, h: 48, act: "stop", label: "Stop" }, { x: 20, y: 772, w: 362, h: 48, act: "pause", label: "Pause" }] },
   done_share: { h: 874, hs: [{ x: 20, y: 772, w: 362, h: 48, act: "home", label: "Go Home" }, { x: 30, y: 130, w: 340, h: 70, act: "shared", label: "Share" }] },
   done: { h: 874, hs: [{ x: 20, y: 772, w: 362, h: 48, act: "home", label: "Go Home" }, { x: 350, y: 70, w: 44, h: 40, go: "done_share", how: "none", label: "Share" }] },
 
@@ -432,6 +432,7 @@ const chipSheet = (title, items, done) => sheet(`<h4>${title}</h4><div class="ch
 });
 const SEARCH = [["Muscle Recovery", "Wellness goal", "recovery"], ["Contrast Therapy", "Capability", "capability"], ["Hydrotherapy", "Capability", "capability"], ["Red Light Therapy", "Capability", "capability"], ["Aromatherapy", "Capability", "capability"], ["Programmable Thermal Shower", "Capability", "capability"], ["KOHLER Wellness Shower", "Product", "shower"]];
 const actions = {
+  otherSignin: () => sheet(`<h4>Other sign-in options</h4><div class="results"><button type="button">Continue with Facebook</button><button type="button">Continue with phone number</button></div>`, (sh) => sh.querySelectorAll(".results button").forEach((b) => (b.onclick = () => { closeSheet(true); openPop("terms"); }))),
   help: () => sheet(`<h4>Not seeing your device?</h4><p style="color:#9fb4ba;line-height:1.5">Make sure Bluetooth is on and your watch is awake and nearby, then search again.</p><button class="done" type="button">Search again</button>`, (sh) => (sh.querySelector(".done").onclick = () => { closeSheet(); show("wearsearch", "none"); })),
   addAsp: () => chipSheet("Add an aspiration", ["Better Focus", "Healthy Skin", "Pain Relief", "Stronger Immunity", "Better Mood"], (n) => `${n} aspiration${n > 1 ? "s" : ""} added`),
   addFeeling: () => chipSheet("Add a feeling", ["Restless", "Focused", "Overwhelmed", "Grateful", "Stiff"], (n) => `${n} feeling${n > 1 ? "s" : ""} added`),
