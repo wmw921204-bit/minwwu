@@ -2025,6 +2025,36 @@ img.is-zoomable { cursor: zoom-in; }
 /* Kohler: slow flowing water light behind the page */
 .kh-flow { position: fixed; inset: 0; width: 100vw; height: 100vh; z-index: 0; pointer-events: none; filter: blur(20px); transform: scale(1.1); opacity: 1; }
 
+/* Kohler: the app's look on the page. Frosted glass over the moving water, edged with a single hairline */
+.case--kohler { --glass: rgba(150,200,205,.07); --glass-hi: rgba(170,215,220,.13); --hair: rgba(205,235,240,.18); --hair-hi: rgba(225,245,248,.55); --blur: blur(22px) saturate(1.25); }
+.case--kohler .c-stat, .case--kohler .fin-lessons p, .case--kohler .kh-out button, .case--kohler .c-facts, .case--kohler .c-role > div,
+.case--kohler .fin-try, .case--kohler .kh-tank__glass, .case--kohler .kh-cap, .case--kohler .kh-p {
+  background-color: var(--glass); border: 1px solid var(--hair); -webkit-backdrop-filter: var(--blur); backdrop-filter: var(--blur);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.07), 0 24px 60px -30px rgba(0,0,0,.6); }
+.case--kohler .c-stat { padding: 26px 26px 24px; border-radius: 20px; }
+.case--kohler .c-stats { gap: 14px; }
+.case--kohler .fin-lessons { gap: 14px; }
+.case--kohler .fin-lessons p { padding: 22px 24px 24px; border-radius: 20px; border-top: 1px solid var(--hair); }
+.case--kohler .kh-out { gap: 14px; }
+.case--kohler .kh-out button { padding: 24px 24px 22px; border-radius: 20px; transition: background-color .4s, border-color .4s; }
+.case--kohler .kh-out button::before { display: none; }
+.case--kohler .kh-out button[aria-selected="true"] { background-color: var(--glass-hi); border-color: var(--hair-hi); }
+.case--kohler .c-facts { padding: 30px 30px 18px; border-radius: 24px; }
+.case--kohler .c-facts dl > div { border-top: 1px solid var(--hair); }
+.case--kohler .c-role > div { padding: 30px; border-radius: 24px; }
+.case--kohler .c-role__list li, .case--kohler .fin-guide__list li, .case--kohler .kh-p__tags i {
+  background: var(--glass); border: 1px solid var(--hair); -webkit-backdrop-filter: var(--blur); backdrop-filter: var(--blur); }
+.case--kohler .fin-guide__list li.is-active { background: var(--glass-hi); border-color: var(--hair-hi); color: var(--c-fg); }
+.case--kohler .fin-try { border-radius: 14px; }
+.case--kohler .kh-cap { border-radius: 16px; }
+.case--kohler .kh-p { border-radius: 24px; }
+.case--kohler .kh-tank__glass { background-color: rgba(150,200,205,.05); border-color: var(--hair-hi); }
+.case--kohler .chapter__toggle { background: rgba(10,30,34,.45); border-color: var(--hair); -webkit-backdrop-filter: blur(24px) saturate(1.3); backdrop-filter: blur(24px) saturate(1.3); }
+.case--kohler .chapter__list { background: rgba(10,30,34,.55) !important; border: 1px solid var(--hair); -webkit-backdrop-filter: blur(24px) saturate(1.3); backdrop-filter: blur(24px) saturate(1.3); }
+.case--kohler .pill, .case--kohler .ff-restart { border-color: var(--hair-hi); background: var(--glass); -webkit-backdrop-filter: var(--blur); backdrop-filter: var(--blur); }
+.case--kohler .c-quote::before { background: var(--hair-hi); width: 1px; }
+.case--kohler .kh-phone { box-shadow: 0 0 0 1px var(--hair-hi), 0 0 0 9px rgba(150,200,205,.06), 0 40px 90px -20px rgba(0,0,0,.7); }
+
 /* Kohler: no divider lines */
 .case--kohler .c-chapter { border-top: 0; padding-top: 0; }
 .case--kohler .c-stat, .case--kohler .fin-lessons p, .case--kohler .kh-out, .case--kohler .kh-out button { border-top: 0; }
