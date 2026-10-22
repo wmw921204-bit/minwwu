@@ -103,6 +103,76 @@
   .results button:hover, .results button:active { background: #172a33; }
   .results small { color: #8aa3ab; }
   .sheet .done { margin-top: 18px; width: 100%; padding: 13px; border-radius: 24px; border: 0; background: #3a8b8a; color: #fff; font: 500 16px "Red Hat Display", system-ui, sans-serif; cursor: pointer; }
+
+  /* ---------- pages built in code, in the app's own style ---------- */
+  .v { position: relative; min-height: 874px; padding: 118px 20px 56px; font-family: "Red Hat Display", system-ui, sans-serif; color: #eef4f6;
+       background: radial-gradient(130% 34% at 50% 0%, #0e3c48 0%, #04131a 55%, #000408 100%) no-repeat, #000408; }
+  .vh { position: absolute; left: 0; top: 0; width: 402px; height: 112px; z-index: 6; background: linear-gradient(#0b2e38, #041219 70%, rgba(2,8,12,.0)); pointer-events: none; }
+  .vh__bar { position: absolute; left: 0; top: 0; width: 402px; height: 54px; background-size: 402px auto; }
+  .vh__t { position: absolute; left: 60px; right: 60px; top: 66px; text-align: center; font: 400 20px/1.2 "Red Hat Display", system-ui, sans-serif; color: #f4f8f9; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .vh__b { position: absolute; left: 14px; top: 64px; width: 30px; height: 30px; pointer-events: auto; border: 0; background: none; cursor: pointer; }
+  .vh__b::before { content: ""; position: absolute; left: 10px; top: 8px; width: 11px; height: 11px; border-left: 1.6px solid #dfe8eb; border-bottom: 1.6px solid #dfe8eb; transform: rotate(45deg); }
+  .vh__r { position: absolute; right: 16px; top: 66px; font: 400 15px "Red Hat Display"; color: #cfdade; pointer-events: auto; background: none; border: 0; cursor: pointer; }
+  .v h3 { font-weight: 400; font-size: 18px; margin: 28px 0 12px; color: #f2f6f7; }
+  .v p.t { color: #c3d0d5; font-size: 14.5px; line-height: 1.5; }
+  .v .hero { position: relative; margin: -8px -20px 0; height: 220px; overflow: hidden; }
+  .v .hero img { width: 100%; height: 100%; object-fit: cover; filter: brightness(.42) saturate(.85); }
+  .v .hero p { position: absolute; left: 34px; right: 34px; top: 50%; transform: translateY(-50%); text-align: center; color: #f3f7f8; font-size: 15px; line-height: 1.45; text-shadow: 0 1px 10px rgba(0,0,0,.6); }
+  .rowc { display: flex; align-items: center; gap: 14px; width: 100%; height: 62px; padding: 0 16px; margin-bottom: 10px; border-radius: 12px; border: 1px solid rgba(255,255,255,.09); background: #0b1217; color: #eef4f6; font: 400 16px "Red Hat Display"; text-align: left; cursor: pointer; transition: background .2s, transform .15s; }
+  .rowc:active { transform: scale(.985); background: #13202a; }
+  .rowc i { width: 34px; height: 34px; border-radius: 50%; border: 1px solid rgba(200,225,232,.45); display: grid; place-items: center; font-style: normal; font-size: 14px; color: #cfe3e8; flex: none; }
+  .rowc::after { content: ""; margin-left: auto; width: 8px; height: 8px; border-right: 1.5px solid #b9c7cc; border-top: 1.5px solid #b9c7cc; transform: rotate(45deg); }
+  .rowc.nochev::after { display: none; }
+  .rowc small { margin-left: auto; color: #b9c7cc; font-size: 14px; }
+  .btn, .btn2 { display: block; width: 100%; height: 48px; border: 0; border-radius: 24px; font: 400 16px "Red Hat Display"; color: #fff; cursor: pointer; transition: transform .15s, filter .2s; }
+  .btn { background: #0e8389; } .btn2 { background: #506f82; margin-top: 12px; }
+  .btn:active, .btn2:active { transform: scale(.98); filter: brightness(1.1); }
+  .btn.sm { display: inline-block; width: auto; height: 34px; padding: 0 20px; border-radius: 17px; font-size: 14px; }
+  .pill { display: inline-block; padding: 2px 11px; border: 1px solid rgba(240,246,248,.75); border-radius: 99px; font-size: 11.5px; color: #eef4f6; margin-right: 6px; }
+  .chipl { display: inline-block; padding: 7px 13px; border: 1px solid rgba(240,246,248,.75); border-radius: 99px; font: 400 13px "Red Hat Display"; color: #eef4f6; margin: 0 6px 8px 0; background: none; cursor: pointer; }
+  .tiles { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .tile { height: 98px; padding: 14px; border-radius: 14px; border: 1px solid rgba(255,255,255,.09); background: #0b1217; color: #eef4f6; text-align: left; font: 400 15px "Red Hat Display"; display: flex; flex-direction: column; justify-content: space-between; cursor: pointer; }
+  .tile i { font-style: normal; font-size: 20px; color: #cfe3e8; }
+  .prod { position: relative; display: block; width: 100%; height: 130px; margin-bottom: 12px; border-radius: 12px; overflow: hidden; border: 0; padding: 0; cursor: pointer; background: #000; }
+  .prod img { width: 100%; height: 100%; object-fit: cover; filter: brightness(.7); }
+  .prod b { position: absolute; left: 14px; top: 12px; font: 400 16px "Red Hat Display"; color: #f2f6f7; }
+  .prod span { position: absolute; right: 12px; bottom: 12px; padding: 6px 12px; border-radius: 99px; background: #4a6a7b; font: 400 13px "Red Hat Display"; color: #fff; }
+  .tl { position: relative; padding-left: 26px; }
+  .tl::before { content: ""; position: absolute; left: 7px; top: 10px; bottom: 30px; border-left: 1.5px dashed rgba(220,232,236,.6); }
+  .step { position: relative; margin-bottom: 14px; padding: 14px 16px; border-radius: 12px; border: 1px solid rgba(255,255,255,.1); background: #0b0f10; }
+  .step::before { content: ""; position: absolute; left: -26px; top: 18px; width: 12px; height: 12px; border-radius: 50%; border: 1.5px solid #dfe8eb; background: #000408; }
+  .step header { display: flex; justify-content: space-between; font-size: 16px; }
+  .step img { width: 100%; height: 78px; object-fit: cover; border-radius: 6px; margin: 10px 0 8px; filter: brightness(.75); }
+  .step .ln { display: flex; justify-content: space-between; color: #e6eef0; font-size: 15px; margin-top: 6px; }
+  .done-row { position: relative; padding: 4px 0 0; font-size: 16px; }
+  .done-row::before { content: ""; position: absolute; left: -26px; top: 6px; width: 12px; height: 12px; border-radius: 50%; border: 1.5px solid #dfe8eb; }
+  /* live run */
+  .runv { position: absolute; inset: 0; font-family: "Red Hat Display", system-ui, sans-serif; color: #eef4f6; background: radial-gradient(120% 40% at 50% 0%, #0e3c48, #030b0f 55%, #000408); }
+  .runv .disk { position: absolute; left: 41px; top: 176px; width: 320px; height: 320px; border-radius: 50%; background: radial-gradient(circle at 40% 35%, #e8f3f6, #b8d3dc 55%, #8fb3c1); box-shadow: inset 0 0 40px rgba(255,255,255,.5), 0 0 60px rgba(150,210,225,.18); overflow: hidden; }
+  .runv .disk::after { content: ""; position: absolute; inset: 0; background: radial-gradient(circle at 30% 70%, rgba(90,130,145,.35) 0 6%, transparent 7%), radial-gradient(circle at 70% 30%, rgba(90,130,145,.3) 0 5%, transparent 6%), radial-gradient(circle at 60% 78%, rgba(90,130,145,.25) 0 4%, transparent 5%), radial-gradient(circle at 22% 38%, rgba(90,130,145,.25) 0 4%, transparent 5%); filter: blur(3px); animation: drift 9s ease-in-out infinite alternate; }
+  @keyframes drift { to { transform: translate(10px, -14px) scale(1.05); } }
+  .runv svg.rg { position: absolute; left: 31px; top: 166px; width: 340px; height: 340px; transform: rotate(-90deg); }
+  .runv svg.rg circle { fill: none; stroke-width: 6; stroke-linecap: round; }
+  .runv .in { position: absolute; left: 41px; top: 176px; width: 320px; height: 320px; display: grid; place-content: center; text-align: center; color: #15242c; }
+  .runv .in small { font-size: 16px; } .runv .in b { font: 300 64px/1.1 "Red Hat Display"; font-variant-numeric: tabular-nums; letter-spacing: .02em; } .runv .in em { font-style: normal; font-size: 15px; }
+  .runv .lab { position: absolute; left: 20px; right: 20px; top: 540px; text-align: center; } .runv .lab b { display: block; font-weight: 400; font-size: 22px; } .runv .lab span { color: #b9c9ce; font-size: 15px; }
+  .runv .bt { position: absolute; left: 20px; right: 20px; top: 708px; }
+  .runv .bt .btn2 { margin-top: 16px; }
+  /* dial for single heads */
+  .dial { position: relative; height: 230px; margin-top: 10px; }
+  .dial svg { position: absolute; left: 16px; top: 0; width: 330px; height: 200px; overflow: visible; }
+  .dial b { position: absolute; left: 0; right: 0; top: 70px; text-align: center; font: 300 62px/1 "Red Hat Display"; }
+  .dial em { position: absolute; left: 0; right: 0; top: 142px; text-align: center; font-style: normal; color: #dbe5e8; font-size: 15px; }
+  .dial button { position: absolute; top: 172px; width: 44px; height: 44px; background: none; border: 0; color: #fff; font: 300 30px "Red Hat Display"; cursor: pointer; }
+  .flow { display: flex; justify-content: space-between; font-size: 18px; margin: 18px 0 14px; } .flow small { color: #b9c9ce; font-size: 15px; }
+  .sldv { position: relative; height: 30px; cursor: pointer; touch-action: none; }
+  .sldv .tr { position: absolute; left: 0; right: 0; top: 13px; height: 6px; border-radius: 3px; background: #2a3236; }
+  .sldv .fl { position: absolute; left: 0; top: 13px; height: 6px; border-radius: 3px; background: #0e8389; }
+  .sldv .th { position: absolute; top: 4px; width: 12px; height: 24px; margin-left: -6px; border-radius: 6px; background: #fff; }
+  .compc { display: grid; grid-template-columns: 1fr 1fr; gap: 30px 20px; margin-top: 90px; text-align: center; }
+  .compc button { background: none; border: 0; color: #eef4f6; font: 400 16px "Red Hat Display"; cursor: pointer; }
+  .compc span { display: grid; place-items: center; width: 116px; height: 116px; margin: 10px auto 0; border-radius: 50%; background: #13222b; border: 1px solid transparent; font-size: 34px; color: #b9d2d9; transition: all .3s cubic-bezier(.3,1.4,.5,1); }
+  .compc button.is-on span { border-color: rgba(230,244,248,.85); background: #1d3a47; transform: scale(1.06); }
 </style>
 </head>
 <body>
@@ -142,14 +212,14 @@ const SCREENS = {
     { x: 340, y: 145, w: 52, h: 34, act: "editQuick", label: "Edit quick start" }, { x: 300, y: 708, w: 92, h: 36, tab: "learn", label: "View More" },
     { x: 60, y: 760, w: 340, h: 80, go: "capability", label: "Contrast Therapy" }, { x: 140, y: 845, w: 120, h: 125, go: "capability", label: "Contrast Therapy image" },
     { x: 108, y: 1083, w: 252, h: 50, go: "comp0", label: "Compose Products (Contrast Therapy)" }, { x: 40, y: 1083, w: 58, h: 50, act: "save", label: "Save" },
-    { x: 60, y: 1180, w: 340, h: 70, go: "capability", label: "Hydrotherapy" },
-    { x: 112, y: 1477, w: 250, h: 50, go: "comp0", label: "Compose Products (Hydrotherapy)" }, { x: 34, y: 1477, w: 62, h: 50, act: "save", label: "Save" },
-    { x: 20, y: 1625, w: 362, h: 88, go: "ritual", label: "Default Red Light" }, { x: 20, y: 1730, w: 362, h: 90, go: "ritual", label: "Contrast Ritual 1" },
+    { x: 60, y: 1180, w: 340, h: 70, go: "cap_hydro", label: "Hydrotherapy" },
+    { x: 112, y: 1477, w: 250, h: 50, go: "comp_hydro", label: "Compose Products (Hydrotherapy)" }, { x: 34, y: 1477, w: 62, h: 50, act: "save", label: "Save" },
+    { x: 20, y: 1625, w: 362, h: 88, go: "rit_redlight", label: "Default Red Light" }, { x: 20, y: 1730, w: 362, h: 90, go: "rit_ritual1", label: "Contrast Ritual 1" },
     { x: 20, y: 1840, w: 362, h: 200, go: "pasp", label: "Wellness Aspirations" }] },
-  capability: { h: 1608, hs: [back, { x: 20, y: 478, w: 362, h: 64, go: "recovery", label: "Muscle Recovery" }, { x: 20, y: 562, w: 362, h: 64, go: "recovery", label: "Circulation Boost" },
-    { x: 20, y: 646, w: 362, h: 64, go: "recovery", label: "Inflammation Reduction" }, { x: 136, y: 913, w: 130, h: 38, act: "readMore", label: "Read More" },
-    { x: 260, y: 1120, w: 112, h: 32, go: "shower", label: "View Product" }, { x: 260, y: 1280, w: 112, h: 32, tab: "products", label: "View Product (Sauna)" },
-    { x: 260, y: 1440, w: 112, h: 32, tab: "products", label: "View Product (Ice Bath)" }, { x: 20, y: 1496, w: 362, h: 50, go: "comp0", label: "Compose Products" }] },
+  capability: { h: 1608, hs: [back, { x: 20, y: 478, w: 362, h: 64, go: "recovery", label: "Muscle Recovery" }, { x: 20, y: 562, w: 362, h: 64, go: "goal_circulation", label: "Circulation Boost" },
+    { x: 20, y: 646, w: 362, h: 64, go: "goal_inflammation", label: "Inflammation Reduction" }, { x: 136, y: 913, w: 130, h: 38, act: "readMore", label: "Read More" },
+    { x: 260, y: 1120, w: 112, h: 32, go: "shower", label: "View Product" }, { x: 260, y: 1280, w: 112, h: 32, go: "prod_sauna", label: "View Product (Sauna)" },
+    { x: 260, y: 1440, w: 112, h: 32, go: "prod_icebath", label: "View Product (Ice Bath)" }, { x: 20, y: 1496, w: 362, h: 50, go: "comp0", label: "Compose Products" }] },
   comp0: { h: 874, hs: [back],
     sel: { src: "comp1", single: true, items: [{ x: 140, y: 395, w: 120, h: 120, label: "Shower", round: true }], enable: { x: 20, y: 772, w: 362, h: 48, go: "comp2", how: "none", label: "Continue" } } },
   comp2: { h: 874, auto: ["comp3", 1800], dots: true, hs: [back] },
@@ -166,8 +236,8 @@ const SCREENS = {
 
   learn: { h: 1258, tab: "learn", hs: [{ x: 18, y: 125, w: 366, h: 46, act: "search", label: "Search" }, { x: 330, y: 300, w: 62, h: 32, go: "recovery", label: "See All goals" },
     { x: 0, y: 345, w: 402, h: 295, go: "recovery", label: "Muscle Recovery" }, { x: 330, y: 664, w: 62, h: 32, go: "capability", label: "See All capabilities" },
-    { x: 20, y: 710, w: 173, h: 262, go: "capability", label: "Contrast Therapy" }, { x: 209, y: 710, w: 173, h: 141, go: "capability", label: "Programmable Thermal Shower" },
-    { x: 209, y: 868, w: 173, h: 104, go: "capability", label: "Aromatherapy" }, { x: 20, y: 990, w: 362, h: 140, go: "capability", label: "Red Light Therapy" }] },
+    { x: 20, y: 710, w: 173, h: 262, go: "capability", label: "Contrast Therapy" }, { x: 209, y: 710, w: 173, h: 141, go: "cap_thermal", label: "Programmable Thermal Shower" },
+    { x: 209, y: 868, w: 173, h: 104, go: "cap_aroma", label: "Aromatherapy" }, { x: 20, y: 990, w: 362, h: 140, go: "cap_redlight", label: "Red Light Therapy" }] },
   recovery: { h: 1170, hs: [back, { x: 18, y: 240, w: 366, h: 62, go: "capability", label: "Contrast Therapy" }, { x: 38, y: 440, w: 326, h: 48, go: "shower", label: "View Products" },
     { x: 38, y: 712, w: 326, h: 48, go: "shower", label: "View Products" }, { x: 38, y: 1004, w: 326, h: 48, go: "shower", label: "View Products" }] },
 
@@ -175,9 +245,9 @@ const SCREENS = {
     { x: 120, y: 68, w: 130, h: 42, act: "homes", label: "Home 1" }, { x: 36, y: 522, w: 46, h: 46, act: "rooms", label: "Previous room" }, { x: 320, y: 522, w: 46, h: 46, act: "rooms", label: "Next room" },
     { x: 310, y: 836, w: 80, h: 32, go: "others", label: "View All profiles" }, { x: 20, y: 918, w: 362, h: 152, go: "pinfo", label: "Daniel" }, { x: 20, y: 1128, w: 362, h: 152, act: "private", label: "Sarah" }] },
   shower: { h: 1234, hs: [back, { x: 210, y: 132, w: 120, h: 44, go: "showerctl", how: "none", label: "Controls" }, { x: 316, y: 440, w: 76, h: 32, tab: "learn", label: "View More" },
-    { x: 20, y: 487, w: 173, h: 98, go: "capability", label: "Contrast Therapy" }, { x: 209, y: 487, w: 173, h: 98, go: "capability", label: "Red Light Therapy" },
-    { x: 20, y: 605, w: 173, h: 98, go: "capability", label: "Aromatherapy" }, { x: 209, y: 605, w: 173, h: 98, go: "capability", label: "Hydrotherapy" },
-    { x: 20, y: 776, w: 148, h: 34, go: "recovery", label: "Muscle Recovery" }, { x: 174, y: 776, w: 96, h: 34, act: "goalInfo", label: "Skincare" }, { x: 280, y: 776, w: 92, h: 34, act: "goalInfo", label: "Haircare" },
+    { x: 20, y: 487, w: 173, h: 98, go: "capability", label: "Contrast Therapy" }, { x: 209, y: 487, w: 173, h: 98, go: "cap_redlight", label: "Red Light Therapy" },
+    { x: 20, y: 605, w: 173, h: 98, go: "cap_aroma", label: "Aromatherapy" }, { x: 209, y: 605, w: 173, h: 98, go: "cap_hydro", label: "Hydrotherapy" },
+    { x: 20, y: 776, w: 148, h: 34, go: "recovery", label: "Muscle Recovery" }, { x: 174, y: 776, w: 96, h: 34, go: "goal_skincare", label: "Skincare" }, { x: 280, y: 776, w: 92, h: 34, go: "goal_haircare", label: "Haircare" },
     { x: 20, y: 886, w: 362, h: 56, act: "support", label: "Help Center" }, { x: 20, y: 942, w: 362, h: 56, act: "support", label: "Activity Log" },
     { x: 20, y: 999, w: 362, h: 56, act: "support", label: "Water Usage" }, { x: 20, y: 1055, w: 362, h: 56, act: "support", label: "How It Works" }, { x: 20, y: 1112, w: 362, h: 56, act: "support", label: "Maintenance" }] },
   showerctl: { h: 1311, ctl: true, hs: [back, { x: 40, y: 132, w: 140, h: 44, go: "shower", how: "none", label: "Description" }, { x: 20, y: 245, w: 173, h: 120, go: "showerctl1", how: "none", label: "Rainhead 1" }] },
@@ -185,8 +255,8 @@ const SCREENS = {
   rainhead: { h: 874, hs: [back, { x: 18, y: 328, w: 50, h: 46, go: "rainhead0", how: "none", label: "Lower temperature" }] },
   rainhead0: { h: 874, hs: [back, { x: 335, y: 328, w: 50, h: 46, go: "rainhead", how: "none", label: "Raise temperature" }] },
 
-  rituals: { h: 947, tab: "rituals", filters: true, hs: [{ x: 352, y: 68, w: 44, h: 44, act: "addpop", label: "Add ritual" }, { x: 20, y: 203, w: 362, h: 110, go: "ritual", label: "Default Red Light" },
-    { x: 43, y: 427, w: 316, h: 48, act: "start", label: "Start · 30 min" }, { x: 20, y: 519, w: 362, h: 110, go: "ritual", label: "Contrast Ritual 1" }, { x: 43, y: 742, w: 316, h: 48, act: "start", label: "Start · 39 min" }] },
+  rituals: { h: 947, tab: "rituals", filters: true, hs: [{ x: 352, y: 68, w: 44, h: 44, act: "addpop", label: "Add ritual" }, { x: 20, y: 203, w: 362, h: 110, go: "rit_redlight", label: "Default Red Light" },
+    { x: 43, y: 427, w: 316, h: 48, act: "startx", rit: "redlight", label: "Start · 30 min" }, { x: 20, y: 519, w: 362, h: 110, go: "rit_ritual1", label: "Contrast Ritual 1" }, { x: 43, y: 742, w: 316, h: 48, act: "startx", rit: "ritual1", label: "Start · 39 min" }] },
   q5: { h: 874, hs: [back, BTN_L("q2"), { x: 20, y: 572, w: 362, h: 68, act: "addFeeling", label: "Add Feeling" }],
     sel: { src: "q5_on", items: [{x: 20, y: 222, w: 173, h: 92, label: "Energized"}, {x: 209, y: 222, w: 173, h: 92, label: "Great"}, {x: 20, y: 338, w: 173, h: 92, label: "Calm"}, {x: 209, y: 338, w: 173, h: 92, label: "Anxious"}, {x: 20, y: 454, w: 173, h: 92, label: "Sad"}, {x: 209, y: 454, w: 173, h: 92, label: "Tired"}], enable: { x: 212, y: 772, w: 170, h: 48, src: "q1", go: "q2", label: "Continue" } } },
   q2: { h: 874, hs: [back, BTN_L("q3"), { x: 20, y: 572, w: 362, h: 68, act: "addFeeling", label: "Add Feeling" }],
@@ -195,7 +265,7 @@ const SCREENS = {
     sel: { src: "q3_on", items: [{x: 20, y: 222, w: 173, h: 92, label: "Muscle Recovery"}, {x: 209, y: 222, w: 173, h: 92, label: "Hair Care"}, {x: 20, y: 338, w: 173, h: 92, label: "Skin Care"}, {x: 209, y: 338, w: 173, h: 92, label: "Performance"}], enable: { x: 212, y: 772, w: 170, h: 48, src: "q7", go: "q4", label: "Continue" } } },
   q4: { h: 874, time: true, hs: [back, { x: 212, y: 772, w: 170, h: 48, go: "gen", how: "fade", label: "Continue" }, BTN_L("gen")] },
   gen: { h: 874, auto: ["genok", 2400], flower: "Generating…", hs: [] },
-  genok: { h: 874, auto: ["genritual", 1200], flower: "Complete", hs: [] },
+  genok: { h: 874, auto: ["rit_gen", 1200], flower: "Complete", hs: [] },
   genritual: { h: 1202, hs: [{ x: 6, y: 66, w: 52, h: 48, act: "toRituals", label: "Back" }, { x: 20, y: 1035, w: 362, h: 50, act: "start", label: "Start · 26 min" }, { x: 20, y: 1100, w: 362, h: 50, act: "saveLater", label: "Save for later" }] },
 
   profile: { h: 1408, tab: "profile", hs: [{ x: 20, y: 255, w: 362, h: 64, go: "pinfo", label: "Personal Info" }, { x: 20, y: 393, w: 362, h: 58, go: "pritual", label: "My Rituals" },
@@ -219,6 +289,84 @@ const POPS = {
   stopask: { img: "stopask", x: 20, y: 322, w: 362, h: 231, hs: [{ x: 18, y: 152, w: 156, h: 44, act: "close", label: "No, Keep Going" }, { x: 186, y: 152, w: 156, h: 44, act: "stopYes", label: "Yes, Stop" }] },
 };
 
+
+/* ---------- pages built in code ---------- */
+const CAPS_IMG = (k) => `../caps/${k}.webp`;
+const GOALS = {
+  circulation: { name: "Circulation Boost", d: "Warm and cool water in turn widen and narrow blood vessels, moving blood more freely through tired muscles.", caps: ["contrast", "thermal", "redlight"] },
+  inflammation: { name: "Inflammation Reduction", d: "Cold, light and steady heat that calm swelling after hard training.", caps: ["contrast", "redlight", "hydro"] },
+  skincare: { name: "Skincare", d: "Gentle light and filtered water that care for skin every day.", caps: ["redlight", "hydro"] },
+  haircare: { name: "Haircare", d: "Softer, filtered water and warmth that leave hair healthier.", caps: ["hydro", "aroma"] },
+  stress: { name: "Decrease Stress", d: "Scent, warmth and slower breathing to help the body settle.", caps: ["aroma", "thermal"] },
+  sleep: { name: "Deeper Sleep", d: "An evening ritual that lowers body temperature gently, so sleep comes easier.", caps: ["aroma", "thermal", "hydro"] },
+};
+const CAPS = {
+  contrast: { name: "Contrast Therapy", page: "capability" },
+  redlight: { name: "Red Light Therapy", img: "redlight", ic: "✺", d: "Low-level red light that reaches into the skin to support repair, circulation and recovery.",
+    goals: ["inflammation", "skincare", "circulation"], why: "After a hard week of training, ten minutes of red light while you shower can ease soreness and help your skin recover.", prods: ["shower"], rit: "redlight" },
+  aroma: { name: "Aromatherapy", img: "aroma", ic: "❀", d: "Essential oils carried in the steam, so scent becomes part of the ritual.",
+    goals: ["stress", "sleep", "haircare"], why: "Your sleep has been light this week. Lavender in the evening steam can help you wind down.", prods: ["shower", "sauna"], rit: "ritual1" },
+  thermal: { name: "Programmable Thermal Shower", img: "thermal", ic: "◐", d: "Water and air temperature that follow a set curve, warming or cooling in steps.",
+    goals: ["circulation", "stress", "sleep"], why: "Stepping the temperature down after training helps your heart rate settle before bed.", prods: ["shower", "sauna"], rit: "ritual1" },
+  hydro: { name: "Hydrotherapy", img: "hydro", ic: "≈", d: "The therapeutic use of water to refresh the body, relieve pain and enhance physical function.",
+    goals: ["inflammation", "skincare", "sleep"], why: "Your Garmin shows a high training load. Warm, high-flow water can relax tight muscles before rest.", prods: ["shower", "icebath"], rit: "hydro" },
+};
+const PRODS = {
+  shower: { name: "KOHLER Wellness Shower", img: "p_shower", page: "shower" },
+  sauna: { name: "KOHLER Wellness Sauna", hero: "thermal", caps: ["thermal", "aroma", "contrast"], goals: ["stress", "sleep"] },
+  icebath: { name: "KOHLER Wellness Ice Bath", hero: "contrast", caps: ["contrast", "hydro"], goals: ["inflammation", "circulation"] },
+};
+const RITS = {
+  redlight: { name: "Default Red Light", tags: ["Cleanse", "Recover", "Enhance"], steps: [["Wellness Shower", [["98°F", 5], ["Red light", 15]]], ["Rest", 3], ["Wellness Shower", [["96°F", 7]]]] },
+  ritual1: { name: "Contrast Ritual 1", tags: ["Cleanse", "Enhance"], steps: [["Wellness Shower", [["100°F", 12], ["55°F", 3]]], ["Rest", 3], ["Wellness Shower", [["100°F", 12], ["55°F", 3]]], ["Rest", 6]] },
+  hydro: { name: "Hydrotherapy", tags: ["Cleanse", "Recover"], steps: [["Wellness Shower", [["102°F", 10]]], ["Ice Bath", [["50°F", 3]]], ["Rest", 3], ["Wellness Shower", [["100°F", 8]]]] },
+};
+const ritMins = (r) => r.steps.reduce((a, [, x]) => a + (Array.isArray(x) ? x.reduce((b, [, m]) => b + m, 0) : x), 0);
+const capLink = (k) => (CAPS[k].page ? CAPS[k].page : "cap_" + k);
+const head = (title, right) => `<div class="vh"><div class="vh__bar" style="background-image:url(${S("capability")})"></div><button class="vh__b" data-back aria-label="Back"></button><div class="vh__t">${title}</div>${right ? `<button class="vh__r" data-act="${right[1]}">${right[0]}</button>` : ""}</div>`;
+const V = {
+  cap: (k) => { const c = CAPS[k]; return { title: c.name, body: `
+    <div class="hero"><img src="${CAPS_IMG(c.img)}" alt=""><p>${c.d}</p></div>
+    <h3>Benefits</h3>${c.goals.map((g) => `<button class="rowc" data-go="goal_${g}"><i>${CAPS[k].ic}</i>${GOALS[g].name}</button>`).join("")}
+    <h3>Why For You</h3><p class="t">${c.why}</p>
+    <h3>Achieved Through Products</h3>${c.prods.map((p) => `<button class="prod" data-go="${PRODS[p].page || "prod_" + p}"><img src="${PRODS[p].img ? S(PRODS[p].img) : CAPS_IMG(PRODS[p].hero)}" alt=""><b>${PRODS[p].name}</b><span>View Product</span></button>`).join("")}
+    <button class="btn" style="margin-top:14px" data-go="rit_${c.rit}">See a ritual with ${c.name}</button>` }; },
+  goal: (k) => { const g = GOALS[k]; return { title: g.name, body: `
+    <p class="t" style="text-align:center;margin:6px 10px 18px">${g.d}</p>
+    <h3>Capabilities Supporting This Goal</h3>${g.caps.map((c) => `<button class="rowc" data-go="${capLink(c)}"><i>${CAPS[c].ic || "◑"}</i>${CAPS[c].name}</button>`).join("")}
+    <h3>Products</h3><button class="prod" data-go="shower"><img src="${S("p_shower")}" alt=""><b>KOHLER Wellness Shower</b><span>View Product</span></button>` }; },
+  prod: (k) => { const p = PRODS[k]; return { title: p.name, body: `
+    <div class="hero" style="height:200px"><img src="${CAPS_IMG(p.hero)}" alt="" style="filter:brightness(.8)"></div>
+    <p class="t" style="margin-top:14px;color:#6fd39a">● Status: Good</p>
+    <h3>Capabilities (${p.caps.length})</h3><div class="tiles">${p.caps.map((c) => `<button class="tile" data-go="${capLink(c)}"><i>${CAPS[c].ic || "◑"}</i>${CAPS[c].name}</button>`).join("")}</div>
+    <h3>Wellness Goals</h3>${p.goals.map((g) => `<button class="chipl" data-go="goal_${g}">${GOALS[g].name}</button>`).join("")}
+    <h3>Manage</h3>${["Help Center", "Activity Log", "Maintenance"].map((t) => `<button class="rowc" data-act="support" data-label="${t}">${t}</button>`).join("")}` }; },
+  rit: (k) => { const r = k === "gen" ? genRitual() : RITS[k], m = ritMins(r); return { title: r.name, right: ["Edit", "editRitual"], body: `
+    <p style="font-size:17px;margin:-4px 0 14px">Total ${m} min</p>
+    <div class="tl">${r.steps.map(([n, x]) => Array.isArray(x) ? `<div class="step"><header>${n}<span style="opacity:.7">›</span></header><img src="${n === "Ice Bath" ? CAPS_IMG("contrast") : S("p_shower")}" alt="">${x.map(([a, b]) => `<div class="ln"><span>${a}</span><span>${b} min</span></div>`).join("")}<div style="margin-top:10px">${r.tags.map((t) => `<span class="pill">${t}</span>`).join("")}</div></div>` : `<div class="step"><header>${n}<span>${x} min</span></header></div>`).join("")}<p class="done-row">Complete</p></div>
+    <button class="btn" style="margin-top:22px" data-run="${k}">▶&nbsp; Start • ${m} min</button><button class="btn2" data-act="saveLater">Save for later</button>` }; },
+  head: (k) => ({ title: k, body: `
+    <div class="dial" data-dial><svg viewBox="0 0 330 200"><defs><linearGradient id="dg" x1="0" x2="1"><stop offset="0" stop-color="#7fe0f0"/><stop offset="1" stop-color="#e7c9cc"/></linearGradient></defs>
+      <path d="M20 180 A145 145 0 0 1 310 180" fill="none" stroke="#2a3236" stroke-width="7" stroke-linecap="round"/><path class="arc" d="M20 180 A145 145 0 0 1 310 180" fill="none" stroke="url(#dg)" stroke-width="7" stroke-linecap="round" pathLength="100" stroke-dasharray="50 100"/></svg>
+      <b>100°</b><em>At Desired Temp</em><button style="left:10px" data-d="-1" aria-label="Cooler">−</button><button style="right:10px" data-d="1" aria-label="Warmer">+</button></div>
+    <div class="flow"><span>Flow: <span data-fl>High</span></span><small data-gpm>2.1/2.5 gpm</small></div>
+    <div class="sldv" data-flow><div class="tr"></div><div class="fl" style="width:84%"></div><div class="th" style="left:84%"></div></div>` }),
+  comp: () => ({ title: "Product Composition", body: `
+    <p class="t" style="text-align:center;margin-top:-4px">Hydrotherapy<br>Is compatible with 2 of your products</p>
+    <div class="compc"><button data-pick>Shower<span>⌇⌇</span></button><button data-pick>Ice Bath<span>❄</span></button></div>
+    <p style="text-align:center;margin-top:120px;font-size:18px">Select which products you<br>would like to use</p>
+    <button class="btn" style="margin-top:28px;opacity:.35;pointer-events:none" data-compgo>Continue</button>` }),
+};
+let genChoice = { min: 30 };
+const genRitual = () => { const m = genChoice.min, w1 = Math.floor((m - 8) / 2), w2 = m - 8 - w1; return { name: "Muscle Recovery Ritual", tags: ["Recover", "Enhance"], steps: [["Wellness Shower", [["100°F", w1], ["55°F", 2]]], ["Rest", 2], ["Wellness Shower", [["100°F", w2], ["55°F", 2]]], ["Rest", 2]] }; };
+Object.keys(CAPS).forEach((k) => { if (!CAPS[k].page) SCREENS["cap_" + k] = { view: () => V.cap(k) }; });
+Object.keys(GOALS).forEach((k) => (SCREENS["goal_" + k] = { view: () => V.goal(k) }));
+["sauna", "icebath"].forEach((k) => (SCREENS["prod_" + k] = { view: () => V.prod(k) }));
+["redlight", "ritual1", "hydro", "gen"].forEach((k) => (SCREENS["rit_" + k] = { view: () => V.rit(k), dynamic: k === "gen" }));
+["Rainhead 2", "Body Spray", "Hand Shower"].forEach((k) => (SCREENS["head_" + k.replace(/ /g, "")] = { view: () => V.head(k) }));
+SCREENS.comp_hydro = { view: () => V.comp() };
+SCREENS.runx = { runx: true, dynamic: true };
+
 /* ---------- building ---------- */
 const els = {};
 let cur = null, stack = [], runTimer = 0, paused = false, autoTimer = 0;
@@ -229,6 +377,8 @@ const make = (id) => {
   if (els[id]) return els[id];
   const s = SCREENS[id], el = document.createElement("div");
   el.className = "scr" + (s.tab ? " tabbed" : ""); el.dataset.testid = "kh-" + id;
+  if (s.view) { buildView(el, s.view(), id); app.append(el); els[id] = el; return el; }
+  if (s.runx) { el.innerHTML = `<div class="runv"></div>`; app.append(el); els[id] = el; return el; }
   if (s.intro) {
     el.innerHTML = `<div class="intro">${[1, 2, 3, 4].map((i) => `<img src="${S("intro" + i)}" alt="" draggable="false"${i === 1 ? ' class="is-on"' : ""}>`).join("")}<div class="intro__start">Start</div></div>`;
     bindIntro(el);
@@ -302,7 +452,7 @@ const bindTime = (el) => {
   const pg = el.querySelector(".page");
   pg.insertAdjacentHTML("beforeend", `<div class="patch" style="left:60px;top:388px;width:282px;height:112px;background:#01070a"></div><div class="bigtime">00:30:00</div><div class="sld" style="left:75px;top:466px;width:253px"><div class="sld__track"></div><div class="sld__fill"></div><div class="sld__thumb"></div></div>`);
   const sld = pg.querySelector(".sld"), fill = sld.querySelector(".sld__fill"), th = sld.querySelector(".sld__thumb"), t = pg.querySelector(".bigtime");
-  const set = (f) => { f = Math.max(0, Math.min(1, f)); const m = Math.round((10 + f * 70) / 5) * 5; const g = (m - 10) / 70; fill.style.width = g * 100 + "%"; th.style.left = g * 100 + "%"; t.textContent = `${String(Math.floor(m / 60)).padStart(2, "0")}:${String(m % 60).padStart(2, "0")}:00`; };
+  const set = (f) => { f = Math.max(0, Math.min(1, f)); const m = Math.round((10 + f * 70) / 5) * 5; const g = (m - 10) / 70; fill.style.width = g * 100 + "%"; th.style.left = g * 100 + "%"; t.textContent = `${String(Math.floor(m / 60)).padStart(2, "0")}:${String(m % 60).padStart(2, "0")}:00`; genChoice.min = m; };
   set((30 - 10) / 70);
   let drag = false; const at = (e) => { const r = sld.getBoundingClientRect(); set((e.clientX - r.left) / r.width); };
   sld.addEventListener("pointerdown", (e) => { drag = true; sld.setPointerCapture(e.pointerId); at(e); });
@@ -318,7 +468,7 @@ const bindFilters = (el) => {
 /* shower controls: every head opens its control, every slider drags, presets can be added */
 const bindControls = (el, id) => {
   const pg = el.querySelector(".page");
-  [[209, 245, "Rainhead 2"], [20, 385, "Body Spray"], [209, 385, "Hand Shower"]].forEach(([x, y, n]) => { const b = btn({ x, y, w: 173, h: 120, go: "rainhead", label: n }); pg.append(b); });
+  [[209, 245, "Rainhead 2"], [20, 385, "Body Spray"], [209, 385, "Hand Shower"]].forEach(([x, y, n]) => { const b = btn({ x, y, w: 173, h: 120, go: "head_" + n.replace(/ /g, ""), label: n }); pg.append(b); });
   if (id === "showerctl1") { /* Rainhead 1 is already on here */ }
   const sliders = [[677, 651, "Steam"], [822, 796, "Aroma"], [967, 941, "Brightness"], [1031, 1005, "Warmth"], [1095, 1069, "Hue"]];
   sliders.forEach(([ty, oy, n]) => {
@@ -345,8 +495,61 @@ const bindIntro = (el) => {
   loop();
 };
 
+
+const buildView = (el, v, id) => {
+  el.innerHTML = `<div class="sc"><div class="v">${v.body}</div></div>${head(v.title, v.right)}`;
+  const sc = el.querySelector(".sc");
+  el.addEventListener("click", (e) => {
+    const t = e.target.closest("[data-go],[data-act],[data-back],[data-run],[data-pick],[data-compgo],[data-d]"); if (!t) return;
+    if (t.dataset.back !== undefined) return id === "rit_gen" ? actions.toRituals() : act({ back: 1 });
+    if (t.dataset.go) return act({ go: t.dataset.go });
+    if (t.dataset.run) { stack.push(cur); runx = t.dataset.run; return show("runx", "up"); }
+    if (t.dataset.act) return actions[t.dataset.act]({ label: t.dataset.label || t.textContent.trim() });
+    if (t.dataset.pick !== undefined) { t.classList.toggle("is-on"); const on = el.querySelectorAll("[data-pick].is-on").length; const g = el.querySelector("[data-compgo]"); g.style.opacity = on ? 1 : .35; g.style.pointerEvents = on ? "auto" : "none"; return; }
+    if (t.dataset.compgo !== undefined) { g = t; g.textContent = "Checking product connections…"; setTimeout(() => { g.textContent = "Continue"; act({ go: "rit_hydro" }); }, 1400); return; }
+    if (t.dataset.d) { const d = el.querySelector("[data-dial]"); d._t = Math.max(55, Math.min(110, (d._t || 100) + +t.dataset.d * 2)); d.querySelector("b").textContent = d._t + "°"; d.querySelector(".arc").setAttribute("stroke-dasharray", `${((d._t - 55) / 55 * 100).toFixed(0)} 100`); d.querySelector("em").textContent = d._t === 100 ? "At Desired Temp" : d._t > 100 ? "Warming up" : "Cooling down"; }
+  });
+  const fl = el.querySelector("[data-flow]");
+  if (fl) { let drag = false; const at = (e) => { const r = fl.getBoundingClientRect(), f = Math.max(0, Math.min(1, (e.clientX - r.left) / r.width)); fl.querySelector(".fl").style.width = f * 100 + "%"; fl.querySelector(".th").style.left = f * 100 + "%"; el.querySelector("[data-fl]").textContent = f < .34 ? "Low" : f < .67 ? "Medium" : "High"; el.querySelector("[data-gpm]").textContent = (f * 2.5).toFixed(1) + "/2.5 gpm"; };
+    fl.addEventListener("pointerdown", (e) => { drag = true; fl.setPointerCapture(e.pointerId); at(e); }); fl.addEventListener("pointermove", (e) => drag && at(e)); fl.addEventListener("pointerup", () => (drag = false)); }
+};
+let g = null;
+/* a live run for any ritual: 3-2-1 with the app's flower, then a ring per step */
+let runx = "redlight", xRaf = 0, xPaused = false;
+const startRunx = () => {
+  const r = runx === "gen" ? genRitual() : RITS[runx], el = els.runx, box = el.querySelector(".runv");
+  const flat = []; r.steps.forEach(([n, x]) => Array.isArray(x) ? x.forEach(([a, m]) => flat.push({ n: n === "Wellness Shower" ? (a.includes("°") ? (parseInt(a) < 70 ? "Cold Shower" : "Warm Shower") : a) : n, sub: a, m })) : flat.push({ n: "Rest", sub: "Breathe and let the body settle", m: x }));
+  box.innerHTML = `${head(r.name)}<div class="flower" style="position:absolute;inset:0"><div class="flower__bg"></div><svg viewBox="-180 -180 360 360">${[[0, 0]].concat([0, 1, 2, 3, 4, 5].map((k) => [Math.cos(k * Math.PI / 3 + Math.PI / 6) * 70, Math.sin(k * Math.PI / 3 + Math.PI / 6) * 70])).map(([x, y], i) => `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="70" style="--i:${i}"/>`).join("")}</svg><p class="flower__t">Starting in 3…</p></div>
+    <div class="bt"><button class="btn2" data-x="stop" style="margin:64px 0 0">Stop</button></div>`;
+  box.querySelector(".vh__b").onclick = () => actions.stop();
+  box.querySelector("[data-x=stop]").onclick = () => actions.stop();
+  let i = -1, t0 = performance.now(), left = 3000, dur = 3000; xPaused = false;
+  const stepUI = () => {
+    const s = flat[i];
+    box.innerHTML = `${head(r.name)}<div class="disk"></div><svg class="rg" viewBox="0 0 340 340"><circle cx="170" cy="170" r="166" stroke="#19333f"/><circle class="pr" cx="170" cy="170" r="166" stroke="#f2fbfa" pathLength="1000" stroke-dasharray="0 1000" style="filter:drop-shadow(0 0 6px rgba(255,255,255,.7))"/></svg>
+      <div class="in"><small>Step ${i + 1} of ${flat.length}</small><b data-tm>${String(s.m).padStart(2, "0")}:00</b><em>Remaining in this step</em></div>
+      <div class="lab"><b>${s.n}</b><span>${s.sub}</span></div>
+      <div class="bt"><button class="btn2" data-x="stop" style="margin:0">Stop</button><button class="btn" data-x="pause" style="margin-top:16px">Pause</button></div>`;
+    box.querySelector(".vh__b").onclick = () => actions.stop();
+    box.querySelector("[data-x=stop]").onclick = () => actions.stop();
+    box.querySelector("[data-x=pause]").onclick = () => actions.pause();
+  };
+  const tick = () => {
+    if (cur !== "runx") return;
+    const now = performance.now();
+    if (xPaused) { t0 = now - (dur - left); xRaf = requestAnimationFrame(tick); return; }
+    left = Math.max(0, dur - (now - t0)); const k = 1 - left / dur;
+    if (i < 0) { const n = Math.max(1, Math.ceil(left / 1000)); const tx = box.querySelector(".flower__t"); if (tx) tx.textContent = `Starting in ${n}…`; }
+    else { const s = flat[i], secs = Math.ceil(s.m * 60 * (1 - k)); box.querySelector("[data-tm]").textContent = `${String(Math.floor(secs / 60)).padStart(2, "0")}:${String(secs % 60).padStart(2, "0")}`; box.querySelector(".pr").setAttribute("stroke-dasharray", `${(k * 1000).toFixed(1)} 1000`); }
+    if (left <= 0) { i++; if (i >= flat.length) { show("done", "none"); return; } dur = left = 4200; t0 = now; stepUI(); }
+    xRaf = requestAnimationFrame(tick);
+  };
+  cancelAnimationFrame(xRaf); xRaf = requestAnimationFrame(tick);
+};
+
 /* ---------- navigation ---------- */
 const show = (id, how = "push") => {
+  if (SCREENS[id].dynamic && els[id] && cur !== id) { els[id].remove(); delete els[id]; }
   const next = make(id), prev = cur && els[cur];
   if (prev === next) return;
   closePop(true); closeSheet(true);
@@ -364,6 +567,7 @@ const show = (id, how = "push") => {
   const s = SCREENS[id];
   if (s.auto) autoTimer = setTimeout(() => { if (cur === id) show(s.auto[0], "none"); }, s.auto[1]);
   if (s.run !== undefined) startRun(id);
+  if (s.runx) startRunx();
   if (els[id]._appear) { const a = els[id]._appear; a.style.transition = "none"; a.style.opacity = 1; void a.offsetWidth; a.style.transition = ""; a.style.opacity = 0; }
 };
 const act = (h) => {
@@ -397,7 +601,7 @@ const closePop = (now) => {
 /* ---------- the ritual runs on its own: a ring sweeps each step, then the next step comes in ---------- */
 const RUN = ["run0", "run1", "run2", "run3"], STEP_MS = [3000, 4200, 4200, 4200];
 let runStart = 0, runLeft = 0;
-const stopRun = () => { cancelAnimationFrame(runTimer); runTimer = 0; };
+const stopRun = () => { cancelAnimationFrame(runTimer); runTimer = 0; cancelAnimationFrame(xRaf); };
 const startRun = (id) => {
   paused = false; runLeft = STEP_MS[SCREENS[id].run]; runStart = performance.now();
   const circle = els[id].querySelector(".ring circle:not(.ring__track)");
@@ -413,8 +617,8 @@ const startRun = (id) => {
   };
   runTimer = requestAnimationFrame(tick);
 };
-const pauseRun = () => { if (paused) return; paused = true; runLeft -= performance.now() - runStart; };
-const resumeRun = () => { if (!paused) return; paused = false; runStart = performance.now(); };
+const pauseRun = () => { xPaused = true; if (paused) return; paused = true; runLeft -= performance.now() - runStart; };
+const resumeRun = () => { xPaused = false; if (!paused) return; paused = false; runStart = performance.now(); };
 
 /* bottom sheets for things the design leaves to a follow-up screen */
 let sheetEl = null;
@@ -460,8 +664,9 @@ const actions = {
   close: () => { if (popEl && popEl.dataset.testid === "kh-ov-stopask") resumeRun(); closePop(); },
   home: () => { stack = []; show("today", "fade"); },
   save: () => toast("Saved to My Rituals"),
-  saveLater: () => { toast("Saved for later"); stack = []; show("rituals", "fade"); },
+  saveLater: () => { toast("Saved to My Rituals"); stack = []; show("rituals", "fade"); },
   start: () => { stack.push(cur); show("run0", "up"); },
+  startx: (h) => { stack.push(cur); runx = h.rit; show("runx", "up"); },
   pause: () => { pauseRun(); openPop("paused"); },
   resume: () => { closePop(); resumeRun(); },
   stop: () => { pauseRun(); openPop("stopask"); },
