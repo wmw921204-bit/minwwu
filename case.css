@@ -2605,18 +2605,13 @@ img.is-zoomable { cursor: zoom-in; }
 .vp-seg { display: inline-flex; padding: 4px; border-radius: 99px; background: #fff; border: 1px solid var(--vp-hair); }
 .vp-seg button { padding: 9px 18px; border: 0; border-radius: 99px; background: transparent; color: var(--c-muted); font: 500 14px var(--f-body); cursor: pointer; transition: background .3s, color .3s; }
 .vp-seg button[aria-pressed="true"] { background: #f448d8; color: #fff; }
-.vp-pcs__grid { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 12px; margin-top: 24px; }
-.vp-pc { border-radius: 14px; overflow: hidden; background: #fff; box-shadow: 0 0 0 1px rgba(228, 44, 196, .1), 0 18px 40px -26px rgba(196, 33, 159, .45); }
+.vp-pcs__grid { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 3px; margin-top: 24px; padding: 3px; border-radius: 12px; background: #f2f4f5; }
+.vp-pc { background: #fdfdfd; overflow: hidden; }
 .vp-pc__img { position: relative; aspect-ratio: 1; background: #f6f6f6; }
 .vp-pc__img img, .vp-pc__img video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
 .vp-pc__img video { opacity: 0; transition: opacity .35s; }
 .vp-pcs.is-live .vp-pc__img video, .vp-pc.is-hover .vp-pc__img video { opacity: 1; }
-.vp-pc__badge { position: absolute; left: 8px; top: 8px; padding: 2px 7px; border-radius: 6px; background: rgba(36, 16, 31, .7); color: #fff; font: 600 10px var(--f-body); letter-spacing: .08em; opacity: 0; transition: opacity .3s; }
-.vp-pcs.is-live .vp-pc__badge, .vp-pc.is-hover .vp-pc__badge { opacity: 1; }
-.vp-pc__name { padding: 10px 10px 2px; font: 500 13px/1.35 var(--f-body); color: #222; }
-.vp-pc__name small { display: block; font-size: 11px; color: #9a8a95; }
-.vp-pc__price { padding: 2px 10px 12px; font: 700 16px var(--f-display); color: #e42cc4; }
-.vp-pc__price span { margin-left: 6px; padding: 1px 5px; border-radius: 4px; background: #ffe3f7; font: 500 10px var(--f-body); color: #c4219f; vertical-align: 2px; }
+.vp-pc__info { display: block; width: 100%; aspect-ratio: 364 / 150; }
 @media (max-width: 900px) { .vp-pcs__grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 .vp-pref__sheet { position: absolute; left: 0; right: 0; bottom: 0; height: 18.3%; background: url(assets/projects/vipshop/pref-sheet.webp) center bottom / 100% auto no-repeat; transform: translateY(102%); transition: transform .45s cubic-bezier(.2, .9, .3, 1); }
 .vp-pref__sheet.is-on { transform: none; }
