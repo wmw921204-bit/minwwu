@@ -117,7 +117,8 @@
   .v p.t { color: #c3d0d5; font-size: 14.5px; line-height: 1.5; }
   .v .hero { position: relative; margin: -8px -20px 0; height: 220px; overflow: hidden; }
   .v .hero img { width: 100%; height: 100%; object-fit: cover; filter: brightness(.42) saturate(.85); }
-  .v .hero p { position: absolute; left: 34px; right: 34px; top: 50%; transform: translateY(-50%); text-align: center; color: #f3f7f8; font-size: 15px; line-height: 1.45; text-shadow: 0 1px 10px rgba(0,0,0,.6); }
+  .v .hero::after { content: ""; position: absolute; inset: 0; background: rgba(0,6,10,.32); }
+  .v .hero p { z-index: 1; position: absolute; left: 34px; right: 34px; top: 50%; transform: translateY(-50%); text-align: center; color: #f3f7f8; font-size: 15px; line-height: 1.45; text-shadow: 0 1px 10px rgba(0,0,0,.6); }
   .rowc { display: flex; align-items: center; gap: 14px; width: 100%; height: 62px; padding: 0 16px; margin-bottom: 10px; border-radius: 12px; border: 1px solid rgba(255,255,255,.09); background: #0b1217; color: #eef4f6; font: 400 16px "Red Hat Display"; text-align: left; cursor: pointer; transition: background .2s, transform .15s; }
   .rowc:active { transform: scale(.985); background: #13202a; }
   .rowc i { width: 34px; height: 34px; border-radius: 50%; border: 1px solid rgba(200,225,232,.45); display: grid; place-items: center; font-style: normal; font-size: 14px; color: #cfe3e8; flex: none; }
