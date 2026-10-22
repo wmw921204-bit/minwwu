@@ -20,16 +20,56 @@
   .tabbed .sc { height: 764px; }
   .page { position: relative; width: 402px; }
   .page > img { display: block; width: 402px; user-select: none; -webkit-user-drag: none; }
-  .bar { position: absolute; left: 0; bottom: 0; width: 402px; height: 110px; background-size: 402px auto; background-position: 0 100%; z-index: 5; }
-  .scrim { position: absolute; left: 0; width: 402px; height: 34px; z-index: 5; pointer-events: none; opacity: 0; transition: opacity .25s; }
+  .bar { position: absolute; left: 0; bottom: 0; width: 402px; height: 110px; background-size: 402px auto; background-position: 0 100%; z-index: 7; }
+  .scrim { position: absolute; left: 0; width: 402px; height: 1px; z-index: 7; pointer-events: none; opacity: 0; transition: opacity .25s; background: rgba(220,240,245,.07) !important; box-shadow: 0 5px 10px -3px rgba(0,0,0,.55); }
   .scrim.is-on { opacity: 1; }
   .fade-b { -webkit-mask-image: linear-gradient(#000 calc(100% - 24px), transparent); mask-image: linear-gradient(#000 calc(100% - 24px), transparent); }
   .fade-t { -webkit-mask-image: linear-gradient(transparent, #000 28px); mask-image: linear-gradient(transparent, #000 28px); }
-  .top { position: absolute; left: 0; top: 0; width: 402px; height: 54px; background-size: 402px auto; background-position: 0 0; z-index: 5; pointer-events: none; }
+  .top { position: absolute; left: 0; top: 0; width: 402px; height: 54px; background-size: 402px auto; background-position: 0 0; z-index: 7; pointer-events: none; }
   .cut { position: absolute; background-size: 402px auto; opacity: 0; transition: opacity .25s ease, transform .35s cubic-bezier(.3,1.4,.5,1), box-shadow .35s; pointer-events: none; z-index: 4; border-radius: 15px; }
   .cut.is-on { opacity: 1; }
   .cut.is-pop { transform: scale(1.06); box-shadow: 0 14px 30px rgba(0,0,0,.45); z-index: 5; }
   .cut--btn { border-radius: 24px; }
+  .head { position: absolute; width: 173px; height: 120px; z-index: 5; }
+  .head__off, .head__on { position: absolute; inset: 0; background-size: 402px auto; border-radius: 16px; transition: opacity .3s ease; }
+  .head__on { opacity: 0; }
+  .head.is-on .head__on { opacity: 1; }
+  .head__on--x { background: linear-gradient(160deg, #0d1316, #04080a); border: 1px solid rgba(200,216,212,.92); box-sizing: border-box; }
+  .head__on--x i { position: absolute; left: 17px; top: 19px; width: 32px; height: 30px; background-size: 402px auto; filter: grayscale(1) contrast(3) brightness(1.6); mix-blend-mode: screen; }
+  .head__on--x b { position: absolute; left: 12px; top: 68px; font: 400 17px "Red Hat Display", system-ui, sans-serif; color: #f2f6f6; white-space: nowrap; }
+  .head__on--x small { position: absolute; left: 12px; top: 92px; font: 400 14.5px "Red Hat Display", system-ui, sans-serif; color: #c9d3d4; }
+  .head__sw { position: absolute; inset: 0; border: 0; background: none; cursor: pointer; border-radius: 16px; }
+  .head__sw:active { transform: scale(.98); }
+  .head__go { position: absolute; right: 8px; top: 8px; width: 34px; height: 34px; border-radius: 50%; border: 1px solid rgba(220,235,238,.35); background: rgba(255,255,255,.06); cursor: pointer; opacity: 0; pointer-events: none; transition: opacity .3s; }
+  .head__go::before { content: ""; position: absolute; left: 11px; top: 12px; width: 8px; height: 8px; border-right: 1.5px solid #e6eef0; border-top: 1.5px solid #e6eef0; transform: rotate(45deg); }
+  .head.is-on .head__go { opacity: 1; pointer-events: auto; }
+  .gt { position: absolute; border-radius: 15px; border: 1px solid transparent; background: #111d29; color: #8f9da3; cursor: pointer; padding: 0; transition: background .25s, border-color .25s, color .25s, transform .35s cubic-bezier(.3,1.4,.5,1), box-shadow .35s; }
+  .gt svg { position: absolute; left: 17px; top: 16px; width: 38px; height: 38px; fill: none; stroke: currentColor; stroke-width: .9; }
+  .gt span { position: absolute; left: 12px; bottom: 14px; font: 400 18px "Red Hat Display", system-ui, sans-serif; white-space: nowrap; }
+  .gt--q svg { left: 12px; top: 12px; width: 36px; height: 36px; }
+  .gt--q span { left: 10px; bottom: 12px; font-size: 17px; }
+  .gt.is-on { background: #18313d; border-color: rgba(209,230,239,.85); color: #f1f7f9; }
+  .gt.is-pop { transform: scale(1.06); box-shadow: 0 14px 30px rgba(0,0,0,.45); z-index: 2; }
+  .gnew { animation: gin .5s cubic-bezier(.3,1.2,.5,1) both; }
+  @keyframes gin { from { opacity: 0; transform: translateY(12px) scale(.95); } }
+  .prow { position: absolute; left: 20px; width: 362px; height: 105px; border-radius: 17px; border: 1px solid rgba(160,205,212,.3); background: linear-gradient(100deg, rgba(22,74,82,.55), rgba(20,34,46,.92) 42%, rgba(16,22,30,.96)); color: #eef5f6; cursor: pointer; padding: 0; text-align: left; }
+  .prow i { position: absolute; left: 24px; top: 24px; width: 56px; height: 56px; border-radius: 50%; background: linear-gradient(140deg, #4d7b84, #23434b); display: grid; place-items: center; font: 500 22px "Red Hat Display", system-ui, sans-serif; font-style: normal; color: #e6f1f3; }
+  .prow b { position: absolute; left: 96px; top: 30px; font: 400 19px "Red Hat Display", system-ui, sans-serif; }
+  .prow small { position: absolute; left: 96px; top: 58px; font: 400 13px "Red Hat Display", system-ui, sans-serif; color: #8fb0b6; }
+  .prow::after { content: ""; position: absolute; right: 30px; top: 46px; width: 9px; height: 9px; border-right: 1.5px solid #c9d6da; border-top: 1.5px solid #c9d6da; transform: rotate(45deg); }
+  .pset { position: absolute; left: 20px; width: 362px; height: 64px; border-radius: 16px; border: 1px solid rgba(190,212,222,.3); background: linear-gradient(#11171c, #0a0f13); color: #f0f5f6; cursor: pointer; padding: 0 22px; display: flex; align-items: center; justify-content: space-between; font: 400 18px "Red Hat Display", system-ui, sans-serif; }
+  .pset small { font-size: 13px; color: #8d9ca2; }
+  .pset.is-on { border-color: rgba(220,238,244,.85); }
+  .pcard { position: absolute; left: 20px; width: 362px; height: 140px; border-radius: 16px; overflow: hidden; border: 1px solid rgba(255,255,255,.08); background: #111 center/cover no-repeat; cursor: pointer; padding: 0; text-align: left; }
+  .pcard::before { content: ""; position: absolute; inset: 0; background: linear-gradient(rgba(0,0,0,.35), rgba(0,0,0,.05) 60%); }
+  .pcard b { position: absolute; left: 12px; top: 10px; font: 400 15px "Red Hat Display", system-ui, sans-serif; color: #e8eef0; }
+  .pcard em { position: absolute; right: 10px; bottom: 10px; padding: 5px 10px; border-radius: 9px; background: rgba(70,110,125,.85); font: 400 11.5px "Red Hat Display", system-ui, sans-serif; font-style: normal; color: #e8f1f3; }
+  .qs { position: absolute; left: 0; top: 196px; width: 402px; height: 96px; overflow-x: auto; overflow-y: hidden; scrollbar-width: none; z-index: 6; display: flex; padding-left: 0; }
+  .qs::-webkit-scrollbar { display: none; }
+  .qs button { flex: none; width: 100px; height: 96px; position: relative; background: none; border: 0; cursor: pointer; padding: 0; }
+  .qs button i { position: absolute; left: 23px; top: 8px; width: 52px; height: 52px; border-radius: 50%; border: 1px solid rgba(205,225,232,.38); background: rgba(255,255,255,.05); display: grid; place-items: center; box-sizing: border-box; }
+  .qs button svg { width: 24px; height: 24px; fill: none; stroke: #eef5f7; stroke-width: 1.2; }
+  .qs button span { position: absolute; left: 0; right: 4px; top: 70px; text-align: center; font: 400 13.5px "Red Hat Display", system-ui, sans-serif; color: #eef5f7; white-space: nowrap; }
   .hs[aria-pressed] { border-radius: 15px; }
   .hs { position: absolute; border: 0; background: transparent; cursor: pointer; border-radius: 14px; z-index: 6; }
   .hs:focus-visible { outline: 2px solid #5fd6ca; outline-offset: 2px; }
@@ -108,6 +148,7 @@
   .v { position: relative; min-height: 874px; padding: 118px 20px 56px; font-family: "Red Hat Display", system-ui, sans-serif; color: #eef4f6;
        background: radial-gradient(130% 34% at 50% 0%, #0e3c48 0%, #04131a 55%, #000408 100%) no-repeat, #000408; }
   .vh { position: absolute; left: 0; top: 0; width: 402px; height: 112px; z-index: 6; background: linear-gradient(#0b2e38, #041219 70%, rgba(2,8,12,.0)); pointer-events: none; }
+  .scr.is-scrolled .vh { height: 104px; background: linear-gradient(#0b2e38, #041219); box-shadow: 0 1px 0 rgba(220,240,245,.07), 0 5px 10px -3px rgba(0,0,0,.55); }
   .vh__bar { position: absolute; left: 0; top: 0; width: 402px; height: 54px; background-size: 402px auto; }
   .vh__t { position: absolute; left: 60px; right: 60px; top: 66px; text-align: center; font: 400 20px/1.2 "Red Hat Display", system-ui, sans-serif; color: #f4f8f9; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .vh__b { position: absolute; left: 14px; top: 64px; width: 30px; height: 30px; pointer-events: auto; border: 0; background: none; cursor: pointer; }
@@ -251,8 +292,8 @@ const SCREENS = {
     { x: 20, y: 776, w: 148, h: 34, go: "recovery", label: "Muscle Recovery" }, { x: 174, y: 776, w: 96, h: 34, go: "goal_skincare", label: "Skincare" }, { x: 280, y: 776, w: 92, h: 34, go: "goal_haircare", label: "Haircare" },
     { x: 20, y: 886, w: 362, h: 56, act: "support", label: "Help Center" }, { x: 20, y: 942, w: 362, h: 56, act: "support", label: "Activity Log" },
     { x: 20, y: 999, w: 362, h: 56, act: "support", label: "Water Usage" }, { x: 20, y: 1055, w: 362, h: 56, act: "support", label: "How It Works" }, { x: 20, y: 1112, w: 362, h: 56, act: "support", label: "Maintenance" }] },
-  showerctl: { h: 1311, ctl: true, hs: [back, { x: 40, y: 132, w: 140, h: 44, go: "shower", how: "none", label: "Description" }, { x: 20, y: 245, w: 173, h: 120, go: "showerctl1", how: "none", label: "Rainhead 1" }] },
-  showerctl1: { h: 1311, ctl: true, hs: [back, { x: 40, y: 132, w: 140, h: 44, go: "shower", how: "none", label: "Description" }, { x: 20, y: 245, w: 173, h: 120, go: "rainhead", label: "Rainhead 1" }] },
+  showerctl: { h: 1311, ctl: true, hs: [back, { x: 40, y: 132, w: 140, h: 44, go: "shower", how: "none", label: "Description" }] },
+  showerctl1: { h: 1311, ctl: true, hs: [back, { x: 40, y: 132, w: 140, h: 44, go: "shower", how: "none", label: "Description" }] },
   rainhead: { h: 874, hs: [back, { x: 18, y: 328, w: 50, h: 46, go: "rainhead0", how: "none", label: "Lower temperature" }] },
   rainhead0: { h: 874, hs: [back, { x: 335, y: 328, w: 50, h: 46, go: "rainhead", how: "none", label: "Raise temperature" }] },
 
@@ -407,10 +448,10 @@ const make = (id) => {
       sc.addEventListener("scroll", () => scrim.classList.toggle("is-on", sc.scrollTop > 4), { passive: true });
     }
     if (s.foot) strip("bar fade-t", id, s.foot, "0 100%");
-    s.hs.filter((x) => !x.tab && fixed(x)).forEach((x) => { const b = btn(x); b.style.zIndex = 7; el.append(b); });
+    s.hs.filter((x) => !x.tab && fixed(x)).forEach((x) => { const b = btn(x); b.style.zIndex = 8; el.append(b); });
     if (s.tab) {
       strip("bar", id, 110, "0 100%");
-      BAR_HS.forEach((x) => { const b = btn(x); b.style.zIndex = 7; el.append(b); });
+      BAR_HS.forEach((x) => { const b = btn(x); b.style.zIndex = 8; el.append(b); });
     }
     if (s.ring) el.insertAdjacentHTML("beforeend", `<svg class="ring" viewBox="0 0 340 340"><circle class="ring__track" cx="170" cy="170" r="166.5" style="stroke:#19333f;stroke-width:7;filter:none"/><circle cx="170" cy="170" r="166.5" pathLength="1000" stroke-dasharray="0 1000"/></svg>`);
     if (s.search) el.insertAdjacentHTML("beforeend", `<div class="search-fx"><i></i><i></i><i></i><b></b></div>`);
@@ -434,6 +475,8 @@ const bindSel = (sel, page, id) => {
   const go = sel.enable ? cut(sel.enable, sel.enable.src || sel.src) : null; let goBtn = null;
   if (go) { go.classList.add("cut--btn"); goBtn = btn({ ...sel.enable, label: sel.enable.label || "Continue" }); goBtn.hidden = true; page.append(goBtn); }
   const cuts = [], btns = [];
+  page.extraOn = 0;
+  page.selRefresh = () => { const n = on.size + page.extraOn; if (go) { go.classList.toggle("is-on", n > 0); goBtn.hidden = !n; } };
   sel.items.forEach((r, i) => {
     const c = cut(r, sel.src); const b = btn({ ...r, act: null, go: null });
     b.setAttribute("aria-pressed", "false"); if (r.round) b.style.borderRadius = "50%";
@@ -443,7 +486,7 @@ const bindSel = (sel, page, id) => {
       on.has(i) ? on.delete(i) : on.add(i);
       c.classList.toggle("is-on", on.has(i)); b.setAttribute("aria-pressed", on.has(i));
       if (on.has(i)) { c.classList.add("is-pop"); setTimeout(() => c.classList.remove("is-pop"), 260); }
-      if (go) { go.classList.toggle("is-on", on.size > 0); goBtn.hidden = !on.size; }
+      page.selRefresh();
     };
     cuts.push(c); btns.push(b); page.append(b);
   });
@@ -459,6 +502,10 @@ const bindTime = (el) => {
   sld.addEventListener("pointerdown", (e) => { drag = true; sld.setPointerCapture(e.pointerId); at(e); });
   sld.addEventListener("pointermove", (e) => drag && at(e)); sld.addEventListener("pointerup", () => (drag = false));
 };
+/* shower heads are switches: a tap turns a head on or off in place, and an on head shows a way into its own settings */
+const HEADS = [[20, 245, "Rainhead 1", "rainhead"], [209, 245, "Rainhead 2", "head_Rainhead2"], [20, 385, "Body Spray", "head_BodySpray"], [209, 385, "Hand Shower", "head_HandShower"]];
+const headOn = {};
+const syncHeads = () => document.querySelectorAll(".head").forEach((t) => { const on = !!headOn[t.dataset.n]; t.classList.toggle("is-on", on); t.querySelector(".head__sw").setAttribute("aria-checked", on); t.querySelector(".head__go").tabIndex = on ? 0 : -1; });
 /* My Rituals filters: the underline moves and rituals that don't match fade back */
 const bindFilters = (el) => {
   const pg = el.querySelector(".page"), tabs = [["All", 22, 40], ["Cleanse", 95, 68], ["Recover", 197, 66], ["Enhance", 296, 74]];
@@ -469,8 +516,18 @@ const bindFilters = (el) => {
 /* shower controls: every head opens its control, every slider drags, presets can be added */
 const bindControls = (el, id) => {
   const pg = el.querySelector(".page");
-  [[209, 245, "Rainhead 2"], [20, 385, "Body Spray"], [209, 385, "Hand Shower"]].forEach(([x, y, n]) => { const b = btn({ x, y, w: 173, h: 120, go: "head_" + n.replace(/ /g, ""), label: n }); pg.append(b); });
-  if (id === "showerctl1") { /* Rainhead 1 is already on here */ }
+  HEADS.forEach(([x, y, n, go]) => {
+    const t = document.createElement("div"); t.className = "head"; t.dataset.n = n; t.style.cssText = `left:${x}px;top:${y}px`;
+    const off = `background-image:url(${S("showerctl")});background-position:${-x}px ${-y}px`;
+    t.innerHTML = `<div class="head__off" style="${off}"></div>` + (n === "Rainhead 1"
+      ? `<div class="head__on" style="background-image:url(${S("showerctl1")});background-position:${-x}px ${-y}px"></div>`
+      : `<div class="head__on head__on--x"><i style="${off.replace(/-?\d+px -?\d+px$/, `${-(x + 18)}px ${-(y + 20)}px`)}"></i><b>${n} (on)</b><small>Flow: 2.1/2.5 gpm</small></div>`)
+      + `<button type="button" class="head__sw" role="switch" aria-label="${n}"></button><button type="button" class="head__go" aria-label="${n} settings"></button>`;
+    t.querySelector(".head__sw").onclick = (e) => { e.stopPropagation(); headOn[n] = !headOn[n]; syncHeads(); };
+    t.querySelector(".head__go").onclick = (e) => { e.stopPropagation(); act({ go }); };
+    pg.append(t);
+  });
+  syncHeads();
   const sliders = [[677, 651, "Steam"], [822, 796, "Aroma"], [967, 941, "Brightness"], [1031, 1005, "Warmth"], [1095, 1069, "Hue"]];
   sliders.forEach(([ty, oy, n]) => {
     pg.insertAdjacentHTML("beforeend", `<div class="patch" style="left:38px;top:${ty - 12}px;width:30px;height:24px;background-image:url(${S(id)});background-position:-200px ${-(ty - 12)}px"></div>
@@ -484,7 +541,7 @@ const bindControls = (el, id) => {
     sld.addEventListener("pointerdown", (e) => { e.stopPropagation(); drag = true; sld.setPointerCapture(e.pointerId); at(e); });
     sld.addEventListener("pointermove", (e) => drag && at(e)); sld.addEventListener("pointerup", () => (drag = false));
   });
-  pg.append(btn({ x: 330, y: 1150, w: 60, h: 34, act: "presets", label: "Edit presets" }), btn({ x: 20, y: 1193, w: 362, h: 64, act: "presets", label: "Add a Preset" }));
+  pg.append(btn({ x: 330, y: 1150, w: 60, h: 34, act: "editPresets", label: "Edit presets" }), btn({ x: 20, y: 1193, w: 362, h: 64, act: "presets", label: "Add a Preset" }));
 };
 const bindIntro = (el) => {
   const imgs = el.querySelectorAll(".intro img"), box = el.querySelector(".intro"); let i = 0, d = null, auto;
@@ -500,6 +557,7 @@ const bindIntro = (el) => {
 const buildView = (el, v, id) => {
   el.innerHTML = `<div class="sc"><div class="v">${v.body}</div></div>${head(v.title, v.right)}`;
   const sc = el.querySelector(".sc");
+  sc.addEventListener("scroll", () => el.classList.toggle("is-scrolled", sc.scrollTop > 4), { passive: true });
   el.addEventListener("click", (e) => {
     const t = e.target.closest("[data-go],[data-act],[data-back],[data-run],[data-pick],[data-compgo],[data-d]"); if (!t) return;
     if (t.dataset.back !== undefined) return id === "rit_gen" ? actions.toRituals() : act({ back: 1 });
@@ -621,6 +679,132 @@ const startRun = (id) => {
 const pauseRun = () => { xPaused = true; if (paused) return; paused = true; runLeft -= performance.now() - runStart; };
 const resumeRun = () => { xPaused = false; if (!paused) return; paused = false; runStart = performance.now(); };
 
+/* lists that really grow: the design is split where the new items go, and everything after it moves down to make room.
+   Screens with buttons at the bottom keep them pinned while the longer list scrolls */
+const grown = {};
+const grow = (id, o, draw) => {
+  const el = make(id), pg = el.querySelector(".page"), img = SCREENS[id].img || id;
+  let g = grown[id];
+  if (!g) {
+    const H = parseFloat(pg.style.height), end = o.foot || H;
+    const moving = [...pg.children].filter((n) => n.tagName !== "IMG" && n.style.top && parseFloat(n.style.top) >= o.at && parseFloat(n.style.top) < end);
+    moving.forEach((n) => (n._t = parseFloat(n.style.top)));
+    pg.insertAdjacentHTML("beforeend", `<div class="patch" style="left:0;top:${o.at}px;width:402px;height:0;background:${o.bg};z-index:3"></div><div class="patch" style="left:0;top:${o.at}px;width:402px;height:${end - o.at}px;background-image:url(${S(img)});background-position:0 ${-o.at}px;z-index:3"></div><div style="position:absolute;left:0;top:${o.at}px;width:402px;z-index:6"></div>`);
+    const [gap, low, box] = [...pg.children].slice(-3);
+    if (o.foot) {
+      const keep = [...pg.children].filter((n) => n.style.top && parseFloat(n.style.top) >= o.foot);
+      el.insertAdjacentHTML("beforeend", `<div class="bar" style="background-image:url(${S(img)});height:${874 - o.foot}px;z-index:7"></div>`);
+      keep.forEach((n) => { n.style.zIndex = n.classList.contains("cut") ? 8 : 9; el.append(n); });
+    }
+    if (H <= 874 && !el.querySelector(".top")) el.insertAdjacentHTML("beforeend", `<div class="top" style="background-image:url(${S(img)});height:54px"></div>`);
+    g = grown[id] = { H, gap, low, box, moving };
+  }
+  const d = draw(g.box);
+  g.gap.style.height = d + "px"; g.low.style.top = o.at + d + "px";
+  g.moving.forEach((n) => (n.style.top = n._t + d + "px"));
+  pg.style.height = g.H + d + "px";
+  // bring what was just added into view, above any pinned buttons or tab bar
+  const sc = el.querySelector(".sc"), limit = (o.foot || 874) - (SCREENS[id].tab ? 110 : 0), want = o.at + d + (o.after || 70) - limit;
+  if (cur === id && want > sc.scrollTop) sc.scrollTo({ top: want, behavior: "smooth" });
+};
+const svgI = (p, vb = 24) => `<svg viewBox="0 0 ${vb} ${vb}">${p}</svg>`;
+/* aspirations and feelings added from the sheet become tiles like the design's own, selected, before the Add button */
+const TILE_ICON = {
+  "Better Focus": `<circle cx="20" cy="20" r="15"/><circle cx="20" cy="20" r="9"/><circle cx="20" cy="20" r="3"/><path d="M20 1v6M20 33v6M1 20h6M33 20h6"/>`,
+  "Healthy Skin": `<path d="M20 4c6 8 11 14 11 20a11 11 0 0 1-22 0c0-6 5-12 11-20z"/><path d="M14 25a6 6 0 0 0 6 6"/>`,
+  "Pain Relief": `<circle cx="20" cy="20" r="15"/><path d="M20 12v16M12 20h16"/>`,
+  "Stronger Immunity": `<path d="M20 4l13 5v9c0 8-5.6 14-13 17-7.4-3-13-9-13-17V9z"/><path d="M14 20l4.5 4.5L27 16"/>`,
+  "Better Mood": `<circle cx="20" cy="20" r="7"/><path d="M20 3v5M20 32v5M3 20h5M32 20h5M8 8l3.5 3.5M28.5 28.5L32 32M8 32l3.5-3.5M28.5 11.5L32 8"/>`,
+};
+const face = (m) => `<circle cx="20" cy="20" r="15"/><circle cx="14.5" cy="17" r=".9" fill="currentColor"/><circle cx="25.5" cy="17" r=".9" fill="currentColor"/>${m}`;
+const FEEL = {
+  q5: { "Focused": face(`<path d="M14 25h12"/>`), "Restless": face(`<path d="M13 26q3.5-3 7 0t7 0"/>`), "Overwhelmed": face(`<circle cx="20" cy="26" r="2.6"/>`), "Grateful": face(`<path d="M13 23q7 7 14 0"/>`), "Hopeful": face(`<path d="M14 24q6 4 12 0"/>`) },
+  q2: { "Sore": face(`<path d="M14 27q6-4 12 0"/>`), "Stiff": face(`<path d="M14 25h12"/>`), "Heavy": face(`<path d="M14 26q6-2 12 0"/>`), "Light": face(`<path d="M14 23q6 5 12 0"/>`), "Recovered": face(`<path d="M13 23q7 7 14 0"/>`) },
+};
+const added = { asp0: [], q5: [], q2: [] };
+const TILE = { asp0: { at: 549, foot: 740, h: 104, step: 120, q: false, bg: "#03121a" }, q5: { at: 572, foot: 740, h: 92, step: 116, q: true, bg: "#000408" }, q2: { at: 572, foot: 740, h: 92, step: 116, q: true, bg: "#000408" } };
+const tileIcons = (id) => (id === "asp0" ? TILE_ICON : FEEL[id]);
+const addTiles = (id, word) => {
+  const list = added[id], left = Object.keys(tileIcons(id)).filter((t) => !list.some((a) => a.name === t));
+  chipSheet(`Add ${word === "aspiration" ? "an aspiration" : "a feeling"}`, left, (n, picked) => { picked.forEach((name) => list.push({ name, on: true, fresh: true })); drawTiles(id); return `${n} ${word}${n > 1 ? "s" : ""} added`; });
+};
+const drawTiles = (id) => {
+  const t = TILE[id], list = added[id], pg = make(id).querySelector(".page");
+  const sync = () => { pg.extraOn = list.filter((a) => a.on).length; pg.selRefresh && pg.selRefresh(); };
+  grow(id, { at: t.at, foot: t.foot, bg: t.bg }, (box) => {
+    box.innerHTML = "";
+    list.forEach((a, i) => {
+      const b = document.createElement("button"); b.type = "button"; b.className = "gt" + (t.q ? " gt--q" : "") + (a.on ? " is-on" : "") + (a.fresh ? " gnew" : ""); a.fresh = false;
+      b.style.cssText = `left:${i % 2 ? 209 : 20}px;top:${Math.floor(i / 2) * t.step}px;width:173px;height:${t.h}px`;
+      b.setAttribute("aria-pressed", a.on); b.setAttribute("aria-label", a.name);
+      b.innerHTML = `<svg viewBox="0 0 40 40">${tileIcons(id)[a.name]}</svg><span>${a.name}</span>`;
+      b.onclick = (e) => { e.stopPropagation(); a.on = !a.on; b.classList.toggle("is-on", a.on); b.setAttribute("aria-pressed", a.on); if (a.on) { b.classList.add("is-pop"); setTimeout(() => b.classList.remove("is-pop"), 260); } sync(); };
+      box.append(b);
+    });
+    // with every option added there is nothing left to add, so the button goes
+    const full = list.length === Object.keys(tileIcons(id)).length, d = Math.ceil(list.length / 2) * t.step;
+    const add = [...pg.querySelectorAll(".hs")].find((b) => /^Add (Aspiration|Feeling)$/.test(b.getAttribute("aria-label")));
+    if (add) add.hidden = full;
+    if (full) box.insertAdjacentHTML("beforeend", `<div style="position:absolute;left:0;top:${d - 4}px;width:402px;height:${t.foot - t.at + 4}px;background:${t.bg}"></div>`);
+    return d;
+  });
+  sync();
+};
+/* new household members appear as profile rows, waiting for them to accept */
+const invited = [];
+const drawInvites = (fresh = []) => grow("others", { at: 605, bg: "#000408" }, (box) => {
+  box.innerHTML = invited.map((n, i) => `<button type="button" class="prow${fresh.includes(n) ? " gnew" : ""}" style="top:${15 + i * 120}px" aria-label="${n}"><i>${n[0]}</i><b>${n}</b><small>Invite sent · waiting to join</small></button>`).join("");
+  box.querySelectorAll(".prow").forEach((b) => (b.onclick = (e) => { e.stopPropagation(); toast(`${b.getAttribute("aria-label")} will appear here once they accept`); }));
+  return invited.length * 120;
+});
+/* saved presets sit above Add a Preset; tapping one applies it */
+const presets = [];
+const PRESET_SUB = { "Morning Rinse": "Rainhead 1 · 100°F", "Post-Workout": "Body Spray · 60°F", "Evening Wind-Down": "Rainhead 1 · Aroma", "Weekend Reset": "All heads · 102°F" };
+const drawPresets = (fresh = []) => ["showerctl", "showerctl1"].forEach((id) => grow(id, { at: 1193, bg: "#020a0d" }, (box) => {
+  box.innerHTML = presets.map((n, i) => `<button type="button" class="pset${fresh.includes(n) ? " gnew" : ""}" style="top:${i * 76}px" aria-label="${n}"><span>${n}</span><small>${PRESET_SUB[n]}</small></button>`).join("");
+  box.querySelectorAll(".pset").forEach((b) => (b.onclick = (e) => { e.stopPropagation(); box.querySelectorAll(".pset").forEach((x) => x.classList.toggle("is-on", x === b)); toast(`${b.getAttribute("aria-label")} applied`); }));
+  return presets.length * 76;
+}));
+/* products added to the room get a card like the shower's, and open their own page */
+const ROOM_ADD = { "KOHLER Wellness Sauna": "sauna", "KOHLER Wellness Ice Bath": "icebath" };
+const roomAdded = [];
+const drawRoom = (fresh = []) => grow("room", { at: 816, bg: "#000" }, (box) => {
+  box.innerHTML = roomAdded.map((n, i) => `<button type="button" class="pcard${fresh.includes(n) ? " gnew" : ""}" style="top:${4 + i * 152}px;background-image:url(${CAPS_IMG(PRODS[ROOM_ADD[n]].hero)})" aria-label="${n}"><b>${n}</b><em>View Product</em></button>`).join("");
+  box.querySelectorAll(".pcard").forEach((b) => (b.onclick = (e) => { e.stopPropagation(); act({ go: "prod_" + ROOM_ADD[b.getAttribute("aria-label")] }); }));
+  return roomAdded.length * 152;
+});
+/* Quick Start: shortcuts you add sit between Shower and Find More, and the row scrolls sideways once it is full */
+const QS_ICON = {
+  "Sauna": [`<path d="M4 20h16M6 20V9l6-5 6 5v11"/><path d="M10 13q1 1.5 0 3M14 13q1 1.5 0 3"/>`, "prod_sauna"],
+  "Cold Plunge": [`<path d="M3 10h18v6a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4z"/><path d="M8 4l1.5 2.5M12 3v3M16 4l-1.5 2.5"/>`, "prod_icebath"],
+  "Red Light": [`<circle cx="12" cy="12" r="4"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M5 19l2-2M17 7l2-2"/>`, "cap_redlight"],
+  "Aromatherapy": [`<path d="M12 21c-4 0-6-3-6-6 0-4 6-9 6-12 0 3 6 8 6 12 0 3-2 6-6 6z"/>`, "cap_aroma"],
+  "Hydrotherapy": [`<path d="M3 9q3-3 6 0t6 0 6 0M3 14q3-3 6 0t6 0 6 0M3 19q3-3 6 0t6 0 6 0"/>`, "cap_hydro"],
+};
+const quick = [];
+const drawQuick = () => {
+  const pg = make("today").querySelector(".page");
+  let row = pg.querySelector(".qs");
+  if (!row) {
+    // the design's own two shortcuts are painted out with the background around them, then rebuilt live
+    const cv = document.createElement("canvas"); cv.width = 804; cv.height = 192; cv.className = "patch"; cv.style.cssText = "left:0;top:196px;width:402px;height:96px;z-index:5";
+    const im = new Image(); im.onload = () => {
+      const c = cv.getContext("2d"), t = document.createElement("canvas"); t.width = 804; t.height = 200; const tc = t.getContext("2d"); tc.drawImage(im, 0, 388, 804, 200, 0, 0, 804, 200);
+      const a = tc.getImageData(0, 0, 804, 1).data, z = tc.getImageData(0, 199, 804, 1).data, d = c.createImageData(804, 192);
+      for (let y = 0; y < 192; y++) { const k = (y + 4) / 199; for (let x = 0; x < 804; x++) { const o = (y * 804 + x) * 4, q = x * 4; for (let ch = 0; ch < 3; ch++) d.data[o + ch] = a[q + ch] * (1 - k) + z[q + ch] * k; d.data[o + 3] = 255; } }
+      c.putImageData(d, 0, 0); };
+    im.src = S("today");
+    row = document.createElement("div"); row.className = "qs";
+    pg.append(cv, row);
+    pg.querySelectorAll(".hs").forEach((b) => { if (["Shower quick start", "Find More"].includes(b.getAttribute("aria-label"))) b.hidden = true; });
+  }
+  const item = (n, icon) => `<button type="button" data-n="${n}" aria-label="${n}"><i>${svgI(icon)}</i><span>${n}</span></button>`;
+  // Shower and Find More keep the design's own icons, cut from the screen
+  const own = (n, cx) => `<button type="button" data-n="${n}" aria-label="${n}"><i style="border:0;background:url(${S("today")}) ${-(cx - 26)}px -204px/402px auto"></i><span>${n}</span></button>`;
+  row.innerHTML = own("Shower", 49) + quick.map((n) => item(n, QS_ICON[n][0])).join("") + own("Find More", 148.5);
+  row.querySelectorAll("button").forEach((b) => (b.onclick = (e) => { e.stopPropagation(); const n = b.dataset.n; if (n === "Shower") act({ go: "shower" }); else if (n === "Find More") act({ tab: "learn" }); else act({ go: QS_ICON[n][1] }); }));
+};
+
 /* bottom sheets for things the design leaves to a follow-up screen */
 let sheetEl = null;
 const sheet = (html, wire) => {
@@ -631,17 +815,20 @@ const sheet = (html, wire) => {
   if (wire) wire(sh);
 };
 const closeSheet = (now) => { if (!sheetEl) return; const [v, sh] = sheetEl; sheetEl = null; if (now) { v.remove(); sh.remove(); return; } v.classList.remove("is-on"); sh.classList.remove("is-on"); setTimeout(() => { v.remove(); sh.remove(); }, 400); };
-const chipSheet = (title, items, done) => sheet(`<h4>${title}</h4><div class="chips">${items.map((t) => `<button type="button">${t}</button>`).join("")}</div><button class="done" type="button">Add</button>`, (sh) => {
-  sh.querySelectorAll(".chips button").forEach((b) => (b.onclick = () => b.classList.toggle("is-on")));
-  sh.querySelector(".done").onclick = () => { const n = sh.querySelectorAll(".chips .is-on").length; closeSheet(); toast(n ? done(n) : "Nothing added"); };
-});
+const chipSheet = (title, items, done, pre) => {
+  if (!items.length) { toast("Everything is already added"); return; }
+  sheet(`<h4>${title}</h4><div class="chips">${items.map((t) => `<button type="button"${pre && pre.includes(t) ? ' class="is-on"' : ""}>${t}</button>`).join("")}</div><button class="done" type="button">${pre ? "Save" : "Add"}</button>`, (sh) => {
+    sh.querySelectorAll(".chips button").forEach((b) => (b.onclick = () => b.classList.toggle("is-on")));
+    sh.querySelector(".done").onclick = () => { const picked = [...sh.querySelectorAll(".chips .is-on")].map((b) => b.textContent), n = picked.length; closeSheet(); toast(n || pre ? done(n, picked) : "Nothing added"); };
+  });
+};
 const SEARCH = [["Muscle Recovery", "Wellness goal", "recovery"], ["Contrast Therapy", "Capability", "capability"], ["Hydrotherapy", "Capability", "capability"], ["Red Light Therapy", "Capability", "capability"], ["Aromatherapy", "Capability", "capability"], ["Programmable Thermal Shower", "Capability", "capability"], ["KOHLER Wellness Shower", "Product", "shower"]];
 const actions = {
   otherSignin: () => sheet(`<h4>Other sign-in options</h4><div class="results"><button type="button">Continue with Facebook</button><button type="button">Continue with phone number</button></div>`, (sh) => sh.querySelectorAll(".results button").forEach((b) => (b.onclick = () => { closeSheet(true); openPop("terms"); }))),
   help: () => sheet(`<h4>Not seeing your device?</h4><p style="color:#9fb4ba;line-height:1.5">Make sure Bluetooth is on and your watch is awake and nearby, then search again.</p><button class="done" type="button">Search again</button>`, (sh) => (sh.querySelector(".done").onclick = () => { closeSheet(); show("wearsearch", "none"); })),
-  addAsp: () => chipSheet("Add an aspiration", ["Better Focus", "Healthy Skin", "Pain Relief", "Stronger Immunity", "Better Mood"], (n) => `${n} aspiration${n > 1 ? "s" : ""} added`),
-  addFeeling: () => chipSheet("Add a feeling", ["Restless", "Focused", "Overwhelmed", "Grateful", "Stiff"], (n) => `${n} feeling${n > 1 ? "s" : ""} added`),
-  editQuick: () => chipSheet("Quick Start shortcuts", ["Shower", "Bath", "Steam", "Sauna", "Cold Plunge"], () => "Quick Start updated"),
+  addAsp: () => addTiles("asp0", "aspiration"),
+  addFeeling: () => addTiles(cur, "feeling"),
+  editQuick: () => chipSheet("Quick Start shortcuts", Object.keys(QS_ICON), (n, picked) => { quick.splice(0, quick.length, ...picked); drawQuick(); return "Quick Start updated"; }, quick),
   readMore: () => { const sc = els[cur].querySelector(".sc"); sc.scrollTo({ top: 980, behavior: "smooth" }); },
   editRitual: () => sheet(`<h4>Edit ritual</h4><div class="results"><button type="button">Warm shower <small>100°F · 10 min</small></button><button type="button">Cold shower <small>55°F · 2 min</small></button><button type="button">Rest <small>2 min</small></button></div><button class="done" type="button">Done</button>`, (sh) => (sh.querySelector(".done").onclick = () => closeSheet())),
   search: () => sheet(`<h4>Search</h4><input type="search" placeholder="Search goals, capabilities, products" autocomplete="off"><div class="results"></div>`, (sh) => {
@@ -650,16 +837,17 @@ const actions = {
       res.querySelectorAll("button").forEach((b) => (b.onclick = () => { closeSheet(); stack.push(cur); show(b.dataset.go); })); };
     inp.oninput = draw; draw(); setTimeout(() => inp.focus({ preventScroll: true }), 420);
   }),
-  addProduct: () => chipSheet("Add a product", ["Bath", "Steam", "Sauna", "Cold Plunge", "Toilet"], (n) => `${n} product${n > 1 ? "s" : ""} added to this room`),
+  addProduct: () => chipSheet("Add a product", Object.keys(ROOM_ADD).filter((t) => !roomAdded.includes(t)), (n, picked) => { roomAdded.push(...picked); drawRoom(picked); return `${n} product${n > 1 ? "s" : ""} added to this room`; }),
   homes: () => sheet(`<h4>Homes</h4><div class="results"><button type="button">Home 1 <small>Current</small></button><button type="button">Lake House <small>2 rooms</small></button></div>`, (sh) => sh.querySelectorAll(".results button").forEach((b) => (b.onclick = () => closeSheet()))),
   rooms: () => toast("Master Bathroom is the only room set up so far"),
   private: (h) => toast(`${h.label}'s profile is private`),
   goalInfo: (h) => toast(`${h.label}: rituals for this goal are coming soon`),
   support: (h) => sheet(`<h4>${h.label}</h4><p style="color:#9fb4ba;line-height:1.5">Opens Kohler support for your Wellness Shower.</p><button class="done" type="button">Close</button>`, (sh) => (sh.querySelector(".done").onclick = () => closeSheet())),
   signOut: () => { stack = []; show("intro", "fade"); },
-  addProfile: () => chipSheet("Who is joining?", ["Partner", "Child", "Parent", "Guest"], () => "Invite sent"),
+  addProfile: () => chipSheet("Who is joining?", ["Partner", "Child", "Parent", "Guest"].filter((t) => !invited.includes(t)), (n, picked) => { invited.push(...picked); drawInvites(picked); return n > 1 ? "Invites sent" : "Invite sent"; }),
   createOwn: () => { closePop(); stack.push(cur); show("ritual"); },
-  presets: () => chipSheet("Save a preset", ["Morning Rinse", "Post-Workout", "Evening Wind-Down"], () => "Preset saved"),
+  presets: () => chipSheet("Save the current settings as", ["Morning Rinse", "Post-Workout", "Evening Wind-Down", "Weekend Reset"].filter((t) => !presets.includes(t)), (n, picked) => { presets.push(...picked); drawPresets(picked); return n > 1 ? "Presets saved" : "Preset saved"; }),
+  editPresets: () => presets.length ? chipSheet("Keep these presets", presets.slice(), (n, picked) => { presets.splice(0, presets.length, ...picked); drawPresets([]); return "Presets updated"; }, presets.slice()) : actions.presets(),
   terms: () => openPop("terms"),
   agree: () => { closePop(); stack.push(cur); show("wear"); },
   close: () => { if (popEl && popEl.dataset.testid === "kh-ov-stopask") resumeRun(); closePop(); },
