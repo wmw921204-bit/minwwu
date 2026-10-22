@@ -134,17 +134,21 @@
     go(0); requestAnimationFrame(tick);
 
     {
-    /* ---------- Background: a five-column feed of product cards drifting up; cards near the cursor light up in Vipshop pink ---------- */
+    /* ---------- Background: a Vipshop feed of real product cards drifting up; cards near the cursor lift and take a pink edge ---------- */
     const canvas = document.querySelector(".lock__maze"), ctx = canvas.getContext("2d");
-    let W = 0, H = 0, dpr = 1, cols = [], mx = -999, my = -999, glow = [];
+    const A = "../assets/projects/vipshop/live/";
+    const PICS = ["st-powder", "st-cushion", "st-gloss", "st-flats2", "st-runner", "st-tote", "sneaker", "flats", "bag", "lipstick", "flats-scene", "bag-hand", "lip-tint", "flats-close"];
+    const load = (src) => new Promise((ok) => { const im = new Image(); im.onload = () => ok(im); im.onerror = () => ok(null); im.src = src; });
+    let W = 0, H = 0, dpr = 1, cols = [], mx = -999, my = -999, pics = [], info = null, ready = false;
     const build = () => {
       const r = canvas.getBoundingClientRect(); dpr = Math.min(2, devicePixelRatio || 1);
       W = r.width; H = r.height; canvas.width = W * dpr; canvas.height = H * dpr;
-      const n = Math.max(3, Math.round(W / 220)), gap = 16, cw = (W - gap * (n + 1)) / n;
+      const gap = 6, n = Math.max(3, Math.round(W / 200)), cw = (W - gap * (n + 1)) / n, ch = cw * (364 + 150) / 364;
+      let k = 0;
       cols = Array.from({ length: n }, (_, c) => {
-        const cards = []; let y = -Math.random() * 200;
-        while (y < H * 2 + 400) { const h = cw * (1.15 + Math.random() * .55); cards.push({ y, h, a: 0 }); y += h + gap; }
-        return { x: gap + c * (cw + gap), w: cw, cards, len: y, v: 10 + (c % 2) * 6 + Math.random() * 4 };
+        const cards = []; let y = -(c % 2) * ch * .45 - Math.random() * 40;
+        while (y < H + ch * 2) { cards.push({ y, p: k++ % PICS.length, a: 0 }); y += ch + gap; }
+        return { x: gap + c * (cw + gap), w: cw, h: ch, cards, len: y + gap - cards[0].y, v: 9 + (c % 3) * 3 };
       });
     };
     const rr = (x, y, w, h, r) => { ctx.beginPath(); ctx.moveTo(x + r, y); ctx.arcTo(x + w, y, x + w, y + h, r); ctx.arcTo(x + w, y + h, x, y + h, r); ctx.arcTo(x, y + h, x, y, r); ctx.arcTo(x, y, x + w, y, r); ctx.closePath(); };
@@ -152,25 +156,36 @@
     const frame = (t) => {
       if (!canvas.isConnected) return;
       const dt = Math.min(.05, (t - (last || t)) / 1000); last = t;
-      ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.clearRect(0, 0, W, H);
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.fillStyle = "#f2f4f5"; ctx.fillRect(0, 0, W, H);
       for (const col of cols) for (const c of col.cards) {
         if (!reduce) c.y -= col.v * dt;
-        if (c.y + c.h < -20) c.y += col.len;
-        const cx = col.x + col.w / 2, cy = c.y + c.h / 2, d = Math.hypot(mx - cx, my - cy), target = Math.max(0, 1 - d / 260);
-        c.a += (target - c.a) * .08;
-        rr(col.x, c.y, col.w, c.h, 14);
-        ctx.fillStyle = `rgba(255, ${255 - 30 * c.a}, ${253 - 10 * c.a}, ${.55 + .4 * c.a})`; ctx.fill();
-        ctx.strokeStyle = `rgba(228, 44, 196, ${.12 + .55 * c.a})`; ctx.lineWidth = 1; ctx.stroke();
-        // the image area and two text lines of a product card
-        rr(col.x + 8, c.y + 8, col.w - 16, c.h - 54, 9); ctx.fillStyle = `rgba(244, 72, 216, ${.05 + .16 * c.a})`; ctx.fill();
-        ctx.fillStyle = `rgba(36, 16, 31, ${.07 + .2 * c.a})`; ctx.fillRect(col.x + 10, c.y + c.h - 36, col.w * .6, 6);
-        ctx.fillStyle = `rgba(244, 72, 216, ${.3 + .6 * c.a})`; ctx.fillRect(col.x + 10, c.y + c.h - 22, col.w * .3, 8);
+        if (c.y + col.h < -10) c.y += col.len;
+        const cx = col.x + col.w / 2, cy = c.y + col.h / 2, target = Math.max(0, 1 - Math.hypot(mx - cx, my - cy) / 240);
+        c.a += (target - c.a) * .1;
+        const lift = c.a * 6, x = col.x, y = c.y - lift, w = col.w, h = col.h, img = w;
+        ctx.save();
+        ctx.shadowColor = `rgba(196, 33, 159, ${.08 + .3 * c.a})`; ctx.shadowBlur = 8 + 26 * c.a; ctx.shadowOffsetY = 4 + 10 * c.a;
+        rr(x, y, w, h, 6); ctx.fillStyle = "#fdfdfd"; ctx.fill(); ctx.restore();
+        ctx.save(); rr(x, y, w, h, 6); ctx.clip();
+        const pic = pics[c.p]; if (pic) ctx.drawImage(pic, x, y, w, img); else { ctx.fillStyle = "#f6f6f6"; ctx.fillRect(x, y, w, img); }
+        if (info) ctx.drawImage(info, x, y + img, w, h - img);
+        ctx.restore();
+        if (c.a > .02) { rr(x, y, w, h, 6); ctx.strokeStyle = `rgba(244, 72, 216, ${c.a})`; ctx.lineWidth = 2; ctx.stroke(); }
       }
-      requestAnimationFrame(frame);
+      // a soft wash keeps the cards quiet behind the password card
+      const g = ctx.createRadialGradient(W / 2, H * .48, 0, W / 2, H * .48, Math.max(W, H) * .65);
+      g.addColorStop(0, "rgba(253, 246, 251, .78)"); g.addColorStop(.55, "rgba(253, 246, 251, .5)"); g.addColorStop(1, "rgba(253, 246, 251, .2)");
+      ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+      // the bottom fades into the page so the scroll cue reads cleanly
+      const f = ctx.createLinearGradient(0, H * .78, 0, H);
+      f.addColorStop(0, "rgba(253, 246, 251, 0)"); f.addColorStop(1, "rgba(253, 246, 251, .96)");
+      ctx.fillStyle = f; ctx.fillRect(0, H * .78, W, H * .22);
+      if (!reduce || !ready) requestAnimationFrame(frame);
     };
-    addEventListener("pointermove", (e) => { const r = canvas.getBoundingClientRect(); mx = e.clientX - r.left; my = e.clientY - r.top; }, { passive: true });
-    addEventListener("resize", build);
+    addEventListener("pointermove", (e) => { const r = canvas.getBoundingClientRect(); mx = e.clientX - r.left; my = e.clientY - r.top; if (reduce) requestAnimationFrame(frame); }, { passive: true });
+    addEventListener("resize", () => { build(); if (reduce) requestAnimationFrame(frame); });
     build(); requestAnimationFrame(frame);
+    Promise.all([load(A + "card-info.webp"), ...PICS.map((n) => load(A + n + ".webp"))]).then(([i, ...p]) => { info = i; pics = p; ready = true; requestAnimationFrame(frame); });
     }
   })();
   </script>
