@@ -21,6 +21,10 @@
   .page { position: relative; width: 402px; }
   .page > img { display: block; width: 402px; user-select: none; -webkit-user-drag: none; }
   .bar { position: absolute; left: 0; bottom: 0; width: 402px; height: 110px; background-size: 402px auto; background-position: 0 100%; z-index: 5; }
+  .scrim { position: absolute; left: 0; width: 402px; height: 34px; z-index: 5; pointer-events: none; opacity: 0; transition: opacity .25s; }
+  .scrim.is-on { opacity: 1; }
+  .fade-b { -webkit-mask-image: linear-gradient(#000 calc(100% - 24px), transparent); mask-image: linear-gradient(#000 calc(100% - 24px), transparent); }
+  .fade-t { -webkit-mask-image: linear-gradient(transparent, #000 28px); mask-image: linear-gradient(transparent, #000 28px); }
   .top { position: absolute; left: 0; top: 0; width: 402px; height: 54px; background-size: 402px auto; background-position: 0 0; z-index: 5; pointer-events: none; }
   .cut { position: absolute; background-size: 402px auto; opacity: 0; transition: opacity .25s ease, transform .35s cubic-bezier(.3,1.4,.5,1), box-shadow .35s; pointer-events: none; z-index: 4; border-radius: 15px; }
   .cut.is-on { opacity: 1; }
@@ -116,6 +120,7 @@ const back = { x: 6, y: 66, w: 52, h: 48, back: 1, label: "Back" };
 const bottomBtn = (y, go, label, extra = {}) => ({ x: 20, y, w: 362, h: 50, go, label, ...extra });
 
 /* h = page height in points (402-wide frame) */
+const HEAD_BG = { today: "#0d3945", capability: "#02060a", genritual: "#02060a", learn: "#0d3945", recovery: "#0e3b46", room: "#0d3742", shower: "#000408", showerctl: "#000508", showerctl1: "#000408", rituals: "#124959", profile: "#0d3945", pinfo: "#0d3a45", pritual: "#0e3a45" };
 const BTN_L = (go, label = "Skip") => ({ x: 21, y: 772, w: 168, h: 48, go, label });
 const SCREENS = {
   intro: { h: 874, intro: true, hs: [{ x: 24, y: 705, w: 354, h: 74, go: "signin", label: "Start" }] },
@@ -235,15 +240,22 @@ const make = (id) => {
     page.style.height = h + (s.pad || 0) + "px"; page.style.overflow = "hidden";
     page.innerHTML = `<img src="${S(img)}" alt="" draggable="false">`;
     // long pages keep their navigation header pinned, like an iOS nav bar
-    const pin = s.top || (s.h > 874 && !s.tab ? 116 : 0);
-    const fixed = (x) => x.fixed || (pin && x.back) || (pin && x.y < pin && x.y >= 54);
+    const pin = s.top ? 104 : (s.h > 874 && !s.tab ? 104 : 0);
+    const fixed = (x) => x.fixed || (pin && x.back) || (pin && x.y + x.h <= pin + 8 && x.y >= 54);
     s.hs.filter((x) => !x.tab && !fixed(x)).forEach((x) => page.append(btn(x)));
     if (s.sel) bindSel(s.sel, page, id);
     sc.append(page); el.append(sc);
     // pinned strips cut from the screen's own design: status bar / header on top, buttons below
     const strip = (cls, src, hh, pos) => { const d = document.createElement("div"); d.className = cls; d.style.cssText = `background-image:url(${S(src)});height:${hh}px;background-position:${pos}`; el.append(d); };
-    if (pin) strip("top", img, pin, "0 0"); else if (s.h > 874) strip("top", img, 54, "0 0");
-    if (s.foot) strip("bar", id, s.foot, "0 100%");
+    // pinned header and footer strips fade at their inner edge, so content scrolls softly under them
+    const hb = pin || (s.h > 874 ? 54 : 0);
+    if (hb) {
+      strip("top", img, hb, "0 0");
+      // below the header, a soft scrim in the screen's own colour appears once the page scrolls
+      const scrim = document.createElement("div"); scrim.className = "scrim"; scrim.style.cssText = `top:${hb}px;background:linear-gradient(${HEAD_BG[img] || "#02060a"}, transparent)`; el.append(scrim);
+      sc.addEventListener("scroll", () => scrim.classList.toggle("is-on", sc.scrollTop > 4), { passive: true });
+    }
+    if (s.foot) strip("bar fade-t", id, s.foot, "0 100%");
     s.hs.filter((x) => !x.tab && fixed(x)).forEach((x) => { const b = btn(x); b.style.zIndex = 7; el.append(b); });
     if (s.tab) {
       strip("bar", id, 110, "0 100%");
@@ -290,7 +302,7 @@ const bindTime = (el) => {
   const pg = el.querySelector(".page");
   pg.insertAdjacentHTML("beforeend", `<div class="patch" style="left:60px;top:388px;width:282px;height:112px;background:#01070a"></div><div class="bigtime">00:30:00</div><div class="sld" style="left:75px;top:466px;width:253px"><div class="sld__track"></div><div class="sld__fill"></div><div class="sld__thumb"></div></div>`);
   const sld = pg.querySelector(".sld"), fill = sld.querySelector(".sld__fill"), th = sld.querySelector(".sld__thumb"), t = pg.querySelector(".bigtime");
-  const set = (f) => { f = Math.max(0, Math.min(1, f)); const m = Math.round((10 + f * 70) / 5) * 5; const g = (m - 10) / 70; fill.style.width = g * 100 + "%"; th.style.left = g * 100 + "%"; t.textContent = `00:${String(m).padStart(2, "0")}:00`; };
+  const set = (f) => { f = Math.max(0, Math.min(1, f)); const m = Math.round((10 + f * 70) / 5) * 5; const g = (m - 10) / 70; fill.style.width = g * 100 + "%"; th.style.left = g * 100 + "%"; t.textContent = `${String(Math.floor(m / 60)).padStart(2, "0")}:${String(m % 60).padStart(2, "0")}:00`; };
   set((30 - 10) / 70);
   let drag = false; const at = (e) => { const r = sld.getBoundingClientRect(); set((e.clientX - r.left) / r.width); };
   sld.addEventListener("pointerdown", (e) => { drag = true; sld.setPointerCapture(e.pointerId); at(e); });
