@@ -3539,3 +3539,20 @@ img.is-zoomable { cursor: zoom-in; }
 .vq-levels2 .vp-phone { --w: 100%; max-width: min(260px, calc((100svh - 340px) * 375 / 812)); justify-self: center; }
 .vq-levels2 figcaption, .vq-levels2 ul { justify-self: center; width: min(260px, calc((100svh - 340px) * 375 / 812)); }
 .vq-levels2 figure { gap: 12px; }
+/* failures: image 1, the broken frame and the clip side by side */
+.vq-fails2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+.vq-fail { margin: 0; display: grid; gap: 10px; padding: 16px; border-radius: 18px; background: #fff; box-shadow: 0 0 0 1px var(--vp-hair); }
+.vq-fail figcaption { font-size: 13px; line-height: 1.5; color: var(--c-muted); }
+.vq-fail figcaption b { display: block; font: 600 16px var(--f-display); color: #b0345c; }
+.vq-fail figcaption b::before { content: "✕ "; }
+.vq-fail__row { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.vq-fail__row small, .vq-fail__in small, .vq-lab__bad small { display: block; margin-bottom: 4px; font: 600 10px var(--f-body); letter-spacing: .08em; text-transform: uppercase; color: var(--c-muted); }
+.vq-fail__row img, .vq-fail__row video { display: block; width: 100%; aspect-ratio: 3 / 4; object-fit: cover; border-radius: 10px; background: #f4f4f4; }
+.vq-fail__row .is-bad small { color: #b0345c; }
+.vq-fail__row .is-bad img { box-shadow: 0 0 0 2px #e5484d; }
+.vq-fail__in img { display: block; height: 40px; width: auto; max-width: 100%; border-radius: 6px; }
+.vq-lab__bad { margin: 0; display: grid; justify-items: center; }
+.vq-lab__bad[hidden] { display: none; }
+.vq-lab__bad img { width: 140px; aspect-ratio: 1; object-fit: cover; border-radius: 12px; box-shadow: 0 0 0 2px #e5484d; }
+.vq-v5 .vq-lab__io { grid-template-columns: auto; }
+@media (max-width: 700px) { .vq-fails2 { grid-template-columns: minmax(0, 1fr); } }
