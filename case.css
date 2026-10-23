@@ -3633,4 +3633,6 @@ img.is-zoomable { cursor: zoom-in; }
 .vq-wins video { aspect-ratio: 1; }
 .vq-reason__cards figure { width: 140px; }
 .vq-reason__cards figcaption { white-space: normal; }
-.vq-v5__stage { grid-template-columns: minmax(0, 1fr) auto; align-items: start; }
+@media (min-width: 1101px) { .vq-v5__stage { grid-template-columns: minmax(0, 1fr) auto; align-items: start; } }
+@media (max-width: 1100px) { .vq-v5__stage { grid-template-columns: minmax(0, 1fr); } }
+.vq-code p { overflow-wrap: anywhere; }
