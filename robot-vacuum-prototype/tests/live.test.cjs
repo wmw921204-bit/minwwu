@@ -399,41 +399,48 @@ test('the last-cleaning tile shows the area when there is no full-clean referenc
   app.close();
 });
 
-test('alignment: on the dock the live position is shifted onto where the robot\'s own map puts it, and by hand wins', async () => {
+test('alignment: on the dock the robot is drawn where its own map puts it, not at the live reading', async () => {
   const b = fakeBridge();
-  const app = await boot(b);
-  // map: robot beside the charger; live reading 0.4 m / 0.3 m off
-  b.setPosition({ x: 25643, y: 25338 });
+  b.setPosition({ x: 25643, y: 25338 });            // the dock-time live reading can be ~0.5 m off
   b.setRobot({ x: 25243, y: 25038 }, { x: 25083, y: 24958 });
+  const app = await boot(b);
   await app.poll(2);
-  assert.equal(app.run('HA.align&&HA.align.auto'), true);
-  assert.equal(app.run('HA.align.how'), 'shift');
-  const q = JSON.parse(app.run('JSON.stringify(HAModel.toMap(HA.align.al,HA.poseRaw))'));
-  assert.ok(Math.abs(q.x - 25243) < 1 && Math.abs(q.y - 25038) < 1);
-  app.run("HA.align={...HA.align,auto:false,manual:true,al:{c:1,s:0,tx:1,ty:1}};HA.lastPairKey=''");
-  b.setRobot({ x: 25250, y: 25040 }, { x: 25083, y: 24958 });
-  await app.poll(2);
-  assert.equal(app.run('HA.align.manual'), true, 'a manual alignment is never replaced');
+  assert.deepEqual(JSON.parse(app.run('JSON.stringify([Math.round(HA.pose.x),Math.round(HA.pose.y)])')), [25243, 25038]);
+  assert.equal(app.run('HA.autoPairs.length'), 0, 'dock readings are not used for alignment');
+  assert.equal(app.run('HA.align'), null);
   app.close();
 });
 
-test('alignment: dock, then a short drive gives the turn as well as the shift', async () => {
-  const t = 0.2, c = Math.cos(t), si = Math.sin(t), f = p => ({ x: Math.round(c * p.x - si * p.y + 3000), y: Math.round(si * p.x + c * p.y - 6000) });
-  const L0 = { x: 25600, y: 25400 }, M0 = f(L0);
+test('alignment: when the robot and its map already agree, nothing is corrected and the check is noted', async () => {
   const b = fakeBridge();
-  b.setPosition(L0); b.setRobot(M0, { x: M0.x - 150, y: M0.y - 80 });
   const app = await boot(b);
-  await app.poll(2);
-  assert.equal(app.run('HA.align.how'), 'shift');
   app.run('A.startTask()');
   await app.poll(2);
-  const L1 = { x: L0.x + 2500, y: L0.y + 1200 };
-  b.setPosition(L1); b.st.mapAt = new Date().toISOString(); b.setRobot(f(L1), { x: M0.x - 150, y: M0.y - 80 });
+  for (const [L, err] of [[{ x: 25600, y: 25400 }, 20], [{ x: 26600, y: 25400 }, -60], [{ x: 28100, y: 26900 }, 40]]) {
+    b.setPosition(L); b.st.mapAt = new Date(Date.now() + Math.random()).toISOString(); b.setRobot({ x: L.x + err, y: L.y - err }, null); await app.poll(2);
+  }
+  assert.equal(app.run('HA.align'), null);
+  assert.equal(app.run('HA.alignChecked.n'), 3);
+  app.close();
+});
+
+test('alignment: points on the way give the shift, then the turn after 2 m; by hand wins', async () => {
+  const t = 0.2, c = Math.cos(t), si = Math.sin(t), f = p => ({ x: Math.round(c * p.x - si * p.y + 3000), y: Math.round(si * p.x + c * p.y - 6000) });
+  const b = fakeBridge();
+  const app = await boot(b);
+  app.run('A.startTask()');
   await app.poll(2);
+  const drive = async L => { b.setPosition(L); b.st.mapAt = new Date(Date.now() + Math.random()).toISOString(); b.setRobot(f(L), null); await app.poll(2); };
+  await drive({ x: 25600, y: 25400 });
+  assert.equal(app.run('HA.align'), null, 'one reading can be off while it moves: wait for more');
+  await drive({ x: 26300, y: 25500 });
+  await drive({ x: 28100, y: 26600 });
   assert.equal(app.run('HA.align.how'), 'turn');
   assert.ok(Math.abs(app.run('Math.atan2(HA.align.al.s,HA.align.al.c)') - t) < 0.01);
-  const q = JSON.parse(app.run('JSON.stringify(HAModel.toMap(HA.align.al,{x:' + (L0.x + 1000) + ',y:' + L0.y + '}))'));
-  const want = f({ x: L0.x + 1000, y: L0.y });
+  const q = JSON.parse(app.run('JSON.stringify(HAModel.toMap(HA.align.al,{x:26600,y:25400}))')), want = f({ x: 26600, y: 25400 });
   assert.ok(Math.hypot(q.x - want.x, q.y - want.y) < 30, 'a point it never visited lands right too');
+  app.run("HA.align={...HA.align,auto:false,manual:true,al:{c:1,s:0,tx:1,ty:1}}");
+  await drive({ x: 26000, y: 27600 });
+  assert.equal(app.run('HA.align.manual'), true, 'a manual alignment is never replaced');
   app.close();
 });

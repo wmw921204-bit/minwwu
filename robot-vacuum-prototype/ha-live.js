@@ -69,7 +69,7 @@
     S.events=s.events||[];S.timeline=s.timeline||[];S.objects=[];
     S.sim.pending=s.pending||[];S.sim.queue=[];
     seq=Math.max(seq,s.seq||0);
-    HA.rooms=s.rooms||[];HA.savedZones=s.savedZones||[];HA.objs=s.objs||[];HA.objSnap=s.objSnap||'';HA.align=s.align||null;HA.autoPairs=s.autoPairs||[];HA.retryWhen=s.retryWhen||'now';HA.lastErr=s.lastErr||null;HA.lastStatusProblem=s.lastStatusProblem||null;
+    HA.rooms=s.rooms||[];HA.savedZones=s.savedZones||[];HA.objs=s.objs||[];HA.objSnap=s.objSnap||'';HA.align=s.align&&!(s.align.auto&&s.align.how==='shift'&&!(s.autoPairs||[]).some(p=>p.kind==='drive'))?s.align:null;HA.autoPairs=(s.autoPairs||[]).filter(p=>p.kind==='drive');/* dock readings proved unreliable */HA.retryWhen=s.retryWhen||'now';HA.lastErr=s.lastErr||null;HA.lastStatusProblem=s.lastStatusProblem||null;
     HA.notes=s.notes||{};HA.refFrom=s.refFrom||null;HA.refArea=s.refFrom==='complete'&&s.refArea>=MIN_REF_AREA?s.refArea:null; // only a finished whole-home clean counts; older versions saved partial ones
    HA.retryQueue=s.retryQueue||[];HA.spotEv=s.spotEv||null;HA.spotStarted=!!s.spotStarted;HA.prevStatus=s.prevStatus||null;S.quietUntil=s.quietUntil||null;HA.careDay=s.careDay||{};
     SCEN.none={label:'No study events',keys:[]};
@@ -102,9 +102,17 @@
       // an empty image means the robot has no map right now: keep showing the last good outline
       if(f&&HA.map){HA.foot=f;HA.foot3=M().footprint(px,bmp.width,bmp.height,12)||HA.foot3;saveGoodMap()} // 3D walls on a coarser 0.3 m outline
       const oldKey=HA.footKey;HA.footKey=HA.foot?HA.foot.runs.length+':'+JSON.stringify(HA.map?.calibration):'';
-      if(oldKey&&HA.footKey&&oldKey!==HA.footKey&&!HA.map?.stale){tl('robot','The robot updated its map');checkDrawnAreas('The robot’s map changed shape.');S.mapNews='The robot updated its map';banner('moved',{id:'moved',title:'Map updated',body:'The robot updated its map.'})}
-      if(HA.autoPairs.length&&HA.autoPairs[0].footKey&&HA.footKey&&HA.autoPairs[0].footKey!==HA.footKey)HA.autoPairs=[];
-      if(HA.align&&HA.align.footKey&&HA.footKey&&HA.align.footKey!==HA.footKey){const was=HA.align.manual;HA.align=null;if(was)flash('New robot map: the alignment was reset.')}
+      if(oldKey&&HA.footKey&&oldKey!==HA.footKey&&!HA.map?.stale){
+        // the outline grows while the robot explores (same frame): just note it; a new calibration is a new map: check drawn areas
+        const newFrame=HA.lastCal&&HA.map?.calibration&&JSON.stringify(HA.map.calibration)!==HA.lastCal;
+        S.mapNews='The robot updated its map';
+        if(newFrame){tl('robot','The robot made a new map');checkDrawnAreas('The robot’s map changed.');banner('moved',{id:'moved',title:'Map updated',body:'The robot made a new map.'})}
+      }
+      if(HA.map?.calibration&&!HA.map.stale)HA.lastCal=JSON.stringify(HA.map.calibration);
+      // the outline grows as the robot explores; only a new calibration means a new map frame, so only that resets alignment
+      const cal=calKey();
+      if(HA.autoPairs.length&&HA.autoPairs[0].calKey&&cal&&HA.autoPairs[0].calKey!==cal)HA.autoPairs=[];
+      if(HA.align&&HA.align.calKey&&cal&&HA.align.calKey!==cal){const was=HA.align.manual;HA.align=null;if(was)flash('New robot map: the alignment was reset.')}
       HA.sig='';commitIfChanged();
     }catch(e){/* status stays useful without the map image */}
   }
@@ -458,7 +466,8 @@
     const lp=snap.position;if(!lp||!Number.isFinite(lp.x))return;
     HA.poseRaw={x:lp.x,y:lp.y,at:lp.at};
     if(!HA.livePts.length||HA.livePts[HA.livePts.length-1].at!==lp.at){HA.livePts.push({x:lp.x,y:lp.y,at:lp.at});HA.livePts=HA.livePts.filter(p=>lp.at-p.at<300)}
-    const q=M().toMap(HA.align?.al,lp),last=HA.pose,moved=last?Math.hypot(q.x-last.x,q.y-last.y):0;
+    const docked=S.device.status==='docked'&&HA.map?.robot&&!HA.map.stale;
+    const q=docked?{x:HA.map.robot.x,y:HA.map.robot.y}:M().toMap(HA.align?.al,lp),last=HA.pose,moved=last?Math.hypot(q.x-last.x,q.y-last.y):0;
     // the robot reports no heading here, so face the way it last moved
     const angle=last&&moved>60?Math.atan2(q.y-last.y,q.x-last.x)*180/Math.PI:last?.angle??HA.map?.robot?.angle;
     HA.pose={x:q.x,y:q.y,angle,at:lp.at};
@@ -469,22 +478,22 @@
       if(!prev||Math.hypot(lp.x-prev[0],lp.y-prev[1])>=60)seg.push([Math.round(lp.x),Math.round(lp.y)]);
     }
   }
-  /* Automatic alignment. The map Home Assistant sends records where the robot was when it was made; the live position
-     comes from a separate call and can sit in a shifted (or turned) frame. Each new map gives one pair of points:
-     on the dock any live reading will do (it isn't moving); while cleaning, the live reading taken at the map's time.
-     One dock pair gives a shift; pairs at least 2 m apart give rotation and shift. A manual alignment always wins. */
+  /* Automatic alignment, the way it's done by hand: points on the robot's way give the true position on the map.
+     Each new map records where the robot was; while it cleans, the live reading at that moment pairs with it.
+     One pair gives a shift, pairs at least 2 m apart give rotation and shift. A manual alignment always wins.
+     (On the dock the live reading can be ~0.5 m off while the map is right, so dock readings are not used:
+     the robot on its dock is drawn where its map puts it instead.) */
+  const calKey=()=>HA.map&&HA.map.calibration?JSON.stringify(HA.map.calibration):'';
   function collectPairs(){
     const map=HA.map,raw=HA.poseRaw;if(!map||map.stale||!map.robot||!raw||!map.source_updated_at)return;
     const key=map.source_updated_at+'|'+map.robot.x+','+map.robot.y;if(key===HA.lastPairKey)return;
     const mapAt=Date.parse(map.source_updated_at)/1000,st=S.device.status;let live=null,kind=null;
-    const onDockInMap=map.charger?Math.hypot(map.robot.x-map.charger.x,map.robot.y-map.charger.y)<600:false;
-    if(st==='docked'&&onDockInMap){live=raw;kind='dock'}
-    else if(['cleaning','returning'].includes(st)){
+    if(['cleaning','returning'].includes(st)){
       live=liveAt(mapAt);if(live)kind='drive';
     }
     HA.lastPairKey=key;if(!live)return;
-    const pair={live:{x:live.x,y:live.y},map:{x:map.robot.x,y:map.robot.y},kind,at:mapAt,footKey:HA.footKey};
-    HA.autoPairs=(kind==='dock'?HA.autoPairs.filter(p=>p.kind!=='dock'):HA.autoPairs).concat(pair).slice(-40);
+    const pair={live:{x:live.x,y:live.y},map:{x:map.robot.x,y:map.robot.y},kind,at:mapAt,calKey:calKey()};
+    HA.autoPairs=HA.autoPairs.concat(pair).slice(-40);
     autoAlign();persist();
   }
   /* where the live position was at time t: between the two readings around it, if they are close in time and place */
@@ -503,13 +512,20 @@
     const pairs=HA.autoPairs;if(!pairs.length)return;
     let spread=0;for(const a of pairs)for(const b of pairs)spread=Math.max(spread,Math.hypot(a.live.x-b.live.x,a.live.y-b.live.y));
     let al=null,how='';
-    if(pairs.length>=2&&spread>=2000){const f=M().rigidFit(pairs);if(f&&f.rms<=400){al=f;how='turn'}}
-    const dock=pairs.find(p=>p.kind==='dock');
-    if(!al&&dock){al=M().alignFrom(dock,null);al.rms=0;how='shift'}
+    if(pairs.length>=3&&spread>=2000){const f=M().rigidFit(pairs);if(f&&f.rms<=300){al=f;how='turn'}}
+    if(!al){
+      if(pairs.length<3)return; // one reading can be 30 cm off while the robot moves
+      const med=a=>{const v=a.slice().sort((x,y)=>x-y);return v[v.length>>1]};
+      const dx=med(pairs.map(p=>p.map.x-p.live.x)),dy=med(pairs.map(p=>p.map.y-p.live.y));
+      al={c:1,s:0,tx:dx,ty:dy,rms:0};how='shift';
+    }
+    // the frames usually already agree: if no point on its way would move by 15 cm, there is nothing to correct
+    const disp=Math.max(...pairs.map(p=>{const q=M().toMap(al,p.live);return Math.hypot(q.x-p.live.x,q.y-p.live.y)}));
+    if(disp<150){if(HA.align&&HA.align.auto){HA.align=null;HA.sig=''}HA.alignChecked={n:pairs.length,at:S.clock};return}
     if(!al)return;
     const old=HA.align&&HA.align.al,moved=old?Math.hypot(old.tx-al.tx,old.ty-al.ty)+Math.abs(Math.atan2(old.s,old.c)-Math.atan2(al.s,al.c))*5000:Infinity;
     if(moved<30)return; // no visible change
-    HA.align={al,auto:true,how,n:pairs.length,footKey:HA.footKey,at:S.clock};
+    HA.align={al,auto:true,how,n:pairs.length,calKey:calKey(),at:S.clock};
     if(HA.poseRaw){const q=M().toMap(al,HA.poseRaw);HA.pose={...HA.pose,x:q.x,y:q.y}}
     HA.sig='';
   }
@@ -905,7 +921,7 @@
   function scrAlign(){
     const d=HA.alignDraft,raw=HA.poseRaw,al=HA.align;
     let h=topbar('Align map with the robot');
-    h+=`<p class="small muted" style="margin:0 4px 12px">The app lines the robot up with the map by itself, from where it sits on the dock and where it drives. If it still looks wrong (for example after it failed to find its position), tap its real position twice to set it by hand.</p>`;
+    h+=`<p class="small muted" style="margin:0 4px 12px">The app lines the robot up with the map by itself, from points on its way while it cleans. If it still looks wrong (for example after it failed to find its position), tap its real position twice to set it by hand.</p>`;
     if(!raw)h+=`<div class="calm">${ic('robot',20)}<span>Waiting for the robot’s live position…</span></div>`;
     h+=`<div class="map-wrap">${liveMap({noEvents:true,align:true})}</div>`;
     const moved=d&&raw?Math.hypot(raw.x-d.a.live.x,raw.y-d.a.live.y)/1000:0;
@@ -914,8 +930,8 @@
     else if(!d)h+=`<div class="card" style="margin-top:12px"><b>Step 1 of 2</b><p class="small" style="margin-top:4px">Tap where the robot really is right now. On the dock is easiest.</p></div>`;
     else h+=`<div class="card" style="margin-top:12px"><b>Step 2 of 2</b><p class="small" style="margin-top:4px">Let the robot drive at least 2 m (it has moved ${moved.toFixed(1)} m), then tap where it really is.</p>
       <div class="btn-row"><button class="btn plain" data-a="haAlignShift">Use a shift only</button><button class="btn plain" data-a="haAlignRestart">Start over</button></div></div>`;
-    const turn=a=>Math.round(Math.atan2(a.s,a.c)*180/Math.PI),dock=HA.autoPairs.some(p=>p.kind==='dock'),drives=HA.autoPairs.filter(p=>p.kind==='drive').length;
-    h+=`<div class="sec-h">Current alignment</div><p class="small muted" style="margin:0 4px">${al?.auto?`Automatic: ${al.how==='turn'?`turned ${turn(al.al)}° and shifted, from ${al.n} points (within about ${Math.max(1,Math.round((al.al.rms||0)/10))} cm)`:'shifted so the robot on its dock sits where its own map puts it'}. It keeps refining as the robot drives.`:al?'By hand: shifted'+(al.b?' and turned '+turn(al.al)+'°':'')+'. Set at '+hhmm(al.at||0)+'. Remove it to go back to automatic.':`None yet. It lines up by itself ${dock?'':'the next time the robot is on its dock, '}${drives?'':'and while it cleans'}.`}</p>`;
+    const turn=a=>Math.round(Math.atan2(a.s,a.c)*180/Math.PI);
+    h+=`<div class="sec-h">Current alignment</div><p class="small muted" style="margin:0 4px">${al?.auto?`Automatic: ${al.how==='turn'?`turned ${turn(al.al)}° and shifted ${Math.round(Math.hypot(al.al.tx,al.al.ty)/10)} cm, from ${al.n} points (within about ${Math.max(1,Math.round((al.al.rms||0)/10))} cm)`:`shifted ${Math.round(Math.hypot(al.al.tx,al.al.ty)/10)} cm from ${al.n} point${al.n>1?'s':''}; it turns it too once the robot has driven 2 m`}. It keeps refining as the robot drives.`:al?'By hand: shifted'+(al.b?' and turned '+turn(al.al)+'°':'')+'. Set at '+hhmm(al.at||0)+'. Remove it to go back to automatic.':HA.alignChecked?`Checked against ${HA.alignChecked.n} points on its way: the robot’s position and the map already agree, so nothing needs correcting.`:'None yet. It checks by itself a few minutes into the next cleaning. On the dock, the robot is drawn where its own map puts it.'}</p>`;
     if(al?.manual)h+=`<button class="btn danger block" style="margin-top:12px" data-a="haAlignReset">Remove and go back to automatic</button>`;
     return h;
   }
@@ -934,7 +950,7 @@
     });
   }
   function saveAlign(a,b){
-    HA.align={a,b:b||null,al:M().alignFrom(a,b),manual:true,footKey:HA.footKey,at:S.clock};HA.alignDraft=null;S.ui.alignByHand=false;
+    HA.align={a,b:b||null,al:M().alignFrom(a,b),manual:true,calKey:calKey(),at:S.clock};HA.alignDraft=null;S.ui.alignByHand=false;
     if(HA.poseRaw){const q=M().toMap(HA.align.al,HA.poseRaw);HA.pose={...HA.pose,x:q.x,y:q.y}}
     persist();HA.sig='';commit();flash(b?'Map aligned':'Map shifted. Add a second point later to fix turning.');
   }
