@@ -36,7 +36,7 @@ function fakeBridge(init = {}) {
       ent('sensor.s6_cleaning_area', String(st.area)), ent('sensor.s6_cleaning_time', String(st.minutes ?? 0)), ent('select.s6_cleaning_mode', st.mode),
       ent('binary_sensor.s6_water_shortage', st.water), ent('binary_sensor.s6_mop_attached', st.mop), ent('select.s6_selected_map', 'Map 0')],
     position: { ...(st.pos || { x: 25600, y: 25600 }), at: Date.now() / 1000 },
-    geometry: { maps: [{ map_id: 0, source_updated_at: '2026-10-01T00:00:00Z', calibration: CAL, obstacles: [], no_go_areas: [],
+    geometry: { maps: [{ map_id: 0, source_updated_at: st.mapAt || '2026-10-01T00:00:00Z', calibration: CAL, obstacles: [], no_go_areas: [],
       path: [[{ x: 25600, y: 25600 }, { x: 26000, y: 25600 }]], robot: { ...(st.robot || { x: 25600, y: 25600 }), angle: 0 }, charger: st.charger || null, image_size: { width: 1428, height: 1380 } }] },
   });
   const reply = (body, status = 200) => ({ ok: status < 400, status, json: async () => body });
@@ -414,5 +414,26 @@ test('alignment: on the dock the live position is shifted onto where the robot\'
   b.setRobot({ x: 25250, y: 25040 }, { x: 25083, y: 24958 });
   await app.poll(2);
   assert.equal(app.run('HA.align.manual'), true, 'a manual alignment is never replaced');
+  app.close();
+});
+
+test('alignment: dock, then a short drive gives the turn as well as the shift', async () => {
+  const t = 0.2, c = Math.cos(t), si = Math.sin(t), f = p => ({ x: Math.round(c * p.x - si * p.y + 3000), y: Math.round(si * p.x + c * p.y - 6000) });
+  const L0 = { x: 25600, y: 25400 }, M0 = f(L0);
+  const b = fakeBridge();
+  b.setPosition(L0); b.setRobot(M0, { x: M0.x - 150, y: M0.y - 80 });
+  const app = await boot(b);
+  await app.poll(2);
+  assert.equal(app.run('HA.align.how'), 'shift');
+  app.run('A.startTask()');
+  await app.poll(2);
+  const L1 = { x: L0.x + 2500, y: L0.y + 1200 };
+  b.setPosition(L1); b.st.mapAt = new Date().toISOString(); b.setRobot(f(L1), { x: M0.x - 150, y: M0.y - 80 });
+  await app.poll(2);
+  assert.equal(app.run('HA.align.how'), 'turn');
+  assert.ok(Math.abs(app.run('Math.atan2(HA.align.al.s,HA.align.al.c)') - t) < 0.01);
+  const q = JSON.parse(app.run('JSON.stringify(HAModel.toMap(HA.align.al,{x:' + (L0.x + 1000) + ',y:' + L0.y + '}))'));
+  const want = f({ x: L0.x + 1000, y: L0.y });
+  assert.ok(Math.hypot(q.x - want.x, q.y - want.y) < 30, 'a point it never visited lands right too');
   app.close();
 });

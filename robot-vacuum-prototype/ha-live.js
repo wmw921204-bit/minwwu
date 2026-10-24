@@ -480,13 +480,23 @@
     const onDockInMap=map.charger?Math.hypot(map.robot.x-map.charger.x,map.robot.y-map.charger.y)<600:false;
     if(st==='docked'&&onDockInMap){live=raw;kind='dock'}
     else if(['cleaning','returning'].includes(st)){
-      const near=HA.livePts.reduce((b,p)=>!b||Math.abs(p.at-mapAt)<Math.abs(b.at-mapAt)?p:b,null);
-      if(near&&Math.abs(near.at-mapAt)<=4){live=near;kind='drive'}
+      live=liveAt(mapAt);if(live)kind='drive';
     }
     HA.lastPairKey=key;if(!live)return;
     const pair={live:{x:live.x,y:live.y},map:{x:map.robot.x,y:map.robot.y},kind,at:mapAt,footKey:HA.footKey};
     HA.autoPairs=(kind==='dock'?HA.autoPairs.filter(p=>p.kind!=='dock'):HA.autoPairs).concat(pair).slice(-40);
     autoAlign();persist();
+  }
+  /* where the live position was at time t: between the two readings around it, if they are close in time and place */
+  function liveAt(t){
+    const pts=HA.livePts;let before=null,after=null;
+    for(const p of pts){if(p.at<=t&&(!before||p.at>before.at))before=p;if(p.at>=t&&(!after||p.at<after.at))after=p}
+    if(before&&after){
+      if(after.at-before.at>12||Math.hypot(after.x-before.x,after.y-before.y)>1500)return null; // a gap or a jump: no reliable point
+      const k=after.at===before.at?0:(t-before.at)/(after.at-before.at);
+      return {x:before.x+k*(after.x-before.x),y:before.y+k*(after.y-before.y)};
+    }
+    const one=before||after;return one&&Math.abs(one.at-t)<=3?{x:one.x,y:one.y}:null;
   }
   function autoAlign(){
     if(HA.align&&HA.align.manual)return;
