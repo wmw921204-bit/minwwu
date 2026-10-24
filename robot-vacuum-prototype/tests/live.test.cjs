@@ -444,3 +444,27 @@ test('alignment: points on the way give the shift, then the turn after 2 m; by h
   assert.equal(app.run('HA.align.manual'), true, 'a manual alignment is never replaced');
   app.close();
 });
+
+test('docked with a map made mid-cleaning: the robot is drawn at the charger, not where the old map left it', async () => {
+  const b = fakeBridge();
+  b.setPosition({ x: 25400, y: 24400 });
+  b.setRobot({ x: 27160, y: 27569 }, { x: 25021, y: 25174 });
+  const app = await boot(b);
+  await app.poll(2);
+  assert.deepEqual(JSON.parse(app.run('JSON.stringify([Math.round(HA.pose.x),Math.round(HA.pose.y)])')), [25021, 25174]);
+  app.close();
+});
+
+test('a slow return is noticed even when docking attempts flicker the status', async () => {
+  const b = fakeBridge();
+  const app = await boot(b);
+  app.run('A.startTask()'); await app.poll(2);
+  app.run('A.confirmEnd()'); await app.poll(2);
+  app.run('HA.returnSince=Date.now()-250000');
+  Object.assign(b.st, { vacuum: 'idle', detail: 'idle' }); await app.poll();   // a docking attempt
+  Object.assign(b.st, { vacuum: 'returning', detail: 'returning_home' }); await app.poll();
+  assert.equal(app.run("S.events.some(e=>e.key==='p_slowreturn'&&e.status==='needsReview')"), true);
+  Object.assign(b.st, { vacuum: 'docked', detail: 'charging' }); await app.poll();
+  assert.equal(app.run("S.events.find(e=>e.key==='p_slowreturn').status"), 'resolved');
+  app.close();
+});

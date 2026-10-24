@@ -466,8 +466,10 @@
     const lp=snap.position;if(!lp||!Number.isFinite(lp.x))return;
     HA.poseRaw={x:lp.x,y:lp.y,at:lp.at};
     if(!HA.livePts.length||HA.livePts[HA.livePts.length-1].at!==lp.at){HA.livePts.push({x:lp.x,y:lp.y,at:lp.at});HA.livePts=HA.livePts.filter(p=>lp.at-p.at<300)}
-    const docked=S.device.status==='docked'&&HA.map?.robot&&!HA.map.stale;
-    const q=docked?{x:HA.map.robot.x,y:HA.map.robot.y}:M().toMap(HA.align?.al,lp),last=HA.pose,moved=last?Math.hypot(q.x-last.x,q.y-last.y):0;
+    // on the dock: where its map puts it if that map was made with it docked (beside the charger), else at the charger
+    const m=HA.map,onDock=S.device.status==='docked'&&m&&!m.stale&&m.charger;
+    const besideCharger=onDock&&m.robot&&Math.hypot(m.robot.x-m.charger.x,m.robot.y-m.charger.y)<600;
+    const q=besideCharger?{x:m.robot.x,y:m.robot.y}:onDock?{x:m.charger.x,y:m.charger.y}:M().toMap(HA.align?.al,lp),last=HA.pose,moved=last?Math.hypot(q.x-last.x,q.y-last.y):0;
     // the robot reports no heading here, so face the way it last moved
     const angle=last&&moved>60?Math.atan2(q.y-last.y,q.x-last.x)*180/Math.PI:last?.angle??HA.map?.robot?.angle;
     HA.pose={x:q.x,y:q.y,angle,at:lp.at};
@@ -554,7 +556,8 @@
     HA.recent=HA.recent.filter(p=>now-p.t<300000);
     if(st==='returning'){HA.returnSince=HA.returnSince||now;
       if(now-HA.returnSince>240000)raiseProblem('p_slowreturn',{title:'Taking long to get back',what:'It has been heading to the dock for 4 minutes.',fix:'Check that nothing blocks the way to the dock, or carry it back.',why:'From the robot’s status.',options:['pOk']},true)}
-    else{HA.returnSince=0;if(st==='docked')resolveProblem('p_slowreturn','Back on the dock.')}
+    // docking attempts flicker through other states; only being back on the dock (or cleaning again) ends the return
+    else if(st==='docked'||st==='cleaning'){HA.returnSince=0;if(st==='docked')resolveProblem('p_slowreturn','Back on the dock.')}
     if(st==='cleaning'||st==='returning'||st==='docked')resolveProblem('p_paused',st==='docked'?'Back on the dock.':st==='returning'?'Heading back to the dock.':'Cleaning again.');
     if(!t||t.done||HA.spotEv||HA.resuming||t.recharging)return;
     // paused, but not by this app: someone pressed its button, used the Roborock app, or it stopped by itself
