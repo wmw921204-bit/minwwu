@@ -53,7 +53,7 @@
       const zones=Object.fromEntries(Object.entries(ZONES).filter(([k])=>k.startsWith('z')));
       try{localStorage.setItem(STORE,JSON.stringify({v:1,onboarded:!S.onboarding,autonomy:S.autonomy,rules:S.rules,nogo:S.nogo,notif:S.notif,
         history:S.history,task:S.task,events:S.events,timeline:S.timeline,pending:S.sim.pending,zones,seq,
-        objs:HA.objs,objSnap:HA.objSnap,align:HA.align,retryWhen:HA.retryWhen,temp:S.temp,lastErr:HA.lastErr,lastStatusProblem:HA.lastStatusProblem,refArea:HA.refArea,rooms:HA.rooms,savedZones:HA.savedZones,scenario:S.ctl.scenario,retryQueue:HA.retryQueue,spotEv:HA.spotEv,spotStarted:HA.spotStarted,
+        objs:HA.objs,objSnap:HA.objSnap,align:HA.align,retryWhen:HA.retryWhen,temp:S.temp,lastErr:HA.lastErr,lastStatusProblem:HA.lastStatusProblem,refArea:HA.refArea,refFrom:HA.refFrom,rooms:HA.rooms,savedZones:HA.savedZones,scenario:S.ctl.scenario,retryQueue:HA.retryQueue,spotEv:HA.spotEv,spotStarted:HA.spotStarted,
         prevStatus:HA.prevStatus,quietUntil:S.quietUntil,careDay:HA.careDay,restoreMode:HA.restoreMode,removedZones:HA.removedZones,customObj:Object.fromEntries(Object.entries(OBJ).filter(([,o])=>o.custom))}))}catch(e){/* storage full or blocked: the app still works */}
     },400);
   }
@@ -70,7 +70,7 @@
     S.sim.pending=s.pending||[];S.sim.queue=[];
     seq=Math.max(seq,s.seq||0);
     HA.rooms=s.rooms||[];HA.savedZones=s.savedZones||[];HA.objs=s.objs||[];HA.objSnap=s.objSnap||'';HA.align=s.align||null;HA.retryWhen=s.retryWhen||'now';HA.lastErr=s.lastErr||null;HA.lastStatusProblem=s.lastStatusProblem||null;
-    HA.notes=s.notes||{};HA.refArea=s.refArea>=MIN_REF_AREA?s.refArea:null; // older versions could save a tiny reference from a short run
+    HA.notes=s.notes||{};HA.refFrom=s.refFrom||null;HA.refArea=s.refFrom==='complete'&&s.refArea>=MIN_REF_AREA?s.refArea:null; // only a finished whole-home clean counts; older versions saved partial ones
    HA.retryQueue=s.retryQueue||[];HA.spotEv=s.spotEv||null;HA.spotStarted=!!s.spotStarted;HA.prevStatus=s.prevStatus||null;S.quietUntil=s.quietUntil||null;HA.careDay=s.careDay||{};
     SCEN.none={label:'No study events',keys:[]};
     S.ctl.scenario=s.scenario&&SCEN[s.scenario]?s.scenario:'none'; // study events only when a facilitator turns them onS.temp=s.temp||null;
@@ -229,7 +229,7 @@
   }
   function checkProblems(snap,d){
     const code=M().value(snap,'vacuum_error'),err=code&&code!=='none'?code:null;
-    if(err!==HA.lastErr){if(HA.lastErr)resolveProblem('p_'+HA.lastErr,'Fixed. The robot reports no problem now.');if(err)raiseProblem('p_'+err,problemInfo(err));HA.lastErr=err}
+    if(err!==HA.lastErr){if(HA.lastErr){resolveProblem('p_'+HA.lastErr,'Fixed. The robot reports no problem now.');HA.errCleared={title:problemInfo(HA.lastErr).title,at:Date.now(),clock:S.clock}}if(err)raiseProblem('p_'+err,problemInfo(err));HA.lastErr=err}
     const st=STATUS_PROBLEMS[d.detail]?d.detail:null;
     if(st!==HA.lastStatusProblem){if(HA.lastStatusProblem)resolveProblem('p_s_'+HA.lastStatusProblem,'Back to normal.');if(st)raiseProblem('p_s_'+st,STATUS_PROBLEMS[st],true);HA.lastStatusProblem=st}
     // the map Home Assistant sends is from before this cleaning
@@ -297,7 +297,7 @@
     t.path=(mapFresh(t)?M().simplifyPath(HA.map?.path):[]).concat(trailOf(t));
     S.sim.pending=[];S.sim.queue=[];S.waitEv=null;S.checkEv=null;
     t.result=computeResult();t.pct=taskPct(t);
-    if(t.result==='completed'&&t.area>=MIN_REF_AREA&&t.minutes>=10&&t.scopeLabel==='Entire home')HA.refArea=Math.max(HA.refArea||0,t.area);
+    if(t.result==='completed'&&t.area>=MIN_REF_AREA&&t.minutes>=10&&t.scopeLabel==='Entire home'){HA.refArea=Math.max(HA.refArea||0,t.area);HA.refFrom='complete'}
     const nc=S.events.filter(e=>e.status!=='resolved'&&e.status!=='info'&&DEFS[e.key].type!=='decision').length;
     tl('result',t.result==='completed'?'Task completed':t.result==='ended'?'Task ended early':`Task partially completed: ${nc} area${nc===1?'':'s'} not cleaned`);
     if(S.notif.finished)banner(pendingObjs().length?'objs':'done',{id:'done',title:'Cleaning finished',body:RESULTLABEL[t.result]});
@@ -482,7 +482,7 @@
   function checkCare(snap){
     const today=new Date().toDateString();
     CARE.forEach(([k,limit,title,fix])=>{const v=M().number(snap,k);if(v==null||v>=limit||HA.careDay[k]===today)return;HA.careDay[k]=today;
-      raiseProblem('p_care_'+k,{title,what:'About '+Math.max(0,Math.round(v))+' hours of cleaning left on this part.',fix,why:'From the robot’s maintenance counters.',options:['pOk']},true)});
+      const ev=raiseProblem('p_care_'+k,{title,what:'About '+Math.max(0,Math.round(v))+' hours of cleaning left on this part.',fix,why:'From the robot’s maintenance counters.',options:['pOk']},true);if(ev){ev.care=true;DEFS[ev.key].kind='Maintenance'}});
   }
 
   /* ---------- behaviour the robot doesn't report as an error ---------- */
@@ -493,12 +493,14 @@
     if(st==='returning'){HA.returnSince=HA.returnSince||now;
       if(now-HA.returnSince>240000)raiseProblem('p_slowreturn',{title:'Taking long to get back',what:'It has been heading to the dock for 4 minutes.',fix:'Check that nothing blocks the way to the dock, or carry it back.',why:'From the robot’s status.',options:['pOk']},true)}
     else{HA.returnSince=0;if(st==='docked')resolveProblem('p_slowreturn','Back on the dock.')}
+    if(st==='cleaning'||st==='returning'||st==='docked')resolveProblem('p_paused',st==='docked'?'Back on the dock.':st==='returning'?'Heading back to the dock.':'Cleaning again.');
     if(!t||t.done||HA.spotEv||HA.resuming||t.recharging)return;
     // paused, but not by this app: someone pressed its button, used the Roborock app, or it stopped by itself
     if(st==='cleaning'||st==='docked')HA.appPaused=false;
+    const after=HA.errCleared&&now-HA.errCleared.at<180000?HA.errCleared:null;
     if(st==='paused'&&!HA.appPaused&&!S.waitEv&&!S.checkEv&&!HA.pending&&now-HA.appPauseAt>20000)
-      raiseProblem('p_paused',{title:'Paused on its own',what:'The robot paused without a command from this app.',fix:'Someone may have pressed its button or paused it in the Roborock app, or it stopped because it couldn’t carry on. Check on it, then resume.',why:'From the robot’s status.',options:['pResume','pDock']},true);
-    if(st==='cleaning')resolveProblem('p_paused','Cleaning again.');
+      raiseProblem('p_paused',after?{title:'Stopped: '+after.title.toLowerCase(),what:'At '+hhmm(after.clock)+' the robot reported “'+after.title.toLowerCase()+'” (for example when it is picked up), so it stopped. It is waiting now.',
+        fix:'If it’s back on the floor, resume. If not, put it down first, or send it to the dock.',why:'From the robot’s error, then its status.',options:['pResume','pDock']}:{title:'Paused on its own',what:'The robot paused without a command from this app.',fix:'Someone may have pressed its button or paused it in the Roborock app, or it stopped because it couldn’t carry on. Check on it, then resume.',why:'From the robot’s status.',options:['pResume','pDock']},true);
     if(st==='cleaning'){
       // working in one spot: everything from the last 2 minutes within about 0.7 m
       const win=HA.recent.filter(p=>now-p.t<=120000);
@@ -541,12 +543,11 @@
       HA.map=HA.map.stale?{...HA.map,path:[],obstacles:[],robot:null}:{...HA.goodMap,path:[],obstacles:[],robot:null,stale:true}; // the bridge may already fill it from its cache
     }
     HA.tf=HA.map&&HA.map.calibration?M().transform(HA.map.calibration):null;HA.ppm=HA.map?M().pxPerMm(HA.map.calibration):null;
-    if(!HA.refArea&&status==='docked'&&d.area>=MIN_REF_AREA)HA.refArea=d.area;
     seedRobotRecord(snap,status);
     lifecycle(status);
     takePosition(snap);
+    checkProblems(snap,d);checkCare(snap); // errors first, so a pause that follows one knows why
     watchBehaviour(d);
-    checkProblems(snap,d);checkCare(snap);
     if(!HA.map?.stale)syncObjects(snap); // a placeholder map says nothing about objects
     S.objects=HA.objs.filter(o=>!o.dismissed).map(o=>({...o,k:roomKey(o.mm),at:secOf(o.source)}));
     HA.removedZones=HA.removedZones.filter(b=>robotZones().some(a=>sameZone(a,b))); // until the robot's map drops them
@@ -954,12 +955,15 @@
       const minsNow=t.done?t.minutes:(liveDev(t)?.minutes??(Date.now()-t.startedAt)/60000);
       return {t,cells:S.cells,events:S.events,timeline:S.timeline,m2:area(),rooms:'—',result:t.done?t.result:null,dur:Math.round(minsNow??0),live:true};
     };
+    // Home's "last cleaning" tile: a percentage only against a real full-clean reference, otherwise the area
+    window.doneTile=()=>{const t=S.task;if(!t)return '—';const p=HA.refArea?taskPct(t):null; // a percentage saved against an old, partial reference no longer counts
+     return p!=null?p+'%':t.area!=null?Math.round(t.area*10)/10+' m²':'—'};
     Object.assign(LIVE,{
       clock:()=>hhmm(now()),status:statusText,
-      pct:()=>{const p=taskPct(S.task);return p==null?area()+' m² cleaned':'≈'+p+'% of a full clean'},
+      pct:()=>{const p=taskPct(S.task);return p!=null?'≈'+p+'% of a full clean':area()==='—'?'Just started':area()+' m² cleaned'},
       bar:()=>(taskPct(S.task)??0)+'%',
       barText:()=>area()==='—'?'—':area()+' m²',
-      elapsed:()=>{const t=S.task;if(!t)return '';const m=t.done?t.minutes:(liveDev(t)?.minutes??(Date.now()-t.startedAt)/60000);return Math.round(m||0)+' min elapsed'},
+      elapsed:()=>{const t=S.task;if(!t)return '';const wall=(Date.now()-t.startedAt)/60000,m=t.done?t.minutes:Math.max(liveDev(t)?.minutes??0,wall);/* the robot's counter lags and skips pauses */return Math.round(m||0)+' min elapsed'},
       remain:()=>{const p=taskPct(S.task),m=HA.dev?.minutes;return p&&m&&p<100?'about '+Math.max(1,Math.round(m*(100-p)/p))+' min left (est.)':'time left unknown'},
       battery:()=>{const b=dev().battery;return b==null?'—':b+'%'},
     });
@@ -1113,7 +1117,8 @@
       h+=`<div class="card" style="margin-top:16px"><p style="font-size:15px;line-height:1.5">The robot will clean <b>${esc(label.toLowerCase()==='entire home'?'the entire home':label||'no rooms yet')}</b>.${nog}</p>`;
       if(parts.length>5)h+=`<p class="small" style="color:var(--stop)">The robot can clean at most 5 rectangles at once. Choose fewer rooms.</p>`;
       const sending=!!(S.cmd&&S.cmd.state==='sending')||!!HA.pending;
-      h+=`<button class="btn primary block" style="margin-top:14px" data-a="startTask" ${(st.kind==='rooms'&&!st.rooms.length)||parts.length>5||sending?'disabled':''}>${sending?'Sending…':'Start'}</button></div>`;
+      const offline=S.conn!=='connected'; // Home Assistant can't reach the robot: a start would go nowhere
+      h+=`<button class="btn primary block" style="margin-top:14px" data-a="startTask" ${(st.kind==='rooms'&&!st.rooms.length)||parts.length>5||sending||offline?'disabled':''}>${sending?'Sending…':'Start'}</button>${offline?`<p class="small" style="margin:10px 2px 0;color:var(--warn)">The robot is offline right now, so it can’t start. Check that it’s on and connected (the Roborock app shows this), then try again.</p>`:''}</div>`;
       return h;
     };
     const setupParts=()=>{const st=S.ui.setup;return st.kind==='rooms'?HA.rooms.filter(x=>st.rooms.includes(x.id)).flatMap(x=>x.parts):st.kind==='zone'?(HA.savedZones.find(z=>z.id===st.zone)?.parts||[]):[]};

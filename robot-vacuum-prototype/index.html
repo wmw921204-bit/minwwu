@@ -745,7 +745,7 @@ const realTime=()=>!!(window.HA_LIVE||S.timeReal);
 const nowT=()=>realTime()?Date.now():S.clock;
 const quietNow=()=>S.quietUntil!=null&&nowT()<S.quietUntil;
 const atLabel=t=>t>1e11?(d=>String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0'))(new Date(t)):hhmm(t);
-function noticeTitle(ev){return ev.reminded?'Reminder':ev.retryFailed?'Retry didn’t work':(ev.autonomous&&!ev.changed)?'Robot decided':S.waitEv===ev.id?'Robot is waiting for you':ev.suggestion?'Robot suggests something':DEFS[ev.key].kind}
+function noticeTitle(ev){return ev.care?'Maintenance reminder':ev.reminded?'Reminder':ev.retryFailed?'Retry didn’t work':(ev.autonomous&&!ev.changed)?'Robot decided':S.waitEv===ev.id?'Robot is waiting for you':ev.suggestion?'Robot suggests something':DEFS[ev.key].kind}
 function pushLock(n){S.lockNotes=[{...n,at:S.clock}].concat(S.lockNotes.filter(x=>x.id!==n.id)).slice(0,6);commit()}
 function nextBanner(){if(S.bannerNext){const k=S.bannerNext;S.bannerNext=null;banner(k)}}
 /* Banners that aren't one event: finished, objects to check, stuck, map updated, missed while paused. */
@@ -1124,7 +1124,7 @@ function statusCard(){
   h+=`<div class="status-title">${live('status')}</div>`;
   if(off){h+=`<p class="status-sub">Last update at ${hhmm(S.snap.clock)}. The robot may still be working.</p></div>`;return h}
   if(d.status==='cleaning'||d.status==='paused'||d.status==='returning'||d.status==='error'){
-    h+=`<p class="status-sub">${d.status==='error'?esc(S.device.error):d.status==='paused'&&S.waitEv?`Stopped at ${ZONES[DEFS[findEvent(S.waitEv).key].zone].name.toLowerCase()}. It won’t continue until you choose.`:nY.length?`${nY.length} ${nY.length===1?'thing needs':'things need'} your review. Cleaning continues elsewhere.`:d.status==='paused'&&S.waitEv?`Stopped at ${ZONES[DEFS[findEvent(S.waitEv).key].zone].name.toLowerCase()}. It won’t continue until you choose.`:d.status==='paused'&&S.checkEv?'Check the area under the bed, then resume.':'Everything is running normally.'}</p>`;
+    h+=`<p class="status-sub">${d.status==='error'?esc(S.device.error):d.status==='paused'&&S.waitEv?`Stopped at ${ZONES[DEFS[findEvent(S.waitEv).key].zone].name.toLowerCase()}. It won’t continue until you choose.`:nY.length?`${nY.length} ${nY.length===1?'thing needs':'things need'} your review.${d.status==='cleaning'?' Cleaning continues elsewhere.':''}`:d.status==='paused'&&S.waitEv?`Stopped at ${ZONES[DEFS[findEvent(S.waitEv).key].zone].name.toLowerCase()}. It won’t continue until you choose.`:d.status==='paused'&&S.checkEv?'Check the area under the bed, then resume.':'Everything is running normally.'}</p>`;
     h+=`<div class="progress"><i data-live="bar" style="width:${LIVE.bar()}"></i></div><div class="meta-row">${live('pct')}${live('elapsed')}${d.status==='cleaning'?live('remain'):''}</div>`;
     const latest=[...visibleEvents()].reverse().find(e=>!e.quiet&&(e.autonomous||e.status==='info'||e.status==='needsReview'||e.status==='inProgress'));
     if(latest&&d.status!=='returning')h+=`<button class="why-chip" data-a="openEvent" data-v="${latest.id}">${ic('robot',18)}<b>${esc(S.waitEv===latest.id?'Waiting: '+SHORT[latest.key].q:latest.status==='inProgress'?'Will go back to: '+ZONES[DEFS[latest.key].zone].name.toLowerCase():latest.lastAct&&(!latest.autonomous||latest.changed)&&SHORT[latest.key]?'You chose: '+SHORT[latest.key].labels[latest.lastAct]:DEFS[latest.key].chip)}</b><span class="why-link">Why this?</span></button>`;
@@ -1135,8 +1135,8 @@ function statusCard(){
     if(d.status==='error')h+=`<p class="small" style="margin:10px 2px 0"><button class="link" data-a="go" data-v="stuck">What happened and what to do</button></p>`;
   }else{
     if(S.task&&S.task.done){
-      const nc=S.events.filter(e=>['needsReview','deferred','skipped'].includes(e.status)&&DEFS[e.key].type!=='decision').length;
-      const left=S.events.filter(e=>['needsReview','deferred','skipped'].includes(e.status)&&DEFS[e.key].type!=='decision');
+      const nc=S.events.filter(e=>!e.problem&&['needsReview','deferred','skipped'].includes(e.status)&&DEFS[e.key].type!=='decision').length;
+      const left=S.events.filter(e=>!e.problem&&['needsReview','deferred','skipped'].includes(e.status)&&DEFS[e.key].type!=='decision');
       h+=`<p class="status-sub">Last cleaning finished at ${hhmm(S.task.end)}: <span class="pill ${S.task.result}">${RESULTLABEL[S.task.result]}</span>${nc?` · not cleaned: ${left.map(e=>`<button class="link" data-a="openEvent" data-v="${e.id}">${esc(ZONES[DEFS[e.key].zone].name.toLowerCase())}</button>${e.status==='needsReview'?' (needs you)':e.status==='deferred'?' (later)':' (skipped)'}`).join(', ')}`:''}</p>`;
       h+=`<div class="btn-row"><button class="btn soft" data-a="openReport" data-v="${S.task.id}">View report</button><button class="btn primary" data-a="setup">Start cleaning</button></div>`;
     }else{
@@ -1186,7 +1186,7 @@ function scrHome(){
   const doneP=S.task?(S.conn==='connected'?pct():S.snap.pct):null;
   const tiles=`<div class="tiles">
     <div class="tile"><span class="ti">${ic('bolt',24)}</span><b data-live="battery">${LIVE.battery()}</b><span>Battery</span></div>
-    <button class="tile ${active?'on':''}" data-a="${S.task?'openReport':'setup'}" data-v="${S.task?S.task.id:''}"><span class="ti">${ic('map',24)}</span><b>${active?`<span data-live="barText" style="display:inline;font:inherit;color:inherit;margin:0">${LIVE.bar()}</span>`:doneP!==null?doneP+'%':'—'}</b><span>${active?'Cleaned so far':S.task?'Last cleaning':'No cleaning yet'}</span></button>
+    <button class="tile ${active?'on':''}" data-a="${S.task?'openReport':'setup'}" data-v="${S.task?S.task.id:''}"><span class="ti">${ic('map',24)}</span><b>${active?`<span data-live="barText" style="display:inline;font:inherit;color:inherit;margin:0">${LIVE.barText()}</span>`:window.doneTile?window.doneTile():doneP!==null?doneP+'%':'—'}</b><span>${active?'Cleaned so far':S.task?'Last cleaning':'No cleaning yet'}</span></button>
     <button class="tile ${waitingN()?'warn':''}" data-a="toNeeds" aria-label="Jump to what needs you"><span class="ti">${ic(waitingN()?'alert':'check',24)}</span><b>${waitingN()}</b><span>Needs you</span></button>
   </div>`;
   return `<div class="hero-name"><b>Roborock</b><span>S6 MaxV</span></div><div class="hero-sub"><span class="live-dot ${off?'off':''}"></span>${off?'Offline':'Online'} · <button class="mode-pill" data-a="modeSheet" aria-label="Change how involved you are">${ic('robot',15)}${MODES[S.autonomy].name}${S.temp?' · '+esc(tempLabel()):''}<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button></div>
@@ -1230,7 +1230,8 @@ function scrSetup(){
   const nog=S.nogo.length?` No-go zones stay out: ${S.nogo.map(z=>ZONES[z].name).join(', ')}.`:'';
   h+=`<div class="card" style="margin-top:16px"><p style="font-size:15px;line-height:1.5">The robot will clean <b>${esc(label)}</b>.${esc(nog)}</p>`;
   const sending=S.cmd&&S.cmd.state==='sending';
-  h+=`<button class="btn primary block" style="margin-top:14px" data-a="startTask" ${(st.kind==='rooms'&&!st.rooms.length)||sending?'disabled':''}>${sending?'Sending…':'Start'}</button></div>`;
+  const offline=S.conn!=='connected';
+  h+=`<button class="btn primary block" style="margin-top:14px" data-a="startTask" ${(st.kind==='rooms'&&!st.rooms.length)||sending||offline?'disabled':''}>${sending?'Sending…':'Start'}</button>${offline?`<p class="small" style="margin:10px 2px 0;color:var(--warn)">The robot is offline right now, so it can’t start. Check that it’s on and connected (the Roborock app shows this), then try again.</p>`:''}</div>`;
   return h;
 }
 const SHORT={
@@ -1732,7 +1733,7 @@ function render(){
     else if(m.state==='confirmed')h+=`<div class="cmd" role="status">${ic('check',18)}${esc(m.label)}</div>`;
     else if(m.state==='info')h+=`<div class="cmd" role="status">${esc(m.label)}</div>`;
     else if(m.state==='undo')h+=`<div class="cmd" role="status">${ic('check',18)}<span style="flex:1">${esc(m.label)}</span><button class="undo" data-a="undoAct">Undo</button></div>`;
-    else h+=`<div class="cmd failed" role="alert"><span>${ic('alert',18)}</span><span style="flex:1"><b>${esc(m.label)} wasn’t confirmed.</b> The robot didn’t answer, so nothing has changed yet.</span><div class="acts"><button data-a="cmdRetry">Try again</button><button data-a="cmdRefresh">Refresh status</button><button data-a="cmdDismiss">Dismiss</button></div></div>`;
+    else h+=`<div class="cmd failed" role="alert"><span>${ic('alert',18)}</span><span style="flex:1"><b>${esc(m.label)} wasn’t confirmed.</b> The robot didn’t answer, so nothing has changed yet. It may be offline or still reconnecting; try again in a minute.</span><div class="acts"><button data-a="cmdRetry">Try again</button><button data-a="cmdRefresh">Refresh status</button><button data-a="cmdDismiss">Dismiss</button></div></div>`;
   }
   h+=modalHTML();
   if(S.ui.away)h+=`<div class="lock"><div class="lock-time">${hhmm(S.clock)}</div><div class="lock-date">${window.HA_LIVE?new Date().toLocaleDateString(undefined,{weekday:'long',month:'long',day:'numeric'}):'Today'}</div>

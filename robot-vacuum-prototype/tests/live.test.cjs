@@ -356,3 +356,44 @@ test('a tiny full-clean reference saved by an older version is dropped', async (
   assert.equal(app.run('HA.refArea'), null);
   app.close();
 });
+
+test('a robot picked up mid-cleaning: the pause says why, and clears once it heads home', async () => {
+  const b = fakeBridge();
+  const app = await boot(b);
+  app.run('A.startTask()');
+  await app.poll(3);
+  Object.assign(b.st, { vacuum: 'error', detail: 'error', err: 'wheels_suspended' });
+  await app.poll();
+  Object.assign(b.st, { vacuum: 'paused', detail: 'paused', err: 'none' });
+  await app.poll();
+  const paused = "S.events.find(e=>e.key==='p_paused')";
+  assert.match(app.run(`DEFS[${paused}.key].title`), /^Stopped: /);
+  assert.match(app.run('statusCard()'), /review\./);
+  assert.doesNotMatch(app.run('statusCard()'), /continues elsewhere/);
+  Object.assign(b.st, { vacuum: 'returning', detail: 'returning_home' });
+  await app.poll();
+  assert.equal(app.run(`${paused}.status`), 'resolved');
+  app.close();
+});
+
+test('offline: Start is disabled and says why', async () => {
+  const b = fakeBridge();
+  const app = await boot(b);
+  app.run("S.snap={clock:S.clock,device:{...S.device},pos:null,pct:0};S.conn='disconnected';go('setup');render()");
+  assert.equal(app.run("document.querySelector('[data-a=startTask]').disabled"), true);
+  assert.match(app.run("document.body.textContent"), /robot is offline right now/);
+  app.close();
+});
+
+test('the last-cleaning tile shows the area when there is no full-clean reference', async () => {
+  const b = fakeBridge({ area: 0, minutes: 0 });
+  const app = await boot(b);
+  app.run('A.startTask()');
+  await app.poll(3);
+  Object.assign(b.st, { area: 4.2, minutes: 5 });
+  await app.poll();
+  Object.assign(b.st, { vacuum: 'docked', detail: 'charging' });
+  await app.poll();
+  assert.equal(app.run('window.doneTile()'), '4.2 m²');
+  app.close();
+});
