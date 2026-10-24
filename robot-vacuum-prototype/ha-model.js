@@ -41,6 +41,19 @@
     }
     return {c,s,tx:a.map.x-(c*a.live.x-s*a.live.y),ty:a.map.y-(s*a.live.x+c*a.live.y)};
   }
+  /* Automatic alignment: many (live point, map point) pairs, e.g. the robot on its dock and the robot's own position
+     each time a new map arrives, give the best rotation and shift (least squares, rigid). rms says how well they agree. */
+  function rigidFit(pairs){
+    const n=(pairs||[]).length;if(!n)return null;
+    const m=k=>pairs.reduce((a,p)=>a+p[k[0]][k[1]],0)/n;
+    const lx=m(['live','x']),ly=m(['live','y']),mx=m(['map','x']),my=m(['map','y']);
+    let sc=0,ss=0;
+    for(const p of pairs){const ax=p.live.x-lx,ay=p.live.y-ly,bx=p.map.x-mx,by=p.map.y-my;sc+=ax*bx+ay*by;ss+=ax*by-ay*bx}
+    const t=n>1?Math.atan2(ss,sc):0,c=Math.cos(t),s=Math.sin(t);
+    const al={c,s,tx:mx-(c*lx-s*ly),ty:my-(s*lx+c*ly)};
+    al.rms=Math.sqrt(pairs.reduce((a,p)=>{const q=toMap(al,p.live);return a+(q.x-p.map.x)**2+(q.y-p.map.y)**2},0)/n);
+    return al;
+  }
   const toMap=(al,p)=>al&&p?{x:al.c*p.x-al.s*p.y+al.tx,y:al.s*p.x+al.c*p.y+al.ty}:p;
   const toRobot=(al,q)=>{if(!al||!q)return q;const x=q.x-al.tx,y=q.y-al.ty;return {x:al.c*x+al.s*y,y:-al.s*x+al.c*y}};
   /* A map-frame box as the robot sees it: its corners moved back, then the box around them. */
@@ -168,7 +181,7 @@
     return {s,w:width,h:bh*s,x:p=>(p.x-bbox.x0)*s,y:p=>(p.y-bbox.y0)*s};
   }
 
-  const api={alignFrom,toMap,toRobot,robotBox,transform,inverse,snapBox,boxCells,roomAt,inBox,pxPerMm,errorText,entity,value,number,device,objectId,selectedMap,objects,simplifyPath,footprint,view,LABELS};
+  const api={alignFrom,rigidFit,toMap,toRobot,robotBox,transform,inverse,snapBox,boxCells,roomAt,inBox,pxPerMm,errorText,entity,value,number,device,objectId,selectedMap,objects,simplifyPath,footprint,view,LABELS};
   root.HAModel=api;
   if(typeof module!=='undefined')module.exports=api;
 })(typeof window!=='undefined'?window:globalThis);

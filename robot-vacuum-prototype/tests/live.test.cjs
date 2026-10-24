@@ -35,9 +35,9 @@ function fakeBridge(init = {}) {
     entities: [ent('sensor.s6_battery', String(st.battery)), ent('sensor.s6_status', st.detail), ent('sensor.s6_vacuum_error', st.err),
       ent('sensor.s6_cleaning_area', String(st.area)), ent('sensor.s6_cleaning_time', String(st.minutes ?? 0)), ent('select.s6_cleaning_mode', st.mode),
       ent('binary_sensor.s6_water_shortage', st.water), ent('binary_sensor.s6_mop_attached', st.mop), ent('select.s6_selected_map', 'Map 0')],
-    position: { x: 25600, y: 25600, at: Date.now() / 1000 },
+    position: { ...(st.pos || { x: 25600, y: 25600 }), at: Date.now() / 1000 },
     geometry: { maps: [{ map_id: 0, source_updated_at: '2026-10-01T00:00:00Z', calibration: CAL, obstacles: [], no_go_areas: [],
-      path: [[{ x: 25600, y: 25600 }, { x: 26000, y: 25600 }]], robot: { x: 25600, y: 25600, angle: 0 }, charger: null, image_size: { width: 1428, height: 1380 } }] },
+      path: [[{ x: 25600, y: 25600 }, { x: 26000, y: 25600 }]], robot: { ...(st.robot || { x: 25600, y: 25600 }), angle: 0 }, charger: st.charger || null, image_size: { width: 1428, height: 1380 } }] },
   });
   const reply = (body, status = 200) => ({ ok: status < 400, status, json: async () => body });
   async function fetch(url, o = {}) {
@@ -58,7 +58,8 @@ function fakeBridge(init = {}) {
     if (url.startsWith('/api/schedules')) return reply({ schedules: [] });
     return reply({ error: 'none' }, 503); // e.g. /api/map: not under test
   }
-  return { st, sent, fetch, robotCommands: () => sent.filter(a => a !== 'mode') };
+  return { st, sent, fetch, robotCommands: () => sent.filter(a => a !== 'mode'),
+    setPosition: p => { st.pos = p; }, setRobot: (robot, charger) => { st.robot = robot; st.charger = charger; } };
 }
 
 const open = [];
@@ -395,5 +396,23 @@ test('the last-cleaning tile shows the area when there is no full-clean referenc
   Object.assign(b.st, { vacuum: 'docked', detail: 'charging' });
   await app.poll();
   assert.equal(app.run('window.doneTile()'), '4.2 m²');
+  app.close();
+});
+
+test('alignment: on the dock the live position is shifted onto where the robot\'s own map puts it, and by hand wins', async () => {
+  const b = fakeBridge();
+  const app = await boot(b);
+  // map: robot beside the charger; live reading 0.4 m / 0.3 m off
+  b.setPosition({ x: 25643, y: 25338 });
+  b.setRobot({ x: 25243, y: 25038 }, { x: 25083, y: 24958 });
+  await app.poll(2);
+  assert.equal(app.run('HA.align&&HA.align.auto'), true);
+  assert.equal(app.run('HA.align.how'), 'shift');
+  const q = JSON.parse(app.run('JSON.stringify(HAModel.toMap(HA.align.al,HA.poseRaw))'));
+  assert.ok(Math.abs(q.x - 25243) < 1 && Math.abs(q.y - 25038) < 1);
+  app.run("HA.align={...HA.align,auto:false,manual:true,al:{c:1,s:0,tx:1,ty:1}};HA.lastPairKey=''");
+  b.setRobot({ x: 25250, y: 25040 }, { x: 25083, y: 24958 });
+  await app.poll(2);
+  assert.equal(app.run('HA.align.manual'), true, 'a manual alignment is never replaced');
   app.close();
 });

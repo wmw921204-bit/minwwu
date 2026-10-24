@@ -120,3 +120,14 @@ test('map alignment: two taps give rotation and shift, and commands map back', (
   assert.deepEqual(M.toMap(shift, { x: 10, y: 10 }), { x: 110, y: -40 });
   assert.equal(M.toMap(null, { x: 1, y: 2 }).x, 1);
 });
+
+test('rigidFit recovers a turn and shift from point pairs, and reports how well they agree', () => {
+  const t = 0.3, c = Math.cos(t), s = Math.sin(t), f = p => ({ x: c * p.x - s * p.y + 500, y: s * p.x + c * p.y - 200 });
+  const pairs = [{ x: 0, y: 0 }, { x: 3000, y: 0 }, { x: 0, y: 2500 }, { x: 1500, y: 4000 }].map(p => ({ live: p, map: f(p) }));
+  const al = M.rigidFit(pairs);
+  assert.ok(Math.abs(Math.atan2(al.s, al.c) - t) < 1e-9);
+  assert.ok(Math.abs(al.tx - 500) < 1e-6 && Math.abs(al.ty + 200) < 1e-6);
+  assert.ok(al.rms < 1e-6);
+  const one = M.rigidFit([{ live: { x: 10, y: 20 }, map: { x: 410, y: 320 } }]);
+  assert.deepEqual([one.c, one.s, one.tx, one.ty], [1, 0, 400, 300], 'one pair is a shift only');
+});
