@@ -79,8 +79,8 @@
   }
 
   /* ---------- bridge ---------- */
-  async function api(path,body){
-    const r=await fetch('/api/'+path,{signal:AbortSignal.timeout(15000),cache:'no-store',
+  async function api(path,body,wait){
+    const r=await fetch('/api/'+path,{signal:AbortSignal.timeout(wait||15000),cache:'no-store',
       ...(body?{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}:{})});
     let v={};try{v=await r.json()}catch(e){}
     if(!r.ok){const err=new Error(v.error||'Home Assistant request failed ('+r.status+')');err.status=r.status;throw err}
@@ -229,7 +229,7 @@
     const pos=noSpot?null:robotPose(),zid='z'+(++seq);
     ZONES[zid]={name:pos?'Where the robot was at '+hhmm(S.clock):'Robot map',room:pos?roomKey(pos):'live',cells:[],keys:[],mm:pos?{x:pos.x,y:pos.y}:null};
     defineProblem(key,info,zid);
-    const ev={id:'e'+(++seq),key,at:S.clock,status:'needsReview',autonomous:false,log:[],outcome:null,zone:zid,problem:true,info,attempts:0};
+    const ev={id:'e'+(++seq),key,at:S.clock,status:'needsReview',autonomous:false,log:[],outcome:null,zone:zid,problem:true,info,attempts:0,seenAt:robotPose()};
     S.events.push(ev);evLog(ev,'robot',info.what);notice(ev);
     return ev;
   }
@@ -585,6 +585,37 @@
     const a=HA.recent[HA.recent.length-2],b=HA.recent[HA.recent.length-1];
     if(a&&b&&b.t-a.t<10000&&Math.hypot(b.x-a.x,b.y-a.y)>2500&&!t.jumpWarned){t.jumpWarned=true;
       raiseProblem('p_jump',{title:'Robot lost its place',what:'Its position jumped by '+(Math.hypot(b.x-a.x,b.y-a.y)/1000).toFixed(1)+' m in a few seconds.',fix:'This happens when the robot re-finds where it is on the map. If the robot on the map now looks wrong, align the map.',why:'From the robot’s live position.',options:['pOk','pAlign']},true)}
+  }
+
+  /* ---------- a look through the robot's camera: its own photos near where it got stuck, and Claude's reading of them ---------- */
+  const STUCK_ERRS=new Set(['bumper_stuck','wheels_suspended','main_brush_jammed','side_brush_jammed','wheels_jammed','robot_trapped','robot_tilted','vertical_bumper_pressed','robot_on_carpet','cannot_cross_carpet']);
+  const lookKind=ev=>ev.key==='p_dwell'?'dwell':ev.key==='p_noprogress'?'noprogress':STUCK_ERRS.has(ev.key.slice(2))?'stuck':null;
+  const objName=o=>o.label==='unknown'?(o.description||'Unknown object').replace(/_/g,' '):OBJ[o.label].n;
+  function nearPhotos(ev){
+    const at=ev.seenAt||robotPose();if(!at||!HA.map||!HA.snap?.vacuum)return [];
+    return M().objects(HA.snap.vacuum.entity_id,HA.map,{}).filter(o=>o.photoName).map(o=>({o,d:Math.hypot(o.mm.x-at.x,o.mm.y-at.y)}))
+      .filter(p=>p.d<=1500).sort((a,b)=>a.d-b.d).slice(0,3);
+  }
+  const LOOKING=new Set(); // asks in flight; a saved 'asking' from before a reload is asked again
+  function askLook(ev){
+    const ph=nearPhotos(ev);if(!ph.length)return;
+    ev.look={state:'asking'};LOOKING.add(ev.id);
+    const rm=ev.seenAt&&M().roomAt(HA.rooms,ev.seenAt);
+    api('explain',{situation:lookKind(ev),photos:ph.map(p=>p.o.photoName),labels:ph.map(p=>p.o.description||p.o.label),...(rm?{room:rm.name}:{})},70000)
+      .then(r=>{ev.look={state:'done',seen:r.seen,cause:r.cause,advice:r.advice,sure:r.sure};evLog(ev,'robot','AI look at the photos: '+r.cause);persist()})
+      .catch(e=>{ev.look={state:'error',msg:e.message}}).finally(()=>{LOOKING.delete(ev.id);render()});
+  }
+  function lookHtml(ev){
+    if(!lookKind(ev))return '';
+    const ph=nearPhotos(ev);
+    if(!ph.length)return `<div class="look"><h4>${ic('camera',16)} The robot’s camera</h4><p class="small muted" style="margin:0">No photos from the robot near this spot yet. They arrive with the next map update.</p></div>`;
+    if(!ev.look||(ev.look.state==='asking'&&!LOOKING.has(ev.id)))askLook(ev);
+    const L=ev.look||{};
+    let ai='';
+    if(L.state==='asking')ai=`<p class="muted">Asking AI what the photos show…</p>`;
+    else if(L.state==='done')ai=`<p><b>${L.sure?'Likely cause':'Not sure, but maybe'}:</b> ${esc(L.cause)}</p><p><b>What you can do:</b> ${esc(L.advice)}</p><p class="small muted" style="margin:0">AI looked at these photos (${esc(L.seen)}). It can be wrong.</p>`;
+    else if(L.state==='error')ai=`<p class="small muted" style="margin:0">AI couldn’t look at the photos: ${esc(L.msg)} <button class="link" data-a="haLook" data-v="${ev.id}">Try again</button></p>`;
+    return `<div class="look"><h4>${ic('camera',16)} What the robot’s camera saw nearby</h4><div class="look-ph">${ph.map(p=>`<figure><span class="look-img"><img src="/api/photo?name=${encodeURIComponent(p.o.photoName)}" alt="${esc(objName(p.o))}" loading="lazy" onerror="this.style.visibility='hidden'"></span><figcaption>${esc(objName(p.o))} · ${(p.d/1000).toFixed(1)} m away</figcaption></figure>`).join('')}</div>${ai?`<div class="look-ai">${ai}</div>`:''}</div>`;
   }
 
   /* ---------- Home Assistant snapshot → app state ---------- */
@@ -1169,7 +1200,10 @@
     wrap('scrEvent',(h,id)=>{const ev=findEvent(id);if(!ev||!ev.problem||ev.care)return h;
       const st=S.device.status,a=HA.dev?.area;
       const now=ev.status==='resolved'?'Sorted: '+(ev.outcome||'back to normal.'):st==='cleaning'?'Right now: it is cleaning'+(a!=null?' ('+Math.round(a*10)/10+' m² so far)':'')+'.':st==='docked'?'Right now: on the dock.':st==='returning'?'Right now: heading back to the dock.':st==='paused'?'Right now: paused, waiting.':st==='error'?'Right now: it needs a hand.':'';
-      return now?h.replace('</div>',`</div><p class="small" style="margin:10px 4px 0;font-weight:700;color:${ev.status==='resolved'?'var(--ok)':'var(--ink)'}">${esc(now)}</p>`):h});
+      if(now)h=h.replace('</div>',`</div><p class="small" style="margin:10px 4px 0;font-weight:700;color:${ev.status==='resolved'?'var(--ok)':'var(--ink)'}">${esc(now)}</p>`);
+      // the camera look sits right under the robot's own line, before the buttons
+      const look=lookHtml(ev),at=h.indexOf('class="ev-line"'),end=at<0?-1:h.indexOf('</p>',at)+4;
+      return !look?h:end>3?h.slice(0,end)+look+h.slice(end):h.replace('<details class="why"',look+'<details class="why"')});
     wrap('scrHome',h=>S.ctl.scenario==='none'?h:h.replace('</button></div>',`</button></div><p class="small" style="margin:8px 2px 0;color:var(--warn);font-weight:700">${ic('bulb',14)} Study events on: simulated events can appear during cleanings. <button class="link" data-a="haScenario" data-v="none">Turn off</button></p>`));
     wrap('statusCard',h=>{
       if(dev().status!=='idle'||S.conn!=='connected')return h;
@@ -1279,6 +1313,7 @@
     A.resume=()=>liveCommand('start',{label:'Resume',done:'Cleaning resumed',expect:['cleaning']},()=>{S.checkEv=null;S.waitEv=null;tl('you','You resumed cleaning')});
     A.endReturn=()=>{S.ui.modal={title:'End cleaning and return?',body:'<p>The robot stops and goes back to its dock. Places it hasn’t reached yet stay uncleaned this time.</p>',buttons:[{label:'End and return to dock',a:'confirmEnd',cls:'danger'},{label:'Keep cleaning',a:'closeModal'}]};commit()};
     A.confirmEnd=()=>{S.ui.modal=null;stopAll();liveCommand('return_to_base',{label:'End and return',done:'Returning to dock',expect:['returning','docked'],force:true},()=>{if(S.task&&!S.task.done){S.task.endedEarly=true;tl('you','You ended cleaning early')}S.sim.pending=[]})};
+    A.haLook=id=>{const ev=findEvent(id);if(ev){ev.look=null;render()}};
     A.haDock=()=>{stopAll();liveCommand('return_to_base',{label:'Send to dock',done:'Returning to dock',expect:['returning','docked'],force:true})};
     A.reconnect=()=>{S.conn='connecting';commit();refresh()};
     A.cmdRefresh=()=>{S.cmd=null;HA.sig='';refresh()};

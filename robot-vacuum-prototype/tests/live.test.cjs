@@ -36,7 +36,7 @@ function fakeBridge(init = {}) {
       ent('sensor.s6_cleaning_area', String(st.area)), ent('sensor.s6_cleaning_time', String(st.minutes ?? 0)), ent('select.s6_cleaning_mode', st.mode),
       ent('binary_sensor.s6_water_shortage', st.water), ent('binary_sensor.s6_mop_attached', st.mop), ent('select.s6_selected_map', 'Map 0')],
     position: { ...(st.pos || { x: 25600, y: 25600 }), at: Date.now() / 1000 },
-    geometry: { maps: [{ map_id: 0, source_updated_at: st.mapAt || '2026-10-01T00:00:00Z', calibration: CAL, obstacles: [], no_go_areas: [],
+    geometry: { maps: [{ map_id: 0, source_updated_at: st.mapAt || '2026-10-01T00:00:00Z', calibration: CAL, obstacles: st.obstacles || [], no_go_areas: [],
       path: [[{ x: 25600, y: 25600 }, { x: 26000, y: 25600 }]], robot: { ...(st.robot || { x: 25600, y: 25600 }), angle: 0 }, charger: st.charger || null, image_size: { width: 1428, height: 1380 } }] },
   });
   const reply = (body, status = 200) => ({ ok: status < 400, status, json: async () => body });
@@ -52,6 +52,7 @@ function fakeBridge(init = {}) {
         if (b.action === 'zone' || b.action === 'zones') Object.assign(st, { vacuum: 'cleaning', detail: 'zoned_cleaning' });
         return reply({ accepted: true });
       }
+      if (url === '/api/explain') { st.asked = b; return st.explain ? reply(st.explain) : reply({ error: 'AI explanations are off: start the bridge with ANTHROPIC_API_KEY set.' }, 503); }
       return reply({ sent: [] });
     }
     if (url.startsWith('/api/state')) return init.noBridge ? reply({}, 404) : reply(snapshot());
@@ -486,5 +487,45 @@ test('a robot problem screen says what the robot is doing now', async () => {
   Object.assign(b.st, { vacuum: 'error', detail: 'error', err: 'wheels_suspended' }); await app.poll();
   const id = app.run("S.events.find(e=>e.key==='p_wheels_suspended').id");
   assert.match(app.run(`scrEvent('${id}')`), /Right now: it needs a hand\./);
+  app.close();
+});
+
+test('stuck: the problem shows the robot’s own photos near it and the AI’s plain reading of them', async () => {
+  const b = fakeBridge({ obstacles: [
+    { x: 25900, y: 25700, type_code: 26, description: 'cable', photo_name: 'near1' },
+    { x: 31000, y: 31000, type_code: 3, description: 'shoe', photo_name: 'far1' },
+    { x: 25500, y: 25400, type_code: 2, description: 'sock' }] });
+  b.st.explain = { seen: 'a white cable under the robot', cause: 'A charging cable is caught under the robot.', advice: 'Lift the robot, unhook the cable, then resume.', sure: true, model: 'x' };
+  const app = await boot(b);
+  app.run('A.startTask()'); await app.poll(2);
+  Object.assign(b.st, { vacuum: 'error', detail: 'error', err: 'wheels_jammed' }); await app.poll();
+  const id = app.run("S.events.find(e=>e.key==='p_wheels_jammed').id");
+  let h = app.run(`scrEvent('${id}')`);
+  assert.match(h, /What the robot’s camera saw nearby/);
+  assert.match(h, /\/api\/photo\?name=near1/);
+  assert.doesNotMatch(h, /far1/, 'photos more than 1.5 m away are left out');
+  await new Promise(r => setTimeout(r, 30));
+  assert.deepEqual(b.st.asked.photos, ['near1']);
+  assert.equal(b.st.asked.situation, 'stuck');
+  h = app.run(`scrEvent('${id}')`);
+  assert.match(h, /Likely cause:<\/b> A charging cable is caught/);
+  assert.match(h, /It can be wrong/);
+  app.close();
+});
+
+test('stuck: without an AI key the photos still show and the reason is said plainly', async () => {
+  const b = fakeBridge({ obstacles: [{ x: 25900, y: 25700, type_code: 26, description: 'cable', photo_name: 'near1' }] });
+  const app = await boot(b);
+  app.run('A.startTask()'); await app.poll(2);
+  Object.assign(b.st, { vacuum: 'error', detail: 'error', err: 'robot_trapped' }); await app.poll();
+  const id = app.run("S.events.find(e=>e.key==='p_robot_trapped').id");
+  app.run(`scrEvent('${id}')`);
+  await new Promise(r => setTimeout(r, 30));
+  const h = app.run(`scrEvent('${id}')`);
+  assert.match(h, /name=near1/);
+  assert.match(h, /AI couldn’t look at the photos: AI explanations are off/);
+  // a problem that isn't about being stuck gets no camera section
+  Object.assign(b.st, { err: 'no_dustbin' }); await app.poll();
+  assert.doesNotMatch(app.run(`scrEvent(S.events.find(e=>e.key==='p_no_dustbin').id)`), /camera/);
   app.close();
 });

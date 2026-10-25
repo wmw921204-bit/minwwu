@@ -122,3 +122,17 @@ Between sessions the panel lists every saved participant with View (shows their 
 A goal counts however they get there: only the end state is checked (for example, Full auto counts whether it was set from Home or in Settings, for an hour or for good). The route and the choice are recorded in the `how` column, and the screens in `path`.
 
 Data stays in this browser until exported. Edit `SCRIPT` and `TASKS` in `study-log.js` to change the wording or the tasks. With the real robot, starting a cleaning moves the robot.
+
+## AI look at stuck spots (optional)
+
+When the robot is stuck, keeps working in one spot, or stops making progress, the problem page shows the
+robot's own obstacle photos from within 1.5 m of where it was. If the bridge has an Anthropic API key, it
+also sends those photos (at most three) to Claude (`claude-opus-5-5`) and shows a short likely cause and
+what to do, marked as an AI guess. Without a key the photos still show.
+
+```bash
+pip3 install anthropic
+ANTHROPIC_API_KEY=... python3 server.py
+```
+
+Or put the key in `.anthropic-key` next to `server.py` (git-ignored). Photos only leave the house when a key is set.

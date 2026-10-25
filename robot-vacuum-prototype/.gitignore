@@ -3,3 +3,4 @@
 .map-cache.json
 __pycache__/
 node_modules/
+.anthropic-key

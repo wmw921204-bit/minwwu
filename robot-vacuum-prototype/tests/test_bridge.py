@@ -262,3 +262,61 @@ class PhotoTests(unittest.TestCase):
         with patch.object(server, 'ha', return_value={'service_response': {'error': 'unknown photo name'}}):
             with self.assertRaises(server.BridgeError):
                 server.obstacle_photo('p2')
+
+
+class ExplainTests(unittest.TestCase):
+    def setUp(self):
+        server.AI_CACHE.clear()
+        server.AI_LAST['at'] = 0
+
+    def fake_sdk(self, reply_text, stop='end_turn'):
+        import types
+        calls = []
+        block = types.SimpleNamespace(type='text', text=reply_text)
+        response = types.SimpleNamespace(stop_reason=stop, content=[block])
+        class Messages:
+            def create(self, **kw):
+                calls.append(kw)
+                return response
+        class Client:
+            def __init__(self, **kw):
+                calls.append(kw)
+                self.beta = types.SimpleNamespace(messages=Messages())
+        sdk = types.ModuleType('anthropic')
+        sdk.Anthropic = Client
+        for name in ('AuthenticationError', 'RateLimitError', 'APIStatusError', 'APIConnectionError'):
+            setattr(sdk, name, type(name, (Exception,), {}))
+        return sdk, calls
+
+    def test_photos_go_to_claude_and_a_short_reason_comes_back(self):
+        answer = json.dumps({'seen': 'a cable', 'cause': 'A cable is under the robot.', 'advice': 'Move the cable.', 'sure': True})
+        sdk, calls = self.fake_sdk(answer)
+        with patch.dict(sys.modules, {'anthropic': sdk}), patch.dict(server.os.environ, {'ANTHROPIC_API_KEY': 'test-key'}), \
+                patch.object(server, 'obstacle_photo', return_value=(b'jpg', 'image/jpeg')) as photo:
+            got = server.explain({'situation': 'stuck', 'photos': ['p1', 'p2'], 'labels': ['cable', None], 'room': 'Kitchen'})
+            self.assertEqual(got['cause'], 'A cable is under the robot.')
+            self.assertTrue(got['sure'])
+            self.assertEqual([c[0][0] for c in photo.call_args_list], ['p1', 'p2'])
+            request = calls[1]
+            self.assertEqual(request['model'], 'claude-opus-5-5')
+            self.assertEqual(request['fallbacks'], 'default')
+            images = [b for b in request['messages'][0]['content'] if b['type'] == 'image']
+            self.assertEqual(len(images), 2)
+            self.assertEqual(images[0]['source']['media_type'], 'image/jpeg')
+            self.assertIn('Kitchen', request['messages'][0]['content'][-1]['text'])
+            # the same question again is answered from memory, without another call
+            self.assertEqual(server.explain({'situation': 'stuck', 'photos': ['p1', 'p2'], 'room': 'Kitchen'})['cause'], got['cause'])
+            self.assertEqual(len(calls), 2)
+
+    def test_no_key_bad_input_and_refusal(self):
+        with patch.dict(server.os.environ, {'ANTHROPIC_API_KEY': ''}), patch.object(server, 'AI_KEY_FILE', Path('/nonexistent/key')):
+            with self.assertRaises(server.BridgeError):
+                server.explain({'situation': 'stuck', 'photos': ['p1']})
+        for bad in ({'situation': 'bored', 'photos': ['p1']}, {'situation': 'stuck', 'photos': []}, {'situation': 'stuck', 'photos': ['a', 'b', 'c', 'd']}):
+            with self.assertRaises(ValueError):
+                server.explain(bad)
+        sdk, _ = self.fake_sdk('', stop='refusal')
+        with patch.dict(sys.modules, {'anthropic': sdk}), patch.dict(server.os.environ, {'ANTHROPIC_API_KEY': 'k'}), \
+                patch.object(server, 'obstacle_photo', return_value=(b'jpg', 'image/jpeg')):
+            with self.assertRaises(server.BridgeError):
+                server.explain({'situation': 'dwell', 'photos': ['p1']})

@@ -97,6 +97,103 @@ def obstacle_photo(name):
     return base64.b64decode(result['data']), mime
 
 
+AI_KEY_FILE = ROOT / '.anthropic-key'  # optional; git-ignored. ANTHROPIC_API_KEY wins.
+AI_MODEL = 'claude-opus-5-5'
+AI_SITUATIONS = {
+    'stuck': 'The robot reported that it is stuck and stopped.',
+    'dwell': 'The robot has stayed within about one metre for several minutes while cleaning.',
+    'noprogress': 'The robot keeps cleaning but the cleaned area has not grown for several minutes.',
+}
+AI_CACHE = {}
+AI_LAST = {'at': 0.0}
+AI_SCHEMA = {
+    'type': 'object',
+    'properties': {
+        'seen': {'type': 'string', 'description': 'What the photos show near the robot, a few words.'},
+        'cause': {'type': 'string', 'description': 'The most likely reason, one plain sentence for the owner.'},
+        'advice': {'type': 'string', 'description': 'What the owner can do, one short sentence.'},
+        'sure': {'type': 'boolean', 'description': 'False when the photos do not show a clear reason.'},
+    },
+    'required': ['seen', 'cause', 'advice', 'sure'],
+    'additionalProperties': False,
+}
+AI_PROMPT = (
+    'You help the owner of a robot vacuum understand a problem. The photos were taken by the robot\'s front camera '
+    'near where it is now, newest first, each with the label the robot gave it. Situation: {situation}{extra} '
+    'Say what most likely holds it up (for example a cable, a sock, a rug edge, a gap under furniture, a threshold) '
+    'and what the owner can do. Write for someone who is not technical, in English, at most 25 words per field. '
+    'If the photos do not show a clear reason, say so and set sure to false.'
+)
+
+
+def ai_key():
+    key = os.environ.get('ANTHROPIC_API_KEY', '').strip()
+    if not key and AI_KEY_FILE.exists():
+        key = AI_KEY_FILE.read_text().strip()
+    return key
+
+
+def explain(data):
+    """Send up to three robot photos to Claude and get back a short, plain reason. The owner agreed to this."""
+    situation = data.get('situation')
+    names = data.get('photos')
+    if situation not in AI_SITUATIONS or not isinstance(names, list) or not 0 < len(names) <= 3:
+        raise ValueError('explain')
+    labels = data.get('labels') if isinstance(data.get('labels'), list) else []
+    room = text(data, 'room', 40) if data.get('room') else ''
+    cache_key = json.dumps([situation, names, room])
+    if cache_key in AI_CACHE:
+        return AI_CACHE[cache_key]
+    key = ai_key()
+    if not key:
+        raise BridgeError('AI explanations are off: start the bridge with ANTHROPIC_API_KEY set.')
+    try:
+        import anthropic
+    except ImportError:
+        raise BridgeError('AI explanations need the Anthropic SDK: pip3 install anthropic')
+    if time.time() - AI_LAST['at'] < 15:
+        raise BridgeError('Asked a moment ago; try again in a few seconds.')
+    content = []
+    for i, name in enumerate(names):
+        body, mime = obstacle_photo(name)
+        label = str(labels[i])[:40] if i < len(labels) and labels[i] else 'unlabelled'
+        content.append({'type': 'text', 'text': 'Photo %d, robot label: %s' % (i + 1, label)})
+        content.append({'type': 'image', 'source': {'type': 'base64', 'media_type': mime,
+                                                    'data': base64.standard_b64encode(body).decode()}})
+    extra = (' It is in the %s.' % room) if room else ''
+    content.append({'type': 'text', 'text': AI_PROMPT.format(situation=AI_SITUATIONS[situation], extra=extra)})
+    AI_LAST['at'] = time.time()
+    client = anthropic.Anthropic(api_key=key, timeout=60, max_retries=1)
+    try:
+        response = client.beta.messages.create(
+            model=AI_MODEL,
+            max_tokens=2000,
+            betas=['server-side-fallback-2026-07-01'],
+            fallbacks='default',
+            output_config={'effort': 'low', 'format': {'type': 'json_schema', 'schema': AI_SCHEMA}},
+            messages=[{'role': 'user', 'content': content}],
+        )
+    except anthropic.AuthenticationError:
+        raise BridgeError('The Anthropic API key was rejected.')
+    except anthropic.RateLimitError:
+        raise BridgeError('The AI service is busy; try again in a minute.')
+    except anthropic.APIStatusError as exc:
+        raise BridgeError('The AI request failed (%s).' % exc.status_code)
+    except anthropic.APIConnectionError:
+        raise BridgeError('Can’t reach the AI service.')
+    if response.stop_reason == 'refusal':
+        raise BridgeError('The AI could not look at these photos.')
+    raw = next((b.text for b in response.content if b.type == 'text'), '')
+    try:
+        result = json.loads(raw)
+    except ValueError:
+        raise BridgeError('The AI gave no usable answer.')
+    answer = {k: (str(result.get(k, ''))[:200] if k != 'sure' else bool(result.get('sure'))) for k in AI_SCHEMA['required']}
+    answer['model'] = AI_MODEL
+    AI_CACHE[cache_key] = answer
+    return answer
+
+
 def clean(state):
     # Media entities carry signed URLs; they must not reach the page.
     return dict(state, attributes={k: v for k, v in state.get('attributes', {}).items()
@@ -367,7 +464,7 @@ class Handler(BaseHTTPRequestHandler):
                 return self.send(200, snapshot(ha('states'), include_geometry=True))
             if path == '/api/config':
                 return self.send(200, {'configured': bool(os.environ.get('HA_TOKEN') or config().get('token')),
-                                       'vacuum': config().get('vacuum', '')})
+                                       'vacuum': config().get('vacuum', ''), 'ai': bool(ai_key())})
             if path == '/api/schedules':
                 return self.send(200, {'schedules': schedule_list()})
             if path == '/api/photo':
@@ -420,6 +517,8 @@ class Handler(BaseHTTPRequestHandler):
             if self.path == '/api/notify':
                 text(data, 'title', 80), text(data, 'message', 300)
                 return self.send(200, {'sent': notify(data)})
+            if self.path == '/api/explain':
+                return self.send(200, explain(data))
             if self.path == '/api/schedules/delete':
                 schedule_delete(data)
                 return self.send(200, {'deleted': True})
