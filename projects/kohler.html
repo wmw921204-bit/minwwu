@@ -126,7 +126,7 @@
       return html;
     };
     const show = (html) => { document.open(); document.write(html); document.close(); };
-    const loadSite = () => JSON.parse('["../assets/js/lenis.min.js","../main.js?v=20261030a"]').reduce((p, src) => p.then(() => new Promise((ok) => { const s = document.createElement("script"); s.src = src; s.onload = s.onerror = ok; document.body.appendChild(s); })), Promise.resolve());
+    const loadSite = () => JSON.parse('["../assets/js/lenis.min.js","../main.js?v=20261030b"]').reduce((p, src) => p.then(() => new Promise((ok) => { const s = document.createElement("script"); s.src = src; s.onload = s.onerror = ok; document.body.appendChild(s); })), Promise.resolve());
     const form = document.querySelector("[data-lock]"), msg = document.querySelector("[data-lock-msg]"), input = form.querySelector("input");
     form.addEventListener("submit", async (e) => {
       e.preventDefault();
