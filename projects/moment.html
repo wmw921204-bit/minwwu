@@ -111,7 +111,6 @@
       <div class="wrap mom-problem__in">
         <div class="c-chapter"><span class="c-chapter__num">01</span><h2 class="c-kicker">The problem</h2></div>
         <p class="mom-problem__head reveal-mask">Panic happens fast.<br><em>Support should be faster.</em></p>
-        <p class="c-text reveal">Ten minutes before an interview, rehearsing turns into panic: heart racing, mind blank. Students hide it from everyone nearby and won’t reach for a phone, so help never arrives in time.</p>
         <div class="mom-big reveal-stagger">
           <div><span class="mom-big__n">1<i>/</i>9</span><p>college students have had at least one unexpected panic attack.</p><small>Telch et al., 1989 · n = 2,375</small></div>
           <div><span class="mom-big__n">2<i>×</i></span><p>the risk of a panic disorder diagnosis in autistic adults.</p><small>Nimmo-Smith et al., 2020</small></div>
@@ -120,39 +119,34 @@
       </div>
     </section>
 
-    <!-- 02 Journey -->
-    <section class="wrap c-sec" id="journey" data-chapter="Emotional journey">
+    <!-- 02 Journey: the phases live inside the chart -->
+    <section class="wrap c-sec mom-journey" id="journey" data-chapter="Emotional journey">
       <div class="c-chapter"><span class="c-chapter__num">02</span><h2 class="c-kicker">Emotional journey</h2></div>
-      <p class="c-head reveal-mask">Pause, reconnect, re-enter.</p>
-      <p class="c-text reveal">Grounding brings attention back to the present. Instead of asking a panicking student to make choices, Moment follows the body back up, one sensory step at a time.</p>
+      <div class="mom-journey__top">
+        <p class="c-head reveal-mask">Pause, reconnect, re-enter.</p>
+        <p class="c-text reveal">Instead of asking a panicking student to make choices, Moment follows the body back up, one sensory step at a time.</p>
+      </div>
       <figure class="mom-chart reveal" aria-label="Emotional journey: a sharp drop into panic, then a steady climb through pause and reconnect to re-enter">
-        <svg viewBox="0 0 1000 440">
+        <svg viewBox="0 0 1000 300" aria-hidden="true">
           <defs>
-            <linearGradient id="mgLine" x1="0" x2="1" y1="0" y2="0"><stop offset="0" stop-color="#e8604c"/><stop offset=".3" stop-color="#e8604c"/><stop offset=".55" stop-color="#d9e4c4"/><stop offset="1" stop-color="#b4d58a"/></linearGradient>
-            <linearGradient id="mgArea" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#b4d58a" stop-opacity=".22"/><stop offset="1" stop-color="#b4d58a" stop-opacity="0"/></linearGradient>
+            <linearGradient id="mgLine" x1="0" x2="1" y1="0" y2="0"><stop offset="0" stop-color="#e8604c"/><stop offset=".26" stop-color="#e8604c"/><stop offset=".55" stop-color="#d9e4c4"/><stop offset="1" stop-color="#b4d58a"/></linearGradient>
+            <linearGradient id="mgArea" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#b4d58a" stop-opacity=".2"/><stop offset="1" stop-color="#b4d58a" stop-opacity="0"/></linearGradient>
             <filter id="mgGlow" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="8"/></filter>
           </defs>
-          <g class="mom-chart__bands">
-            <rect x="250" y="40" width="250" height="360"/><rect x="750" y="40" width="250" height="360"/>
-          </g>
-          <g class="mom-chart__phase">
-            <text x="125" y="26">PANIC</text><text x="375" y="26">PAUSE · 01–05</text><text x="625" y="26">RECONNECT · 06–10</text><text x="875" y="26">RE-ENTER · 11–12</text>
-          </g>
-          <path class="mom-chart__area" d="M30 120 C 90 200, 150 370, 250 372 C 330 374, 420 330, 500 290 S 650 170, 750 140 S 900 80, 970 64 L970 400 L30 400Z" fill="url(#mgArea)"/>
-          <path class="mom-chart__line mom-chart__line--glow" pathLength="1" d="M30 120 C 90 200, 150 370, 250 372 C 330 374, 420 330, 500 290 S 650 170, 750 140 S 900 80, 970 64" stroke="url(#mgLine)" filter="url(#mgGlow)"/>
-          <path class="mom-chart__line" pathLength="1" d="M30 120 C 90 200, 150 370, 250 372 C 330 374, 420 330, 500 290 S 650 170, 750 140 S 900 80, 970 64" stroke="url(#mgLine)"/>
-          <circle class="mom-chart__pulse" cx="250" cy="372" r="10"/>
-          <circle class="mom-chart__dot mom-chart__dot--red" cx="250" cy="372" r="7"/>
-          <circle class="mom-chart__dot" cx="970" cy="64" r="8"/>
-          <text class="mom-chart__y" x="30" y="420">heart racing · mind blank</text>
-          <text class="mom-chart__y" x="970" y="420" text-anchor="end">calm enough to walk in</text>
+          <path class="mom-chart__area" d="M20 70 C 80 150, 140 268, 220 270 C 300 272, 330 256, 375 238 S 520 150, 625 118 S 880 60, 980 40 L980 300 L20 300Z" fill="url(#mgArea)"/>
+          <path class="mom-chart__line mom-chart__line--glow" pathLength="1" d="M20 70 C 80 150, 140 268, 220 270 C 300 272, 330 256, 375 238 S 520 150, 625 118 S 880 60, 980 40" stroke="url(#mgLine)" filter="url(#mgGlow)"/>
+          <path class="mom-chart__line" pathLength="1" d="M20 70 C 80 150, 140 268, 220 270 C 300 272, 330 256, 375 238 S 520 150, 625 118 S 880 60, 980 40" stroke="url(#mgLine)"/>
+          <circle class="mom-chart__pulse" cx="220" cy="270" r="9"/>
+          <circle class="mom-chart__dot mom-chart__dot--red" cx="220" cy="270" r="7"/>
+          <circle class="mom-chart__dot" cx="980" cy="40" r="8"/>
         </svg>
+        <ol class="mom-chart__phases">
+          <li class="is-panic"><b>Panic</b><h3>Mind goes blank</h3><p>Ten minutes before the interview, rehearsing turns into a racing heart.</p></li>
+          <li><b>Pause · 01–05</b><h3>Slow the body first</h3><p>Sit down and breathe, paced by a ring in the lens.</p></li>
+          <li><b>Reconnect · 06–10</b><h3>Anchor in the room</h3><p>Touch, one real object, then sound pull attention out of the spiral.</p></li>
+          <li><b>Re-enter · 11–12</b><h3>Walk in as yourself</h3><p>The body has reset; calm that is enough.</p></li>
+        </ol>
       </figure>
-      <ol class="mom-steps reveal-stagger">
-        <li><b>Pause</b><h3>Slow the body first</h3><p>Sit down and breathe, paced by a ring in the lens.</p></li>
-        <li><b>Reconnect</b><h3>Anchor in the room</h3><p>Touch, one real object, then sound pull attention out of the spiral.</p></li>
-        <li><b>Re-enter</b><h3>Walk in as yourself</h3><p>Affirm that the body has reset, and return with calm that is enough.</p></li>
-      </ol>
     </section>
 
     <!-- 03 Flow: scroll-driven -->
@@ -237,6 +231,13 @@
       </div>
     </section>
 
+    <!-- 07 Film -->
+    <section class="wrap c-sec" id="film" data-chapter="The film">
+      <div class="c-chapter"><span class="c-chapter__num">07</span><h2 class="c-kicker">The film</h2></div>
+      <p class="c-head reveal-mask">Outside, noise. Inside, one moment.</p>
+      <figure class="film reveal"><video controls playsinline preload="metadata" poster="../assets/projects/moment/film-poster.webp" aria-label="Moment concept film: from panic to the twelve-step reset in the lens, ending on the Moment logo"><source src="../assets/projects/moment/film.mp4" type="video/mp4"></video></figure>
+    </section>
+
     <a class="c-next wrap" href="zenbloom.html" data-cursor="Next" style="--next:#cea662;--next-bg:#cea662;--next-fg:#1a120b">
       <p class="eyebrow">Next project</p>
       <p class="c-next__title">Zen Bloom</p>
@@ -246,7 +247,7 @@
   <nav class="chapter" aria-label="Chapters">
     <ol class="chapter__list"></ol>
     <button class="chapter__toggle" aria-expanded="false">
-      <span class="chapter__num">01 / 06</span><span class="chapter__label">The problem</span>
+      <span class="chapter__num">01 / 07</span><span class="chapter__label">The problem</span>
       <span class="chapter__bar"><span></span></span>
     </button>
   </nav>
