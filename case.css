@@ -3794,9 +3794,10 @@ img.is-zoomable { cursor: zoom-in; }
 .mom-chart__pin { position: absolute; width: 14px; height: 14px; margin: -7px 0 0 -7px; border-radius: 50%; background: #b4d58a; box-shadow: 0 0 16px rgba(180,213,138,.6); }
 .mom-chart__pin--panic { background: #e8604c; box-shadow: none; }
 .mom-chart__pin--panic::after { content: ""; position: absolute; inset: -2px; border-radius: 50%; border: 2px solid #e8604c; animation: momPulse 2.4s ease-out infinite; }
-.mom-chart__line { fill: none; stroke-width: 4; stroke-linecap: round; stroke-dasharray: 1; stroke-dashoffset: 1; transition: stroke-dashoffset 2.4s cubic-bezier(.5,0,.2,1) .2s; }
+/* Reveal the line left to right with a clip, not a dash: dashes break once the chart stretches */
+.mom-chart__line { fill: none; stroke-width: 4; stroke-linecap: round; clip-path: inset(-20% 100% -20% 0); transition: clip-path 2.4s cubic-bezier(.5,0,.2,1) .2s; }
 .mom-chart__line--glow { stroke-width: 10; opacity: .45; }
-.mom-chart.is-in .mom-chart__line { stroke-dashoffset: 0; }
+.mom-chart.is-in .mom-chart__line { clip-path: inset(-20% -2% -20% 0); }
 .mom-chart__area { opacity: 0; transition: opacity 1.2s ease 1.8s; }
 .mom-chart.is-in .mom-chart__area { opacity: 1; }
 @keyframes momPulse { from { transform: scale(1); opacity: .8; } to { transform: scale(3.2); opacity: 0; } }
