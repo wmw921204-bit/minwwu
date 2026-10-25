@@ -1495,7 +1495,7 @@ if (!reduceMotion && matchMedia("(hover: hover) and (pointer: fine)").matches) {
   const root = location.pathname.includes("/projects/") ? "../" : "";
   const HERO = {
     fitfido: ["hero-poster.webp?v=4", "hero.mp4?v=4"], brilliant: ["hero-poster.webp", "hero.mp4"], swifthome: ["hero-poster.webp?v=3", "hero.mp4?v=3"],
-    safedining: ["hero-poster.webp", "hero.mp4?v=2"], reco: ["hero-poster.webp?v=2", "hero.mp4?v=13"], zenbloom: ["hero-poster.webp?v=4", "hero.mp4?v=4"],
+    safedining: ["hero-poster.webp", "hero.mp4?v=2"], reco: ["hero-poster.webp?v=2", "hero.mp4?v=13"], moment: ["card-16x9.webp"], zenbloom: ["hero-poster.webp?v=4", "hero.mp4?v=4"],
     finra: [], kohler: ["hero-poster.webp", "hero.mp4"], vipshop: ["hero-poster.webp"], bandy: ["hero-poster.webp?v=7", "hero.mp4?v=7"],
   };
   const done = new Set();

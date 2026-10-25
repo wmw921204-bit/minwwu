@@ -3710,3 +3710,29 @@ img.is-zoomable { cursor: zoom-in; }
 @media (max-width: 520px) { .vq-contract__parts, .vq-impact { grid-template-columns: 1fr 1fr; } .vq-reason2__grp > div { grid-auto-flow: row; grid-template-columns: 1fr 1fr; } }
 .vq-dsv .vp-bub button { white-space: nowrap; flex: none; }
 .vq-dsv .vp-bub--pop { max-width: 170px; }
+
+/* ---------- Moment theme: dark sage, a calm green glow ---------- */
+.case--mom {
+  --c-bg: #0c120e; --c-fg: #eef2ea; --c-muted: #9ba597;
+  --c-accent: #b4d58a; --c-accent-ink: #b4d58a; --c-soft: #151d17;
+  --c-line: rgba(238, 242, 234, .12); --accent: #b4d58a;
+  --theme-bg: #a9c97a; --theme-fg: #0c120e;
+}
+.case--mom .chapter { --chapter-accent: #b4d58a; }
+.case--mom .c-hero__marquee span { font-family: 'Josefin Sans', var(--f-display); font-weight: 200; letter-spacing: .1em; text-transform: uppercase; }
+.case--mom .c-covers--natural img, .mom-board img, .mom-pair img { border-radius: 16px; }
+.mom-board { margin: 48px 0 0; }
+.mom-board img { display: block; width: 100%; height: auto; }
+.mom-steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-top: 40px; }
+.mom-steps--4 { grid-template-columns: repeat(4, 1fr); }
+.mom-steps li { padding: 28px 26px; border-radius: 20px; background: var(--c-soft); }
+.mom-steps b { font: 500 14px/1 var(--f-body); color: var(--c-accent); letter-spacing: .08em; }
+.mom-steps h3 { margin: 16px 0 8px; font: 600 23px/1.25 var(--f-display); letter-spacing: -0.02em; }
+.mom-steps p { color: var(--c-muted); line-height: 1.55; }
+.mom-pair { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 48px; }
+.mom-pair figure { margin: 0; }
+.mom-pair img { display: block; width: 100%; height: auto; }
+.mom-pair figcaption { margin-top: 14px; font-size: 15px; line-height: 1.5; color: var(--c-muted); }
+.mom-pair figcaption b { color: var(--c-fg); font-weight: 500; }
+@media (max-width: 1000px) { .mom-steps--4 { grid-template-columns: 1fr 1fr; } }
+@media (max-width: 760px) { .mom-steps, .mom-steps--4, .mom-pair { grid-template-columns: 1fr; } }
