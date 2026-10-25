@@ -282,7 +282,8 @@ button.pill--dark { padding: 14px 28px; font-size: 18px; }
 .project:hover .project__cta .pill__arrow { transform: rotate(-45deg); }
 .project__title { font-size: clamp(36px, 3.4vw, 48px); line-height: 1; letter-spacing: -0.03em; font-weight: 400; }
 .project__row { display: grid; grid-template-columns: 1fr minmax(0, 666px) 1fr; align-items: center; width: 100%; max-width: 1280px; gap: 24px; }
-.project__row img { width: 100%; aspect-ratio: 666/410; object-fit: cover; border-radius: 16px; transition: transform .8s var(--ease); }
+/* --ph: a placeholder in the image's own colour, so a light card (Vipshop, Bandy) doesn't flash in when its lazy image arrives */
+.project__row img { width: 100%; aspect-ratio: 666/410; object-fit: cover; border-radius: 16px; background: var(--ph, #141414); transition: transform .8s var(--ease); }
 .project:hover .project__row img { transform: scale(1.025); }
 .project__meta { font: 400 13px/1 var(--f-display); text-transform: uppercase; color: var(--grey); border-bottom: 1px solid var(--line-dark); padding-bottom: 14px; text-align: left; }
 .project__meta:last-child { text-align: right; }
