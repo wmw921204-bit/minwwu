@@ -3723,8 +3723,14 @@ img.is-zoomable { cursor: zoom-in; }
 .case--mom .c-hero__marquee span { font-family: var(--f-mom); font-weight: 200; letter-spacing: .1em; text-transform: uppercase; }
 .case--mom .c-covers--natural img { border-radius: 16px; }
 
+/* Problem and journey: the rule line is the top of the section and the content is centred under it,
+   so with the line at the top of the screen (just under the top bar) the space above and below is equal */
+.mom-problem .c-chapter, .mom-journey > .c-chapter { border-top: 0; padding-top: 0; }
+.mom-rule { position: absolute; top: 0; left: calc(max(0px, (100% - 1440px) / 2) + var(--gutter)); right: calc(max(0px, (100% - 1440px) / 2) + var(--gutter)); height: 1px; margin: 0; border: 0; background: var(--c-line); }
+.mom-journey > .mom-rule { left: var(--gutter); right: var(--gutter); }
+
 /* Problem: footage behind, big thin numerals, all within one screen */
-.mom-problem { position: relative; overflow: hidden; display: flex; align-items: center; min-height: 100vh; min-height: 100svh; margin: clamp(40px, 6vw, 96px) 0; padding: clamp(80px, 10vh, 112px) 0; color: var(--c-fg); isolation: isolate; }
+.mom-problem { position: relative; overflow: hidden; display: flex; align-items: center; min-height: calc(100vh - 80px); min-height: calc(100svh - 80px); margin: clamp(40px, 6vw, 96px) 0; padding: clamp(24px, 6vh, 72px) 0; color: var(--c-fg); isolation: isolate; }
 .mom-problem__bg { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; z-index: -2; opacity: .55; }
 .mom-problem::before { content: ""; position: absolute; inset: 0; z-index: -1; background: linear-gradient(90deg, #0c120e 0%, rgba(12,18,14,.82) 50%, rgba(12,18,14,.55) 100%), linear-gradient(#0c120e 0%, transparent 16%, transparent 84%, #0c120e 100%); }
 .mom-problem__in { width: 100%; display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); grid-template-areas: "ch ch" "head big" "q big"; column-gap: clamp(32px, 6vw, 112px); align-content: center; }
@@ -3752,9 +3758,10 @@ img.is-zoomable { cursor: zoom-in; }
 }
 
 /* Journey: header on top, the phases sit inside the chart under their stretch of the curve */
-.mom-journey { display: flex; flex-direction: column; justify-content: center; align-items: stretch; min-height: 100vh; min-height: 100svh; padding-top: clamp(48px, 7vh, 80px); padding-bottom: clamp(48px, 7vh, 80px); }
-.mom-journey__top { width: 100%; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: clamp(24px, 5vw, 80px); align-items: end; margin-bottom: clamp(24px, 4vh, 44px); }
-.mom-journey__top .c-head { font-size: clamp(28px, min(3.4vw, 6vh), 52px); }
+.mom-journey { display: flex; flex-direction: column; justify-content: center; align-items: stretch; position: relative; min-height: calc(100vh - 80px); min-height: calc(100svh - 80px); padding-top: clamp(24px, 5vh, 64px); padding-bottom: clamp(24px, 5vh, 64px); }
+.mom-journey > .c-chapter { margin-bottom: 0; }
+.mom-journey__top { width: 100%; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: clamp(24px, 5vw, 80px); align-items: end; margin-bottom: clamp(14px, 3vh, 40px); }
+.mom-journey__top .c-head { margin-top: clamp(8px, 2vh, 20px); font-size: clamp(26px, min(3.4vw, 6vh), 52px); }
 .mom-journey__top .c-text { margin: 0; max-width: 460px; justify-self: end; }
 @media (max-width: 860px) { .mom-journey { min-height: 0; } .mom-journey__top { grid-template-columns: 1fr; } .mom-journey__top .c-text { justify-self: start; } }
 
@@ -3781,7 +3788,7 @@ img.is-zoomable { cursor: zoom-in; }
 .mom-chart { position: relative; width: 100%; margin: 0; border-radius: 24px; overflow: hidden; box-shadow: inset 0 0 0 1px var(--c-line);
   background: linear-gradient(90deg, rgba(232,96,76,.06) 0 25%, transparent 25% 50%, rgba(238,242,234,.035) 50% 75%, rgba(180,213,138,.07) 75%), var(--c-soft); }
 .mom-chart::after { content: ""; position: absolute; inset: 0; pointer-events: none; background: linear-gradient(90deg, transparent calc(25% - .5px), var(--c-line) 25%, transparent calc(25% + .5px), transparent calc(50% - .5px), var(--c-line) 50%, transparent calc(50% + .5px), transparent calc(75% - .5px), var(--c-line) 75%, transparent calc(75% + .5px)); }
-.mom-chart__plot { position: relative; height: clamp(150px, calc(100svh - 560px), 340px); margin-top: clamp(20px, 3.5vh, 36px); }
+.mom-chart__plot { position: relative; height: clamp(90px, calc(100svh - 450px), 340px); margin-top: clamp(12px, 3vh, 36px); }
 .mom-chart__plot svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
 .mom-chart__line, .mom-chart__area { vector-effect: non-scaling-stroke; }
 .mom-chart__pin { position: absolute; width: 14px; height: 14px; margin: -7px 0 0 -7px; border-radius: 50%; background: #b4d58a; box-shadow: 0 0 16px rgba(180,213,138,.6); }
@@ -3813,6 +3820,15 @@ img.is-zoomable { cursor: zoom-in; }
   .mom-chart__phases li:last-child { padding-bottom: 0; }
   .mom-chart__phases h3 { margin-top: 10px; font-size: 19px; }
   .mom-chart__phases p { font-size: 15px; }
+}
+
+@media (max-height: 640px) and (min-width: 761px) {
+  .mom-chart__phases li { padding: 10px 16px 12px; }
+  .mom-chart__phases h3 { margin: 6px 0 2px; font-size: 15px; }
+  .mom-chart__phases p { font-size: 12.5px; }
+  .mom-journey__top .c-text { font-size: 14px; }
+  .mom-problem__q { margin-top: 14px; }
+  .mom-big p { font-size: 14px; }
 }
 
 /* Lens walkthrough: the step at the middle of the screen drives the lens */
