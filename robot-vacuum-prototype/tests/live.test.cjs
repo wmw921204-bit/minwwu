@@ -57,6 +57,7 @@ function fakeBridge(init = {}) {
     }
     if (url.startsWith('/api/state')) return init.noBridge ? reply({}, 404) : reply(snapshot());
     if (url.startsWith('/api/schedules')) return reply({ schedules: [] });
+    if (url.startsWith('/api/config')) return reply({ configured: true, ai: !!st.explain });
     return reply({ error: 'none' }, 503); // e.g. /api/map: not under test
   }
   return { st, sent, fetch, robotCommands: () => sent.filter(a => a !== 'mode'),
@@ -487,10 +488,11 @@ test('a robot problem screen says what the robot is doing now', async () => {
   Object.assign(b.st, { vacuum: 'error', detail: 'error', err: 'wheels_suspended' }); await app.poll();
   const id = app.run("S.events.find(e=>e.key==='p_wheels_suspended').id");
   assert.match(app.run(`scrEvent('${id}')`), /Right now: it needs a hand\./);
+  await sleep(30); // let the camera section's one-off AI check finish
   app.close();
 });
 
-test('stuck: the problem shows the robot’s own photos near it and the AI’s plain reading of them', async () => {
+test('stuck: the problem shows the robot’s own photos near it, a reason from what it recognised, and the AI’s reading', async () => {
   const b = fakeBridge({ obstacles: [
     { x: 25900, y: 25700, type_code: 26, description: 'cable', photo_name: 'near1' },
     { x: 31000, y: 31000, type_code: 3, description: 'shoe', photo_name: 'far1' },
@@ -504,28 +506,38 @@ test('stuck: the problem shows the robot’s own photos near it and the AI’s p
   assert.match(h, /What the robot’s camera saw nearby/);
   assert.match(h, /\/api\/photo\?name=near1/);
   assert.doesNotMatch(h, /far1/, 'photos more than 1.5 m away are left out');
-  await new Promise(r => setTimeout(r, 30));
+  assert.match(h, /Likely cause:<\/b> A cable right next to it is the likely cause/);
+  assert.match(h, /From what the robot recognised in its photos/);
+  await new Promise(r => setTimeout(r, 40));
+  app.run(`scrEvent('${id}')`); await new Promise(r => setTimeout(r, 40));
   assert.deepEqual(b.st.asked.photos, ['near1']);
   assert.equal(b.st.asked.situation, 'stuck');
   h = app.run(`scrEvent('${id}')`);
-  assert.match(h, /Likely cause:<\/b> A charging cable is caught/);
+  assert.match(h, /AI thinks:<\/b> A charging cable is caught/);
   assert.match(h, /It can be wrong/);
   app.close();
 });
 
-test('stuck: without an AI key the photos still show and the reason is said plainly', async () => {
-  const b = fakeBridge({ obstacles: [{ x: 25900, y: 25700, type_code: 26, description: 'cable', photo_name: 'near1' }] });
+test('stuck: without an AI key the reason comes from the robot alone and nothing is sent out', async () => {
+  const b = fakeBridge({ obstacles: [{ x: 25900, y: 25700, type_code: 9, description: 'pet waste', photo_name: 'near1' }, { x: 25700, y: 25600, type_code: 26, description: 'cable', photo_name: 'near2' }] });
   const app = await boot(b);
   app.run('A.startTask()'); await app.poll(2);
   Object.assign(b.st, { vacuum: 'error', detail: 'error', err: 'robot_trapped' }); await app.poll();
   const id = app.run("S.events.find(e=>e.key==='p_robot_trapped').id");
   app.run(`scrEvent('${id}')`);
-  await new Promise(r => setTimeout(r, 30));
-  const h = app.run(`scrEvent('${id}')`);
+  await new Promise(r => setTimeout(r, 40));
+  let h = app.run(`scrEvent('${id}')`);
   assert.match(h, /name=near1/);
-  assert.match(h, /AI couldn’t look at the photos: AI explanations are off/);
+  assert.match(h, /pet waste right next to it.*Don’t resume yet/s, 'pet waste comes first, even when a cable is closer');
+  assert.doesNotMatch(h, /AI/);
+  assert.equal(b.st.asked, undefined);
+  // a floor problem is explained from the error, not from a photo
+  Object.assign(b.st, { err: 'wheels_suspended' }); await app.poll();
+  h = app.run(`scrEvent(S.events.find(e=>e.key==='p_wheels_suspended').id)`);
+  assert.match(h, /rug edge, threshold or step/);
+  assert.match(h, /From the problem the robot reports/);
   // a problem that isn't about being stuck gets no camera section
   Object.assign(b.st, { err: 'no_dustbin' }); await app.poll();
-  assert.doesNotMatch(app.run(`scrEvent(S.events.find(e=>e.key==='p_no_dustbin').id)`), /camera/);
+  assert.doesNotMatch(app.run(`scrEvent(S.events.find(e=>e.key==='p_no_dustbin').id)`), /camera|Likely cause/);
   app.close();
 });

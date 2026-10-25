@@ -587,18 +587,43 @@
       raiseProblem('p_jump',{title:'Robot lost its place',what:'Its position jumped by '+(Math.hypot(b.x-a.x,b.y-a.y)/1000).toFixed(1)+' m in a few seconds.',fix:'This happens when the robot re-finds where it is on the map. If the robot on the map now looks wrong, align the map.',why:'From the robot’s live position.',options:['pOk','pAlign']},true)}
   }
 
-  /* ---------- a look through the robot's camera: its own photos near where it got stuck, and Claude's reading of them ---------- */
+  /* ---------- a look through the robot's camera: its own photos near where it got stuck, what they suggest, and (with a key) Claude's reading ---------- */
   const STUCK_ERRS=new Set(['bumper_stuck','wheels_suspended','main_brush_jammed','side_brush_jammed','wheels_jammed','robot_trapped','robot_tilted','vertical_bumper_pressed','robot_on_carpet','cannot_cross_carpet']);
   const lookKind=ev=>ev.key==='p_dwell'?'dwell':ev.key==='p_noprogress'?'noprogress':STUCK_ERRS.has(ev.key.slice(2))?'stuck':null;
-  const objName=o=>o.label==='unknown'?(o.description||'Unknown object').replace(/_/g,' '):OBJ[o.label].n;
+  const objName=o=>o.label==='unknown'?(o.description||'Unknown object').replace(/_/g,' '):OBJ[o.label]?.n||{waste:'Pet waste',scale:'Scale'}[o.label]||o.label;
   function nearPhotos(ev){
     const at=ev.seenAt||robotPose();if(!at||!HA.map||!HA.snap?.vacuum)return [];
     return M().objects(HA.snap.vacuum.entity_id,HA.map,{}).filter(o=>o.photoName).map(o=>({o,d:Math.hypot(o.mm.x-at.x,o.mm.y-at.y)}))
       .filter(p=>p.d<=1500).sort((a,b)=>a.d-b.d).slice(0,3);
   }
+  // Errors that come from the floor itself: a photo of a sock nearby wouldn't explain them.
+  const FLOOR_CAUSE={
+    wheels_suspended:['A rug edge, threshold or step probably lifted a wheel off the floor.','Put the robot back on flat floor, then resume. If it happens here again, add a no-go zone.'],
+    robot_tilted:['It probably drove up onto something uneven, such as a rug edge or a furniture foot.','Put it back on flat floor, then resume.'],
+    robot_on_carpet:['A thick or loose carpet is probably holding it.','Move it off the carpet, then resume. A no-go zone keeps it off next time.'],
+    cannot_cross_carpet:['The carpet edge is probably too high for it to climb.','Lift it over, or add a no-go zone so it skips that carpet.'],
+    vertical_bumper_pressed:['It probably drove under furniture that is too low and got wedged.','Pull it out, then resume. A no-go zone under that furniture stops it happening again.'],
+  };
+  // What each thing the robot recognises usually does to it.
+  const OBJ_CAUSE={
+    cable:(n,w)=>['A cable '+w+' is the likely cause: cables wrap around wheels and brushes.','Unhook the cable from the robot, lift it off the floor, then resume.'],
+    sock:(n,w)=>['A sock '+w+' may have been pulled into the brush or be blocking it.','Pick it up, check the main brush, then resume.'],
+    clothes:(n,w)=>['Clothing '+w+' may have been pulled into the brush or be blocking it.','Pick it up, check the main brush, then resume.'],
+    chair:(n,w)=>['Chair legs '+w+' can box it in so it can’t find a way out.','Pull the chairs out a little, then resume.'],
+    waste:(n,w)=>['There is pet waste '+w+'.','Don’t resume yet. Clean the spot and check the wheels and brush first.'],
+  };
+  function ruleLook(ev,ph){
+    const code=ev.key.slice(2),kind=lookKind(ev);
+    if(kind==='stuck'&&FLOOR_CAUSE[code])return {cause:FLOOR_CAUSE[code][0],advice:FLOOR_CAUSE[code][1],from:'error'};
+    if(!ph.length)return null;
+    const p=ph.find(x=>x.o.label==='waste')||ph[0],n=objName(p.o).toLowerCase(),w=p.d<600?'right next to it':(p.d/1000).toFixed(1)+' m away';
+    if(OBJ_CAUSE[p.o.label]){const [c,a]=OBJ_CAUSE[p.o.label](n,w);return {cause:c,advice:a,from:'photo'}}
+    if(p.o.label==='unknown')return {cause:'Something the robot couldn’t name is '+w+'. It may be what holds it up.',advice:'Look at the photo, move the thing if it’s loose, then resume.',from:'photo'};
+    const verb=kind==='dwell'?'It may be trying to get around':kind==='noprogress'?'It may be unable to get past':'It may be stuck against';
+    return {cause:verb+' a '+n+' '+w+'.',advice:'Move the '+n+' out of the way, then '+(kind==='stuck'?'resume.':'let it carry on.'),from:'photo'};
+  }
   const LOOKING=new Set(); // asks in flight; a saved 'asking' from before a reload is asked again
-  function askLook(ev){
-    const ph=nearPhotos(ev);if(!ph.length)return;
+  function askLook(ev,ph){
     ev.look={state:'asking'};LOOKING.add(ev.id);
     const rm=ev.seenAt&&M().roomAt(HA.rooms,ev.seenAt);
     api('explain',{situation:lookKind(ev),photos:ph.map(p=>p.o.photoName),labels:ph.map(p=>p.o.description||p.o.label),...(rm?{room:rm.name}:{})},70000)
@@ -607,15 +632,18 @@
   }
   function lookHtml(ev){
     if(!lookKind(ev))return '';
-    const ph=nearPhotos(ev);
-    if(!ph.length)return `<div class="look"><h4>${ic('camera',16)} The robot’s camera</h4><p class="small muted" style="margin:0">No photos from the robot near this spot yet. They arrive with the next map update.</p></div>`;
-    if(!ev.look||(ev.look.state==='asking'&&!LOOKING.has(ev.id)))askLook(ev);
-    const L=ev.look||{};
-    let ai='';
-    if(L.state==='asking')ai=`<p class="muted">Asking AI what the photos show…</p>`;
-    else if(L.state==='done')ai=`<p><b>${L.sure?'Likely cause':'Not sure, but maybe'}:</b> ${esc(L.cause)}</p><p><b>What you can do:</b> ${esc(L.advice)}</p><p class="small muted" style="margin:0">AI looked at these photos (${esc(L.seen)}). It can be wrong.</p>`;
-    else if(L.state==='error')ai=`<p class="small muted" style="margin:0">AI couldn’t look at the photos: ${esc(L.msg)} <button class="link" data-a="haLook" data-v="${ev.id}">Try again</button></p>`;
-    return `<div class="look"><h4>${ic('camera',16)} What the robot’s camera saw nearby</h4><div class="look-ph">${ph.map(p=>`<figure><span class="look-img"><img src="/api/photo?name=${encodeURIComponent(p.o.photoName)}" alt="${esc(objName(p.o))}" loading="lazy" onerror="this.style.visibility='hidden'"></span><figcaption>${esc(objName(p.o))} · ${(p.d/1000).toFixed(1)} m away</figcaption></figure>`).join('')}</div>${ai?`<div class="look-ai">${ai}</div>`:''}</div>`;
+    const ph=nearPhotos(ev),rule=ruleLook(ev,ph);
+    // ask the bridge once whether it has an AI key; without one nothing leaves the house
+    if(HA.aiOn===undefined){HA.aiOn=null;api('config').then(c=>{HA.aiOn=!!c.ai}).catch(()=>{HA.aiOn=false}).finally(()=>render())}
+    if(HA.aiOn&&ph.length&&(!ev.look||(ev.look.state==='asking'&&!LOOKING.has(ev.id))))askLook(ev,ph);
+    const L=HA.aiOn?ev.look||{}:{};
+    let body=rule?`<p><b>Likely cause:</b> ${esc(rule.cause)}</p><p><b>What you can do:</b> ${esc(rule.advice)}</p><p class="small muted" style="margin:0">${rule.from==='error'?'From the problem the robot reports.':'From what the robot recognised in its photos.'}</p>`
+      :`<p class="small muted" style="margin:0">${ph.length?'The photos don’t point to a clear reason. Take a look if it keeps happening.':'No photos from the robot near this spot yet. They arrive with the next map update.'}</p>`;
+    if(L.state==='asking')body+=`<div class="look-ai"><p class="small muted" style="margin:0">Asking AI for a closer look at the photos…</p></div>`;
+    else if(L.state==='done')body+=`<div class="look-ai"><p><b>AI ${L.sure?'thinks':'isn’t sure, but maybe'}:</b> ${esc(L.cause)}</p><p><b>AI suggests:</b> ${esc(L.advice)}</p><p class="small muted" style="margin:0">AI looked at these photos (${esc(L.seen)}). It can be wrong.</p></div>`;
+    else if(L.state==='error')body+=`<div class="look-ai"><p class="small muted" style="margin:0">AI couldn’t look at the photos: ${esc(L.msg)} <button class="link" data-a="haLook" data-v="${ev.id}">Try again</button></p></div>`;
+    const photos=ph.length?`<div class="look-ph">${ph.map(p=>`<figure><span class="look-img"><img src="/api/photo?name=${encodeURIComponent(p.o.photoName)}" alt="${esc(objName(p.o))}" loading="lazy" onerror="this.style.visibility='hidden'"></span><figcaption>${esc(objName(p.o))} · ${(p.d/1000).toFixed(1)} m away</figcaption></figure>`).join('')}</div>`:'';
+    return `<div class="look"><h4>${ic('camera',16)} ${ph.length?'What the robot’s camera saw nearby':'What probably happened'}</h4>${photos}${body}</div>`;
   }
 
   /* ---------- Home Assistant snapshot → app state ---------- */

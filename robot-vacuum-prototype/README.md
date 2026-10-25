@@ -126,9 +126,11 @@ Data stays in this browser until exported. Edit `SCRIPT` and `TASKS` in `study-l
 ## AI look at stuck spots (optional)
 
 When the robot is stuck, keeps working in one spot, or stops making progress, the problem page shows the
-robot's own obstacle photos from within 1.5 m of where it was. If the bridge has an Anthropic API key, it
-also sends those photos (at most three) to Claude (`claude-opus-5-5`) and shows a short likely cause and
-what to do, marked as an AI guess. Without a key the photos still show.
+robot's own obstacle photos from within 1.5 m of where it was, with a likely cause and what to do worked out
+from what the robot recognised (a cable, a sock, pet waste…) or from the error itself (a lifted wheel, a carpet
+edge). That part is free and nothing leaves the house. If the bridge also has an Anthropic API key, it sends the
+photos (at most three) to Claude (`claude-opus-5-5`, about 1–2 US cents a look) and adds its reading, marked as
+an AI guess.
 
 ```bash
 pip3 install anthropic
