@@ -86,15 +86,23 @@ def ha(path, data=None, method=None):
 PHOTO_NAME = re.compile(r'^[A-Za-z0-9_.-]{1,80}$')
 
 
+PHOTO_CACHE = {}  # photo name -> (bytes, mime); a photo never changes, and fetching one from the robot takes seconds
+
+
 def obstacle_photo(name):
     """An obstacle photo from the robot, through the reader's photo action. Only names from the cached map work."""
     if not PHOTO_NAME.match(name or ''):
         raise BridgeError('Not a photo name.')
+    if name in PHOTO_CACHE:
+        return PHOTO_CACHE[name]
     result = ha('services/roborock_obstacles/photo?return_response', {'photo_name': name}).get('service_response') or {}
     if result.get('error') or not result.get('data'):
         raise BridgeError('No photo: %s.' % (result.get('error') or 'empty reply'))
     mime = result.get('content_type') if result.get('content_type') in ('image/jpeg', 'image/png') else 'image/jpeg'
-    return base64.b64decode(result['data']), mime
+    if len(PHOTO_CACHE) >= 60:
+        PHOTO_CACHE.pop(next(iter(PHOTO_CACHE)))
+    PHOTO_CACHE[name] = (base64.b64decode(result['data']), mime)
+    return PHOTO_CACHE[name]
 
 
 AI_KEY_FILE = ROOT / '.anthropic-key'  # optional; git-ignored. ANTHROPIC_API_KEY wins.

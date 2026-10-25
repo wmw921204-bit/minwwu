@@ -402,10 +402,12 @@ button.tile{font:inherit;width:100%}
 .cmd .undo{margin-left:auto;height:32px;padding:0 14px;border-radius:99px;border:0;background:rgba(255,255,255,.18);color:inherit;font-weight:800;font-size:13px;cursor:pointer}
 .grp-row{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--line)}
 .grp-row:last-child{border-bottom:0}
-.grp-row .e{font-size:22px;width:34px;text-align:center}
-.grp-row .e img{width:34px;height:34px;border-radius:9px;object-fit:cover;display:block}
-.obj-hero img{width:100%;max-height:210px;object-fit:cover;border-radius:16px;display:block}.obj-hero.has-photo>span:first-of-type{display:none}
-.grp-row .t{flex:1;font-weight:700;font-size:14px}
+.grp-row .e{position:relative;flex:0 0 auto;width:52px;height:52px;border-radius:12px;background:var(--plan);display:grid;place-items:center;font-size:24px;overflow:hidden}
+.grp-row .e img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.grp-row.done .t{color:var(--ok)}.grp-row .t small{display:block;font-weight:600;color:var(--muted);font-size:12px;margin-top:2px}
+.obj-ph{position:relative;width:100%;height:200px;border-radius:16px;background:var(--plan);display:grid;place-items:center;font-size:54px;overflow:hidden}
+.obj-ph img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.grp-row .t{flex:1;min-width:0;font-weight:700;font-size:14px}
 .grp-row button{height:32px;padding:0 12px;border-radius:99px;border:1px solid var(--line);background:var(--surface);font:inherit;font-size:12.5px;font-weight:800;color:var(--primary);cursor:pointer}
 .look{margin-top:16px;background:var(--glass);border:1px solid var(--glass-line);border-radius:22px;padding:14px 16px;font-size:14px;line-height:1.45}
 .look h4{margin:0 0 10px;font-size:14px;display:flex;gap:8px;align-items:center}
@@ -1164,7 +1166,7 @@ function attention(){
   if(!open.length&&!prog.length&&!later.length&&!(pendingObjs().length&&S.task&&S.task.done)&&S.conn==='connected')h+=`<div class="calm">${ic('check',20)}<span>Nothing needs you right now. The robot will let you know if something comes up.</span></div>`;
   h+=open.concat(prog).map(evItem).join('');
   const po=pendingObjs();
-  if(po.length&&S.task&&S.task.done)h+=objGroups(po).map(g=>`<button class="item" data-a="reviewRoom" data-v="${g.room}"><span class="ico warn" style="font-size:17px">${g.items.slice(0,2).map(o=>OBJ[o.label].e).join('')}</span><span class="body"><span class="t">${esc(g.name)}: ${g.items.length} item${g.items.length>1?'s':''} to check</span><span class="s">Confirm them together, or ignore them for now.</span></span><span class="pill needsReview">Check</span></button>`).join('');
+  if(po.length&&S.task&&S.task.done)h+=objGroups(po).map(g=>`<button class="item" data-a="reviewRoom" data-v="${g.room}"><span class="ico warn" style="font-size:17px">${g.items.slice(0,2).map(o=>OBJ[o.label].e).join('')}</span><span class="body"><span class="t">${esc(g.name)}: ${g.items.length} item${g.items.length>1?'s':''} to check</span><span class="s">${g.items.some(o=>o.label!=='unknown')?'Confirm them together, or ignore them for now.':'Tell it what they are, or ignore them for now.'}</span></span><span class="pill needsReview">Check</span></button>`).join('');
   else if(po.length)h+=`<p class="small muted" style="margin:10px 4px 0">${po.length} object${po.length>1?'s':''} to check after cleaning. Nothing is blocked.</p>`;
   if(later.length)h+=`<div class="sec-h" style="margin-top:18px">Clean later</div>`+later.map(evItem).join('');
   const leftOut=S.task&&S.task.done?evs.filter(e=>e.status==='skipped'&&DEFS[e.key].type!=='decision'):[];
@@ -1396,7 +1398,7 @@ function scrInbox(){
   if(!it.count&&!it.later.length&&!it.deferred.length&&!it.ignored.length)h+=`<div class="calm">${ic('check',20)}<span>Nothing waiting for you.</span></div>`;
   if(it.stuck)h+=`<div class="sec-h">Robot problem</div>`+stuckItem();
   if(it.needs.length)h+=`<div class="sec-h">Needs your call<small>${it.needs.length}</small></div>`+it.needs.map(evItem).join('');
-  if(it.po.length)h+=`<div class="sec-h">Objects to check</div>`+objGroups(it.po).map(g=>`<button class="item" data-a="reviewRoom" data-v="${g.room}"><span class="ico warn" style="font-size:17px">${g.items.slice(0,2).map(o=>OBJ[o.label].e).join('')}</span><span class="body"><span class="t">${esc(g.name)}: ${g.items.length} item${g.items.length>1?'s':''}</span><span class="s">Confirm together, or ignore for now.</span></span><span class="pill needsReview">Check</span></button>`).join('');
+  if(it.po.length)h+=`<div class="sec-h">Objects to check</div>`+objGroups(it.po).map(g=>`<button class="item" data-a="reviewRoom" data-v="${g.room}"><span class="ico warn" style="font-size:17px">${g.items.slice(0,2).map(o=>OBJ[o.label].e).join('')}</span><span class="body"><span class="t">${esc(g.name)}: ${g.items.length} item${g.items.length>1?'s':''}</span><span class="s">${g.items.some(o=>o.label!=='unknown')?'Confirm together, or ignore for now.':'Tell it what they are, or ignore for now.'}</span></span><span class="pill needsReview">Check</span></button>`).join('');
   if(it.later.length)h+=`<div class="sec-h">Remind me later<small>${it.later.length}</small></div>`+it.later.map(e=>evItem(e).replace(/<span class="pill [^"]*">[^<]*<\/span>/,`<span class="pill deferred">${esc(laterLabel(e))}</span>`)).join('');
   if(it.deferred.length)h+=`<div class="sec-h">Clean later<small>${it.deferred.length}</small></div>`+it.deferred.map(evItem).join('');
   if(it.ignored.length)h+=`<p class="small muted" style="margin:12px 4px 0">${it.ignored.length} object${it.ignored.length>1?'s':''} not checked yet · <button class="link" data-a="recheckObjs">Check now</button></p>`;
@@ -1526,24 +1528,32 @@ function objModal(id){
   const order=Object.keys(OBJ).filter(t=>t!=='other'),guess=new Set([o.orig&&o.orig!=='unknown'?o.orig:(o.guesses||[])[0]].filter(Boolean));
   const q=S.ui.objQueue;const step=q&&q.length>1?`<div class="small muted" style="font-weight:800;margin-bottom:4px">${q.indexOf(id)+1} of ${q.length}</div>`:'';
   const ph=objPhoto(o);
-  const body=`${step}<div class="obj-hero ${ph?'has-photo':''}">${ph?`<img src="${ph}" alt="What the robot’s camera saw" onerror="this.parentNode.classList.remove('has-photo');this.remove()">`:''}<span>${sel==='other'?'✏️':OBJ[sel].e}</span><span class="pill ${unsure?'needsReview':o.status==='auto'?'info':'resolved'}">${unsure?'Robot isn’t sure':o.status==='auto'?'Robot is sure':'Checked by you'}</span></div>
-  <p class="small" style="text-align:center;margin-top:8px">${ROOM[CELLROOM[o.k]].name} · ${hhmm(o.at)}</p>
+  const body=`${step}<div class="obj-hero">${ph?`<div class="obj-ph">${sel==='other'?'✏️':OBJ[sel].e}<img src="${ph}" alt="What the robot’s camera saw" onerror="this.remove()"></div>`:`<span>${sel==='other'?'✏️':OBJ[sel].e}</span>`}<span class="pill ${unsure?'needsReview':o.status==='auto'?'info':'resolved'}">${unsure?'Robot isn’t sure':o.status==='auto'?'Robot is sure':'Checked by you'}</span></div>
+  <p class="small" style="text-align:center;margin-top:8px">${objNum(o)?'Item '+objNum(o)+' · ':''}${ROOM[CELLROOM[o.k]].name} · seen ${hhmm(o.at)}</p>
   <div class="small muted" style="font-weight:800;margin:16px 2px 8px">${unsure?'What is it?':'Wrong? Pick what it really is'}</div>
   <div class="obj-grid">${order.map(t=>`<button class="obj-opt ${t===sel?'on':''}" data-a="objPick" data-v="${t}"><span>${OBJ[t].e}</span>${esc(OBJ[t].n)}${unsure&&guess.has(t)?'<i class="g">Robot’s guess</i>':''}</button>`).join('')}<button class="obj-opt ${sel==='other'?'on':''}" data-a="objPick" data-v="other"><span>✏️</span>Other…</button></div>
   ${sel==='other'?`<label class="field" style="margin-top:10px"><span>What is it?</span><input id="obj-custom" data-obj-input maxlength="30" placeholder="e.g. Charging cable box" value="${esc(S.ui.objCustom||'')}" autocomplete="off"></label>`:''}`;
   const last=!q||q.indexOf(id)===q.length-1;
-  const primary=sel==='other'?'Save my label':unsure?(sel===o.label?`Yes, ${OBJ[sel].n.toLowerCase()}`:`Save as ${OBJ[sel].n.toLowerCase()}`):(sel===o.label?'Looks right':`Change to ${OBJ[sel].n.toLowerCase()}`);
+  const primary=sel==='other'?'Save my label':sel==='unknown'?'Pick what it is above':unsure?(sel===o.label?`Yes, ${OBJ[sel].n.toLowerCase()}`:`Save as ${OBJ[sel].n.toLowerCase()}`):(sel===o.label?'Looks right':`Change to ${OBJ[sel].n.toLowerCase()}`);
   const tl=unsure&&S.ui.objSel&&sel!=='other'?sel:o.label;
   return {full:true,title:unsure&&sel==='other'?'What is it?':unsure&&tl!==o.label?`It’s ${/s$/i.test(OBJ[tl].n)?'':/^[aeiou]/i.test(OBJ[tl].n)?'an ':'a '}${OBJ[tl].n.toLowerCase()}`:unsure?(/s$/i.test(OBJ[o.label].n)?`Are these ${OBJ[o.label].n.toLowerCase()}?`:`Is this ${/^[aeiou]/i.test(OBJ[o.label].n)?'an':'a'} ${OBJ[o.label].n.toLowerCase()}?`):OBJ[o.label].n,body,
     buttons:[{label:primary+(q&&!last?' · Next':''),a:'objSave',cls:'primary'},{label:'Nothing there',a:'objNone',cls:'plain'}]};
 }
 // the next room that still has objects to check, so one notice walks through all of them
 function nextRoomModal(){const o=pendingObjs()[0];return o?groupModal(CELLROOM[o.k]):null}
+// unknown things in one room get a number each ("Unknown object 1", "2"), kept in the detail screen too
+function objNum(o){const same=pendingObjs().concat((S.ui.objDone||[]).map(d=>S.objects.find(x=>x.id===d.id)).filter(Boolean)).filter(x=>x.orig==='unknown'&&CELLROOM[x.k]===CELLROOM[o.k]);
+  const ids=[...new Set(same.map(x=>x.id))].sort((a,b)=>(+a.replace(/\D/g,''))-(+b.replace(/\D/g,'')));return o.orig==='unknown'&&ids.length>1?ids.indexOf(o.id)+1:0}
 function groupModal(room){
   const items=pendingObjs().filter(o=>CELLROOM[o.k]===room);if(!items.length)return null;
   const name=ROOM[room]?ROOM[room].name:'Home',guessed=items.filter(o=>o.label!=='unknown');
-  return {full:true,title:`${name}: ${items.length} item${items.length>1?'s':''} to check`,body:`<p class="small muted" style="margin-bottom:6px">${items.length>1?'The robot wasn’t sure about these. If its guesses look right, confirm them all at once.':'The robot wasn’t sure about this one. If its guess looks right, confirm it.'}</p>
-    ${items.map(o=>`<div class="grp-row"><span class="e">${objPhoto(o)?`<img src="${objPhoto(o)}" alt="" onerror="this.replaceWith('${OBJ[o.label].e}')">`:OBJ[o.label].e}</span><span class="t">${o.label==='unknown'?'Unknown object':'Maybe '+esc(OBJ[o.label].n.toLowerCase())+'?'}</span><button data-a="fixObj" data-v="${esc(o.id)}">Change</button></div>`).join('')}
+  const done=(S.ui.objDone||[]).map(d=>S.objects.find(x=>x.id===d.id)).filter(o=>o&&CELLROOM[o.k]===room&&!items.includes(o));
+  const thumb=o=>`<span class="e">${OBJ[o.label].e}${objPhoto(o)?`<img src="${objPhoto(o)}" alt="" onerror="this.remove()">`:''}</span>`;
+  const intro=!guessed.length?(items.length>1?'The robot couldn’t tell what these are. Open each one and pick what it is.':'The robot couldn’t tell what this is. Open it and pick what it is.')
+    :items.length>1?'The robot wasn’t sure about these. If its guesses look right, confirm them all at once.':'The robot wasn’t sure about this one. If its guess looks right, confirm it.';
+  return {full:true,title:`${name}: ${items.length} item${items.length>1?'s':''} to check`,body:`<p class="small muted" style="margin-bottom:6px">${intro}</p>
+    ${items.map(o=>`<div class="grp-row">${thumb(o)}<span class="t">${o.label==='unknown'?'Unknown object'+(objNum(o)?' '+objNum(o):''):'Maybe '+esc(OBJ[o.label].n.toLowerCase())+'?'}<small>Seen ${hhmm(o.at)}</small></span><button data-a="fixObj" data-v="${esc(o.id)}">${o.label==='unknown'?'What is it?':'Change'}</button></div>`).join('')}
+    ${done.map(o=>`<div class="grp-row done">${thumb(o)}<span class="t">${ic('check',14)} Saved as ${esc(OBJ[o.label].n.toLowerCase())}${objNum(o)?`<small>Was unknown object ${objNum(o)}</small>`:''}</span></div>`).join('')}
     <p class="small muted" style="margin-top:10px">Ignore for now: the robot keeps going around them, and they stay on the map as not checked.</p>`,
     buttons:[guessed.length?{label:guessed.length<items.length?`Confirm the ${guessed.length} guessed`:items.length>1?'All look right':'Looks right',a:'groupOk',v:room,cls:'primary'}:null,{label:items.length>1?'Ignore these for now':'Ignore for now',a:'groupIgnore',v:room},{label:'Cancel',a:'closeModal'}].filter(Boolean)};
 }
@@ -1812,7 +1822,7 @@ const A={
     else{const live=realTime();S.temp={prev:S.temp?S.temp.prev:S.autonomy,notif:S.temp?S.temp.notif:{...S.notif},live,until:f==='1h'?nowT()+(live?3600e3:3600):null,task:f==='task'&&S.task?S.task.id:null};
       S.autonomy=mode;levelNotif(mode);flash(MODES[mode].name+(f==='1h'?' for 1 hour':' until this cleaning ends')+'. Then back to '+MODES[S.temp.prev].name)}
     commit()},
-  reviewRoom(v){S.ui.notice=null;const m=groupModal(v);if(m){S.ui.modal=m;commit()}},
+  reviewRoom(v){S.ui.notice=null;S.ui.objDone=[];const m=groupModal(v);if(m){S.ui.modal=m;commit()}},
   groupOk(v){const items=pendingObjs().filter(o=>CELLROOM[o.k]===v&&o.label!=='unknown');items.forEach(o=>{o.status=o.label===o.orig?'confirmed':'corrected'});
     tl('you',`You confirmed ${items.length} object${items.length>1?'s':''} in ${ROOM[v]?ROOM[v].the:'the home'}`);if(window.onObjChange)window.onObjChange(items);
     S.ui.modal=groupModal(v)||nextRoomModal();flash(S.ui.modal&&!groupModal(v)?'Done here. Next room':'Checked and removed from your list');commit()},
@@ -1828,6 +1838,7 @@ const A={
       sel='c_'+t.toLowerCase().replace(/[^a-z0-9]+/g,'_');if(!OBJ[sel])OBJ[sel]={n:t.charAt(0).toUpperCase()+t.slice(1),e:'🏷️',custom:true};S.ui.objCustom='';}
     if(sel!==o.label){tl('you',`You corrected: ${OBJ[o.label].n} → ${OBJ[sel].n}`);o.label=sel;o.status='corrected'}
     else{if(o.status!=='auto'||S.ui.objSel)tl('you',`You confirmed: ${OBJ[sel].n}`);o.status=o.status==='auto'?'auto':'confirmed';if(o.orig!==o.label)o.status='corrected'}
+    if(S.ui.objFrom)S.ui.objDone=(S.ui.objDone||[]).concat({id:o.id});
     objNext()},
   objNone(){const o=S.objects.find(x=>x.id===S.ui.objId);S.objects=S.objects.filter(x=>x!==o);tl('you',`You said nothing was there (robot thought: ${OBJ[o.orig].n.toLowerCase()})`);objNext()},
   map3d(v){S.ui.map3d=v==='1';commit()},
@@ -1858,7 +1869,7 @@ const A={
   },
   evGo(v){const [id,act,save]=v.split('|');S.ui.modal=null;doAction(findEvent(id),act,save==='1');commit()},
   snapshot(v){S.ui.modal=snapshotModal(findEvent(v));commit()},
-  closeModal(){S.ui.modal=null;S.ui.objQueue=null;S.ui.objFrom=null;S.ui.objSel=null;S.ui.objCustom='';commit()},
+  closeModal(){S.ui.objDone=[];S.ui.modal=null;S.ui.objQueue=null;S.ui.objFrom=null;S.ui.objSel=null;S.ui.objCustom='';commit()},
   closeModalBg(v,el,e){if(e.target===el){S.ui.modal=null;commit()}},
   cmdRetry(){const r=S.cmd.retry;S.cmd=null;r()},
   cmdRefresh(){S.cmd={label:'Refreshing status',state:'sending'};commit();setTimeout(()=>{S.cmd={label:'Status refreshed',state:'confirmed'};commit();setTimeout(()=>{S.cmd=null;commit()},1500)},700)},

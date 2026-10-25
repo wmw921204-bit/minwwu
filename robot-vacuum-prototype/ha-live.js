@@ -30,7 +30,7 @@
   const MIN_REF_AREA=10;      // m²; smaller areas can't stand for a full clean of the home
   const HA={snap:null,dev:null,map:null,tf:null,ppm:null,foot:null,error:'',pending:null,expectStart:null,
     retryQueue:[],spotEv:null,spotStarted:false,spotError:false,notes:{},refArea:null,prevStatus:null,
-    fetching:false,lastMap:0,editing:false,sig:'',prompted:false,restoreMode:null,removedZones:[],notified:{},rooms:[],savedZones:[],view:null,objs:[],objSnap:'',align:null,autoPairs:[],livePts:[],lastPairKey:'',retryWhen:'now',recent:[],areaMark:null,returnSince:0,snooze:{},careDay:{},appPauseAt:0,alignDraft:null,poseRaw:null,footKey:'',lastErr:null,lastStatusProblem:null,schedLoaded:false,schedError:''};
+    fetching:false,lastMap:0,editing:false,sig:'',prompted:false,restoreMode:null,removedZones:[],notified:{},rooms:[],savedZones:[],view:null,objs:[],objSnap:'',align:null,autoPairs:[],livePts:[],lastPairKey:'',retryWhen:'now',recent:[],areaMark:null,returnSince:0,snooze:{},careDay:{},appPauseAt:0,alignDraft:null,poseRaw:null,footKey:'',lastErr:null,lastStatusProblem:null,preloaded:{},schedLoaded:false,schedError:''};
   window.HA=HA;
   const M=()=>window.HAModel;
   const DAY0=new Date(2026,0,1);
@@ -553,7 +553,7 @@
   /* ---------- behaviour the robot doesn't report as an error ---------- */
   function watchBehaviour(d){
     const t=S.task,now=Date.now(),st=S.device.status;
-    if(HA.poseRaw&&(!HA.recent.length||HA.recent[HA.recent.length-1].at!==HA.poseRaw.at))HA.recent.push({x:HA.poseRaw.x,y:HA.poseRaw.y,at:HA.poseRaw.at,t:now});
+    if(HA.poseRaw&&(!HA.recent.length||HA.recent[HA.recent.length-1].at!==HA.poseRaw.at))HA.recent.push({x:HA.poseRaw.x,y:HA.poseRaw.y,at:HA.poseRaw.at,t:now,st});
     HA.recent=HA.recent.filter(p=>now-p.t<300000);
     if(st==='returning'){HA.returnSince=HA.returnSince||now;
       if(now-HA.returnSince>240000)raiseProblem('p_slowreturn',{title:'Taking long to get back',what:'It has been heading to the dock for 4 minutes.',fix:'Check that nothing blocks the way to the dock, or carry it back.',why:'From the robot’s status.',options:['pOk']},true)}
@@ -568,8 +568,9 @@
       raiseProblem('p_paused',after?{title:'Stopped: '+after.title.toLowerCase(),what:'At '+hhmm(after.clock)+' the robot reported “'+after.title.toLowerCase()+'” (for example when it is picked up), so it stopped. It is waiting now.',
         fix:'If it’s back on the floor, resume. If not, put it down first, or send it to the dock.',why:'From the robot’s error, then its status.',options:['pResume','pDock']}:{title:'Paused on its own',what:'The robot paused without a command from this app.',fix:'Someone may have pressed its button or paused it in the Roborock app, or it stopped because it couldn’t carry on. Check on it, then resume.',why:'From the robot’s status.',options:['pResume','pDock']},true);
     if(st==='cleaning'){
-      // working in one spot: everything from the last 2 minutes within about 0.7 m
-      const win=HA.recent.filter(p=>now-p.t<=120000);
+      // working in one spot: everything from the last 2 minutes within about 0.7 m (only while cleaning: time on the dock before the start doesn't count)
+      const since=HA.recent.findLastIndex(p=>p.st!=='cleaning')+1;
+      const win=HA.recent.slice(since).filter(p=>now-p.t<=120000);
       if(win.length>=8&&now-win[0].t>=110000){
         const cx=win.reduce((a,p)=>a+p.x,0)/win.length,cy=win.reduce((a,p)=>a+p.y,0)/win.length,rad=Math.max(...win.map(p=>Math.hypot(p.x-cx,p.y-cy)));
         if(rad<700)raiseProblem('p_dwell',{title:'Working in one spot',what:'The robot has stayed within about 1 m for 2 minutes.',fix:'It may be cleaning a dirty patch, or going round something it can’t get past. Take a look if it keeps going.',why:'From the robot’s live position.',options:['pOk','pDock']});
@@ -577,7 +578,7 @@
       }
       // no progress: the cleaned area hasn't grown for 4 minutes
       if(d.area!=null){
-        if(!HA.areaMark||HA.areaMark.task!==t.id||d.area>HA.areaMark.a){HA.areaMark={a:d.area,t:now,task:t.id};resolveProblem('p_noprogress','Cleaning is making progress again.')}
+        if(!HA.areaMark||HA.areaMark.task!==t.id||Math.abs(d.area-HA.areaMark.a)>0.05){ /* a drop is the robot's counter restarting, not a stall */HA.areaMark={a:d.area,t:now,task:t.id};resolveProblem('p_noprogress','Cleaning is making progress again.')}
         else if(now-HA.areaMark.t>240000)raiseProblem('p_noprogress',{title:'Not making progress',what:'The cleaned area hasn’t grown for 4 minutes (still '+d.area+' m²).',fix:'The robot may be circling or unable to reach new areas. Check on it, or send it to the dock.',why:'From the robot’s cleaned-area reading.',options:['pOk','pDock']},true);
       }
     }
@@ -643,7 +644,7 @@
     else if(L.state==='done')body+=`<div class="look-ai"><p><b>AI ${L.sure?'thinks':'isn’t sure, but maybe'}:</b> ${esc(L.cause)}</p><p><b>AI suggests:</b> ${esc(L.advice)}</p><p class="small muted" style="margin:0">AI looked at these photos (${esc(L.seen)}). It can be wrong.</p></div>`;
     else if(L.state==='error')body+=`<div class="look-ai"><p class="small muted" style="margin:0">AI couldn’t look at the photos: ${esc(L.msg)} <button class="link" data-a="haLook" data-v="${ev.id}">Try again</button></p></div>`;
     const photos=ph.length?`<div class="look-ph">${ph.map(p=>`<figure><span class="look-img"><img src="/api/photo?name=${encodeURIComponent(p.o.photoName)}" alt="${esc(objName(p.o))}" loading="lazy" onerror="this.style.visibility='hidden'"></span><figcaption>${esc(objName(p.o))} · ${(p.d/1000).toFixed(1)} m away</figcaption></figure>`).join('')}</div>`:'';
-    return `<div class="look"><h4>${ic('camera',16)} ${ph.length?'What the robot’s camera saw nearby':'What probably happened'}</h4>${photos}${body}</div>`;
+    return `<div class="look"><h4>${ic('camera',16)} ${ph.length?'What the robot’s camera saw nearby':rule?'What probably happened':'The robot’s camera'}</h4>${photos}${body}</div>`;
   }
 
   /* ---------- Home Assistant snapshot → app state ---------- */
@@ -676,6 +677,8 @@
     watchBehaviour(d);
     if(!HA.map?.stale)syncObjects(snap); // a placeholder map says nothing about objects
     S.objects=HA.objs.filter(o=>!o.dismissed).map(o=>({...o,k:roomKey(o.mm),at:secOf(o.source)}));
+    // fetch photos of things to check ahead of time, so they're there when the list opens
+    S.objects.forEach(o=>{if(o.photoName&&o.status==='pending'&&!HA.preloaded[o.photoName]){HA.preloaded[o.photoName]=1;new Image().src='/api/photo?name='+encodeURIComponent(o.photoName)}});
     HA.removedZones=HA.removedZones.filter(b=>robotZones().some(a=>sameZone(a,b))); // until the robot's map drops them
     const rp=to3D(robotPose());
     if(rp){S.sim.pos={c:rp.x-.5,r:rp.z-.5};S.sim.heading=Number.isFinite(robotPose().angle)?90-robotPose().angle:0}
@@ -1125,6 +1128,8 @@
       return h;
     };
     window.startRetry=(ev,outcomeText)=>{
+      if(S.ui.floorOnly){ // the cleaning is over: a floor-type answer is noted, the robot isn't sent out again
+        ev.status='resolved';ev.outcome=/rug/i.test(outcomeText||'')?'Noted: it’s a rug. The cleaning is over, so the robot wasn’t sent back.':'Noted: it’s hard floor. The cleaning is over, so the robot wasn’t sent back.';flash(ev.outcome);return}
       if(HA.inFire){ // the robot "decided" on a study event: show the outcome, don't drive the real robot
         ev.status='resolved';ev.outcome=(outcomeText||'Area cleaned.').replace(/\.$/,'')+' (simulated: the real robot was not sent back).';return}
       if(!ev.zone)ev.zone=DEFS[ev.key].zone; // automatic choices run inside fire(), before fireStudy() stores the spot
@@ -1170,9 +1175,14 @@
     const delNogo0=A.delNogo;A.delNogo=v=>{if(hasZone(v))HA.removedZones.push(zoneRect(v));delNogo0(v);saveNogo('Remove no-go zone from the robot','No-go zone removed from the robot')};
     const RETRY_ACTS=['retry','retryCleared','asRug','asHard','allow'];
     A.haRetryWhen=v=>{const [id,act,when]=v.split('|');S.ui.modal=null;S.ui.retryOnce=when;try{evAct0(id+'|'+act)}finally{S.ui.retryOnce=null}};
+    A.haRetryGo=v=>{S.ui.modal=null;evAct0(v)};
     A.haRetryDefault=v=>{HA.retryWhen=v;persist();commit()};
     const evAct0=A.evAct;A.evAct=v=>{
-      const [id,act]=v.split('|'),ev=findEvent(id);
+      const [id,act]=v.split('|'),ev=findEvent(id),over=!S.task||S.task.done;
+      // after the cleaning nothing moves the real robot without saying so first
+      if(ev&&over&&(act==='asRug'||act==='asHard')){S.ui.floorOnly=true;try{evAct0(v)}finally{S.ui.floorOnly=false}return}
+      if(ev&&over&&(act==='retry'||act==='retryCleared')){
+        S.ui.modal={title:'Send the robot back now?',body:'<p>The cleaning is over. The robot leaves the dock, cleans this spot, then comes back.</p>',buttons:[{label:'Send it now',a:'haRetryGo',v,cls:'primary'},{label:'Cancel',a:'closeModal'}]};return commit()}
       const asks=RETRY_ACTS.includes(act)&&ev&&!ev.archived&&S.task&&!S.task.done&&(act!=='allow'||(ev.suggest&&ev.status==='needsReview'));
       if(asks){
         const now={label:'Go now',a:'haRetryWhen',v:id+'|'+act+'|now'},after={label:'After this cleaning',a:'haRetryWhen',v:id+'|'+act+'|after'};

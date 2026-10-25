@@ -254,9 +254,12 @@ class PhotoTests(unittest.TestCase):
         import base64
         png = b'\x89PNG\r\n\x1a\nfake'
         reply = {'service_response': {'photo_name': 'p1', 'content_type': 'image/png', 'data': base64.b64encode(png).decode()}}
+        server.PHOTO_CACHE.clear()
         with patch.object(server, 'ha', return_value=reply) as ha:
             self.assertEqual(server.obstacle_photo('p1'), (png, 'image/png'))
             self.assertEqual(ha.call_args[0][1], {'photo_name': 'p1'})
+            server.obstacle_photo('p1')  # asked again: from memory, the robot isn't asked twice
+            self.assertEqual(ha.call_count, 1)
 
     def test_no_photo_is_an_error(self):
         with patch.object(server, 'ha', return_value={'service_response': {'error': 'unknown photo name'}}):

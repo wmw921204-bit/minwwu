@@ -541,3 +541,67 @@ test('stuck: without an AI key the reason comes from the robot alone and nothing
   assert.doesNotMatch(app.run(`scrEvent(S.events.find(e=>e.key==='p_no_dustbin').id)`), /camera|Likely cause/);
   app.close();
 });
+
+test('no false “stuck” alerts at the start: dock time isn’t “one spot”, and last run’s area isn’t this run’s', async () => {
+  const b = fakeBridge({ area: 9.8 });
+  const app = await boot(b);
+  app.run('A.startTask()'); await app.poll(2);
+  // the robot's counter still says last run's 9.8, then restarts from zero
+  b.st.area = 0.1; await app.poll();
+  app.run('HA.areaMark.t=Date.now()-250000');
+  b.st.area = 0.6; await app.poll();
+  assert.equal(app.run("S.events.some(e=>e.key==='p_noprogress')"), false, 'a growing area after the restart is progress');
+  // a real stall is still noticed
+  app.run('HA.areaMark.t=Date.now()-250000'); await app.poll();
+  assert.equal(app.run("S.events.some(e=>e.key==='p_noprogress')"), true);
+  // two minutes in one place, but half of it was on the dock before the start
+  const pts = docked => `HA.recent=Array.from({length:10},(_,i)=>({x:25600,y:25600,at:i,t:Date.now()-118000+i*1000,st:i<${docked}?'docked':'cleaning'}))`;
+  app.run(pts(5)); await app.poll(1);
+  assert.equal(app.run("S.events.some(e=>e.key==='p_dwell')"), false);
+  app.run(pts(0)); await app.poll(1);
+  assert.equal(app.run("S.events.some(e=>e.key==='p_dwell')"), true);
+  app.close();
+});
+
+test('after the cleaning: a floor-type answer is only noted, and a retry asks before moving the robot', async () => {
+  const b = fakeBridge();
+  const app = await boot(b);
+  app.run('A.startTask()'); await app.poll(2);
+  app.run("STUDY.begin('T')");
+  app.run('A.confirmEnd()'); await app.poll(2);
+  Object.assign(b.st, { vacuum: 'docked', detail: 'charging' }); await app.poll(2);
+  // a rug question from earlier in the cleaning
+  const id = app.run("(()=>{const z='zt';ZONES[z]={name:'Hallway patch',room:'live',cells:[],keys:[],mm:{x:26000,y:26000}};DEFS.rug.zone=z;const ev={id:'et',key:'rug',at:S.clock,status:'skipped',autonomous:true,autoChoice:'skipNow',log:[],zone:z};S.events.push(ev);return ev.id})()");
+  const before = b.robotCommands().length;
+  app.run(`A.evAct('${id}|asHard')`); await app.poll(2);
+  assert.equal(b.robotCommands().length, before, 'the robot is not sent out');
+  assert.match(app.run(`findEvent('${id}').outcome`), /Noted: it’s hard floor/);
+  app.run(`A.evAct('${id}|retry')`);
+  assert.equal(app.run('S.ui.modal&&S.ui.modal.title'), 'Send the robot back now?');
+  app.run('A.closeModal()'); await app.poll(2);
+  assert.equal(b.robotCommands().length, before);
+  app.close();
+});
+
+test('objects to check: unknown things are numbered, answered ones stay ticked, no “confirm all” promise', async () => {
+  const b = fakeBridge({ obstacles: [
+    { x: 27000, y: 27000, type_code: 42, description: null, photo_name: 'pa' },
+    { x: 29000, y: 27000, type_code: 42, description: null, photo_name: 'pb' }] });
+  const app = await boot(b);
+  await app.poll(2);
+  const room = app.run('CELLROOM[S.objects[0].k]');
+  app.run(`A.reviewRoom('${room}')`);
+  let body = app.run('S.ui.modal.body');
+  assert.match(body, /Unknown object 1/); assert.match(body, /Unknown object 2/);
+  assert.match(body, /couldn’t tell what these are/); assert.doesNotMatch(body, /confirm them all/);
+  assert.match(body, /class="e">[^<]*<img src="\/api\/photo\?name=pa"/, 'the photo sits in a fixed box from the start');
+  const id = app.run('S.objects[0].id');
+  app.run(`A.fixObj('${id}')`);
+  assert.match(app.run('S.ui.modal.body'), /Item 1 · /);
+  assert.match(app.run('S.ui.modal.buttons[0].label'), /Pick what it is above/);
+  app.run("A.objPick('sock')"); app.run('A.objSave()');
+  body = app.run('S.ui.modal.body');
+  assert.match(body, /Saved as sock/); assert.match(body, /Was unknown object 1/);
+  assert.match(app.run('S.ui.modal.title'), /1 item to check/);
+  app.close();
+});
