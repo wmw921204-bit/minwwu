@@ -52,15 +52,15 @@
       done:(b,t)=>!!(S.task&&S.task.id!==b&&!S.task.done&&S.device.status==='paused'&&anyClick(t,['pause']))||!!(S.task&&S.task.id!==b&&S.task.done&&S.task.endedEarly),
       how:()=>S.task&&S.task.done?'ended and sent home':'paused'},
     {id:'T8',name:'Find what the robot did',ask:'Find out what the robot did on its own during the cleaning.',best:2,after:true,ok:['home','report','timeline','activity','event'],
-      done:()=>{const sc=screen().replace('+sheet','');const e=curEvent();return ['report','timeline'].includes(sc)||!!(e&&e.autonomous)},
-      how:()=>{const sc=screen().replace('+sheet','');return sc==='event'?'opened a robot decision':sc}},
+      done:()=>{const sc=screen().replace('+sheet','');const e=curEvent();return ['report','timeline'].includes(sc)||!!(e&&(e.autonomous||(e.problem&&e.status==='resolved')))},
+      how:()=>{const sc=screen().replace('+sheet','');const e=curEvent();return sc==='event'?(e&&e.problem?'opened a problem it handled by itself':'opened a robot decision'):sc}},
     {id:'T9',name:'Check found objects',ask:'Check the objects the robot wasn’t sure about.',best:2,after:true,ok:['home','map','activity','report'],
       can:()=>pendingObjs().length>0,done:(b,t)=>{const n=pendingObjs().length;if(n&&S.task&&S.task.done)t.seen=true;return !!t.seen&&n===0},
       how:(b,t)=>[['groupOk','confirmed together'],['objSave','one by one'],['objNone','said nothing was there'],['groupIgnore','ignored for now']].filter(([a])=>anyClick(t,[a])).map(x=>x[1]).join(', ')},
     {id:'T10',name:'Let the robot decide (meeting)',ask:'Next time you’ll be in a meeting for an hour. Let the robot decide on its own until then.',best:4,after:true,ok:['home','settings','autonomy'],
-      done:(b,t)=>S.autonomy==='fullAuto'&&anyClick(t,['sheetApply','setAutonomy']),
+      done:(b,t)=>anyClick(t,['sheetApply','setAutonomy'])&&(S.autonomy==='fullAuto'||(S.autonomy==='autoNotify'&&!!S.temp)),
       how:(b,t)=>{const c=lastClick(t,['sheetApply','setAutonomy']);const where=c&&c.action==='setAutonomy'?'in Settings':'from Home';
-        return 'Full auto '+(S.temp?(S.temp.task?'until this cleaning ends':'for 1 hour'):'until changed (no time limit)')+', '+where}},
+        return (S.autonomy==='fullAuto'?'Full auto ':'Auto + notify ')+(S.temp?(S.temp.task?'until this cleaning ends':'for 1 hour'):'until changed (no time limit)')+', '+where}},
     {id:'T11',name:'Find what needs you',ask:'Find everything that still needs you.',best:1,after:true,ok:['home','activity'],
       can:()=>needsYou().length>0, // objects have their own task (T9)
       done:(b,t)=>anyClick(t,['toNeeds'])||screen()==='activity',
@@ -110,6 +110,7 @@
   function begin(pid){
     // in the simulation every participant starts fresh, with the study events on
     if(!live()){try{A.ctlRestart();if(S.ctl.scenario==='none')S.ctl.scenario='all';S.ctl.calm=true;commit(true)}catch(e){}} // calm: no random disconnects mid-session
+    else{try{if(S.ctl.scenario==='none'&&A.haScenario)A.haScenario('all')}catch(e){}} // real robot: the study's decision and object events, as a labelled layer
     D.pid=pid;
     const ctx={};TASKS.forEach(T=>{let base=null;try{base=T.base?T.base():null}catch(e){}ctx[T.id]={base,seen:false,log:[]}});
     D.people[pid]={mode:live()?'real robot':'simulation',started:new Date().toISOString(),phase:'explore',

@@ -73,7 +73,7 @@
     HA.notes=s.notes||{};HA.refFrom=s.refFrom||null;HA.refArea=s.refFrom==='complete'&&s.refArea>=MIN_REF_AREA?s.refArea:null; // only a finished whole-home clean counts; older versions saved partial ones
    HA.retryQueue=s.retryQueue||[];HA.spotEv=s.spotEv||null;HA.spotStarted=!!s.spotStarted;HA.prevStatus=s.prevStatus||null;S.quietUntil=s.quietUntil||null;HA.careDay=s.careDay||{};
     SCEN.none={label:'No study events',keys:[]};
-    S.ctl.scenario=s.scenario&&SCEN[s.scenario]?s.scenario:'none'; // study events only when a facilitator turns them onS.temp=s.temp||null;
+    S.ctl.scenario=s.scenario&&SCEN[s.scenario]?s.scenario:'none';/* study events only when a facilitator turns them on */S.temp=s.temp||null;
     S.clock=now();S.conn='connecting';S.device={status:'docked',battery:null,error:null};
     S.snap={clock:S.clock,device:{...S.device},pos:null,pct:0};
   }
@@ -208,7 +208,7 @@
     nogo_zone_detected:'Carry the robot out of the no-go zone, then resume.',robot_on_carpet:'Move the robot off the carpet, then resume.',
     filter_blocked:'Clean or replace the filter, then resume.',visual_sensor:'Wipe the front camera, then resume.',
   };
-  const PLABELS={pResume:'I fixed it, resume',pDock:'Send it to the dock',pLater:'Leave it for now',pRetry:'Try again',pOk:'Got it',pAlign:'Align the map',pFinish:'Finish the cleaning here',pRooms:'Check rooms and zones'};
+  const PLABELS={pResume:'I fixed it, resume',pDock:'Send it to the dock',pLater:'Leave it for now',pRetry:'Try again',pOk:'Got it, close this',pAlign:'Align the map',pFinish:'Finish the cleaning here',pRooms:'Check rooms and zones'};
   function problemInfo(code){
     const [title,what]=PROBLEMS[code]||['Robot problem: '+code.replace(/_/g,' '),'The robot reports “'+code.replace(/_/g,' ')+'”.'];
     return {title,what,fix:FIXES[code]||M().errorText(code)||'Check the robot, then resume.',why:'Reported by the robot ('+code+').',options:['pResume','pDock','pLater']};
@@ -544,6 +544,7 @@
     ['side_brush_time_left',10,'Side brush wearing out','Replace the side brush soon.'],
     ['main_brush_time_left',15,'Main brush wearing out','Replace the main brush soon.']];
   function checkCare(snap){
+    if(!S.task||!S.task.done)return; // after a cleaning, not on first launch or while it works
     const today=new Date().toDateString();
     CARE.forEach(([k,limit,title,fix])=>{const v=M().number(snap,k);if(v==null||v>=limit||HA.careDay[k]===today)return;HA.careDay[k]=today;
       const ev=raiseProblem('p_care_'+k,{title,what:'About '+Math.max(0,Math.round(v))+' hours of cleaning left on this part.',fix,why:'From the robot’s maintenance counters.',options:['pOk']},true);if(ev){ev.care=true;DEFS[ev.key].kind='Maintenance'}});
@@ -1164,6 +1165,11 @@
     A.objNone=()=>{const m=HA.objs.find(x=>x.id===S.ui.objId);if(m)Object.assign(m,{dismissed:true,dismissedSnap:HA.objSnap});objNone0();persist()};
 
     // Screens
+    // a robot problem says what the robot is doing right now, so "Got it" isn't a guess about whether it recovered
+    wrap('scrEvent',(h,id)=>{const ev=findEvent(id);if(!ev||!ev.problem||ev.care)return h;
+      const st=S.device.status,a=HA.dev?.area;
+      const now=ev.status==='resolved'?'Sorted: '+(ev.outcome||'back to normal.'):st==='cleaning'?'Right now: it is cleaning'+(a!=null?' ('+Math.round(a*10)/10+' m² so far)':'')+'.':st==='docked'?'Right now: on the dock.':st==='returning'?'Right now: heading back to the dock.':st==='paused'?'Right now: paused, waiting.':st==='error'?'Right now: it needs a hand.':'';
+      return now?h.replace('</div>',`</div><p class="small" style="margin:10px 4px 0;font-weight:700;color:${ev.status==='resolved'?'var(--ok)':'var(--ink)'}">${esc(now)}</p>`):h});
     wrap('scrHome',h=>S.ctl.scenario==='none'?h:h.replace('</button></div>',`</button></div><p class="small" style="margin:8px 2px 0;color:var(--warn);font-weight:700">${ic('bulb',14)} Study events on: simulated events can appear during cleanings. <button class="link" data-a="haScenario" data-v="none">Turn off</button></p>`));
     wrap('statusCard',h=>{
       if(dev().status!=='idle'||S.conn!=='connected')return h;
@@ -1178,17 +1184,18 @@
       const zone=zones.find(z=>z.id===st.zone),parts=setupParts();
       let h=topbar('Start cleaning');
       h+=`<div class="seg" role="tablist">${[['home','Entire home',1],['rooms','Rooms',rooms.length],['zone','Zone',zones.length]].map(([k,l,n])=>`<button class="${st.kind===k?'on':''}" data-a="setupKind" data-v="${k}" ${n?'':'disabled'}>${l}</button>`).join('')}</div>`;
+      // Start first: on a phone the map below would push it under the tab bar
+      const label=setupLabel();
+      const nog=S.nogo.length?` No-go zones stay out.`:'';
+      h+=`<div class="card" style="margin-top:12px"><p style="font-size:15px;line-height:1.5">The robot will clean <b>${esc(label.toLowerCase()==='entire home'?'the entire home':label||'no rooms yet')}</b>.${nog}</p>`;
+      if(parts.length>5)h+=`<p class="small" style="color:var(--stop)">The robot can clean at most 5 rectangles at once. Choose fewer rooms.</p>`;
+      const sending=!!(S.cmd&&S.cmd.state==='sending')||!!HA.pending;
+      const offline=S.conn!=='connected'; // Home Assistant can't reach the robot: a start would go nowhere
+      h+=`<button class="btn primary block" style="margin-top:14px" data-a="startTask" ${(st.kind==='rooms'&&!st.rooms.length)||parts.length>5||sending||offline?'disabled':''}>${sending?'Sending… waiting for the robot':'Start'}</button>${offline?`<p class="small" style="margin:10px 2px 0;color:var(--warn)">The robot is offline right now, so it can’t start. Check that it’s on and connected (the Roborock app shows this), then try again.</p>`:''}</div>`;
       h+=`<div class="map-wrap" style="margin-top:12px">${liveMap({robot:false,noEvents:true,roomTap:st.kind==='rooms',setup:{kind:st.kind,rooms:st.rooms,zone:st.kind==='zone'&&zone?zone.parts:null}})}</div>`;
       if(!rooms.length&&!zones.length)h+=`<p class="small muted" style="margin:10px 4px">Draw rooms or zones to clean just part of the home. <button class="link" data-a="go" data-v="rooms">Set up rooms</button></p>`;
       if(st.kind==='rooms')h+=`<p class="small muted" style="margin:10px 4px">Tap rooms on the map or below.</p><div class="chips">${rooms.map(x=>`<button class="chip ${st.rooms.includes(x.id)?'on':''}" data-a="toggleRoom" data-v="${x.id}">${esc(x.name)}</button>`).join('')}</div>`;
       if(st.kind==='zone')h+=`<p class="small muted" style="margin:10px 4px">Choose a saved zone.</p><div class="chips">${zones.map(z=>`<button class="chip ${st.zone===z.id?'on':''}" data-a="setupZone" data-v="${z.id}">${esc(z.name)}</button>`).join('')}</div>`;
-      const label=setupLabel();
-      const nog=S.nogo.length?` No-go zones stay out.`:'';
-      h+=`<div class="card" style="margin-top:16px"><p style="font-size:15px;line-height:1.5">The robot will clean <b>${esc(label.toLowerCase()==='entire home'?'the entire home':label||'no rooms yet')}</b>.${nog}</p>`;
-      if(parts.length>5)h+=`<p class="small" style="color:var(--stop)">The robot can clean at most 5 rectangles at once. Choose fewer rooms.</p>`;
-      const sending=!!(S.cmd&&S.cmd.state==='sending')||!!HA.pending;
-      const offline=S.conn!=='connected'; // Home Assistant can't reach the robot: a start would go nowhere
-      h+=`<button class="btn primary block" style="margin-top:14px" data-a="startTask" ${(st.kind==='rooms'&&!st.rooms.length)||parts.length>5||sending||offline?'disabled':''}>${sending?'Sending…':'Start'}</button>${offline?`<p class="small" style="margin:10px 2px 0;color:var(--warn)">The robot is offline right now, so it can’t start. Check that it’s on and connected (the Roborock app shows this), then try again.</p>`:''}</div>`;
       return h;
     };
     const setupParts=()=>{const st=S.ui.setup;return st.kind==='rooms'?HA.rooms.filter(x=>st.rooms.includes(x.id)).flatMap(x=>x.parts):st.kind==='zone'?(HA.savedZones.find(z=>z.id===st.zone)?.parts||[]):[]};

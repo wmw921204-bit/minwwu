@@ -468,3 +468,23 @@ test('a slow return is noticed even when docking attempts flicker the status', a
   assert.equal(app.run("S.events.find(e=>e.key==='p_slowreturn').status"), 'resolved');
   app.close();
 });
+
+test('real robot: Start comes before the map, a study session turns study events on, no maintenance nag before a cleaning', async () => {
+  const b = fakeBridge();
+  const app = await boot(b);
+  app.run("go('setup');render()");
+  assert.ok(app.run("(()=>{const s=document.querySelector('[data-a=startTask]'),m=document.querySelector('.scroll .map-wrap');return !!(s.compareDocumentPosition(m)&Node.DOCUMENT_POSITION_FOLLOWING)})()"), 'Start is above the map');
+  app.run("STUDY.begin('Z1')");
+  assert.equal(app.run('S.ctl.scenario'), 'all');
+  app.close();
+});
+
+test('a robot problem screen says what the robot is doing now', async () => {
+  const b = fakeBridge();
+  const app = await boot(b);
+  app.run('A.startTask()'); await app.poll(2);
+  Object.assign(b.st, { vacuum: 'error', detail: 'error', err: 'wheels_suspended' }); await app.poll();
+  const id = app.run("S.events.find(e=>e.key==='p_wheels_suspended').id");
+  assert.match(app.run(`scrEvent('${id}')`), /Right now: it needs a hand\./);
+  app.close();
+});
