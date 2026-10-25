@@ -127,7 +127,7 @@
         <p class="c-text reveal">Instead of asking a panicking student to make choices, Moment follows the body back up, one sensory step at a time.</p>
       </div>
       <figure class="mom-chart reveal" aria-label="Emotional journey: a sharp drop into panic, then a steady climb through pause and reconnect to re-enter">
-        <svg viewBox="0 0 1000 300" aria-hidden="true">
+        <div class="mom-chart__plot"><svg viewBox="0 0 1000 300" preserveAspectRatio="none" aria-hidden="true">
           <defs>
             <linearGradient id="mgLine" x1="0" x2="1" y1="0" y2="0"><stop offset="0" stop-color="#e8604c"/><stop offset=".26" stop-color="#e8604c"/><stop offset=".55" stop-color="#d9e4c4"/><stop offset="1" stop-color="#b4d58a"/></linearGradient>
             <linearGradient id="mgArea" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#b4d58a" stop-opacity=".2"/><stop offset="1" stop-color="#b4d58a" stop-opacity="0"/></linearGradient>
@@ -136,10 +136,7 @@
           <path class="mom-chart__area" d="M20 70 C 80 150, 140 268, 220 270 C 300 272, 330 256, 375 238 S 520 150, 625 118 S 880 60, 980 40 L980 300 L20 300Z" fill="url(#mgArea)"/>
           <path class="mom-chart__line mom-chart__line--glow" pathLength="1" d="M20 70 C 80 150, 140 268, 220 270 C 300 272, 330 256, 375 238 S 520 150, 625 118 S 880 60, 980 40" stroke="url(#mgLine)" filter="url(#mgGlow)"/>
           <path class="mom-chart__line" pathLength="1" d="M20 70 C 80 150, 140 268, 220 270 C 300 272, 330 256, 375 238 S 520 150, 625 118 S 880 60, 980 40" stroke="url(#mgLine)"/>
-          <circle class="mom-chart__pulse" cx="220" cy="270" r="9"/>
-          <circle class="mom-chart__dot mom-chart__dot--red" cx="220" cy="270" r="7"/>
-          <circle class="mom-chart__dot" cx="980" cy="40" r="8"/>
-        </svg>
+        </svg><span class="mom-chart__pin mom-chart__pin--panic" style="left:22%;top:90%"></span><span class="mom-chart__pin" style="left:98%;top:13.3%"></span></div>
         <ol class="mom-chart__phases">
           <li class="is-panic"><b>Panic</b><h3>Mind goes blank</h3><p>Ten minutes before the interview, rehearsing turns into a racing heart.</p></li>
           <li><b>Pause · 01–05</b><h3>Slow the body first</h3><p>Sit down and breathe, paced by a ring in the lens.</p></li>
@@ -199,21 +196,31 @@
       </ol>
     </section>
 
-    <!-- 05 Privacy -->
-    <section class="wrap c-sec" id="reconnect" data-chapter="Privacy by design">
+    <!-- 05 Privacy: what the camera takes, and what it lets go -->
+    <section class="wrap c-sec mom-priv" id="reconnect" data-chapter="Privacy by design">
       <div class="c-chapter"><span class="c-chapter__num">05</span><h2 class="c-kicker">Privacy by design</h2></div>
-      <div class="mom-split">
-        <div>
-          <p class="c-head reveal-mask">Come back to the room, not to the people in it.</p>
-          <p class="c-text reveal">A camera on your face is a lot to ask, so the grounding step is built around restraint.</p>
-          <ul class="mom-rules reveal-stagger">
-            <li><svg class="mom-ic" viewBox="0 0 56 56" aria-hidden="true"><circle cx="28" cy="28" r="26" class="i-ring"/><circle cx="28" cy="28" r="11"/><path d="M22.8 28.4l3.6 3.6 6.8-7.4"/></svg><div><b>Asks first</b><p>The camera only looks when you allow it, inside a reset you started.</p></div></li>
-            <li><svg class="mom-ic" viewBox="0 0 56 56" aria-hidden="true"><circle cx="28" cy="28" r="26" class="i-ring"/><path d="M21.5 22h13l-1.9 16.5h-9.2z"/><path d="M20 22h16M22 18.5h12"/><circle cx="28" cy="29" r="15.5" class="i-dot"/></svg><div><b>Objects only</b><p>MOMO names a colour or a thing (“the white item”), never a person or a face.</p></div></li>
-            <li><svg class="mom-ic" viewBox="0 0 56 56" aria-hidden="true"><circle cx="28" cy="28" r="26" class="i-ring"/><circle cx="17.5" cy="28" r="4.2" class="i-fill"/><circle cx="27.5" cy="28" r="3.1" class="i-fill o6"/><circle cx="35.5" cy="28" r="2.1" class="i-fill o3"/><circle cx="41.5" cy="28" r="1.3" class="i-fill o2"/></svg><div><b>Nothing kept</b><p>One snapshot picks a prompt, then it is gone.</p></div></li>
-          </ul>
-        </div>
-        <figure class="mom-lens reveal"><img src="../assets/projects/moment/lens/08.webp" alt="Lens screen over a real kitchen: a coffee cup is circled, Notice the white item nearby" width="800" height="800" loading="lazy"></figure>
+      <div class="mom-priv__top">
+        <p class="c-head reveal-mask">Come back to the room, not to the people in it.</p>
+        <p class="c-text reveal">A camera on your face is a lot to ask. So the grounding step takes as little as it can, and lets go of it straight away.</p>
       </div>
+      <ol class="mom-priv__flow reveal-stagger">
+        <li>
+          <div class="mom-priv__v mom-priv__v--snap"><img src="../assets/projects/moment/priv-snap.webp" alt="A single snapshot of an office kitchen" width="800" height="587" loading="lazy"><span class="mom-priv__tag">1 snapshot</span></div>
+          <b>01 · Asks first</b><h3>Only inside a reset you started</h3><p>The camera looks once, and only with your permission.</p>
+        </li>
+        <li>
+          <div class="mom-priv__v mom-priv__v--obj"><img src="../assets/projects/moment/priv-object.webp" alt="One object picked out: a white coffee cup" width="400" height="400" loading="lazy"></div>
+          <b>02 · Objects only</b><h3>A thing, never a person</h3><p>MOMO looks for one object or colour. No faces, no names.</p>
+        </li>
+        <li>
+          <div class="mom-priv__v mom-priv__v--prompt"><span>Notice the <u>white item</u> nearby.</span></div>
+          <b>03 · One prompt</b><h3>Turned into a single line</h3><p>All that survives is the instruction in your lens.</p>
+        </li>
+        <li>
+          <div class="mom-priv__v mom-priv__v--gone"><svg viewBox="0 0 56 56" class="mom-ic" aria-hidden="true"><circle cx="28" cy="28" r="26" class="i-ring"/><circle cx="17.5" cy="28" r="4.2" class="i-fill"/><circle cx="27.5" cy="28" r="3.1" class="i-fill o6"/><circle cx="35.5" cy="28" r="2.1" class="i-fill o3"/><circle cx="41.5" cy="28" r="1.3" class="i-fill o2"/></svg></div>
+          <b>04 · Nothing kept</b><h3>Then the snapshot is gone</h3><p>No photo saved, no log of where you were.</p>
+        </li>
+      </ol>
     </section>
 
     <!-- 06 Companion app -->
