@@ -151,6 +151,10 @@ $$("[data-stack]").forEach((stack) => {
       const inner = cards[i].firstElementChild;
       inner.style.transform = `scale(${(1 - p * 0.08).toFixed(4)})`;
       inner.style.setProperty("--dim", (p * 0.6).toFixed(3));
+      // Once the next card fully covers this one, stop painting it: eleven full-screen
+      // layers kept alive at once blow Chrome's GPU budget and the later cards flicker
+      const hide = p >= 1 && next.top <= 0 ? "hidden" : "";
+      if (cards[i].style.visibility !== hide) cards[i].style.visibility = hide;
     }
   });
 });

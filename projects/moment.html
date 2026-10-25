@@ -16,7 +16,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&family=Poppins:wght@400;500;600&family=Sulphur+Point:wght@400&family=Josefin+Sans:wght@200;300&display=swap">
   <link rel="stylesheet" href="../styles.css?v=20261026p">
-  <link rel="stylesheet" href="../case.css?v=20261030a">
+  <link rel="stylesheet" href="../case.css?v=20261030b">
 </head>
 <body class="case case--mom">
   <a class="skip" href="#main">Skip to content</a>
@@ -63,7 +63,7 @@
   <main id="main">
     <section class="c-hero c-hero--br c-hero--compact" data-scene style="--beats:1;--hero-bg:#0c120e">
       <div class="c-hero__pin">
-        <img class="c-hero__media" src="../assets/projects/moment/card-16x9.webp" alt="A Ray-Ban Display lens showing Moment’s green breathing ring, with the line Outside, noise. Inside, one moment." width="1600" height="900">
+        <video class="c-hero__media" autoplay muted loop playsinline preload="auto" poster="../assets/projects/moment/hero-poster.webp" aria-label="A student in an office kitchen follows Moment’s prompts in her glasses: sit down, breathe, feel the cup, settle"><source src="../assets/projects/moment/hero.mp4" type="video/mp4"></video>
         <div class="c-hero__intro">
           <small>SMART GLASSES · IX HACK 2026</small>
           <p>Outside, noise. Inside, one moment.</p>
@@ -85,10 +85,10 @@
           <div><dt>Category</dt><dd>Wearables · Interaction design</dd></div>
         </dl>
       </div>
-      <div class="c-covers c-covers--natural">
-        <img class="wipe" src="../assets/projects/moment/cover.webp" alt="Close-up of the lens: a green ring of beads with the prompt Swipe down to spin" width="1600" height="1200" loading="lazy">
-        <img class="wipe" src="../assets/projects/moment/breath.webp" alt="The glasses and wristband, the lens reading Take a Moment for yourself, pinch to start" width="1600" height="1200" loading="lazy">
-        <img class="wipe" src="../assets/projects/moment/scene.webp" alt="A student looking down before an interview, a soft glow in her lens" width="1600" height="1200" loading="lazy">
+      <div class="c-covers c-covers--natural mom-covers">
+        <img class="wipe" src="../assets/projects/moment/lens/01.webp" alt="Lens screen: Take a Moment for yourself, pinch to start" width="800" height="800" loading="lazy">
+        <img class="wipe" src="../assets/projects/moment/lens/05.webp" alt="Lens screen: a ring of beads, swipe down to spin" width="800" height="800" loading="lazy">
+        <img class="wipe" src="../assets/projects/moment/lens/12.webp" alt="Lens screen: your body is settled, return when you are ready" width="800" height="800" loading="lazy">
       </div>
     </section>
 
@@ -120,55 +120,104 @@
     <section class="wrap c-sec" id="journey" data-chapter="Emotional journey">
       <div class="c-chapter"><span class="c-chapter__num">02</span><h2 class="c-kicker">Emotional journey</h2></div>
       <p class="c-head reveal-mask">Pause, reconnect, re-enter.</p>
-      <p class="c-text reveal">Grounding brings attention back to the present. Moment walks through it one sensory step at a time, in an eight-step flow that follows the body back down from panic.</p>
-      <figure class="mom-board reveal"><img src="../assets/projects/moment/journey.webp" alt="Emotional journey chart: a red line drops into Panic, then a white line rises through Pause and Reconnect to Re-enter" width="1600" height="1200" loading="lazy"></figure>
+      <p class="c-text reveal">Grounding brings attention back to the present. Instead of asking a panicking student to make choices, Moment follows the body back down, one sensory step at a time.</p>
+      <figure class="mom-chart reveal" aria-label="Emotional journey: a sharp drop into panic, then a steady climb through pause and reconnect to re-enter">
+        <svg viewBox="0 0 800 320">
+          <path class="mom-chart__base" d="M30 150H770"/>
+          <path class="mom-chart__drop" d="M60 60 C 110 140, 150 270, 220 272"/>
+          <path class="mom-chart__rise" d="M220 272 C 300 274, 340 250, 400 232 S 520 140, 580 128 S 700 70, 750 44"/>
+          <circle class="mom-chart__dot mom-chart__dot--red" cx="220" cy="272" r="7"/>
+          <circle class="mom-chart__dot" cx="400" cy="232" r="7"/><circle class="mom-chart__dot" cx="580" cy="128" r="7"/><circle class="mom-chart__dot" cx="750" cy="44" r="7"/>
+          <text x="60" y="40">Rehearsing</text><text x="220" y="306" text-anchor="middle" class="mom-chart__red">Panic</text>
+          <text x="400" y="268" text-anchor="middle">Pause</text><text x="580" y="104" text-anchor="middle">Reconnect</text><text x="750" y="22" text-anchor="end">Re-enter</text>
+        </svg>
+      </figure>
       <ol class="mom-steps reveal-stagger">
-        <li><b>01</b><h3>Pause</h3><p>Slow the body first, with breathing paced by a ring in the lens.</p></li>
-        <li><b>02</b><h3>Reconnect</h3><p>Anchor attention in one real detail from the room around you.</p></li>
-        <li><b>03</b><h3>Re-enter</h3><p>Affirm that the body has reset, and walk in with calm that is enough.</p></li>
+        <li><b>Pause</b><h3>Slow the body first</h3><p>Sit down and breathe, paced by a ring in the lens. Steps 01 to 05.</p></li>
+        <li><b>Reconnect</b><h3>Anchor in the room</h3><p>Touch, one real object, then sound pull attention out of the spiral. Steps 06 to 10.</p></li>
+        <li><b>Re-enter</b><h3>Walk in as yourself</h3><p>Affirm that the body has reset, and return with calm that is enough. Steps 11 and 12.</p></li>
       </ol>
     </section>
 
-    <!-- 03 How it works -->
-    <section class="wrap c-sec" id="system" data-chapter="How it works">
-      <div class="c-chapter"><span class="c-chapter__num">03</span><h2 class="c-kicker">How it works</h2></div>
-      <p class="c-head reveal-mask">Four quiet signals, one calm prompt.</p>
-      <figure class="mom-board reveal"><img src="../assets/projects/moment/system.webp" alt="A student holding a coffee cup, with callouts for the companion app, motion sensing, voice activation and camera plus AI" width="1600" height="1200" loading="lazy"></figure>
-      <ol class="mom-steps mom-steps--4 reveal-stagger">
-        <li><b>01</b><h3>Voice activation</h3><p>One voice command starts the routine, so there are fewer steps between needing support and getting it.</p></li>
-        <li><b>02</b><h3>Motion sensing</h3><p>Built-in sensors read movement and steadiness, and prompt you to sit down before continuing.</p></li>
-        <li><b>03</b><h3>Camera + AI</h3><p>A snapshot of the world around you turns nearby objects and colours into grounding prompts.</p></li>
-        <li><b>04</b><h3>Companion app</h3><p>Set voice, music and guidance ahead of time, so there is less to decide in the moment.</p></li>
-      </ol>
-    </section>
-
-    <!-- 04 Gestures -->
-    <section class="wrap c-sec" id="gestures" data-chapter="Gesture interaction">
-      <div class="c-chapter"><span class="c-chapter__num">04</span><h2 class="c-kicker">Gesture interaction</h2></div>
-      <p class="c-head reveal-mask">A pinch to start, a swipe to breathe.</p>
-      <p class="c-text reveal">The Neural Band reads small finger gestures, so nobody nearby sees a thing. Pinch to start a three-minute reset; follow the animation and slowly swipe down to spin the ring. Immediate feedback sets a calming rhythm, at your own pace.</p>
-      <div class="mom-pair reveal-stagger">
-        <figure><img src="../assets/projects/moment/pause.webp" alt="The lens reads Take a Moment for yourself, pinch to start" width="1600" height="1200" loading="lazy"><figcaption><b>Pause.</b> Pinch to start a three-minute reset.</figcaption></figure>
-        <figure><img src="../assets/projects/moment/gesture.webp" alt="A student swiping down with two fingers to spin the virtual ring of beads" width="1600" height="1200" loading="lazy"><figcaption><b>Swipe to spin.</b> Each bead is one slow breath.</figcaption></figure>
+    <!-- 03 Flow -->
+    <section class="wrap c-sec" id="flow" data-chapter="Inside the lens">
+      <div class="c-chapter"><span class="c-chapter__num">03</span><h2 class="c-kicker">Inside the lens</h2></div>
+      <p class="c-head reveal-mask">Twelve screens, one instruction each.</p>
+      <p class="c-text reveal">A mind in panic can’t read a paragraph. Every screen carries one short line, one key word underlined, and one shape to follow. Step through the whole reset:</p>
+      <div class="mom-flow reveal" data-mom-flow>
+        <div class="mom-flow__lens">
+          <img data-step="0" src="../assets/projects/moment/lens/01.webp" alt="Lens screen: Take a Moment for yourself." width="800" height="800" loading="lazy">
+          <img data-step="1" src="../assets/projects/moment/lens/02.webp" alt="Lens screen: Slowly sit down." width="800" height="800" loading="lazy">
+          <img data-step="2" src="../assets/projects/moment/lens/03.webp" alt="Lens screen: Feel the support beneath you." width="800" height="800" loading="lazy">
+          <img data-step="3" src="../assets/projects/moment/lens/04.webp" alt="Lens screen: Breathe in, breathe out." width="800" height="800" loading="lazy">
+          <img data-step="4" src="../assets/projects/moment/lens/05.webp" alt="Lens screen: Swipe down to spin." width="800" height="800" loading="lazy">
+          <img data-step="5" src="../assets/projects/moment/lens/06.webp" alt="Lens screen: Feel two fingers rubbing together." width="800" height="800" loading="lazy">
+          <img data-step="6" src="../assets/projects/moment/lens/07.webp" alt="Lens screen: Take a look around." width="800" height="800" loading="lazy">
+          <img data-step="7" src="../assets/projects/moment/lens/08.webp" alt="Lens screen: Notice the white item nearby." width="800" height="800" loading="lazy">
+          <img data-step="8" src="../assets/projects/moment/lens/09.webp" alt="Lens screen: Feel its temperature." width="800" height="800" loading="lazy">
+          <img data-step="9" src="../assets/projects/moment/lens/10.webp" alt="Lens screen: Notice sound around you." width="800" height="800" loading="lazy">
+          <img data-step="10" src="../assets/projects/moment/lens/11.webp" alt="Lens screen: Slowly look around." width="800" height="800" loading="lazy">
+          <img data-step="11" src="../assets/projects/moment/lens/12.webp" alt="Lens screen: Your body is settled." width="800" height="800" loading="lazy">
+        </div>
+        <ol class="mom-flow__list">
+          <li><button type="button" data-step="0"><span class="mom-flow__n">01</span><span class="mom-flow__t"><small>Pause</small>Take a Moment for yourself.</span></button><p>A pinch on the Neural Band starts a three-minute reset.</p></li>
+          <li><button type="button" data-step="1"><span class="mom-flow__n">02</span><span class="mom-flow__t"><small>Pause</small>Slowly sit down.</span></button><p>Motion sensing notices you are still standing, and asks you to sit first.</p></li>
+          <li><button type="button" data-step="2"><span class="mom-flow__n">03</span><span class="mom-flow__t"><small>Pause</small>Feel the support beneath you.</span></button><p>Weight goes into the chair, and the body learns it is safe.</p></li>
+          <li><button type="button" data-step="3"><span class="mom-flow__n">04</span><span class="mom-flow__t"><small>Pause</small>Breathe in, breathe out.</span></button><p>The ring grows and shrinks to pace each breath.</p></li>
+          <li><button type="button" data-step="4"><span class="mom-flow__n">05</span><span class="mom-flow__t"><small>Pause</small>Swipe down to spin.</span></button><p>Each bead is one slow breath. The swipe gives the hands a rhythm too.</p></li>
+          <li><button type="button" data-step="5"><span class="mom-flow__n">06</span><span class="mom-flow__t"><small>Reconnect</small>Feel two fingers rubbing together.</span></button><p>Touch pulls attention back into the body fastest.</p></li>
+          <li><button type="button" data-step="6"><span class="mom-flow__n">07</span><span class="mom-flow__t"><small>Reconnect</small>Take a look around.</span></button><p>The camera takes one snapshot of the room, with your permission.</p></li>
+          <li><button type="button" data-step="7"><span class="mom-flow__n">08</span><span class="mom-flow__t"><small>Reconnect</small>Notice the white item nearby.</span></button><p>MOMO picks one real object to anchor you. No names, no faces.</p></li>
+          <li><button type="button" data-step="8"><span class="mom-flow__n">09</span><span class="mom-flow__t"><small>Reconnect</small>Feel its temperature.</span></button><p>A warm cup in your hand becomes the next grounding step.</p></li>
+          <li><button type="button" data-step="9"><span class="mom-flow__n">10</span><span class="mom-flow__t"><small>Reconnect</small>Notice sound around you.</span></button><p>Hearing brings back the room beyond the object.</p></li>
+          <li><button type="button" data-step="10"><span class="mom-flow__n">11</span><span class="mom-flow__t"><small>Re-enter</small>Slowly look around.</span></button><p>Widen the view again, at your own pace.</p></li>
+          <li><button type="button" data-step="11"><span class="mom-flow__n">12</span><span class="mom-flow__t"><small>Re-enter</small>Your body is settled.</span></button><p>Return when you are ready. Pinch to exit.</p></li>
+        </ol>
       </div>
     </section>
 
-    <!-- 05 Reconnect -->
-    <section class="wrap c-sec" id="reconnect" data-chapter="Reconnect">
-      <div class="c-chapter"><span class="c-chapter__num">05</span><h2 class="c-kicker">Reconnect</h2></div>
-      <p class="c-head reveal-mask">Come back to the room.</p>
-      <p class="c-text reveal">With your permission, MOMO picks one real thing in view to anchor you: “Notice the white item nearby.” No names, no faces, nothing stored about the people around you.</p>
-      <figure class="mom-board reveal"><img src="../assets/projects/moment/reconnect.webp" alt="A hallway seen through the glasses; a coffee cup is outlined and the lens says Notice the white item nearby" width="1600" height="1200" loading="lazy"></figure>
+    <!-- 04 How it works -->
+    <section class="wrap c-sec" id="system" data-chapter="How it works">
+      <div class="c-chapter"><span class="c-chapter__num">04</span><h2 class="c-kicker">How it works</h2></div>
+      <p class="c-head reveal-mask">Four quiet signals, no screen to unlock.</p>
+      <p class="c-text reveal">Nobody nearby should notice. Support starts with a word or a pinch, and the glasses do the sensing.</p>
+      <ol class="mom-steps mom-steps--4 reveal-stagger">
+        <li><b>01</b><h3>Voice activation</h3><p>One voice command starts the routine, so there are fewer steps between needing support and getting it.</p></li>
+        <li><b>02</b><h3>Neural Band gestures</h3><p>Pinch to start or exit, swipe to spin the ring. Small finger moves that nobody else sees.</p></li>
+        <li><b>03</b><h3>Motion sensing</h3><p>Built-in sensors read movement and steadiness, and prompt you to sit down before continuing.</p></li>
+        <li><b>04</b><h3>Camera + AI</h3><p>One snapshot of the room turns nearby objects and colours into grounding prompts.</p></li>
+      </ol>
     </section>
 
-    <!-- 06 Make it yours -->
-    <section class="wrap c-sec" id="yours" data-chapter="Make it yours">
+    <!-- 05 Privacy -->
+    <section class="wrap c-sec" id="reconnect" data-chapter="Privacy by design">
+      <div class="c-chapter"><span class="c-chapter__num">05</span><h2 class="c-kicker">Privacy by design</h2></div>
+      <div class="mom-split">
+        <div>
+          <p class="c-head reveal-mask">Come back to the room, not to the people in it.</p>
+          <p class="c-text reveal">A camera on your face is a lot to ask, so the grounding step is built around restraint.</p>
+          <ul class="mom-rules reveal-stagger">
+            <li><b>Asks first.</b> The camera only looks when you allow it, inside a reset you started.</li>
+            <li><b>Objects only.</b> MOMO names a colour or a thing (“the white item”), never a person or a face.</li>
+            <li><b>Nothing kept.</b> One snapshot picks a prompt, then it is gone.</li>
+          </ul>
+        </div>
+        <figure class="mom-lens reveal"><img src="../assets/projects/moment/lens/08.webp" alt="Lens screen over a real kitchen: a coffee cup is circled, Notice the white item nearby" width="800" height="800" loading="lazy"></figure>
+      </div>
+    </section>
+
+    <!-- 06 Companion app -->
+    <section class="wrap c-sec" id="app" data-chapter="Make it yours">
       <div class="c-chapter"><span class="c-chapter__num">06</span><h2 class="c-kicker">Make it yours</h2></div>
-      <p class="c-head reveal-mask">A calm only she can see.</p>
-      <p class="c-text reveal">A three-minute reset inside the lens: breathe, ground, then walk in as yourself. In the companion app, students choose the sounds, guidance and gentle vibrations that feel right, so there is less to decide when they need support.</p>
-      <div class="mom-pair reveal-stagger">
-        <figure><img src="../assets/projects/moment/scene.webp" alt="A student looking down before an interview, a soft glow in her lens" width="1600" height="1200" loading="lazy"><figcaption><b>Ten minutes before the interview.</b></figcaption></figure>
-        <figure><img src="../assets/projects/moment/app.webp" alt="A hand holding a phone with Moment’s settings: voice, channels and breathing" width="1600" height="1200" loading="lazy"><figcaption><b>Personalise your support</b> in the companion app.</figcaption></figure>
+      <div class="mom-split mom-split--app">
+        <div class="mom-phones reveal-stagger">
+          <img src="../assets/projects/moment/app-home.webp" alt="Companion app home: connected to Meta Ray-Ban Display, a breathing ring and Begin Reset" width="632" height="1302" loading="lazy">
+          <img src="../assets/projects/moment/app-setting.webp" alt="Companion app settings: glasses display, voice guidance, vibration levels and breathing patterns" width="632" height="1302" loading="lazy">
+        </div>
+        <div>
+          <p class="c-head reveal-mask">Decide on a calm day, not in the moment.</p>
+          <p class="c-text reveal">The companion app is where the choices live: which channels to use (glasses display, voice, phone vibration, a slow heartbeat), and which breathing pattern feels right. Then, mid-panic, there is nothing left to decide.</p>
+        </div>
       </div>
     </section>
 
@@ -222,6 +271,22 @@
   </footer>
 
   <script src="../assets/js/lenis.min.js" defer></script>
-  <script src="../main.js?v=20261028b" defer></script>
+  <script src="../main.js?v=20261030a" defer></script>
+  <script>
+  (() => {
+    const box = document.querySelector("[data-mom-flow]"); if (!box) return;
+    const imgs = box.querySelectorAll(".mom-flow__lens img"), btns = box.querySelectorAll(".mom-flow__list button");
+    let cur = 0, timer = 0, auto = !matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const go = (i) => {
+      cur = (i + imgs.length) % imgs.length;
+      imgs.forEach((im, k) => im.classList.toggle("is-on", k === cur));
+      btns.forEach((b, k) => { b.closest("li").classList.toggle("is-on", k === cur); if (k === cur) b.setAttribute("aria-current", "step"); else b.removeAttribute("aria-current"); });
+    };
+    const play = () => { clearInterval(timer); if (auto) timer = setInterval(() => go(cur + 1), 2800); };
+    btns.forEach((b, k) => b.addEventListener("click", () => { auto = false; clearInterval(timer); go(k); }));
+    new IntersectionObserver(([e]) => (e.isIntersecting ? play() : clearInterval(timer)), { threshold: 0.4 }).observe(box);
+    go(0);
+  })();
+  </script>
 </body>
 </html>
