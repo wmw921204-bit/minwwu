@@ -535,6 +535,11 @@ a.table__row:hover span:last-child::after { opacity: 1; transform: none; }
 .skill-logo { position: absolute; left: 50%; top: -.78em; width: .82em; height: .82em; translate: -50% 0; border-radius: 28%; background: #1b1b1b; box-shadow: 0 10px 24px rgba(0,0,0,.5), inset 0 0 0 1px rgba(255,255,255,.12); scale: 0; rotate: -20deg; transition: scale .5s cubic-bezier(.34,1.56,.64,1), rotate .5s cubic-bezier(.34,1.56,.64,1); pointer-events: none; }
 .skill-logo::before { content: ""; position: absolute; inset: 22%; background: var(--c); -webkit-mask: var(--logo) center / contain no-repeat; mask: var(--logo) center / contain no-repeat; }
 .skills__list li:hover .skill-logo { scale: 1; rotate: 8deg; }
+/* Vibe coding: the badge flips through the tools it covers (Claude, Codex, Cursor, Lovable, v0) */
+.skill-logo--cycle::before { display: none; }
+.skill-logo--cycle i { position: absolute; inset: 22%; background: var(--c); -webkit-mask: var(--logo) center / contain no-repeat; mask: var(--logo) center / contain no-repeat; opacity: 0; animation: skillCycle 6s calc(var(--k) * 1.2s) infinite; }
+@keyframes skillCycle { 0% { opacity: 0; transform: translateY(40%) scale(.6); } 4%, 16% { opacity: 1; transform: none; } 20%, 100% { opacity: 0; transform: translateY(-40%) scale(.6); } }
+@media (prefers-reduced-motion: reduce) { .skill-logo--cycle i { animation: none; } .skill-logo--cycle i:first-child { opacity: 1; } }
 
 @media (max-width: 1024px) {
   .talk { grid-template-columns: 1fr; }
