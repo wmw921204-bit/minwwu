@@ -16,15 +16,22 @@
     const glyphs = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789#%&*+=/<>";
     const t0 = performance.now();
     const minTime = 1700;
-    // things worth waiting for, each with a time limit so the intro never hangs
+    // wait for the whole first visit to be ready: fonts, the page itself, the hero video, and every
+    // image on the page (including lazy ones further down), each with a time limit so the intro never hangs
     const heroImg = $(".hero__photo img");
+    const heroVid = $(".hero__bg");
+    const loadImg = (src) => new Promise((r) => { const i = new Image(); i.onload = i.onerror = r; i.src = src; (i.decode ? i.decode() : Promise.resolve()).then(r, r); });
+    const srcs = new Set();
+    document.querySelectorAll("img[src], video[poster]").forEach((el) => { const s = el.getAttribute(el.tagName === "IMG" ? "src" : "poster"); if (s && !s.endsWith(".svg")) srcs.add(s); });
     const tasks = [
       document.fonts ? document.fonts.ready : Promise.resolve(),
       heroImg ? (heroImg.decode ? heroImg.decode().catch(() => {}) : Promise.resolve()) : Promise.resolve(),
       new Promise((r) => (document.readyState === "complete" ? r() : addEventListener("load", r, { once: true }))),
+      heroVid ? new Promise((r) => { heroVid.preload = "auto"; if (heroVid.readyState >= 4) return r(); heroVid.addEventListener("canplaythrough", r, { once: true }); heroVid.addEventListener("error", r, { once: true }); heroVid.load(); }) : Promise.resolve(),
+      ...[...srcs].map(loadImg),
     ];
     let done = 0;
-    tasks.forEach((t) => Promise.race([t, new Promise((r) => setTimeout(r, 3500))]).then(() => done++));
+    tasks.forEach((t) => Promise.race([t, new Promise((r) => setTimeout(r, 9000))]).then(() => done++));
     let shown = 0;
     const frame = (now) => {
       const elapsed = now - t0;
