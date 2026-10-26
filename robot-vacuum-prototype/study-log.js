@@ -101,11 +101,20 @@
     const sc=screen();
     if(sc!==lastScreen){lastScreen=sc;push({type:'screen',action:'',value:'',label:sc});
       if(p.run)p.run.path.push(sc);if(p.phase==='explore')p.explore.path.push(sc)}
+    modeSwitch(p);
     if(p.phase==='explore')checkExplore(p);
     followCleaning(p);
     if(p.phase==='guided'&&p.run&&!p.run.result){let ok=false;try{ok=byId(p.run.id).done(p.run.base,p.run)}catch(e){}if(ok)endTask('done (auto)')}
   },300);
 
+  /* switching between the simulation and the real robot mid-session (Settings reloads the app): the results say which,
+     and the reload doesn't count as the cleaning ending, so exploration carries on with the next cleaning */
+  function modeSwitch(p){
+    const m=live()?'real robot':'simulation';if(p.mode===m)return;
+    p.mode=m;push({type:'mark',action:'switched to '+m,value:'',label:''});
+    if(p.phase==='explore'){const ex=p.explore;ex.cleaning=!!(S.task&&!S.task.done);ex.since=now()}
+    save();draw();
+  }
   /* 1 start: free exploration, which is one cleaning */
   function begin(pid){
     // in the simulation every participant starts fresh, with the study events on

@@ -605,3 +605,16 @@ test('objects to check: unknown things are numbered, answered ones stay ticked, 
   assert.match(app.run('S.ui.modal.title'), /1 item to check/);
   app.close();
 });
+
+test('study panel: a switch from the simulation to the real robot mid-session is labelled, and the reload doesn’t end exploration', async () => {
+  const b = fakeBridge();
+  const app = await boot(b);
+  app.run("STUDY.begin('SW')");
+  // as if the session began in the simulation, with its cleaning running, then Settings switched to the real robot
+  app.run("Object.assign(STUDY.data().people.SW,{mode:'simulation'});STUDY.data().people.SW.explore.cleaning=true");
+  await sleep(450);
+  assert.equal(app.run("STUDY.data().people.SW.mode"), 'real robot');
+  assert.equal(app.run("STUDY.data().people.SW.phase"), 'explore', 'the switch is not the end of the cleaning');
+  assert.ok(app.run("STUDY.data().people.SW.log.some(x=>x.action==='switched to real robot')"), 'the switch is in the log');
+  app.close();
+});
