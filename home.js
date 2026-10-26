@@ -38,6 +38,7 @@
       name.textContent = [...finalName].map((c, i) => (c === " " || i < solved ? c : glyphs[(Math.random() * glyphs.length) | 0])).join("");
       if (shown < 1) return requestAnimationFrame(frame);
       name.textContent = finalName;
+      loader.classList.add("is-drawn");
       setTimeout(() => {
         loader.classList.add("is-out");
         setTimeout(() => {
@@ -46,7 +47,7 @@
           try { sessionStorage.setItem("introSeen", "1"); } catch (e) {}
         }, 350);
         setTimeout(() => root.classList.remove("intro"), 1500);
-      }, 250);
+      }, 1000);
     };
     requestAnimationFrame(frame);
 

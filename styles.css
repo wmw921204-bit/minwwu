@@ -122,7 +122,9 @@ button.pill--dark { padding: 14px 28px; font-size: 18px; }
 }
 .topbar__loc { font-size: 15px; color: rgba(255,255,255,.55); }
 .brand { display: flex; align-items: center; gap: 10px; font-size: 20px; }
-.brand img { width: 26px; height: auto; }
+.brand img, .brand__mark { width: 34px; height: auto; flex: none; }
+/* Lockup A: the name's x-height matches the mw's letters and shares its baseline */
+.brand__name { font: 500 20.5px/1 var(--f-body); letter-spacing: -0.02em; translate: 0 -1px; }
 .menu-btn {
   justify-self: end; width: 40px; height: 40px; border-radius: 50%;
   border: 2px solid var(--accent); background: #fff;
@@ -565,14 +567,19 @@ a.table__row:hover span:last-child::after { opacity: 1; transform: none; }
 .loader.is-out .loader__field { opacity: 0; }
 .loader__bar { position: absolute; left: 0; right: 0; top: 0; height: 2px; background: rgba(255,255,255,.08); }
 .loader__bar span { display: block; height: 100%; background: var(--accent); transform-origin: left; transform: scaleX(var(--lp, 0)); }
-.loader__center { position: absolute; left: 50%; top: 46%; width: 132px; height: 132px; translate: -50% -50%; display: grid; place-items: center; }
-.loader__ring { position: absolute; inset: 0; transform: rotate(-90deg); }
-.loader__ring circle { fill: none; stroke: rgba(255,255,255,.1); stroke-width: 1.5; }
-.loader__ring .loader__ring-val { stroke: var(--accent); stroke-width: 2.5; stroke-linecap: round; stroke-dasharray: calc(var(--lp, 0) * 100) 100; }
-.loader__logo { width: 54px; height: auto; animation: logoIn 1s cubic-bezier(.34,1.56,.64,1) both, logoPulse 1.6s ease-in-out 1s infinite; }
-@keyframes logoIn { from { opacity: 0; transform: scale(.3) rotate(-90deg); } }
-@keyframes logoPulse { 50% { transform: scale(1.08); } }
-.loader__name { position: absolute; left: 50%; top: calc(46% + 96px); translate: -50% 0; font: 600 14px/1 var(--f-display); letter-spacing: .5em; text-indent: .5em; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.loader__center { position: absolute; left: 50%; top: 44%; width: 170px; translate: -50% -50%; }
+/* The mw draws itself as the page loads; when it is complete the orange dot drops in */
+.loader__mark { display: block; width: 100%; height: auto; overflow: visible; }
+.loader__mark path { fill: none; stroke-width: 10; stroke-linecap: round; stroke-linejoin: round; }
+.loader__track { stroke: rgba(255,255,255,.08); }
+.loader__draw { stroke: #fff; stroke-dasharray: 1 1; stroke-dashoffset: calc(1 - var(--lp, 0)); }
+.loader__dot { fill: var(--accent); transform-box: fill-box; transform-origin: 50% 100%; transform: translateY(-60px) scale(.4); opacity: 0; }
+.loader.is-drawn .loader__dot { animation: dotDrop .7s cubic-bezier(.3,1.6,.5,1) forwards; }
+@keyframes dotDrop { 0% { transform: translateY(-60px) scale(.4); opacity: 0; } 55% { transform: translateY(2px) scale(1.15, .8); opacity: 1; } 75% { transform: translateY(-4px) scale(.95, 1.05); } 100% { transform: none; opacity: 1; } }
+.loader.is-drawn .loader__draw { animation: markSettle .5s ease-out; }
+@keyframes markSettle { 50% { stroke: #fff; filter: drop-shadow(0 0 10px rgba(255,255,255,.35)); } }
+.loader__name { position: absolute; left: 50%; top: calc(44% + 78px); translate: -50% 0; font: 600 15px/1 var(--f-display); letter-spacing: .32em; text-indent: .32em; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.loader__name::after { content: ""; display: block; width: 5px; height: 5px; margin: 16px auto 0; border-radius: 50%; background: var(--accent); }
 .loader__meta { position: absolute; right: var(--gutter); bottom: 5vh; text-align: right; font: 500 13px/1.6 var(--f-body); letter-spacing: .12em; text-transform: uppercase; color: rgba(255,255,255,.5); }
 .loader__center, .loader__name, .loader__meta, .loader__bar { transition: opacity .5s var(--ease), transform .7s var(--ease); }
 .loader.is-out .loader__center, .loader.is-out .loader__name, .loader.is-out .loader__meta, .loader.is-out .loader__bar { opacity: 0; transform: translateY(-24px); }
