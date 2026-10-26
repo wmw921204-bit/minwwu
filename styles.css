@@ -567,7 +567,7 @@ a.table__row:hover span:last-child::after { opacity: 1; transform: none; }
 .loader.is-out .loader__field { opacity: 0; }
 .loader__bar { position: absolute; left: 0; right: 0; top: 0; height: 2px; background: rgba(255,255,255,.08); }
 .loader__bar span { display: block; height: 100%; background: var(--accent); transform-origin: left; transform: scaleX(var(--lp, 0)); }
-.loader__center { position: absolute; left: 50%; top: 44%; width: 170px; translate: -50% -50%; }
+.loader__center { position: absolute; left: 50%; top: 50%; width: 170px; translate: -50% -50%; }
 /* The mw draws itself as the page loads; when it is complete the orange dot drops in */
 .loader__mark { display: block; width: 100%; height: auto; overflow: visible; }
 .loader__mark path { fill: none; stroke-width: 10; stroke-linecap: round; stroke-linejoin: round; }

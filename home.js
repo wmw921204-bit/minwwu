@@ -12,7 +12,7 @@
   const loader = $(".loader");
   if (loader && root.classList.contains("intro")) {
     const name = $(".loader__name", loader);
-    const finalName = name.textContent;
+    const finalName = name ? name.textContent : "";
     const glyphs = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789#%&*+=/<>";
     const t0 = performance.now();
     const minTime = 1700;
@@ -35,9 +35,9 @@
       loader.style.setProperty("--lp", shown.toFixed(3));
       // name resolves left to right as progress grows
       const solved = Math.floor(shown * finalName.length * 1.15);
-      name.textContent = [...finalName].map((c, i) => (c === " " || i < solved ? c : glyphs[(Math.random() * glyphs.length) | 0])).join("");
+      if (name) name.textContent = [...finalName].map((c, i) => (c === " " || i < solved ? c : glyphs[(Math.random() * glyphs.length) | 0])).join("");
       if (shown < 1) return requestAnimationFrame(frame);
-      name.textContent = finalName;
+      if (name) name.textContent = finalName;
       loader.classList.add("is-drawn");
       setTimeout(() => {
         loader.classList.add("is-out");
