@@ -125,7 +125,7 @@
     setTimeout(() => type(words[0], words[0].length, 1), 2600);
   }
 
-  /* ---------- Name letters: lift toward the cursor, flip on click, burst of W's ---------- */
+  /* ---------- Name letters: lift toward the cursor, flip on click, burst of mw marks ---------- */
   const title = $("[data-play]");
   if (title) {
     const letters = [];
@@ -157,8 +157,8 @@
       hero.addEventListener("pointermove", (e) => { px = e.clientX; py = e.clientY; if (!running) { running = true; requestAnimationFrame(tick); } });
       hero.addEventListener("pointerleave", () => { px = py = -9999; });
     }
-    // click a letter: it flips; every click also throws a few little W's
-    const logo = $(".brand img")?.getAttribute("src") || "assets/img/logo.webp";
+    // click a letter: it flips; every click also throws a few little mw marks
+    const logo = "assets/img/logo/mw-orange.svg";
     title.addEventListener("click", (e) => {
       const ch = e.target.closest(".ch");
       if (ch && !reduce) { ch.classList.remove("flip"); void ch.offsetWidth; ch.classList.add("flip"); }
