@@ -360,6 +360,7 @@
   .sh-problem__bg { position: relative; width: 100%; height: 46vh; display: block; }
   .sh-problem::before { background: linear-gradient(transparent 0, transparent 26vh, var(--c-bg) 46vh); }
   .sh-problem__in { margin-top: -6vh; position: relative; }
+  .sh-problem__left { max-width: none; margin-top: 20px; }
 }
 .case--warm .topbar__inner { background: rgba(255,246,239,.8); border-color: rgba(80,40,15,.1); color: #2b1a10; }
 .case--warm .topbar__loc { color: rgba(43,26,16,.55); }
@@ -3957,3 +3958,5 @@ img.is-zoomable { cursor: zoom-in; }
   .mom-steps--icon h3 { margin-top: 8px; }
   .mom-problem::before { background: linear-gradient(rgba(12,18,14,.92), rgba(12,18,14,.8)), linear-gradient(#0c120e 0%, transparent 18%, transparent 82%, #0c120e 100%); }
 }
+/* Zen Bloom in Chinese: the captions set the Chinese in Songti, to sit with the ink scrolls */
+html:lang(zh) .zen-cap h3 { font-family: 'Cormorant Garamond', "Songti SC", "STSong", "Noto Serif SC", Georgia, serif; font-style: normal; font-weight: 600; letter-spacing: .04em; }

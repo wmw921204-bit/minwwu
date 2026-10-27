@@ -5,6 +5,8 @@ const reduceMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
 const $ = (sel, root = document) => root.querySelector(sel);
 const $$ = (sel, root = document) => [...root.querySelectorAll(sel)];
 const clamp = (v, min = 0, max = 1) => Math.min(max, Math.max(min, v));
+// UI strings made here, in the page's language (see i18n.js)
+const t = (en, zh) => (window.__i18n ? window.__i18n.t(en, zh) : en);
 
 /* ---------- Smooth scrolling ---------- */
 let lenis = null;
@@ -74,7 +76,7 @@ if (menuBtn && menu) {
   const setMenu = (open) => {
     menu.hidden = !open;
     menuBtn.setAttribute("aria-expanded", String(open));
-    menuBtn.setAttribute("aria-label", open ? "Close menu" : "Open menu");
+    menuBtn.setAttribute("aria-label", open ? t("Close menu", "关闭菜单") : t("Open menu", "打开菜单"));
   };
   menuBtn.addEventListener("click", () => setMenu(menu.hidden));
   menu.addEventListener("click", (e) => { if (e.target.closest("a")) setMenu(false); });
@@ -98,20 +100,42 @@ if (reduceMotion || !("IntersectionObserver" in window)) {
 }
 // Stagger children of .reveal-stagger via a CSS custom property
 $$(".reveal-stagger").forEach((group) => [...group.children].forEach((child, i) => child.style.setProperty("--i", i)));
+// Chinese has no spaces, so it is cut into words (punctuation stays glued to the word before it) instead of split on whitespace
+const cjk = /[\u3400-\u9fff]/;
+const zhSeg = window.Intl && Intl.Segmenter ? new Intl.Segmenter("zh", { granularity: "word" }) : null;
+function words(text) {
+  text = text.trim();
+  if (!cjk.test(text)) return text.split(/\s+/);
+  // inline tags (<em>, <span>…) are reopened around every word inside them, so each word stays its own mask
+  const out = [], open = [];
+  for (const piece of text.split(/(<[^>]+>)/)) {
+    if (!piece) continue;
+    if (piece[0] === "<") { if (piece[1] === "/") open.pop(); else open.push(piece); continue; }
+    const wrap = (w) => open.join("") + w + open.map((t) => `</${t.match(/^<(\w+)/)[1]}>`).reverse().join("");
+    for (const { segment } of zhSeg ? zhSeg.segment(piece) : [...piece].map((segment) => ({ segment }))) {
+      if (!segment.trim()) { if (out.length && out[out.length - 1] !== " ") out.push(" "); continue; }
+      if (out.length && out[out.length - 1] !== " " && /^[\p{P}\p{S}]+$/u.test(segment)) out[out.length - 1] += wrap(segment);
+      else out.push(wrap(segment));
+    }
+  }
+  return out;
+}
 // Split .reveal-mask headings into lines-of-words that slide up from a mask
 $$(".reveal-mask").forEach((el) => {
   if (el.dataset.split) return;
   el.dataset.split = "1";
   const parts = el.innerHTML.split(/<br\s*\/?>/i);
   let n = 0;
-  el.innerHTML = parts.map((part) => part.trim().split(/\s+/).map((w) =>
-    `<span class="m"><span class="m__in" style="--i:${n++}">${w}</span></span>`).join(" ")).join("<br>");
+  // Chinese words sit flush; a space between Chinese and Latin stays a real space between the masks
+  el.innerHTML = parts.map((part) => words(part).map((w) => w === " " ? " " :
+    `<span class="m"><span class="m__in" style="--i:${n++}">${w}</span></span>`).join(cjk.test(part) ? "" : " ")).join("<br>");
 });
 
 /* ---------- Word-by-word highlight tied to scroll ---------- */
 const wordBlocks = $$(".reveal-words");
 for (const block of wordBlocks) {
-  block.innerHTML = block.textContent.trim().split(/\s+/).map((w) => `<span class="w">${w}</span>`).join(" ");
+  const txt = block.textContent;
+  block.innerHTML = words(txt).map((w) => w === " " ? " " : `<span class="w">${w}</span>`).join(cjk.test(txt) ? "" : " ");
 }
 if (reduceMotion) wordBlocks.forEach((b) => $$(".w", b).forEach((w) => w.classList.add("on")));
 else if (wordBlocks.length) {
@@ -342,7 +366,7 @@ if (form) {
     const data = new FormData(form);
     const body = `${data.get("message")}\n\n— ${data.get("email")}${data.get("phone") ? ` / ${data.get("phone")}` : ""}`;
     location.href = `mailto:wmw921204@gmail.com?subject=${encodeURIComponent("Portfolio enquiry")}&body=${encodeURIComponent(body)}`;
-    $(".form__note", form).textContent = "Opening your email app… If nothing happens, write to wmw921204@gmail.com.";
+    $(".form__note", form).textContent = t("Opening your email app… If nothing happens, write to wmw921204@gmail.com.", "正在打开邮件应用……如果没有反应，请直接写信到 wmw921204@gmail.com。");
   });
 }
 
@@ -492,7 +516,7 @@ $$("[data-deck]").forEach((deck) => {
   const dots = cards.map((c, i) => {
     const b = document.createElement("button");
     b.type = "button";
-    b.setAttribute("aria-label", c.dataset.label || `Sheet ${i + 1}`);
+    b.setAttribute("aria-label", c.dataset.label || t(`Sheet ${i + 1}`, `第 ${i + 1} 张`));
     b.addEventListener("click", () => go(i));
     dotsEl.append(b);
     return b;
@@ -563,7 +587,7 @@ $$("[data-sound]").forEach((btn) => {
   const sync = () => {
     btn.setAttribute("aria-pressed", String(!video.muted));
     btn.classList.toggle("is-on", !video.muted);
-    label.textContent = video.muted ? (started ? "Sound off" : "Watch with sound") : "Sound on";
+    label.textContent = video.muted ? (started ? t("Sound off", "声音已关") : t("Watch with sound", "开声音看")) : t("Sound on", "声音已开");
   };
   btn.addEventListener("click", () => {
     if (!started) {
@@ -848,14 +872,14 @@ $$("[data-rules]").forEach((rules) => {
   for (let c = 0; c < 6; c++) nums += `<text class="r-num" data-c="${c}" x="${X0 + c * CW + CW / 2}" y="428">${c + 1}</text>`;
   svg.setAttribute("viewBox", "0 0 820 470");
   svg.innerHTML = `
-    <g class="r-board" data-hl="board"><rect x="230" y="34" width="420" height="22" rx="8"/><text x="440" y="26">SCENE BOARD · GENRE</text></g>
+    <g class="r-board" data-hl="board"><rect x="230" y="34" width="420" height="22" rx="8"/><text x="440" y="26">${t("SCENE BOARD · GENRE", "场景板 · 曲风")}</text></g>
     <rect x="90" y="66" width="700" height="338" rx="130" fill="#2a2a2e"/>
     <rect x="102" y="78" width="676" height="314" rx="120" fill="#3ec68f"/>
     <rect x="${X0 - 12}" y="${Y0 - 12}" width="${CW * 6 + 24}" height="${CH * 3 + 24}" rx="16" fill="#f3f1ec"/>
     <g data-hl="cols"><rect class="r-sweep" x="${X0}" y="${Y0}" width="${CW}" height="${CH * 3}" rx="10"/></g>
     ${cells}${tiles}
-    <g class="r-time" data-hl="cols">${nums}<path d="M${X0} 448 H${X0 + CW * 6}" /><path d="M${X0 + CW * 6 - 12} 441 l12 7 -12 7"/><text x="${X0 + CW * 6 + 26}" y="453" style="text-anchor:start">TIME</text></g>
-    <g class="r-pitch" data-hl="rows"><text x="58" y="${Y0 + CH * 0.5 + 6}">high</text><text x="58" y="${Y0 + CH * 1.5 + 6}">mid</text><text x="58" y="${Y0 + CH * 2.5 + 6}">low</text><path d="M16 ${Y0 + 20} V${Y0 + CH * 3 - 20}"/><path d="M9 ${Y0 + 32} l7 -12 7 12"/><text x="16" y="${Y0 - 4}">PITCH</text></g>
+    <g class="r-time" data-hl="cols">${nums}<path d="M${X0} 448 H${X0 + CW * 6}" /><path d="M${X0 + CW * 6 - 12} 441 l12 7 -12 7"/><text x="${X0 + CW * 6 + 26}" y="453" style="text-anchor:start">${t("TIME", "时间")}</text></g>
+    <g class="r-pitch" data-hl="rows"><text x="58" y="${Y0 + CH * 0.5 + 6}">${t("high", "高")}</text><text x="58" y="${Y0 + CH * 1.5 + 6}">${t("mid", "中")}</text><text x="58" y="${Y0 + CH * 2.5 + 6}">${t("low", "低")}</text><path d="M16 ${Y0 + 20} V${Y0 + CH * 3 - 20}"/><path d="M9 ${Y0 + 32} l7 -12 7 12"/><text x="16" y="${Y0 - 4}">${t("PITCH", "音高")}</text></g>
     <g class="r-stack" data-hl="stack"><circle cx="${X0 + 2 * CW + CW / 2}" cy="${Y0 + CH * 1.5}" r="44"/></g>`;
   // the playhead sweeps the columns; members in that column bounce
   let col = 0, on = false;
@@ -899,7 +923,7 @@ window.__cubeTurn = (host, fromSrc, toSrc, dur = 560) => {
 
 /* ---------- Bandy: a band member that remixes itself; tap a block to change it ---------- */
 $$("[data-builder]").forEach((sec) => {
-  const data = JSON.parse($("[data-builder-data]", sec).textContent);
+  const data = JSON.parse(((window.__i18n && window.__i18n.zh && $("[data-builder-data-zh]", sec)) || $("[data-builder-data]", sec)).textContent);
   const base = "../assets/projects/bandy/blocks/";
   const state = { hat: 1, face: 2, outfit: 0 };
   const COLORS = ["#0e4a37", "#c0402a", "#5b47c9", "#e0b100", "#0b3a8c"];
@@ -925,7 +949,7 @@ $$("[data-builder]").forEach((sec) => {
     if (animate) window.__cubeTurn(btn, was, img.src);
     const row = $(`[data-read="${slot}"]`, sec);
     $("b", row).textContent = item[1];
-    $("span", row).textContent = slot === "outfit" ? "Plays the " + item[1].toLowerCase() + "." : item[2] + ": " + item[3];
+    $("span", row).textContent = slot === "outfit" ? t("Plays the " + item[1].toLowerCase() + ".", "乐队里的" + item[1] + "。") : item[2] + t(": ", "：") + item[3];
     $$(`[data-pick^="${slot}:"]`, sec).forEach((b) => b.classList.toggle("is-on", b.dataset.pick === slot + ":" + i));
     if (animate) {
 
@@ -1035,8 +1059,8 @@ $$('iframe[src*="/app/"]').forEach((frame) => {
   const veil = document.createElement("button");
   veil.type = "button";
   veil.className = "proto-veil";
-  veil.setAttribute("aria-label", `Start the interactive prototype: ${frame.title || "prototype"}`);
-  veil.innerHTML = `<span class="proto-veil__tag">Interactive prototype</span><span class="proto-veil__btn"><svg width="14" height="16" viewBox="0 0 14 16" aria-hidden="true"><path d="M2 1.5v13L13 8z" fill="currentColor"/></svg>Click to try it</span><span class="proto-veil__note">${box.closest(".fin-browser") ? "Click around like the real site" : "Tap around like a real app"}</span>`;
+  veil.setAttribute("aria-label", t(`Start the interactive prototype: ${frame.title || "prototype"}`, `开始体验交互原型：${frame.title || "原型"}`));
+  veil.innerHTML = `<span class="proto-veil__tag">${t("Interactive prototype", "交互原型")}</span><span class="proto-veil__btn"><svg width="14" height="16" viewBox="0 0 14 16" aria-hidden="true"><path d="M2 1.5v13L13 8z" fill="currentColor"/></svg>${t("Click to try it", "点击试玩")}</span><span class="proto-veil__note">${box.closest(".fin-browser") ? t("Click around like the real site", "像真实网站一样随便点") : t("Tap around like a real app", "像真实 App 一样随便点")}</span>`;
   veil.addEventListener("click", () => {
     veil.classList.add("is-gone");
     setTimeout(() => { veil.remove(); try { frame.focus({ preventScroll: true }); } catch (e) {} }, 450);
@@ -1060,14 +1084,14 @@ $$("[data-reco-ai]").forEach((box) => {
   if (!frame) return;
   if (!("gpu" in navigator)) {
     btn.disabled = true;
-    note.textContent = "Your browser doesn’t support WebGPU, so the simulated BoKnee stays on. Try desktop Chrome or Edge for the real model.";
+    note.textContent = t("Your browser doesn’t support WebGPU, so the simulated BoKnee stays on. Try desktop Chrome or Edge for the real model.", "你的浏览器不支持 WebGPU，所以继续使用模拟版 BoKnee。想体验真实模型，请用电脑版 Chrome 或 Edge。");
   }
   const send = (type) => frame.contentWindow?.postMessage({ source: "reco-page", type }, "*");
   btn.addEventListener("click", () => {
     btn.disabled = true;
-    btn.textContent = "Loading…";
+    btn.textContent = t("Loading…", "加载中…");
     bar.hidden = false;
-    note.textContent = "Downloading the model to your browser. You can keep chatting with the simulated BoKnee meanwhile.";
+    note.textContent = t("Downloading the model to your browser. You can keep chatting with the simulated BoKnee meanwhile.", "正在把模型下载到你的浏览器。等待期间可以继续和模拟版 BoKnee 聊天。");
     send("enable-ai");
   });
   addEventListener("message", (e) => {
@@ -1075,18 +1099,18 @@ $$("[data-reco-ai]").forEach((box) => {
     const d = e.data;
     if (d.type === "ai-progress") {
       bar.firstElementChild.style.width = `${Math.round((d.progress || 0) * 100)}%`;
-      btn.textContent = `Loading… ${Math.round((d.progress || 0) * 100)}%`;
+      btn.textContent = `${t("Loading…", "加载中…")} ${Math.round((d.progress || 0) * 100)}%`;
     } else if (d.type === "ai-ready") {
       bar.hidden = true;
-      btn.textContent = "Real AI on";
+      btn.textContent = t("Real AI on", "真实 AI 已开启");
       btn.classList.add("is-on");
-      note.textContent = "BoKnee now answers with Llama 3.2 1B, running on your device. Replies are generated live, so they won’t match the video word for word.";
-      if (tag) { tag.textContent = "Try it here · real AI, on your device"; tag.classList.add("reco-tag--live"); }
+      note.textContent = t("BoKnee now answers with Llama 3.2 1B, running on your device. Replies are generated live, so they won’t match the video word for word.", "BoKnee 现在由运行在你设备上的 Llama 3.2 1B 回答。回复是实时生成的，所以不会和视频里一字不差。");
+      if (tag) { tag.textContent = t("Try it here · real AI, on your device", "在这里试试 · 真实 AI，跑在你的设备上"); tag.classList.add("reco-tag--live"); }
     } else if (d.type === "ai-error") {
       bar.hidden = true;
       btn.disabled = false;
-      btn.textContent = "Try again";
-      note.textContent = `Couldn’t start the real model (${d.message}). The simulated BoKnee is still on.`;
+      btn.textContent = t("Try again", "再试一次");
+      note.textContent = t(`Couldn’t start the real model (${d.message}). The simulated BoKnee is still on.`, `真实模型没能启动（${d.message}）。模拟版 BoKnee 仍然可用。`);
     }
   });
 });
@@ -1110,7 +1134,7 @@ $$("[data-flip]").forEach((flip) => {
         const img = document.createElement("img");
         img.dataset.src = `${base}${pad(p)}.webp`;
         img.alt = `${flip.dataset.title || "Page"} — page ${p}`;
-        img.dataset.label = `Page ${p} / ${n}`;
+        img.dataset.label = t(`Page ${p} / ${n}`, `第 ${p} / ${n} 页`);
         img.width = pw; img.height = ph;
         img.decoding = "async";
         face.append(img);
@@ -1144,7 +1168,7 @@ $$("[data-flip]").forEach((flip) => {
     if (prevBtn) prevBtn.disabled = cur === 0;
     if (nextBtn) nextBtn.disabled = cur === L;
     if (range) range.value = cur;
-    if (count) count.textContent = cur === 0 ? "Cover" : cur === L ? "Back cover" : `Pages ${2 * cur}–${Math.min(n, 2 * cur + 1)} / ${n}`;
+    if (count) count.textContent = cur === 0 ? t("Cover", "封面") : cur === L ? t("Back cover", "封底") : t(`Pages ${2 * cur}–${Math.min(n, 2 * cur + 1)} / ${n}`, `第 ${2 * cur}–${Math.min(n, 2 * cur + 1)} / ${n} 页`);
     load();
   };
   let timer = 0;
@@ -1239,13 +1263,13 @@ $$("[data-flip]").forEach((flip) => {
   lb.className = "lb";
   lb.setAttribute("role", "dialog");
   lb.setAttribute("aria-modal", "true");
-  lb.setAttribute("aria-label", "Image viewer");
+  lb.setAttribute("aria-label", t("Image viewer", "图片查看器"));
   lb.innerHTML = `
     <div class="lb__stage"><img class="lb__img" alt=""></div>
     <button class="lb__btn lb__close" type="button" aria-label="Close">✕</button>
-    <button class="lb__btn lb__prev" type="button" aria-label="Previous image">←</button>
-    <button class="lb__btn lb__next" type="button" aria-label="Next image">→</button>
-    <div class="lb__bar"><span class="lb__count"></span><span class="lb__cap"></span><span class="lb__hint">Click or scroll to zoom</span></div>`;
+    <button class="lb__btn lb__prev" type="button" aria-label="${t("Previous image", "上一张")}">←</button>
+    <button class="lb__btn lb__next" type="button" aria-label="${t("Next image", "下一张")}">→</button>
+    <div class="lb__bar"><span class="lb__count"></span><span class="lb__cap"></span><span class="lb__hint">${t("Click or scroll to zoom", "点击或滚动缩放")}</span></div>`;
   document.body.append(lb);
   const stage = $(".lb__stage", lb), view = $(".lb__img", lb);
   let group = [], idx = 0, scale = 1, tx = 0, ty = 0, lastFocus = null;
@@ -1370,15 +1394,15 @@ $$("[data-flip]").forEach((flip) => {
     else if (!img.closest("[data-cursor]")) img.dataset.cursor = "View";
     img.addEventListener("click", (e) => { e.preventDefault(); open(img); });
   });
-  $$(dragBox).forEach((t) => { if (!t.dataset.cursor) t.dataset.cursor = "Drag"; });
+  $$(dragBox).forEach((el) => { if (!el.dataset.cursor) el.dataset.cursor = "Drag"; });
   $$("[data-drag]").forEach((box) => {
     const img = $("img", box);
     if (!img) return;
     const btn = document.createElement("button");
     btn.type = "button";
     btn.className = "gallery__zoom";
-    btn.setAttribute("aria-label", "Enlarge the picture");
-    btn.innerHTML = `<svg viewBox="0 0 20 20" aria-hidden="true"><path d="M12 3h5v5M8 17H3v-5M17 3l-6 6M3 17l6-6" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Enlarge</span>`;
+    btn.setAttribute("aria-label", t("Enlarge the picture", "放大图片"));
+    btn.innerHTML = `<svg viewBox="0 0 20 20" aria-hidden="true"><path d="M12 3h5v5M8 17H3v-5M17 3l-6 6M3 17l6-6" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg><span>${t("Enlarge", "放大")}</span>`;
     btn.addEventListener("click", () => open(img));
     const bar = document.createElement("div"); bar.className = "gallery__bar wrap"; bar.append(btn);
     box.after(bar);
@@ -1387,8 +1411,8 @@ $$("[data-flip]").forEach((flip) => {
     const btn = document.createElement("button");
     btn.type = "button";
     btn.className = "deck__zoom";
-    btn.setAttribute("aria-label", "Enlarge this sheet");
-    btn.innerHTML = `<svg viewBox="0 0 20 20" aria-hidden="true"><path d="M12 3h5v5M8 17H3v-5M17 3l-6 6M3 17l6-6" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Enlarge</span>`;
+    btn.setAttribute("aria-label", t("Enlarge this sheet", "放大这张"));
+    btn.innerHTML = `<svg viewBox="0 0 20 20" aria-hidden="true"><path d="M12 3h5v5M8 17H3v-5M17 3l-6 6M3 17l6-6" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg><span>${t("Enlarge", "放大")}</span>`;
     btn.addEventListener("click", () => {
       const front = $$("img", deck).find((i) => i.style.getPropertyValue("--k").trim() === "0") || $("img", deck);
       open(front);
@@ -1398,6 +1422,7 @@ $$("[data-flip]").forEach((flip) => {
 })();
 
 /* ---------- Cursor: one dot that stands in for the system pointer and grows into a label ---------- */
+const CURSOR_ZH = { View: "查看", Drag: "拖动", Next: "下一张", Prev: "上一张", Play: "播放", Open: "打开" };
 // a small inverting dot everywhere; over links it swells, over [data-cursor] (View, Drag, Next…) it grows and fills
 // with colour, showing the label. One element, so nothing ever floats in from somewhere else.
 if (!reduceMotion && matchMedia("(hover: hover) and (pointer: fine)").matches) {
@@ -1413,7 +1438,8 @@ if (!reduceMotion && matchMedia("(hover: hover) and (pointer: fine)").matches) {
   const setLabel = (host) => {
     clearTimeout(leaveT); leaveT = 0;
     if (host) {
-      if (text.textContent !== host.dataset.cursor) text.textContent = host.dataset.cursor;
+      const label = t(host.dataset.cursor, CURSOR_ZH[host.dataset.cursor] || host.dataset.cursor);
+      if (text.textContent !== label) text.textContent = label;
       // links can tint it (e.g. "Next" takes the next project's colour)
       const cs = getComputedStyle(host);
       dot.style.setProperty("--cursor-bg", cs.getPropertyValue("--next-bg").trim() || "");

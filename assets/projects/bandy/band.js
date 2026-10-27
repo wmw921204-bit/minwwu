@@ -11,7 +11,14 @@
   const HATS = ["monster", "elf", "electric", "glitch", "bubble", "robot"];
   const FACES = ["angry", "sleepy", "happy", "laughing", "calm", "sad"];
   const OUTFITS = ["guitar", "singer", "piano", "bass", "violin", "drum"];
-  const NAMES = {
+  const zh = !!(window.__i18n && window.__i18n.zh);
+  const t = (en, cn) => (zh ? cn : en);
+  const SONG_ZH = { "Oh! Susanna": "噢！苏珊娜", "Camptown Races": "康城赛马", "Yankee Doodle": "扬基歌", "In the Hall of the Mountain King": "山魔王的大厅", "Drunken Sailor": "醉酒的水手", "Block Party (original)": "积木派对（原创）", "Ode to Joy": "欢乐颂", "Canon in D": "D 大调卡农", "Eine kleine Nachtmusik": "弦乐小夜曲", "When the Saints Go Marching In": "圣徒进行曲", "Jingle Bells": "铃儿响叮当", "Frère Jacques (minor swing)": "两只老虎（小调摇摆）", "Korobeiniki": "货郎（俄罗斯方块）", "Twinkle Twinkle": "小星星", "Neon Blocks (original)": "霓虹积木（原创）" };
+  const NAMES = zh ? {
+    monster: "怪兽帽 · 低音", elf: "精灵帽 · 高音", electric: "闪电帽 · 嗡鸣", glitch: "故障帽 · 信号断裂", bubble: "泡泡帽 · 水下", robot: "机器人帽 · 声码器",
+    angry: "生气 · 强劲节奏", sleepy: "困倦 · 慵懒节奏", happy: "开心 · 轻快节奏", laughing: "大笑 · 俏皮节奏", calm: "平静 · 顺滑节奏", sad: "难过 · 缓慢节奏",
+    guitar: "吉他", singer: "歌手", piano: "钢琴", bass: "贝斯", violin: "小提琴", drum: "鼓",
+  } : {
     monster: "Monster Hat · low pitch", elf: "Elf Hat · high pitch", electric: "Electric Hat · buzz", glitch: "Glitch Hat · signal break", bubble: "Bubble Hat · underwater", robot: "Robot Hat · vocoder",
     angry: "Angry · strong rhythm", sleepy: "Sleepy · lazy rhythm", happy: "Happy · upbeat rhythm", laughing: "Laughing · playful rhythm", calm: "Calm · smooth rhythm", sad: "Sad · slow rhythm",
     guitar: "Guitar", singer: "Singer", piano: "Piano", bass: "Bass", violin: "Violin", drum: "Drums",
@@ -163,7 +170,7 @@
     const S = nextSong(genre);
     song.S = S; song.tl = build(S); song.bpm = S.bpm + Math.round(rnd(-3, 3)); song.key = S.key + ((Math.random() * 3 | 0) - 1); song.groove = Math.random() * 3 | 0;
     bar = 0;
-    const el = root.querySelector("[data-band-song]"); if (el) el.textContent = S.name;
+    const el = root.querySelector("[data-band-song]"); if (el) el.textContent = (zh && SONG_ZH[S.name]) || S.name;
   };
 
   /* ---------- loading the recordings ---------- */
@@ -427,8 +434,8 @@
   const readout = root.querySelector("[data-band-read]");
   const tray = root.querySelector("[data-band-tray]");
   const KINDS = { hat: HATS, face: FACES, outfit: OUTFITS };
-  const ROWNAME = ["back · high", "middle", "front · low"];
-  const POS = slots.map((_, i) => `column ${(i % COLS) + 1}, ${ROWNAME[Math.floor(i / COLS)]}`);
+  const ROWNAME = zh ? ["后排 · 高音", "中排", "前排 · 低音"] : ["back · high", "middle", "front · low"];
+  const POS = slots.map((_, i) => t(`column ${(i % COLS) + 1}, ${ROWNAME[Math.floor(i / COLS)]}`, `第 ${(i % COLS) + 1} 列，${ROWNAME[Math.floor(i / COLS)]}`));
 
   /* the base in perspective, measured in % of the stage width (cqw):
      the top face runs from y=TOP (back edge) to y=BOT (front edge) and widens towards the front */
@@ -468,21 +475,21 @@
   const src = (kind, name) => `${BASE}blocks/${kind}-${name}.webp`;
   let sel = null; // { i, kind }: a block on the board waiting for a new one from the tray
 
-  tray.innerHTML = Object.entries(KINDS).map(([kind, list]) => `<div class="bs-tray__row" data-kind="${kind}"><small>${kind === "hat" ? "Hats · effect" : kind === "face" ? "Faces · rhythm" : "Outfits · instrument"}</small><div>${list.map((n) => `<button type="button" class="bs-chip" data-pick="${kind}:${n}" title="${NAMES[n]}"><img src="${src(kind, n)}" alt="${NAMES[n]}" draggable="false"></button>`).join("")}</div></div>`).join("");
+  tray.innerHTML = Object.entries(KINDS).map(([kind, list]) => `<div class="bs-tray__row" data-kind="${kind}"><small>${kind === "hat" ? t("Hats · effect", "帽子 · 音效") : kind === "face" ? t("Faces · rhythm", "表情 · 节奏") : t("Outfits · instrument", "服装 · 乐器")}</small><div>${list.map((n) => `<button type="button" class="bs-chip" data-pick="${kind}:${n}" title="${NAMES[n]}"><img src="${src(kind, n)}" alt="${NAMES[n]}" draggable="false"></button>`).join("")}</div></div>`).join("");
 
   const render = (flash) => {
     stage.innerHTML = slots.map((m, i) => { const { row, col } = posOf(i), [x, y] = cellAnchor(row, col); return `<div class="bs-pad${m ? " is-full" : ""}${col === nowCol ? " is-now" : ""}" data-slot-i="${i}" style="--x:${x.toFixed(2)};--y:${y.toFixed(2)};--b:${blockSize(row)};z-index:${row + 2}">${m
-      ? `<div class="bs-member" data-member="${i}">${["hat", "face", "outfit"].map((k) => `<button type="button" class="bs-block${sel && sel.i === i && sel.kind === k ? " is-sel" : ""}${flash && !flash.from && flash.i === i && flash.kind === k ? " is-swap" : ""}" data-block="${k}" data-i="${i}" aria-label="${NAMES[m[k]]}: change it"><img src="${src(k, m[k])}" alt="" draggable="false"></button>`).join("")}<button type="button" class="bs-remove" data-remove="${i}" aria-label="Take this member off">×</button></div>`
-      : `<button type="button" class="bs-add" data-add="${i}" aria-label="Add a member: ${POS[i]}"><span>+</span></button>`}</div>`; }).join("");
+      ? `<div class="bs-member" data-member="${i}">${["hat", "face", "outfit"].map((k) => `<button type="button" class="bs-block${sel && sel.i === i && sel.kind === k ? " is-sel" : ""}${flash && !flash.from && flash.i === i && flash.kind === k ? " is-swap" : ""}" data-block="${k}" data-i="${i}" aria-label="${NAMES[m[k]]}${t(": change it", "：换一个")}"><img src="${src(k, m[k])}" alt="" draggable="false"></button>`).join("")}<button type="button" class="bs-remove" data-remove="${i}" aria-label="${t("Take this member off", "移除这位成员")}">×</button></div>`
+      : `<button type="button" class="bs-add" data-add="${i}" aria-label="${t("Add a member: ", "添加成员：")}${POS[i]}"><span>+</span></button>`}</div>`; }).join("");
     const n = slots.filter(Boolean).length;
-    readout.textContent = n ? `${n} of 6 · ` + slots.map((m, i) => m && `${NAMES[m.outfit]} (${POS[i]})`).filter(Boolean).join(", ") : "No members yet: only the scene is playing.";
+    readout.textContent = n ? t(`${n} of 6 · `, `${n} / 6 · `) + slots.map((m, i) => m && t(`${NAMES[m.outfit]} (${POS[i]})`, `${NAMES[m.outfit]}（${POS[i]}）`)).filter(Boolean).join(t(", ", "，")) : t("No members yet: only the scene is playing.", "还没有成员：只有场景在演奏。");
     root.classList.toggle("has-sel", !!sel);
     tray.querySelectorAll(".bs-tray__row").forEach((r) => r.classList.toggle("is-target", !!sel && r.dataset.kind === sel.kind));
     tray.querySelectorAll("[data-pick]").forEach((b) => { const [k, n] = b.dataset.pick.split(":"); b.classList.toggle("is-on", !!sel && sel.kind === k && slots[sel.i] && slots[sel.i][k] === n); });
     applyPeek();
     if (flash && flash.from && window.__cubeTurn) window.__cubeTurn(stage.querySelector(`[data-slot-i="${flash.i}"] [data-block="${flash.kind}"]`), src(flash.kind, flash.from), src(flash.kind, slots[flash.i][flash.kind]), 480);
     // the grid from above: every cell reachable, front row at the bottom
-    map.innerHTML = slots.map((m, i) => `<button type="button" data-map="${i}" data-mcol="${i % COLS}" class="${m ? "is-full" : ""}${sel && sel.i === i ? " is-sel" : ""}${i % COLS === nowCol ? " is-now" : ""}" aria-label="${m ? NAMES[m.outfit] + ", " + POS[i] : "Add a member: " + POS[i]}">${m ? `<img src="${src("hat", m.hat)}" alt="">` : "+"}</button>`).join("");
+    map.innerHTML = slots.map((m, i) => `<button type="button" data-map="${i}" data-mcol="${i % COLS}" class="${m ? "is-full" : ""}${sel && sel.i === i ? " is-sel" : ""}${i % COLS === nowCol ? " is-now" : ""}" aria-label="${m ? NAMES[m.outfit] + ", " + POS[i] : t("Add a member: ", "添加成员：") + POS[i]}">${m ? `<img src="${src("hat", m.hat)}" alt="">` : "+"}</button>`).join("");
   };
   const map = root.querySelector("[data-band-map]");
   map.addEventListener("click", (e) => {

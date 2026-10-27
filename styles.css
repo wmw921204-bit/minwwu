@@ -588,3 +588,33 @@ a.table__row:hover span:last-child::after { opacity: 1; transform: none; }
 .is-loading .hero .reveal, .is-loading .hero .line__in { transition: none !important; }
 .is-loading .hero .reveal { opacity: 0 !important; transform: translate3d(0, 32px, 0) !important; }
 .is-loading .hero .line__in { transform: translate3d(0, 105%, 0) !important; }
+
+/* ---------- Language switch + Chinese typesetting ---------- */
+.topbar__end { justify-self: end; display: flex; align-items: center; gap: 14px; }
+.lang-btn { display: flex; align-items: center; gap: 6px; height: 32px; padding: 0 4px; border: 0; background: none; color: inherit; font: 500 14px/1 var(--f-body); letter-spacing: .02em; cursor: pointer; }
+.lang-btn span { opacity: .42; transition: opacity .3s; }
+.lang-btn i { font-style: normal; opacity: .25; }
+.lang-btn:hover span { opacity: .75; }
+.lang-en .lang-btn__en, .lang-zh .lang-btn__zh { opacity: 1 !important; }
+.lang-btn__zh { font-family: "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif; font-size: 15px; }
+
+/* Latin stays in Poppins / Inter; Chinese falls through to PingFang (Mac, iOS) or YaHei (Windows) */
+html:lang(zh) {
+  --f-body: "Poppins", "PingFang SC", "Hiragino Sans GB", "Noto Sans SC", "Microsoft YaHei", system-ui, sans-serif;
+  --f-display: "Inter", "PingFang SC", "Hiragino Sans GB", "Noto Sans SC", "Microsoft YaHei", system-ui, sans-serif;
+}
+html:lang(zh) body { line-break: strict; word-break: normal; overflow-wrap: break-word; text-wrap: pretty; }
+html:lang(zh) :is(p, li, dd, blockquote, figcaption) { letter-spacing: .01em; }
+html:lang(zh) :is(h1, h2, h3, .c-head) { letter-spacing: 0; }
+html:lang(zh) :is(em, i, cite) { font-style: normal; }
+html:lang(zh) .approach__big { line-height: 1.12; letter-spacing: .02em; }
+/* Headings balance their lines so a Chinese heading never ends on one stranded character */
+html:lang(zh) :is(h1, h2, h3, h4, .c-head, .display, .lead, blockquote, [class*="__head"], [class*="__title"], [class*="__big"], [class*="__q"], .reveal-mask) { text-wrap: balance; }
+/* Chinese glyphs never get a fake slant from an italic Latin font */
+html:lang(zh) { font-synthesis-style: none; }
+@media (max-width: 600px) {
+  /* on phones the switch shows just the other language */
+  .topbar__end { gap: 10px; }
+  .lang-btn i, .lang-en .lang-btn__en, .lang-zh .lang-btn__zh { display: none; }
+  .lang-btn span { opacity: .75; }
+}
