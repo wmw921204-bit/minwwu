@@ -340,6 +340,27 @@
   --c-line: rgba(80, 40, 15, .12);
   --accent: #885835;
 }
+/* SwiftHome problem: one screen, the movers photo fills the right and fades into the page under the text */
+.sh-problem { position: relative; overflow: hidden; display: flex; align-items: center; min-height: calc(100vh - 80px); min-height: calc(100svh - 80px); margin: clamp(40px, 6vw, 96px) 0; padding: clamp(32px, 6vh, 72px) 0; isolation: isolate; }
+.sh-problem__bg { position: absolute; top: 1px; right: 0; bottom: 0; width: 60%; height: calc(100% - 1px); object-fit: cover; object-position: 50% 40%; z-index: -2; }
+.sh-problem::before { content: ""; position: absolute; inset: 0; z-index: -1; background: linear-gradient(90deg, var(--c-bg) 0%, var(--c-bg) 44%, rgba(255,246,239,.85) 56%, rgba(255,246,239,.2) 76%, rgba(255,246,239,0) 100%); }
+/* the rule line is the top edge of the section: the photo starts right under it */
+.sh-problem .c-chapter { border-top: 0; padding-top: 0; }
+.sh-problem > .mom-rule { z-index: 1; }
+.sh-problem__in { width: 100%; }
+/* one compact column: headline, a short line, then the design question with real weight */
+.sh-problem__left { max-width: min(720px, 52vw); margin-top: clamp(28px, 6vh, 64px); }
+.sh-problem__left .c-head { margin-top: 0; max-width: none; font-size: clamp(32px, min(3.6vw, 6.8vh), 56px); }
+.sh-problem__left .c-text { max-width: 600px; margin-top: clamp(18px, 3vh, 30px); line-height: 1.75; }
+.sh-problem__left .c-head { line-height: 1.12; }
+.sh-problem__hmw { margin: clamp(32px, 6vh, 64px) 0 0; padding: 6px 0 6px 24px; border-left: 3px solid var(--c-accent); font: 500 clamp(20px, min(2.05vw, 3.7vh), 30px)/1.45 var(--f-body); letter-spacing: -0.015em; color: var(--c-fg); }
+.sh-problem__hmw small { display: block; margin-bottom: 14px; font: 600 12px/1 var(--f-body); letter-spacing: .14em; text-transform: uppercase; color: var(--c-accent); }
+@media (max-width: 860px) {
+  .sh-problem { display: block; min-height: 0; padding: 0 0 56px; }
+  .sh-problem__bg { position: relative; width: 100%; height: 46vh; display: block; }
+  .sh-problem::before { background: linear-gradient(transparent 0, transparent 26vh, var(--c-bg) 46vh); }
+  .sh-problem__in { margin-top: -6vh; position: relative; }
+}
 .case--warm .topbar__inner { background: rgba(255,246,239,.8); border-color: rgba(80,40,15,.1); color: #2b1a10; }
 .case--warm .topbar__loc { color: rgba(43,26,16,.55); }
 .case--warm .c-next .pill--ghost { background: transparent; color: var(--c-fg); border-color: var(--c-line); }
