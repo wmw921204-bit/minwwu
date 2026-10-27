@@ -16,7 +16,9 @@ if (!reduceMotion && window.Lenis) {
   if (document.documentElement.classList.contains("is-loading")) lenis.stop();
 }
 function scrollToTarget(target) {
-  if (lenis) lenis.scrollTo(target, { offset: target === 0 ? 0 : -88, duration: 1.4 });
+  // Full-screen sections land with their top rule at the very top, header tucked away
+  const full = target !== 0 && target.hasAttribute("data-screen");
+  if (lenis) lenis.scrollTo(target, { offset: target === 0 || full ? 0 : -88, duration: 1.4, onComplete: () => full && $(".topbar")?.classList.add("is-hidden") });
   else if (target === 0) scrollTo({ top: 0, behavior: reduceMotion ? "auto" : "smooth" });
   else target.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth" });
 }
