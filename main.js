@@ -767,10 +767,10 @@ $$("[data-affinity]").forEach((sec) => {
   const num = $("[data-aff-num]", sec), label = $("[data-aff-label]", sec);
   const N = 700, COLORS = ["#ffd166", "#ff8fab", "#ffa76b", "#7cc8ff", "#8ee3a8", "#b9a3ff"];
   const STAGES = [
-    ["700+", "data points, from every interview, survey and forum post"],
-    ["110", "groups of related notes"],
-    ["27", "themes"],
-    ["6", "problems to solve"],
+    ["700+", t("data points, from every interview, survey and forum post", "个数据点，来自每一场访谈、每一份问卷和每一条论坛帖子")],
+    ["110", t("groups of related notes", "组相关的便利贴")],
+    ["27", t("themes", "个主题")],
+    ["6", t("problems to solve", "个要解决的问题")],
   ];
   let W = 0, H = 0, dpr = 1, centers = [], box = [0, 0, 1, 1];
   // Every note belongs to one group, theme and problem, nested in order
@@ -1575,6 +1575,49 @@ if (!reduceMotion && matchMedia("(hover: hover) and (pointer: fine)").matches) {
   }, { timeout: 2500 });
   if (document.readyState === "complete") start(); else addEventListener("load", start, { once: true });
 })();
+
+/* ---------- Poster explorer: each note zooms the poster to the part it explains ---------- */
+$$("[data-poster]").forEach((box) => {
+  const tabs = $$(".px-tab", box), sets = $$(".px-set", box), views = $$(".px-view", box);
+  let cur = 0;
+  const focus = (n) => {
+    const view = views[cur], canvas = $(".px-canvas", view);
+    const note = n ? $(`.px-note[data-n="${n}"]`, sets[cur]) : null;
+    $$(".px-note", sets[cur]).forEach((el) => el.classList.toggle("is-on", el === note));
+    $$(".px-note", sets[cur]).forEach((el) => el.setAttribute("aria-pressed", el === note));
+    $$(".px-pin", view).forEach((el) => el.classList.toggle("is-on", el.dataset.n === String(n)));
+    box.classList.toggle("is-zoomed", !!note);
+    if (!note) { canvas.style.transform = ""; canvas.style.setProperty("--s", 1); return; }
+    const [x, y, w, h] = note.dataset.box.split(",").map(Number);
+    // a long, narrow area still zooms in, starting from its top
+    const s = Math.min(3.2, Math.max(1.6, 0.94 / Math.max(w, h)));
+    const tx = Math.min(0, Math.max(1 - s, 0.5 - (x + w / 2) * s));
+    const ty = Math.min(0, Math.max(1 - s, h * s > 0.94 ? 0.03 - y * s : 0.5 - (y + h / 2) * s));
+    canvas.style.setProperty("--s", s);
+    canvas.style.transform = `translate(${(tx * 100).toFixed(2)}%, ${(ty * 100).toFixed(2)}%) scale(${s.toFixed(3)})`;
+  };
+  const show = (k) => {
+    focus(null);
+    cur = k;
+    tabs.forEach((t, i) => t.setAttribute("aria-selected", i === k));
+    sets.forEach((el, i) => { el.hidden = i !== k; });
+    views.forEach((v, i) => v.classList.toggle("is-active", i === k));
+  };
+  tabs.forEach((t, i) => t.addEventListener("click", () => show(i)));
+  $$(".px-note", box).forEach((el) => el.addEventListener("click", () => focus(el.classList.contains("is-on") ? null : el.dataset.n)));
+  $$(".px-pin", box).forEach((el) => el.addEventListener("click", (e) => { e.stopPropagation(); focus(el.dataset.n); }));
+  $(".px-reset", box).addEventListener("click", () => focus(null));
+  // clicking the whole poster jumps to the note whose area was clicked; clicking a zoomed poster steps back out
+  views.forEach((v) => v.addEventListener("click", (e) => {
+    if (box.classList.contains("is-zoomed")) return focus(null);
+    const r = v.getBoundingClientRect(), px = (e.clientX - r.left) / r.width, py = (e.clientY - r.top) / r.height;
+    const hit = $$(".px-note", sets[cur]).map((el) => [el, el.dataset.box.split(",").map(Number)])
+      .filter(([, [x, y, w, h]]) => px >= x && px <= x + w && py >= y && py <= y + h)
+      .sort((a, b) => a[1][2] * a[1][3] - b[1][2] * b[1][3])[0];
+    if (hit) focus(hit[0].dataset.n);
+  }));
+  addEventListener("keydown", (e) => { if (e.key === "Escape" && box.classList.contains("is-zoomed")) focus(null); });
+});
 
 document.documentElement.classList.add("js-ready");
 requestScrollFrame();

@@ -19,7 +19,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&family=Poppins:wght@400;500;600&family=Sulphur+Point:wght@400&display=swap">
   <link rel="stylesheet" href="../styles.css?v=20261026x">
-  <link rel="stylesheet" href="../case.css?v=20261032e">
+  <link rel="stylesheet" href="../case.css?v=20261037a">
 </head>
 <body class="case case--olive">
   <a class="skip" href="#main">Skip to content</a>
@@ -116,29 +116,38 @@
     </section>
 
     <!-- 01 Problem -->
-    <section class="wrap c-sec" id="problem" data-chapter="The problem">
+    <section class="wrap c-sec sd-screen sd-problem" id="problem" data-chapter="The problem" data-screen>
       <div class="c-chapter"><span class="c-chapter__num">01</span><h2 class="c-kicker">The problem</h2></div>
-      <p class="c-head reveal-mask">Telling the server isn’t enough.</p>
-      <p class="c-text reveal">For people with food allergies, every order is a negotiation. They check websites, call ahead and repeat themselves at the table, yet <strong>over half of allergic reactions happen even after they disclose their allergy</strong>.</p>
-      <div class="c-stats reveal-stagger">
-        <div class="c-stat"><span class="c-stat__num"><span data-count="33">33</span>M</span><span class="c-stat__label">American adults with food allergies, <b>1 in 9</b></span></div>
-        <div class="c-stat"><span class="c-stat__num"><span data-count="5.6" data-decimals="1">5.6</span>M</span><span class="c-stat__label">children, <b>1 in 13</b></span></div>
-        <div class="c-stat"><span class="c-stat__num"><span data-count="53.9" data-decimals="1">53.9</span>%</span><span class="c-stat__label">of reactions happen <b>after disclosure</b></span></div>
-        <div class="c-stat"><span class="c-stat__num"><span data-count="3.4" data-decimals="1">3.4</span>M</span><span class="c-stat__label">ER visits a year from <b>food allergies</b></span></div>
+      <div class="sd-problem__grid">
+        <div class="sd-problem__left">
+          <p class="c-head reveal-mask">Telling the server isn’t enough.</p>
+          <div class="sd-big reveal">
+            <p class="sd-big__num"><span class="sd-big__out">53.9%</span><span class="sd-big__fill" aria-hidden="true">53.9%</span></p>
+            <p class="sd-big__label">of reactions happen <b>after disclosure</b></p>
+          </div>
+        </div>
+        <aside class="sd-menu reveal">
+          <p class="sd-menu__title">The Big 9</p>
+          <h3 class="sd-menu__sub">The Big 9 allergens cause about 90% of reactions</h3>
+          <ol class="sd-menu__list"><li style="--w:26.1"><small>01</small><span>Shellfish</span><i aria-hidden="true"></i><b>26.1%</b></li><li style="--w:17.1"><small>02</small><span>Milk</span><i aria-hidden="true"></i><b>17.1%</b></li><li style="--w:16.2"><small>03</small><span>Peanuts</span><i aria-hidden="true"></i><b>16.2%</b></li><li style="--w:10.8"><small>04</small><span>Tree nuts</span><i aria-hidden="true"></i><b>10.8%</b></li><li style="--w:8.1"><small>05</small><span>Fish</span><i aria-hidden="true"></i><b>8.1%</b></li><li style="--w:7.2"><small>06</small><span>Egg</span><i aria-hidden="true"></i><b>7.2%</b></li><li style="--w:7.2"><small>07</small><span>Wheat</span><i aria-hidden="true"></i><b>7.2%</b></li><li style="--w:5.4"><small>08</small><span>Soy</span><i aria-hidden="true"></i><b>5.4%</b></li><li style="--w:1.8"><small>09</small><span>Sesame</span><i aria-hidden="true"></i><b>1.8%</b></li></ol>
+          <blockquote class="sd-menu__quote">For someone with food allergies, eating out isn’t just about food. It’s about trust.<small>FARE, Food Allergy Research &amp; Education</small></blockquote>
+        </aside>
       </div>
-      <h3 class="c-kicker" style="margin-top:72px">The Big 9 allergens cause about 90% of reactions</h3>
-      <div class="allergens reveal-stagger"><div class="allergen" style="--w:26.1"><small>01</small><b>26.1%</b><span>Shellfish</span></div><div class="allergen" style="--w:17.1"><small>02</small><b>17.1%</b><span>Milk</span></div><div class="allergen" style="--w:16.2"><small>03</small><b>16.2%</b><span>Peanuts</span></div><div class="allergen" style="--w:10.8"><small>04</small><b>10.8%</b><span>Tree nuts</span></div><div class="allergen" style="--w:8.1"><small>05</small><b>8.1%</b><span>Fish</span></div><div class="allergen" style="--w:7.2"><small>06</small><b>7.2%</b><span>Egg</span></div><div class="allergen" style="--w:7.2"><small>07</small><b>7.2%</b><span>Wheat</span></div><div class="allergen" style="--w:5.4"><small>08</small><b>5.4%</b><span>Soy</span></div><div class="allergen" style="--w:1.8"><small>09</small><b>1.8%</b><span>Sesame</span></div></div>
-      <blockquote class="c-quote reveal"><small>FARE, Food Allergy Research &amp; Education</small>For someone with food allergies, eating out isn’t just about food. It’s about trust.</blockquote>
     </section>
 
+    <div class="sd-ticker" aria-hidden="true"><div class="marquee__track"><span><b>33M</b> adults · 1 in 9</span><span><b>5.6M</b> children · 1 in 13</span><span><b>3.4M</b> ER visits a year</span><span><b>44%</b> of staff trained</span><span><b>33M</b> adults · 1 in 9</span><span><b>5.6M</b> children · 1 in 13</span><span><b>3.4M</b> ER visits a year</span><span><b>44%</b> of staff trained</span><span><b>33M</b> adults · 1 in 9</span><span><b>5.6M</b> children · 1 in 13</span><span><b>3.4M</b> ER visits a year</span><span><b>44%</b> of staff trained</span></div></div>
+
     <!-- 02 Research -->
-    <section class="wrap c-sec" id="research" data-chapter="Research">
+    <section class="wrap c-sec sd-screen sd-research" id="research" data-chapter="Research" data-screen>
       <div class="c-chapter"><span class="c-chapter__num">02</span><h2 class="c-kicker">Research</h2></div>
+      <div class="sd-research__grid">
+      <div class="sd-research__left">
       <p class="c-head reveal-mask">From the data, to the dining room.</p>
-      <div class="c-stats reveal-stagger">
+      <div class="c-stats sd-research__stats reveal-stagger">
         <div class="c-stat"><span class="c-stat__num" data-count="12">12</span><span class="c-stat__label">in-depth <b>interviews</b> with diners and caregivers</span></div>
         <div class="c-stat"><span class="c-stat__num" data-count="2">2</span><span class="c-stat__label"><b>co-creation workshops</b>, current and future state</span></div>
         <div class="c-stat"><span class="c-stat__num" data-count="1">1</span><span class="c-stat__label"><b>field study</b> at Sly’s, Savannah</span></div>
+      </div>
       </div>
       <div class="switcher research" data-tabs>
         <div class="switcher__tabs" role="tablist" aria-label="Research methods">
@@ -228,10 +237,11 @@
           </div>
         </div>
       </div>
+      </div>
     </section>
 
     <!-- 03 Journey -->
-    <section class="wrap c-sec" id="journey" data-chapter="Customer journey">
+    <section class="wrap c-sec sd-screen sd-persona" id="journey" data-chapter="Customer journey" data-screen>
       <div class="c-chapter"><span class="c-chapter__num">03</span><h2 class="c-kicker">Customer journey</h2></div>
       <p class="c-head reveal-mask">Meet Agnes, who just wants dinner with friends.</p>
       <div class="persona reveal">
@@ -240,29 +250,35 @@
           <p class="persona__sub">Single midlife woman in Savannah with serious multiple allergies.</p>
           <img src="../assets/projects/safedining/agnes.webp" alt="Agnes, the persona, reading a menu in a diner booth" width="588" height="248" loading="lazy">
           <ul class="persona__facts"><li>Savannah, GA</li><li>42, bookstore manager</li><li>Eats out 5–6 times a week</li><li>Severe peanut allergy</li></ul>
-          <p class="persona__quote">“I just want to eat safely without calling five restaurants first.”</p>
         </div>
         <div class="persona__side">
+          <p class="persona__quote">“I just want to eat safely without calling five restaurants first.”</p>
           <div class="persona__card"><h3>Goals</h3><ul><li>Safe food</li><li>Quick and easy</li><li>Restaurants she can trust</li></ul></div>
           <div class="persona__card"><h3>Pain points</h3><ul><li>Worries about cross-contact</li><li>Stressed about quizzing waiters on ingredients</li></ul></div>
         </div>
         <p class="persona__story">Tomorrow Agnes is hosting a small dinner with friends. They want to try somewhere new, but with her allergies, every choice has to be made carefully.</p>
       </div>
-      <p class="c-text reveal" style="margin-top:72px">We followed her through seven stages, from the first pang of hunger to the review she leaves afterwards, mapping her jobs to be done, needs and emotions at each one. Her mood dips hardest while searching, walking in and ordering, where information is missing and staff knowledge is a gamble. Scoring importance against satisfaction showed where to act first.</p>
+    </section>
+    <section class="wrap c-sec sd-journeymap">
+      <p class="c-text reveal">We followed her through seven stages, from the first pang of hunger to the review she leaves afterwards, mapping her jobs to be done, needs and emotions at each one. Her mood dips hardest while searching, walking in and ordering, where information is missing and staff knowledge is a gamble. Scoring importance against satisfaction showed where to act first.</p>
       <figure class="c-figure c-figure--tall reveal"><img src="../assets/projects/safedining/journey-map.webp?v=2" alt="Allergy-friendly dining customer journey map: stages, touchpoints, emotions, jobs to be done, needs, pain points, opportunities and opportunity scores" width="2600" height="3994" loading="lazy"></figure>
     </section>
 
     <!-- 04 Ecosystem -->
-    <section class="c-band" id="ecosystem" data-chapter="Ecosystem">
-      <div class="wrap c-sec">
+    <section class="c-band" id="ecosystem" data-chapter="Ecosystem" data-screen>
+      <div class="wrap c-sec sd-screen sd-eco">
         <div class="c-chapter"><span class="c-chapter__num">04</span><h2 class="c-kicker">Ecosystem analysis</h2></div>
+        <div class="sd-eco__grid">
+        <div class="sd-eco__left">
         <p class="c-head reveal-mask">Many players, shared responsibility.</p>
-        <div class="c-split" style="align-items:start">
-          <p class="c-text reveal" style="margin-top:0">Food allergy safety doesn’t fail in isolation, <strong>it fails in connection</strong>. Suppliers, restaurants, platforms, regulators and diners each carry part of the responsibility, yet no one can guarantee safety alone.</p>
-          <p class="c-text reveal" style="margin-top:0">The system is complex, fragmented and unevenly informed, leaving gaps exactly where trust, data and accountability should flow.</p>
+          <p class="c-text reveal">Food allergy safety doesn’t fail in isolation, <strong>it fails in connection</strong>. Suppliers, restaurants, platforms, regulators and diners each carry part of the responsibility, yet no one can guarantee safety alone.</p>
+          <p class="c-text reveal">The system is complex, fragmented and unevenly informed, leaving gaps exactly where trust, data and accountability should flow.</p>
         </div>
-        <figure class="c-figure c-figure--map reveal"><img src="../assets/projects/safedining/system-map.webp" alt="Allergy-friendly dining ecosystem map: the restaurant at the centre, surrounded by suppliers, certification bodies, review and delivery platforms, regulators, advocacy groups, the medical system and tourism" width="3000" height="2680" loading="lazy"><figcaption>Six kinds of flow (service, money, physical goods, information, intangible value and regulation) between everyone who touches the meal.</figcaption></figure>
-        <h3 class="c-kicker relay-head" style="margin-top:96px">How trust travels: a relay race from regulation to plate</h3>
+        <figure class="c-figure c-figure--map sd-eco__map reveal"><img src="../assets/projects/safedining/system-map.webp" alt="Allergy-friendly dining ecosystem map: the restaurant at the centre, surrounded by suppliers, certification bodies, review and delivery platforms, regulators, advocacy groups, the medical system and tourism" width="3000" height="2680" loading="lazy"><figcaption>Six kinds of flow (service, money, physical goods, information, intangible value and regulation) between everyone who touches the meal.</figcaption></figure>
+        </div>
+      </div>
+      <div class="wrap c-sec sd-eco__rest">
+        <h3 class="c-kicker relay-head">How trust travels: a relay race from regulation to plate</h3>
         <div class="relay" data-relay>
           <svg class="relay__cone" viewBox="0 0 470 600" aria-hidden="true">
             <defs><marker id="relay-arrow" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0 10 5 0 10z" fill="#f2b84b"/></marker></defs>
@@ -356,13 +372,30 @@
     </section>
 
     <!-- 06 Outputs -->
-    <section class="wrap c-sec" id="outputs" data-chapter="Infographics">
+    <section class="wrap c-sec sd-screen sd-outputs" id="outputs" data-chapter="Infographics" data-screen>
       <div class="c-chapter"><span class="c-chapter__num">08</span><h2 class="c-kicker">Infographics</h2></div>
       <p class="c-head reveal-mask">Research you can read across a room.</p>
-      <p class="c-text reveal">Two printed posters carry the journey and the ecosystem, each with a QR code to its interactive online version. Click to look closer.</p>
-      <div class="posters reveal-stagger">
-        <figure><img src="../assets/projects/safedining/poster-journey.webp?v=2" alt="Infographic poster: Between Anxiety and Assurance, the customer journey map" width="4400" height="2779" loading="lazy"><figcaption>Between Anxiety and Assurance · customer journey map</figcaption></figure>
-        <figure><img src="../assets/projects/safedining/poster-ecosystem.webp?v=2" alt="Infographic poster: Who Keeps the Meal Safe, the ecosystem map" width="4400" height="2779" loading="lazy"><figcaption>Who Keeps the Meal Safe? · ecosystem map</figcaption></figure>
+      <p class="c-text reveal">Two printed posters carry the journey and the ecosystem, each with a QR code to its interactive online version. Pick a note to zoom into that part of the poster.</p>
+      <div class="px" data-poster>
+        <div class="px-side">
+          <div class="px-tabs" role="tablist" aria-label="Posters">
+            <button class="px-tab" type="button" role="tab" aria-selected="true">Customer journey</button>
+            <button class="px-tab" type="button" role="tab" aria-selected="false">Ecosystem</button>
+          </div>
+          <div class="px-set">
+            <p class="px-title">Between Anxiety and Assurance</p>
+            <ol class="px-notes"><li><button class="px-note" type="button" data-n="1" data-box="0.01,0.07,0.255,0.88"><b>01</b><span><strong>Why it matters</strong><span class="px-note__more"><span>33M adults and 5.6M children live with food allergies. 74% of parents of allergic children find dining out challenging, and 15% avoid restaurants entirely.</span></span></span></button></li><li><button class="px-note" type="button" data-n="2" data-box="0.28,0.07,0.70,0.13"><b>02</b><span><strong>Meet Agnes</strong><span class="px-note__more"><span>The persona the map follows: who she is, her goals, her pain points and the line that sums her up.</span></span></span></button></li><li><button class="px-note" type="button" data-n="3" data-box="0.28,0.40,0.31,0.42"><b>03</b><span><strong>Pre-dining</strong><span class="px-note__more"><span>Hunger, searching and walking in. Review platforms and ratings rarely cover allergy safety, so trust starts low before she even arrives.</span></span></span></button></li><li><button class="px-note" type="button" data-n="4" data-box="0.40,0.22,0.42,0.50"><b>04</b><span><strong>In-dining</strong><span class="px-note__more"><span>Ordering, preparation and serving. The back-of-house layer shows where tickets, labels and spoken notes break down between server and chef.</span></span></span></button></li><li><button class="px-note" type="button" data-n="5" data-box="0.78,0.22,0.21,0.45"><b>05</b><span><strong>Post-dining</strong><span class="px-note__more"><span>Diners care about how they felt, yet there is rarely a channel to tell the restaurant, so the lessons get lost.</span></span></span></button></li><li><button class="px-note" type="button" data-n="6" data-box="0.28,0.82,0.70,0.13"><b>06</b><span><strong>Opportunity scores</strong><span class="px-note__more"><span>Importance against satisfaction for eight touchpoints. Menu and ingredient labeling scores highest at 8.0; visible allergy signs lowest at 1.0.</span></span></span></button></li><li><button class="px-note" type="button" data-n="7" data-box="0.81,0.68,0.17,0.12"><b>07</b><span><strong>Key insight</strong><span class="px-note__more"><span>Trust is built less by policies and more by visible cleanliness, clear communication and genuine staff empathy.</span></span></span></button></li></ol>
+          </div>
+          <div class="px-set" hidden>
+            <p class="px-title">Who Keeps the Meal Safe?</p>
+            <ol class="px-notes"><li><button class="px-note" type="button" data-n="1" data-box="0.01,0.40,0.245,0.18"><b>01</b><span><strong>The market</strong><span class="px-note__more"><span>Allergy-free food is projected to grow from $30.7B in 2025 to $102.8B in 2035, and allergy-friendly restaurants can expect about 24% higher profit margins.</span></span></span></button></li><li><button class="px-note" type="button" data-n="2" data-box="0.01,0.60,0.245,0.35"><b>02</b><span><strong>Safe or risky</strong><span class="px-note__more"><span>When every player does its part, the meal rises to a safe experience. When one link breaks, the burden falls back on the diner.</span></span></span></button></li><li><button class="px-note" type="button" data-n="3" data-box="0.265,0.08,0.235,0.85"><b>03</b><span><strong>Key stakeholders</strong><span class="px-note__more"><span>Six roles from diner to national regulator, each with the number or flow that defines their part, like the 22% of menus that list allergens.</span></span></span></button></li><li><button class="px-note" type="button" data-n="4" data-box="0.52,0.08,0.31,0.66"><b>04</b><span><strong>Ecosystem map</strong><span class="px-note__more"><span>The food-allergy customer at the centre, with regulation, service and information flowing to every actor around them.</span></span></span></button></li><li><button class="px-note" type="button" data-n="5" data-box="0.84,0.51,0.135,0.23"><b>05</b><span><strong>Micro, meso, macro</strong><span class="px-note__more"><span>Three levels: the people at the table, the network that supports them, and the rules that frame everyone.</span></span></span></button></li><li><button class="px-note" type="button" data-n="6" data-box="0.52,0.73,0.46,0.20"><b>06</b><span><strong>Key insights</strong><span class="px-note__more"><span>Information flow is fragile, training has to change attitudes, regulation is fragmented, and trust is the currency holding it together.</span></span></span></button></li></ol>
+          </div>
+        </div>
+        <div class="px-stage">
+          <div class="px-view is-active"><div class="px-canvas"><img src="../assets/projects/safedining/poster-journey.webp?v=2" alt="Infographic poster: Between Anxiety and Assurance, the customer journey map" width="4400" height="2779" loading="lazy" data-nozoom><button class="px-pin" type="button" data-n="1" style="left:2.2%;top:9.0%" aria-label="Why it matters">1</button><button class="px-pin" type="button" data-n="2" style="left:29.2%;top:9.0%" aria-label="Meet Agnes">2</button><button class="px-pin" type="button" data-n="3" style="left:29.2%;top:42.0%" aria-label="Pre-dining">3</button><button class="px-pin" type="button" data-n="4" style="left:41.2%;top:24.0%" aria-label="In-dining">4</button><button class="px-pin" type="button" data-n="5" style="left:79.2%;top:24.0%" aria-label="Post-dining">5</button><button class="px-pin" type="button" data-n="6" style="left:29.2%;top:84.0%" aria-label="Opportunity scores">6</button><button class="px-pin" type="button" data-n="7" style="left:82.2%;top:70.0%" aria-label="Key insight">7</button></div></div>
+          <div class="px-view"><div class="px-canvas"><img src="../assets/projects/safedining/poster-ecosystem.webp?v=2" alt="Infographic poster: Who Keeps the Meal Safe, the ecosystem map" width="4400" height="2779" loading="lazy" data-nozoom><button class="px-pin" type="button" data-n="1" style="left:2.2%;top:42.0%" aria-label="The market">1</button><button class="px-pin" type="button" data-n="2" style="left:2.2%;top:62.0%" aria-label="Safe or risky">2</button><button class="px-pin" type="button" data-n="3" style="left:27.7%;top:10.0%" aria-label="Key stakeholders">3</button><button class="px-pin" type="button" data-n="4" style="left:53.2%;top:10.0%" aria-label="Ecosystem map">4</button><button class="px-pin" type="button" data-n="5" style="left:85.2%;top:53.0%" aria-label="Micro, meso, macro">5</button><button class="px-pin" type="button" data-n="6" style="left:53.2%;top:75.0%" aria-label="Key insights">6</button></div></div>
+          <button class="px-reset" type="button"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M8 3H3v5M12 17h5v-5M3 3l6 6M17 17l-6-6" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Whole poster</span></button>
+        </div>
       </div>
     </section>
 
@@ -437,7 +470,7 @@
   </footer>
 
   <script src="../assets/js/lenis.min.js" defer></script>
-  <script src="../i18n/zh/safedining.js?v=1" defer></script>
-  <script src="../main.js?v=20261031c" defer></script>
+  <script src="../i18n/zh/safedining.js?v=5" defer></script>
+  <script src="../main.js?v=20261035b" defer></script>
 </body>
 </html>
