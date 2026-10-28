@@ -4831,3 +4831,88 @@ button:has(.ti--orbit):hover .tl { letter-spacing: .06em; }
   .pz__printer { top: 50vh; }
   .pz__tickets { top: calc(50vh + 32px); }
 }
+
+/* =====================================================================
+   Safe Dining · calmer folders, straight infographics, a quieter rail
+   ===================================================================== */
+/* folder switch: the old sheet leaves at once, the new one rises in a single move, nothing inside animates on its own */
+.sd-research .switcher__panel, .sd-research .switcher__panel.is-active { transition: none; transform: none; }
+.sd-research .switcher__panel.is-active, .sd-research .is-swap .switcher__panel.is-active { animation: sdSheet2 .45s cubic-bezier(.2, .7, .2, 1) both; }
+@keyframes sdSheet2 { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+.sd-research .is-swap .switcher__stage, .sd-research .is-swap .switcher__tabs button[aria-selected="true"] { animation: none; }
+.sd-research .switcher__panel.is-active :is(.rs-facts li, .rs-workshops article, .rs-photos img, .rs-quotes blockquote, .rs-flow li, .rs-words li, .rs-tags li) { animation: none; }
+@media (prefers-reduced-motion: reduce) { .sd-research .switcher__panel.is-active { animation: none; } }
+
+/* secondary research: six numbers, each with one short line */
+.rs-facts { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
+.rs-facts li { display: flex; flex-direction: column; gap: 6px; padding: clamp(18px, 2.6vh, 26px) 22px; border-radius: 14px; background: var(--n); color: #262c22; box-shadow: 0 14px 24px -16px rgba(0,0,0,.55); transition: transform .45s var(--bounce); }
+.rs-facts li:hover { transform: translateY(-5px); }
+.rs-facts small { font: 600 11.5px/1 var(--f-display); letter-spacing: .1em; text-transform: uppercase; color: #7a4e0f; }
+.rs-facts b { font: 700 clamp(38px, min(3.8vw, 6.4vh), 60px)/1 var(--f-display); letter-spacing: -0.04em; font-variant-numeric: tabular-nums; }
+.rs-facts span { font-size: clamp(15px, 1.15vw, 17px); line-height: 1.35; color: rgba(38,44,34,.8); }
+.rs-facts li:nth-child(1) { --n: #fff1a8; } .rs-facts li:nth-child(2) { --n: #ffd3c2; } .rs-facts li:nth-child(3) { --n: #d9ecc0; }
+.rs-facts li:nth-child(4) { --n: #cfe4ef; } .rs-facts li:nth-child(5) { --n: #f6d7ea; } .rs-facts li:nth-child(6) { --n: #ffe2a3; }
+
+/* the other folders: one line to read, then a few words to scan */
+.sd-research .rs-body { display: flex; flex-direction: column; gap: clamp(18px, 3vh, 28px); }
+.sd-research .rs-body .rs-close, .sd-research .rs-body .rs-lead { order: 0; font-size: clamp(24px, 2.3vw, 34px); line-height: 1.2; }
+.rs-flow { display: grid; gap: 0; counter-reset: step; }
+.rs-flow li { position: relative; display: flex; align-items: center; gap: 14px; padding: 8px 0; font: 500 clamp(16px, 1.25vw, 19px)/1.3 var(--f-body); counter-increment: step; }
+.rs-flow li::before { content: counter(step); flex: none; display: grid; place-items: center; width: 34px; height: 34px; border-radius: 50%; background: rgba(255,255,255,.6); font: 600 14px/1 var(--f-display); }
+.rs-flow li + li::after { content: ""; position: absolute; left: 16px; top: -10px; width: 2px; height: 20px; background: rgba(38,44,34,.3); }
+.rs-flow li.is-bad::before { background: #262c22; color: #faf7f0; }
+.rs-flow li.is-bad span { font-weight: 600; }
+.rs-alert { display: flex; align-items: center; gap: 10px; font: 500 clamp(15px, 1.15vw, 17px)/1.4 var(--f-body); color: #8a2a1c; }
+.rs-alert::before { content: "!"; flex: none; display: grid; place-items: center; width: 24px; height: 24px; border-radius: 50%; background: #c2402d; color: #fff; font: 700 13px/1 var(--f-display); }
+.rs-words { display: grid; gap: 10px; }
+.rs-words li { justify-self: start; padding: 10px 20px; border-radius: 99px; background: #262c22; color: #faf7f0; font: 600 clamp(19px, 1.7vw, 25px)/1.2 var(--f-display); letter-spacing: -0.015em; transition: transform .4s var(--bounce); }
+.rs-words li:hover { transform: translateX(6px); }
+.rs-tags { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.rs-tags li { position: relative; padding: 14px 16px 14px 44px; border-radius: 12px; background: rgba(255,255,255,.5); font: 500 clamp(15px, 1.15vw, 17px)/1.3 var(--f-body); }
+.rs-tags li::before { content: "✕"; position: absolute; left: 16px; top: 50%; translate: 0 -50%; color: #c2402d; font-weight: 700; }
+.sd-research .rs-quotes blockquote { padding: clamp(28px, 4vh, 44px) clamp(28px, 3vw, 44px) clamp(28px, 4vh, 44px) clamp(56px, 5vw, 76px); font-size: clamp(22px, 2vw, 30px); line-height: 1.35; }
+.sd-research .rs-quotes blockquote::before { font-size: 72px; }
+.sd-research .rs-quotes { align-content: center; gap: 12px; }
+.sd-research .rs-workshops h3 { font-size: clamp(19px, 1.6vw, 23px); }
+.sd-research .rs-workshops p { font-size: clamp(15px, 1.15vw, 17px); }
+@media (max-width: 860px) {
+  .rs-facts { grid-template-columns: 1fr 1fr; }
+  .rs-tags { grid-template-columns: 1fr; }
+}
+
+/* infographics and photos sit straight; hover lifts instead of tilting */
+.sd-research .rs-workshops article, .sd-research .rs-workshops article:nth-child(1), .sd-research .rs-workshops article:nth-child(2), .sd-research .rs-split > img { transform: none; }
+.sd-research .rs-workshops article:hover, .sd-research .rs-photos img:hover, .sd-research .rs-quotes blockquote:hover { transform: translateY(-5px); }
+.sd-jm__map { --rest: 0deg; }
+.sd-jm__map img:hover { transform: translateY(-6px); }
+.px-stage .px-view { transform: none; }
+.px:not(.is-zoomed) .px-stage:hover .px-view.is-active { transform: translateY(-4px); }
+.sd-eco__rest .relay { --rest: 0deg; transform: none; }
+.sd-menu { --rest: 0deg; }
+.dossier__photo, .dossier__quote, .dossier__paper::before { transform: none; }
+.dossier__photo:hover, .dossier__quote:hover { transform: translateY(-4px); }
+.js .sd-eco__map.reveal img { transform: scale(.92); }
+
+/* identified problems: no metal bar, just five order stubs that fill in as you go */
+.pz__bar { display: none; }
+.pz__stubs { top: 0; gap: 8px; }
+.pz-stub, .pz-stub:nth-child(2n), .pz-stub:hover { width: 40px; height: 40px; padding: 0; border-radius: 50%; background: transparent; color: rgba(250,247,240,.7); border: 1.5px solid rgba(250,247,240,.35); font: 600 12px/1 'IBM Plex Mono', ui-monospace, monospace; opacity: 1; transform: none; -webkit-mask: none; mask: none; transition: background .35s, color .35s, border-color .35s, transform .4s var(--bounce); }
+.pz-stub:hover { border-color: #f2b84b; color: #f2b84b; transform: translateY(-2px); }
+.pz-stub.is-active { background: #f2b84b; border-color: #f2b84b; color: #262c22; transform: none; animation: none; }
+@media (max-width: 860px) { .pz-stub, .pz-stub:nth-child(2n), .pz-stub:hover { width: 32px; height: 32px; font-size: 11px; } }
+/* the map and the Big 9 menu drop in straight, without a swing */
+.js .sd-jm__map.reveal.is-in, .js .sd-menu.reveal.is-in { animation-name: sdDropFlat; }
+@keyframes sdDropFlat { 0% { opacity: 0; transform: translateY(-50px); } 65% { opacity: 1; transform: translateY(5px); } 100% { opacity: 1; transform: none; } }
+.pz-tkt { --r: 0deg !important; }
+@media (max-width: 860px) {
+  .sd-research__grid { grid-template-columns: minmax(0, 1fr); }
+  .sd-research .switcher { min-width: 0; }
+  .sd-research .switcher__tabs { overflow-x: auto; overflow-y: hidden; padding-top: 12px; margin-top: -12px; }
+  .sd-research .switcher__panel:not(.is-active) { display: none; }
+  .sd-research .switcher__panel { align-self: start; min-width: 0; }
+  .sd-research .rs-split, .sd-research .rs-workshops { grid-template-columns: minmax(0, 1fr); gap: 20px; }
+  .sd-research .rs-quotes blockquote { padding: 22px 22px 22px 52px; font-size: 20px; }
+  .rs-facts li { padding: 16px; }
+  .rs-facts b { font-size: 34px; }
+  .rs-facts span { font-size: 14px; }
+}
