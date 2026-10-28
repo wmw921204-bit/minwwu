@@ -1619,5 +1619,58 @@ $$("[data-poster]").forEach((box) => {
   addEventListener("keydown", (e) => { if (e.key === "Escape" && box.classList.contains("is-zoomed")) focus(null); });
 });
 
+/* ---------- Button hover: letters wobble like hand lettering, the icon joins in, never twice the same ---------- */
+if (!reduceMotion && matchMedia("(hover: hover)").matches) {
+  const STYLES = [
+    // wave: letters ride a small swell left to right
+    (i, n) => [{ transform: "none" }, { transform: `translateY(${-5 - Math.random() * 3}px) rotate(${(Math.random() - .5) * 10}deg)`, offset: .45 }, { transform: "none" }],
+    // jitter: each letter twitches on its own
+    () => [{ transform: "none" }, { transform: `translate(${(Math.random() - .5) * 5}px, ${(Math.random() - .5) * 6}px) rotate(${(Math.random() - .5) * 22}deg)`, offset: .35 }, { transform: `rotate(${(Math.random() - .5) * 6}deg)`, offset: .7 }, { transform: "none" }],
+    // hop: letters jump in turn and land with a squash
+    () => [{ transform: "none" }, { transform: `translateY(-7px) scale(1.12, .9) rotate(${(Math.random() - .5) * 8}deg)`, offset: .4 }, { transform: "translateY(1px) scale(.96, 1.06)", offset: .75 }, { transform: "none" }],
+  ];
+  const ICON = [
+    [{ transform: "none" }, { transform: "translateX(5px) rotate(-12deg)", offset: .5 }, { transform: "none" }],
+    [{ transform: "none" }, { transform: "rotate(25deg) scale(1.2)", offset: .4 }, { transform: "rotate(-10deg)", offset: .7 }, { transform: "none" }],
+    [{ transform: "none" }, { transform: "translateY(-4px) scale(1.25)", offset: .5 }, { transform: "none" }],
+  ];
+  const buttons = $$(".case .pill, .case .switcher__tabs button, .px-tab, .px-reset, .flip__zoom, .c-next .pill");
+  buttons.forEach((btn, k) => {
+    if (btn.dataset.wobble) return;
+    btn.dataset.wobble = "1";
+    if (!btn.hasAttribute("aria-label")) btn.setAttribute("aria-label", btn.textContent.replace(/\s+/g, " ").trim());
+    const nodes = [];
+    const tw = document.createTreeWalker(btn, NodeFilter.SHOW_TEXT);
+    while (tw.nextNode()) if (tw.currentNode.nodeValue.trim()) nodes.push(tw.currentNode);
+    for (const node of nodes) {
+      // one wrapper per text run, so flex buttons don't treat every letter as its own item
+      const frag = document.createElement("span");
+      frag.className = "wl-run";
+      for (const ch of node.nodeValue.replace(/\s+/g, " ").trim()) {
+        if (ch === " ") { frag.append(ch); continue; }
+        const span = document.createElement("span");
+        span.className = "wl";
+        span.setAttribute("aria-hidden", "true");
+        span.textContent = ch;
+        frag.append(span);
+      }
+      node.replaceWith(frag);
+    }
+    const letters = $$(".wl", btn);
+    const icons = $$("svg, .pill__arrow, i:not(.wl)", btn);
+    let busy = false;
+    btn.addEventListener("mouseenter", () => {
+      if (busy) return;
+      busy = true;
+      // each button keeps its own personality, with a little chance of a surprise
+      const style = Math.random() < .25 ? Math.floor(Math.random() * STYLES.length) : k % STYLES.length;
+      const step = 18 + Math.random() * 14;
+      letters.forEach((el, i) => el.animate(STYLES[style](i, letters.length), { duration: 520 + Math.random() * 160, delay: i * step, easing: "cubic-bezier(.34, 1.56, .64, 1)" }));
+      icons.forEach((el) => el.animate(ICON[style], { duration: 620, delay: 60, easing: "cubic-bezier(.34, 1.56, .64, 1)" }));
+      setTimeout(() => { busy = false; }, 260 + letters.length * step);
+    });
+  });
+}
+
 document.documentElement.classList.add("js-ready");
 requestScrollFrame();

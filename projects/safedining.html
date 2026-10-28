@@ -17,9 +17,9 @@
   <link rel="apple-touch-icon" href="../assets/img/apple-touch-icon.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&family=Poppins:wght@400;500;600&family=Sulphur+Point:wght@400&display=swap">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&family=Poppins:wght@400;500;600&family=Sulphur+Point:wght@400&family=IBM+Plex+Mono:wght@400;500;600&family=Caveat:wght@600&display=swap">
   <link rel="stylesheet" href="../styles.css?v=20261026x">
-  <link rel="stylesheet" href="../case.css?v=20261037a">
+  <link rel="stylesheet" href="../case.css?v=20261038f">
 </head>
 <body class="case case--olive">
   <a class="skip" href="#main">Skip to content</a>
@@ -244,19 +244,21 @@
     <section class="wrap c-sec sd-screen sd-persona" id="journey" data-chapter="Customer journey" data-screen>
       <div class="c-chapter"><span class="c-chapter__num">03</span><h2 class="c-kicker">Customer journey</h2></div>
       <p class="c-head reveal-mask">Meet Agnes, who just wants dinner with friends.</p>
-      <div class="persona reveal">
-        <div class="persona__main">
-          <p class="persona__name">Agnes Harkness</p>
-          <p class="persona__sub">Single midlife woman in Savannah with serious multiple allergies.</p>
-          <img src="../assets/projects/safedining/agnes.webp" alt="Agnes, the persona, reading a menu in a diner booth" width="588" height="248" loading="lazy">
-          <ul class="persona__facts"><li>Savannah, GA</li><li>42, bookstore manager</li><li>Eats out 5–6 times a week</li><li>Severe peanut allergy</li></ul>
+      <div class="dossier reveal">
+        <p class="dossier__tab">Case file · Persona</p>
+        <div class="dossier__paper">
+          <figure class="dossier__photo"><span class="dossier__clip" aria-hidden="true"></span><img src="../assets/projects/safedining/agnes.webp" alt="Agnes, the persona, reading a menu in a diner booth" width="588" height="248" loading="lazy"></figure>
+          <div class="dossier__id">
+            <p class="persona__name">Agnes Harkness</p>
+            <p class="persona__sub">Single midlife woman in Savannah with serious multiple allergies.</p>
+            <ul class="dossier__fields"><li data-label="Location">Savannah, GA</li><li data-label="Age · job">42, bookstore manager</li><li data-label="Dining out">Eats out 5–6 times a week</li><li data-label="Allergy">Severe peanut allergy</li></ul>
+            <span class="dossier__stamp" aria-hidden="true">Severe peanut allergy</span>
+          </div>
+          <div class="dossier__list dossier__list--goals"><h3>Goals</h3><ul><li>Safe food</li><li>Quick and easy</li><li>Restaurants she can trust</li></ul></div>
+          <div class="dossier__list dossier__list--pain"><h3>Pain points</h3><ul><li>Worries about cross-contact</li><li>Stressed about quizzing waiters on ingredients</li></ul></div>
+          <p class="dossier__quote">“I just want to eat safely without calling five restaurants first.”</p>
+          <p class="dossier__note" data-label="Scenario">Tomorrow Agnes is hosting a small dinner with friends. They want to try somewhere new, but with her allergies, every choice has to be made carefully.</p>
         </div>
-        <div class="persona__side">
-          <p class="persona__quote">“I just want to eat safely without calling five restaurants first.”</p>
-          <div class="persona__card"><h3>Goals</h3><ul><li>Safe food</li><li>Quick and easy</li><li>Restaurants she can trust</li></ul></div>
-          <div class="persona__card"><h3>Pain points</h3><ul><li>Worries about cross-contact</li><li>Stressed about quizzing waiters on ingredients</li></ul></div>
-        </div>
-        <p class="persona__story">Tomorrow Agnes is hosting a small dinner with friends. They want to try somewhere new, but with her allergies, every choice has to be made carefully.</p>
       </div>
     </section>
     <section class="wrap c-sec sd-journeymap">
@@ -470,7 +472,7 @@
   </footer>
 
   <script src="../assets/js/lenis.min.js" defer></script>
-  <script src="../i18n/zh/safedining.js?v=5" defer></script>
-  <script src="../main.js?v=20261035b" defer></script>
+  <script src="../i18n/zh/safedining.js?v=6" defer></script>
+  <script src="../main.js?v=20261038b" defer></script>
 </body>
 </html>
