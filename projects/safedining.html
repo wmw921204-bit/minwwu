@@ -19,7 +19,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&family=Poppins:wght@400;500;600&family=Sulphur+Point:wght@400&family=IBM+Plex+Mono:wght@400;500;600&family=Caveat:wght@600&display=swap">
   <link rel="stylesheet" href="../styles.css?v=20261026x">
-  <link rel="stylesheet" href="../case.css?v=20261040b">
+  <link rel="stylesheet" href="../case.css?v=20261041e">
 </head>
 <body class="case case--olive">
   <a class="skip" href="#main">Skip to content</a>
@@ -133,14 +133,7 @@
           <blockquote class="sd-menu__quote">For someone with food allergies, eating out isn’t just about food. It’s about trust.<small>FARE, Food Allergy Research &amp; Education</small></blockquote>
         </aside>
       </div>
-      <div class="sd-facts reveal-stagger">
-        <div class="sd-fact"><span class="sd-fact__num">33M</span><span class="c-stat__label">American adults with food allergies, <b>1 in 9</b></span></div>
-        <div class="sd-fact"><span class="sd-fact__num">5.6M</span><span class="c-stat__label">children, <b>1 in 13</b></span></div>
-        <div class="sd-fact"><span class="sd-fact__num">3.4M</span><span class="c-stat__label">ER visits a year from <b>food allergies</b></span></div>
-      </div>
     </section>
-
-    <div class="sd-ticker" aria-hidden="true"><div class="marquee__track"><span>Shellfish</span><span>Milk</span><span>Peanuts</span><span>Tree nuts</span><span>Fish</span><span>Egg</span><span>Wheat</span><span>Soy</span><span>Sesame</span><span>Shellfish</span><span>Milk</span><span>Peanuts</span><span>Tree nuts</span><span>Fish</span><span>Egg</span><span>Wheat</span><span>Soy</span><span>Sesame</span></div></div>
 
     <!-- 02 Research -->
     <section class="wrap c-sec sd-screen sd-research" id="research" data-chapter="Research" data-screen>
@@ -164,7 +157,6 @@
         </div>
         <div class="switcher__stage">
           <div class="switcher__panel is-active" role="tabpanel">
-            <p class="rs-lead">We reviewed research and industry data from <b>FARE, CDC/EHS-Net, the FDA and Apicbase</b>. Six findings shaped our strategy.</p>
             <ol class="rs-grid">
               <li><b>01</b><h3>Training gaps persist</h3><p>Only 44% of restaurant staff receive allergy training, and over 10% still believe “small amounts” of allergens are safe.</p></li>
               <li><b>02</b><h3>Communication breaks down</h3><p>53.9% of reactions happen even after disclosure, through verbal miscommunication between servers and the kitchen.</p></li>
@@ -177,7 +169,6 @@
           <div class="switcher__panel" role="tabpanel">
             <div class="rs-split">
               <div>
-                <p class="rs-lead">A short online survey of <b>diners with allergies, caregivers and restaurant staff</b>, to see how each side navigates safety while eating out.</p>
                 <ul class="rs-points">
                   <li>Most diners check websites, menus and reviews, or call ahead, because allergen information is unclear or missing.</li>
                   <li>Many find menu labels confusing and aren’t sure staff understand their needs.</li>
@@ -195,7 +186,6 @@
           <div class="switcher__panel" role="tabpanel">
             <div class="rs-split">
               <div>
-                <p class="rs-lead"><b>12 in-depth interviews</b> with people managing allergies at different severity levels, and caregivers who advocate for safe meals on others’ behalf.</p>
                 <ul class="rs-bubbles">
                   <li>What was it like when you first arrived at the restaurant?</li>
                   <li>What kinds of interactions did you have with the staff?</li>
@@ -269,8 +259,16 @@
     <section class="wrap c-sec sd-screen sd-journeymap">
       <div class="sd-jm">
         <div class="sd-jm__text">
-          <p class="c-kicker">Customer journey map</p>
-          <p class="c-text reveal">We followed her through seven stages, from the first pang of hunger to the review she leaves afterwards, mapping her jobs to be done, needs and emotions at each one. Her mood dips hardest while searching, walking in and ordering, where information is missing and staff knowledge is a gamble. Scoring importance against satisfaction showed where to act first.</p>
+          <p class="c-head reveal-mask">Seven stages, three low points.</p>
+          <ol class="sd-track reveal">
+            <li><span>Hunger</span></li>
+            <li class="is-low"><span>Searching</span></li>
+            <li class="is-low"><span>Walk-in</span></li>
+            <li class="is-low"><span>Ordering</span></li>
+            <li><span>Preparation</span></li>
+            <li><span>Serving</span></li>
+            <li><span>Feedback</span></li>
+          </ol>
           <p class="sd-jm__hint"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M3 8V3h5M17 12v5h-5M12 3h5v5M8 17H3v-5" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>Click the map to read it full size</p>
         </div>
         <figure class="sd-jm__map reveal"><img src="../assets/projects/safedining/journey-map.webp?v=2" alt="Allergy-friendly dining customer journey map: stages, touchpoints, emotions, jobs to be done, needs, pain points, opportunities and opportunity scores" width="2600" height="3994" loading="lazy"></figure>
@@ -278,13 +276,12 @@
     </section>
 
     <!-- 04 Ecosystem -->
-    <section class="c-band" id="ecosystem" data-chapter="Ecosystem" data-screen>
+    <section class="sd-ecosec" id="ecosystem" data-chapter="Ecosystem" data-screen>
       <div class="wrap c-sec sd-screen sd-eco">
         <div class="c-chapter"><span class="c-chapter__num">04</span><h2 class="c-kicker">Ecosystem analysis</h2></div>
         <div class="px px--eco" data-poster>
           <div class="px-side">
             <p class="c-head reveal-mask">Many players, shared responsibility.</p>
-            <p class="c-text reveal">Food allergy safety doesn’t fail in isolation, <strong>it fails in connection</strong>. Suppliers, restaurants, platforms, regulators and diners each carry part of the responsibility, yet no one can guarantee safety alone.</p>
             <div class="px-set"><ol class="px-notes"><li><button class="px-note" type="button" data-n="1" data-box="0.46,0.43,0.22,0.24"><b>01</b><span><strong>At the table</strong><span class="px-note__more"><span>The diner, friends and family, and the restaurant’s staff, cook and manager. Safety is decided here, in the moment.</span></span></span></button></li><li><button class="px-note" type="button" data-n="2" data-box="0.35,0.55,0.14,0.16"><b>02</b><span><strong>Suppliers</strong><span class="px-note__more"><span>Raw material suppliers, processors and distributors, allergen-safe suppliers and third-party testing. Ingredient information starts here.</span></span></span></button></li><li><button class="px-note" type="button" data-n="3" data-box="0.34,0.38,0.15,0.16"><b>03</b><span><strong>Certification</strong><span class="px-note__more"><span>Labs and certifiers such as Eurofins, NSF, SGS, Intertek and FARE Check verify what goes into the food.</span></span></span></button></li><li><button class="px-note" type="button" data-n="4" data-box="0.53,0.29,0.13,0.15"><b>04</b><span><strong>Review platforms</strong><span class="px-note__more"><span>Yelp, Google Maps, Tripadvisor, OpenTable and Zomato steer where diners go, yet rarely say anything about allergy safety.</span></span></span></button></li><li><button class="px-note" type="button" data-n="5" data-box="0.77,0.31,0.14,0.15"><b>05</b><span><strong>Delivery platforms</strong><span class="px-note__more"><span>DoorDash, Grubhub, Uber Eats and ChowNow carry orders, and allergy notes, between the diner and the kitchen.</span></span></span></button></li><li><button class="px-note" type="button" data-n="6" data-box="0.62,0.56,0.31,0.37"><b>06</b><span><strong>Regulators & law</strong><span class="px-note__more"><span>The FDA, CDC and USDA, federal and state lawmakers and city ordinances set the rules everyone else works within.</span></span></span></button></li><li><button class="px-note" type="button" data-n="7" data-box="0.41,0.80,0.13,0.15"><b>07</b><span><strong>Advocacy</strong><span class="px-note__more"><span>FARE, the Allergy & Asthma Network and Kids with Food Allergies speak up for diners and push for change.</span></span></span></button></li><li><button class="px-note" type="button" data-n="8" data-box="0.05,0.74,0.17,0.20"><b>08</b><span><strong>Six kinds of flow</strong><span class="px-note__more"><span>Service, money, physical goods, information, intangible value and regulation: each line on the map is one of these.</span></span></span></button></li></ol></div>
           </div>
           <div class="px-stage">
@@ -294,8 +291,8 @@
           </div>
         </div>
       </div>
-      <div class="wrap c-sec sd-eco__rest">
-        <h3 class="c-kicker relay-head">How trust travels: a relay race from regulation to plate</h3>
+      <div class="wrap c-sec sd-screen sd-eco__rest">
+        <p class="c-head reveal-mask sd-relay-head">Trust cannot rely on individual goodwill; it must be <em>embedded within the system itself.</em></p>
         <div class="relay" data-relay>
           <svg class="relay__cone" viewBox="0 0 470 600" aria-hidden="true">
             <defs><marker id="relay-arrow" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0 10 5 0 10z" fill="#f2b84b"/></marker></defs>
@@ -326,42 +323,16 @@
             <li data-layer="2" tabindex="0"><small>03 · Macro</small><h4>The system conditions</h4><p>Regulators, legal frameworks and advocacy groups set the rules everyone else works within.</p></li>
           </ol>
         </div>
-        <blockquote class="c-pull reveal">Trust cannot rely on individual goodwill; it must be <em>embedded within the system itself.</em></blockquote>
-        <div class="breaks reveal-stagger">
-          <div><small>Where the chain breaks</small><h4>Lost in the middle</h4><p>Supplier labels don’t match, menus lag behind the kitchen, and spoken reminders replace records. A single miscommunication quietly erodes trust.</p></div>
-          <div><small>Loss in transmission</small><h4>Rules that never reach the table</h4><p>Standards should flow down from regulators, through training and platforms, to frontline staff. Instead each tier reads “safety” its own way.</p></div>
-          <div><small>When no one owns the whole</small><h4>Risk lands on the diner</h4><p>Every stakeholder fixes problems inside its own boundary. Without a connecting layer, every failure travels down the chain to the person eating.</p></div>
-        </div>
       </div>
     </section>
 
-    <!-- Identified problems: dialogue scene -->
-    <section class="vn" data-scene style="--beats:5" aria-label="Identified problems" data-chapter="Identified problems">
-      <div class="vn__stage">
-        <div class="vn__bg vn__bg--blur">
-          <img data-beat="0" src="../assets/projects/safedining/scene-1.webp?v=2" alt="" loading="lazy">
-          <img data-beat="1" src="../assets/projects/safedining/scene-2.webp?v=2" alt="" loading="lazy">
-          <img data-beat="2" src="../assets/projects/safedining/scene-3.webp?v=2" alt="" loading="lazy">
-          <img data-beat="3" src="../assets/projects/safedining/scene-4.webp?v=2" alt="" loading="lazy">
-          <img data-beat="4" src="../assets/projects/safedining/scene-5.webp?v=2" alt="" loading="lazy">
-        </div>
-        <div class="vn__shade"></div>
-        <p class="vn__chapter"><b>05</b> Identified problems</p>
-        <h3 class="vn__title"><span data-beat="0">Lost in conversation</span><span data-beat="1">The illusion of transparency</span><span data-beat="2">The anxiety of eating</span><span data-beat="3">Untrained to care</span><span data-beat="4">The lost identity of ingredients</span></h3>
-        <p class="vn__big vn__big--stat" aria-hidden="true"><span data-beat="0">53.9%</span><span data-beat="1">44.8%</span><span data-beat="2">74%</span><span data-beat="3">44%</span><span data-beat="4">05</span></p>
-        <div class="vn__box">
-          <p class="vn__name"><span data-beat="0">Problem 01 / 05</span><span data-beat="1">Problem 02 / 05</span><span data-beat="2">Problem 03 / 05</span><span data-beat="3">Problem 04 / 05</span><span data-beat="4">Problem 05 / 05</span></p>
-          <div class="vn__lines">
-            <p data-beat="0" data-type>Allergy details travel by word of mouth, from diner to server to chef. Each retelling invites error, and 53.9% of reactions happen after the diner has spoken up.</p>
-            <p data-beat="1" data-type>44.8% of restaurants had no ingredient lists or recipes for most of the menu. “Transparency” stops at a few vague labels.</p>
-            <p data-beat="2" data-type>Every order and double-check carries risk. 74% of parents of children with allergies find dining out challenging.</p>
-            <p data-beat="3" data-type>Only 44% of service staff get any allergy training, and 11.9% of managers believe “small amounts” are safe.</p>
-            <p data-beat="4" data-type>Ingredients start with clear origins and allergen data, then lose their names somewhere between supplier and plate.</p>
-          </div>
-          <span class="vn__next" aria-hidden="true"></span>
-        </div>
-        <div class="vn__dots"><button data-goto="0" aria-label="Problem 1"></button><button data-goto="1" aria-label="Problem 2"></button><button data-goto="2" aria-label="Problem 3"></button><button data-goto="3" aria-label="Problem 4"></button><button data-goto="4" aria-label="Problem 5"></button></div>
-        <div class="vn__progress"></div>
+    <!-- 05 Identified problems: order tickets on the pass -->
+    <section class="wrap c-sec sd-screen sd-tickets" id="problems" data-chapter="Identified problems" data-screen>
+      <div class="c-chapter"><span class="c-chapter__num">05</span><h2 class="c-kicker">Identified problems</h2></div>
+      <p class="c-head reveal-mask">Five orders the system keeps getting wrong.</p>
+      <div class="pass reveal">
+        <span class="pass__rail" aria-hidden="true"></span>
+        <ol class="pass__tickets"><li class="tkt" tabindex="0" style="--r:-2.5deg;--i:0"><span class="tkt__clip" aria-hidden="true"></span><p class="tkt__no">Problem 01 / 05</p><h3 class="tkt__title">Lost in conversation</h3><p class="tkt__stat">53.9%</p><p class="tkt__text">Allergy details travel by word of mouth, from diner to server to chef. Each retelling invites error, and 53.9% of reactions happen after the diner has spoken up.</p></li><li class="tkt" tabindex="0" style="--r:1.8deg;--i:1"><span class="tkt__clip" aria-hidden="true"></span><p class="tkt__no">Problem 02 / 05</p><h3 class="tkt__title">The illusion of transparency</h3><p class="tkt__stat">44.8%</p><p class="tkt__text">44.8% of restaurants had no ingredient lists or recipes for most of the menu. “Transparency” stops at a few vague labels.</p></li><li class="tkt" tabindex="0" style="--r:-1.2deg;--i:2"><span class="tkt__clip" aria-hidden="true"></span><p class="tkt__no">Problem 03 / 05</p><h3 class="tkt__title">The anxiety of eating</h3><p class="tkt__stat">74%</p><p class="tkt__text">Every order and double-check carries risk. 74% of parents of children with allergies find dining out challenging.</p></li><li class="tkt" tabindex="0" style="--r:2.4deg;--i:3"><span class="tkt__clip" aria-hidden="true"></span><p class="tkt__no">Problem 04 / 05</p><h3 class="tkt__title">Untrained to care</h3><p class="tkt__stat">44%</p><p class="tkt__text">Only 44% of service staff get any allergy training, and 11.9% of managers believe “small amounts” are safe.</p></li><li class="tkt" tabindex="0" style="--r:-1.8deg;--i:4"><span class="tkt__clip" aria-hidden="true"></span><p class="tkt__no">Problem 05 / 05</p><h3 class="tkt__title">The lost identity of ingredients</h3><p class="tkt__stat tkt__stat--q" aria-hidden="true">?</p><p class="tkt__text">Ingredients start with clear origins and allergen data, then lose their names somewhere between supplier and plate.</p></li></ol>
       </div>
     </section>
 
@@ -369,15 +340,13 @@
     <section class="wrap c-sec sd-screen sd-opps" id="opportunities" data-chapter="Opportunity areas" data-screen>
       <div class="c-chapter"><span class="c-chapter__num">06</span><h2 class="c-kicker">Opportunity areas</h2></div>
       <p class="c-head reveal-mask">Turn risk into confidence.</p>
-      <p class="c-text reveal">Six places where restaurants, platforms and regulators can move from reacting to incidents to designing for trust. Each is backed by a real-world case study in the white paper.</p>
       <ol class="opps reveal" data-opps><li class="opp is-open" tabindex="0"><span class="opp__num">#01</span><span class="opp__icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 6h10M4 10h16M4 14h12M4 18h7"/></svg></span><h3 class="opp__title">Standard pathways</h3><p class="opp__text">Standardize communication pathways: make allergy communication a system, not a skill.</p></li><li class="opp" tabindex="0"><span class="opp__num">#02</span><span class="opp__icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12z"/><circle cx="12" cy="12" r="3"/></svg></span><h3 class="opp__title">Visible safety</h3><p class="opp__text">Make the invisible visible: menus, displays and cues that show safety in action.</p></li><li class="opp" tabindex="0"><span class="opp__num">#03</span><span class="opp__icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 21s-6.5-6-6.5-11a6.5 6.5 0 0 1 13 0c0 5-6.5 11-6.5 11z"/><circle cx="12" cy="10" r="2.4"/></svg></span><h3 class="opp__title">Trust before arrival</h3><p class="opp__text">Trust starts before you arrive: clear allergy-friendly information online, before the visit.</p></li><li class="opp" tabindex="0"><span class="opp__num">#04</span><span class="opp__icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/></svg></span><h3 class="opp__title">Training as care</h3><p class="opp__text">Reimagine training as a culture of care, with real scenarios and real-time feedback.</p></li><li class="opp" tabindex="0"><span class="opp__num">#05</span><span class="opp__icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M9 15l6-6"/><path d="M10.5 6.5l1.8-1.8a3.6 3.6 0 0 1 5 5l-1.8 1.8M13.5 17.5l-1.8 1.8a3.6 3.6 0 0 1-5-5l1.8-1.8"/></svg></span><h3 class="opp__title">Traceable ingredients</h3><p class="opp__text">Let safety travel with every ingredient, through one shared data language from supplier to plate.</p></li><li class="opp" tabindex="0"><span class="opp__num">#06</span><span class="opp__icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 3l7.5 3v5.5c0 4.6-3.2 8-7.5 9.5-4.3-1.5-7.5-4.9-7.5-9.5V6z"/><path d="M8.8 12l2.2 2.2 4.4-4.6"/></svg></span><h3 class="opp__title">One framework</h3><p class="opp__text">One framework for regulation and accountability, across suppliers, platforms and restaurants.</p></li></ol>
     </section>
 
     <!-- Vision film -->
-    <section class="wrap c-sec" id="vision" data-chapter="Vision film">
+    <section class="wrap c-sec sd-screen sd-film" id="vision" data-chapter="Vision film" data-screen>
       <div class="c-chapter"><span class="c-chapter__num">07</span><h2 class="c-kicker">Vision film</h2></div>
       <p class="c-head reveal-mask">Welcome to 2035.</p>
-      <p class="c-text reveal">Our team’s vision video follows a diner through a meal where safety is built in: from finding trustworthy information before she goes, to a table where staff and kitchen share the same picture of her allergy.</p>
       <figure class="film reveal"><video controls playsinline preload="metadata" poster="../assets/projects/safedining/vision-poster.webp"><source src="../assets/projects/safedining/vision.mp4" type="video/mp4"></video></figure>
     </section>
 
@@ -385,7 +354,6 @@
     <section class="wrap c-sec sd-screen sd-outputs" id="outputs" data-chapter="Infographics" data-screen>
       <div class="c-chapter"><span class="c-chapter__num">08</span><h2 class="c-kicker">Infographics</h2></div>
       <p class="c-head reveal-mask">Research you can read across a room.</p>
-      <p class="c-text reveal">Two printed posters carry the journey and the ecosystem, each with a QR code to its interactive online version. Pick a note to zoom into that part of the poster.</p>
       <div class="px" data-poster>
         <div class="px-side">
           <div class="px-tabs" role="tablist" aria-label="Posters">
@@ -415,7 +383,6 @@
       <div class="wrap c-sec">
         <div class="c-chapter"><span class="c-chapter__num">09</span><h2 class="c-kicker">The white paper</h2></div>
         <p class="c-head reveal-mask">Where care is the recipe, and safety is the standard.</p>
-        <p class="c-text reveal">The final deliverable: an 82-page printed white paper. Turn the pages below.</p>
         <div class="flip is-start" data-flip data-pages="82" data-base="../assets/projects/safedining/wp/" data-size="1600x1236" data-title="Safe Dining white paper" tabindex="0" aria-label="Safe Dining white paper, use the arrow keys to turn pages">
           <div class="flip__book"></div>
           <div class="flip__bar">
@@ -481,7 +448,7 @@
   </footer>
 
   <script src="../assets/js/lenis.min.js" defer></script>
-  <script src="../i18n/zh/safedining.js?v=7" defer></script>
+  <script src="../i18n/zh/safedining.js?v=8" defer></script>
   <script src="../main.js?v=20261040a" defer></script>
 </body>
 </html>
