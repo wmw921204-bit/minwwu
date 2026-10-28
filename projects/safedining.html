@@ -19,7 +19,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&family=Poppins:wght@400;500;600&family=Sulphur+Point:wght@400&family=IBM+Plex+Mono:wght@400;500;600&family=Caveat:wght@600&display=swap">
   <link rel="stylesheet" href="../styles.css?v=20261026x">
-  <link rel="stylesheet" href="../case.css?v=20261042a">
+  <link rel="stylesheet" href="../case.css?v=20261043c">
 </head>
 <body class="case case--olive">
   <a class="skip" href="#main">Skip to content</a>
@@ -326,13 +326,20 @@
       </div>
     </section>
 
-    <!-- 05 Identified problems: order tickets on the pass -->
-    <section class="wrap c-sec sd-screen sd-tickets" id="problems" data-chapter="Identified problems" data-screen>
-      <div class="c-chapter"><span class="c-chapter__num">05</span><h2 class="c-kicker">Identified problems</h2></div>
-      <p class="c-head reveal-mask">Five orders the system keeps getting wrong.</p>
-      <div class="pass reveal">
-        <span class="pass__rail" aria-hidden="true"></span>
-        <ol class="pass__tickets"><li class="tkt" tabindex="0" style="--r:-2.5deg;--i:0"><span class="tkt__clip" aria-hidden="true"></span><p class="tkt__no">Problem 01 / 05</p><h3 class="tkt__title">Lost in conversation</h3><p class="tkt__stat">53.9%</p><p class="tkt__text">Allergy details travel by word of mouth, from diner to server to chef. Each retelling invites error, and 53.9% of reactions happen after the diner has spoken up.</p></li><li class="tkt" tabindex="0" style="--r:1.8deg;--i:1"><span class="tkt__clip" aria-hidden="true"></span><p class="tkt__no">Problem 02 / 05</p><h3 class="tkt__title">The illusion of transparency</h3><p class="tkt__stat">44.8%</p><p class="tkt__text">44.8% of restaurants had no ingredient lists or recipes for most of the menu. “Transparency” stops at a few vague labels.</p></li><li class="tkt" tabindex="0" style="--r:-1.2deg;--i:2"><span class="tkt__clip" aria-hidden="true"></span><p class="tkt__no">Problem 03 / 05</p><h3 class="tkt__title">The anxiety of eating</h3><p class="tkt__stat">74%</p><p class="tkt__text">Every order and double-check carries risk. 74% of parents of children with allergies find dining out challenging.</p></li><li class="tkt" tabindex="0" style="--r:2.4deg;--i:3"><span class="tkt__clip" aria-hidden="true"></span><p class="tkt__no">Problem 04 / 05</p><h3 class="tkt__title">Untrained to care</h3><p class="tkt__stat">44%</p><p class="tkt__text">Only 44% of service staff get any allergy training, and 11.9% of managers believe “small amounts” are safe.</p></li><li class="tkt" tabindex="0" style="--r:-1.8deg;--i:4"><span class="tkt__clip" aria-hidden="true"></span><p class="tkt__no">Problem 05 / 05</p><h3 class="tkt__title">The lost identity of ingredients</h3><p class="tkt__stat tkt__stat--q" aria-hidden="true">?</p><p class="tkt__text">Ingredients start with clear origins and allergen data, then lose their names somewhere between supplier and plate.</p></li></ol>
+    <!-- 05 Identified problems: tickets print one by one at the pass -->
+    <section class="pz" id="problems" data-scene style="--beats:5" data-chapter="Identified problems">
+      <div class="pz__stage">
+        <div class="pz__bg"><img data-beat="0" src="../assets/projects/safedining/scene-1.webp?v=2" alt="" loading="lazy"><img data-beat="1" src="../assets/projects/safedining/scene-2.webp?v=2" alt="" loading="lazy"><img data-beat="2" src="../assets/projects/safedining/scene-3.webp?v=2" alt="" loading="lazy"><img data-beat="3" src="../assets/projects/safedining/scene-4.webp?v=2" alt="" loading="lazy"><img data-beat="4" src="../assets/projects/safedining/scene-5.webp?v=2" alt="" loading="lazy"></div>
+        <div class="pz__shade"></div>
+        <div class="pz__rail" aria-hidden="false"><span class="pz__bar"></span><div class="pz__stubs"><button class="pz-stub" data-goto="0" aria-label="Lost in conversation"><span>01</span></button><button class="pz-stub" data-goto="1" aria-label="The illusion of transparency"><span>02</span></button><button class="pz-stub" data-goto="2" aria-label="The anxiety of eating"><span>03</span></button><button class="pz-stub" data-goto="3" aria-label="Untrained to care"><span>04</span></button><button class="pz-stub" data-goto="4" aria-label="The lost identity of ingredients"><span>05</span></button></div></div>
+        <div class="pz__left">
+          <p class="pz__chapter"><b>05</b> Identified problems</p>
+          <p class="pz__head">Five orders the system keeps getting wrong.</p>
+          <p class="pz__stat" aria-hidden="true"><span data-beat="0">53.9%</span><span data-beat="1">44.8%</span><span data-beat="2">74%</span><span data-beat="3">44%</span><span data-beat="4">?</span></p>
+        </div>
+        <div class="pz__printer" aria-hidden="true"><span class="pz__slot"></span><span class="pz__bell"></span></div>
+        <div class="pz__tickets"><article class="pz-tkt" data-beat="0" style="--r:-2deg"><p class="pz-tkt__head"><span>Problem 01 / 05</span><span class="pz-tkt__flag">Allergy</span></p><h3 class="pz-tkt__title">Lost in conversation</h3><p class="pz-tkt__line" data-type>Allergy details travel by word of mouth, from diner to server to chef. Each retelling invites error, and 53.9% of reactions happen after the diner has spoken up.</p><p class="pz-tkt__foot" aria-hidden="true">— — — — — — — — — —</p></article><article class="pz-tkt" data-beat="1" style="--r:1.6deg"><p class="pz-tkt__head"><span>Problem 02 / 05</span><span class="pz-tkt__flag">Allergy</span></p><h3 class="pz-tkt__title">The illusion of transparency</h3><p class="pz-tkt__line" data-type>44.8% of restaurants had no ingredient lists or recipes for most of the menu. “Transparency” stops at a few vague labels.</p><p class="pz-tkt__foot" aria-hidden="true">— — — — — — — — — —</p></article><article class="pz-tkt" data-beat="2" style="--r:-1.2deg"><p class="pz-tkt__head"><span>Problem 03 / 05</span><span class="pz-tkt__flag">Allergy</span></p><h3 class="pz-tkt__title">The anxiety of eating</h3><p class="pz-tkt__line" data-type>Every order and double-check carries risk. 74% of parents of children with allergies find dining out challenging.</p><p class="pz-tkt__foot" aria-hidden="true">— — — — — — — — — —</p></article><article class="pz-tkt" data-beat="3" style="--r:2deg"><p class="pz-tkt__head"><span>Problem 04 / 05</span><span class="pz-tkt__flag">Allergy</span></p><h3 class="pz-tkt__title">Untrained to care</h3><p class="pz-tkt__line" data-type>Only 44% of service staff get any allergy training, and 11.9% of managers believe “small amounts” are safe.</p><p class="pz-tkt__foot" aria-hidden="true">— — — — — — — — — —</p></article><article class="pz-tkt" data-beat="4" style="--r:-1.6deg"><p class="pz-tkt__head"><span>Problem 05 / 05</span><span class="pz-tkt__flag">Allergy</span></p><h3 class="pz-tkt__title">The lost identity of ingredients</h3><p class="pz-tkt__line" data-type>Ingredients start with clear origins and allergen data, then lose their names somewhere between supplier and plate.</p><p class="pz-tkt__foot" aria-hidden="true">— — — — — — — — — —</p></article></div>
+        <p class="pz__hint" aria-hidden="true">Scroll to fire the next order</p>
       </div>
     </section>
 
@@ -448,7 +455,7 @@
   </footer>
 
   <script src="../assets/js/lenis.min.js" defer></script>
-  <script src="../i18n/zh/safedining.js?v=8" defer></script>
+  <script src="../i18n/zh/safedining.js?v=10" defer></script>
   <script src="../main.js?v=20261040a" defer></script>
 </body>
 </html>

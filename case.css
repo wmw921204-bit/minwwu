@@ -4740,3 +4740,94 @@ button:has(.ti--orbit):hover .tl { letter-spacing: .06em; }
   .case--olive .c-desk .flip { --pw: min(42vw, 620px); }
   .sd-film .film video { max-height: max(560px, calc(100svh - 240px)); }
 }
+
+/* =====================================================================
+   Safe Dining · identified problems: a pinned night at the pass.
+   Each scroll step dings the bell, prints the next ticket, and tears
+   the last one off the rail.
+   ===================================================================== */
+.pz { --beats: 5; position: relative; height: calc(var(--beats) * 80vh + 100vh); }
+.pz__stage { position: sticky; top: 0; height: 100vh; height: 100svh; overflow: hidden; background: #1d211a; color: #faf7f0; }
+.pz__bg { position: absolute; inset: 0; }
+.pz__bg img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0; transform: scale(1.14); filter: brightness(.5) saturate(.85) sepia(.15); transition: opacity 1.1s var(--ease), transform 8s cubic-bezier(.2, .6, .3, 1); }
+.pz__bg img.is-active { opacity: 1; transform: scale(1.03); }
+.pz__shade { position: absolute; inset: 0; background: radial-gradient(70% 90% at 72% 55%, rgba(242,184,75,.16), transparent 60%), linear-gradient(90deg, rgba(20,22,18,.82) 0%, rgba(20,22,18,.35) 55%, rgba(20,22,18,.15) 100%); }
+
+/* the rail along the top, with one stub per order */
+.pz__rail { position: absolute; left: 0; right: 0; top: clamp(78px, 11vh, 104px); z-index: 3; }
+.pz__bar { position: absolute; left: 0; right: 0; top: 0; height: 12px; background: linear-gradient(#e6e9ec, #9aa1a8 60%, #6f767d); box-shadow: 0 8px 16px -6px rgba(0,0,0,.6); }
+.pz__stubs { position: absolute; right: var(--gutter); top: 4px; display: flex; gap: 10px; }
+.pz-stub { position: relative; width: 38px; height: 50px; padding: 14px 0 0; border: 0; background: #fffdf6; color: #262c22; font: 600 11px/1 'IBM Plex Mono', ui-monospace, monospace; transform-origin: 50% 0; transform: rotate(-3deg) translateY(-6px); opacity: .55; -webkit-mask: linear-gradient(#000 0 0) top / 100% calc(100% - 6px) no-repeat, conic-gradient(from -45deg at bottom, #0000, #000 1deg 89deg, #0000 90deg) bottom / 8px 6px repeat-x; mask: linear-gradient(#000 0 0) top / 100% calc(100% - 6px) no-repeat, conic-gradient(from -45deg at bottom, #0000, #000 1deg 89deg, #0000 90deg) bottom / 8px 6px repeat-x; transition: transform .6s var(--bounce), opacity .4s, background .3s; cursor: pointer; }
+.pz-stub:nth-child(2n) { transform: rotate(3deg) translateY(-6px); }
+.pz-stub:hover { opacity: 1; transform: rotate(0) translateY(0); }
+.pz-stub.is-active { opacity: 1; background: #f2b84b; transform: rotate(0) translateY(2px); animation: pzSwing 1s ease-out; }
+@keyframes pzSwing { 0% { transform: rotate(14deg); } 35% { transform: rotate(-9deg); } 65% { transform: rotate(4deg); } 100% { transform: rotate(0) translateY(2px); } }
+
+/* left: the headline stays, the number changes */
+.pz__left { position: absolute; left: var(--gutter); top: calc(clamp(78px, 11vh, 104px) + 56px); bottom: 12vh; width: min(560px, 44vw); display: flex; flex-direction: column; z-index: 2; }
+.pz__chapter { display: flex; gap: 12px; align-items: center; font: 500 14px/1 var(--f-body); color: rgba(250,247,240,.7); }
+.pz__chapter b { color: #f2b84b; font: 600 14px/1 var(--f-display); }
+.pz__head { margin-top: 16px; font: 600 clamp(30px, 3.4vw, 50px)/1.08 var(--f-display); letter-spacing: -0.03em; max-width: 11em; }
+.pz__stat { position: relative; margin-top: auto; height: 1em; font: 700 clamp(120px, 17vw, 260px)/1 var(--f-display); letter-spacing: -0.06em; }
+.pz__stat > span { position: absolute; left: 0; bottom: 0; color: #f2b84b; opacity: 0; transform: translateY(40%) rotate(-6deg) scale(.9); transform-origin: 0 100%; transition: opacity .5s var(--ease), transform .8s var(--bounce); }
+.pz__stat > span.is-active { opacity: 1; transform: none; transition-delay: .25s; }
+.pz__stat > span:last-child { color: transparent; -webkit-text-stroke: 2px #f2b84b; }
+
+/* the printer slot the tickets come out of */
+.pz__printer { position: absolute; right: calc(var(--gutter) + clamp(20px, 6vw, 110px)); top: calc(clamp(78px, 11vh, 104px) + 30px); z-index: 4; width: min(440px, 36vw); height: 40px; border-radius: 10px; background: linear-gradient(#3b4136, #23271f); box-shadow: 0 14px 24px -10px rgba(0,0,0,.7), inset 0 1px 0 rgba(255,255,255,.12); }
+.pz__slot { position: absolute; left: 22px; right: 22px; bottom: 9px; height: 5px; border-radius: 3px; background: #0b0c0a; }
+.pz__bell { position: absolute; right: -18px; top: -26px; width: 44px; height: 30px; border-radius: 22px 22px 4px 4px; background: radial-gradient(circle at 35% 30%, #fff2c6, #e7b23f 45%, #9c6b12); box-shadow: 0 6px 10px -4px rgba(0,0,0,.6); transform-origin: 50% 100%; }
+.pz__bell::before { content: ""; position: absolute; left: 50%; top: -7px; width: 8px; height: 8px; margin-left: -4px; border-radius: 50%; background: #c99428; }
+.pz__bell::after { content: ""; position: absolute; left: -6px; right: -6px; bottom: -5px; height: 6px; border-radius: 3px; background: #3a3f35; }
+.pz[data-beat] .pz__bell { animation: pzDing .6s var(--bounce); }
+.pz[data-beat="0"] .pz__bell { animation-name: pzDing0; } .pz[data-beat="1"] .pz__bell { animation-name: pzDing1; } .pz[data-beat="2"] .pz__bell { animation-name: pzDing0; } .pz[data-beat="3"] .pz__bell { animation-name: pzDing1; } .pz[data-beat="4"] .pz__bell { animation-name: pzDing0; }
+@keyframes pzDing0 { 30% { transform: rotate(-14deg) scale(1.1); } 60% { transform: rotate(9deg); } }
+@keyframes pzDing1 { 30% { transform: rotate(14deg) scale(1.1); } 60% { transform: rotate(-9deg); } }
+
+/* tickets: printed down from the slot, torn off and thrown when the next arrives */
+.pz__tickets { position: absolute; right: calc(var(--gutter) + clamp(20px, 6vw, 110px) + 26px); top: calc(clamp(78px, 11vh, 104px) + 62px); z-index: 3; width: calc(min(440px, 36vw) - 52px); height: calc(100svh - clamp(78px, 11vh, 104px) - 120px); }
+.pz-tkt { position: absolute; left: 0; right: 0; top: 0; padding: 26px 24px 30px; background: #fffdf6; color: #262c22; box-shadow: 0 30px 50px -24px rgba(0,0,0,.75); transform-origin: 50% 0; clip-path: inset(0 0 100% 0); opacity: 0; -webkit-mask: linear-gradient(#000 0 0) top / 100% calc(100% - 9px) no-repeat, conic-gradient(from -45deg at bottom, #0000, #000 1deg 89deg, #0000 90deg) bottom / 14px 9px repeat-x; mask: linear-gradient(#000 0 0) top / 100% calc(100% - 9px) no-repeat, conic-gradient(from -45deg at bottom, #0000, #000 1deg 89deg, #0000 90deg) bottom / 14px 9px repeat-x; transition: clip-path 0s .7s, opacity .45s ease-in, transform .7s cubic-bezier(.5, 0, .75, 0); transform: translate(70%, 30%) rotate(28deg); }
+.pz-tkt.is-active { opacity: 1; clip-path: inset(-40px -40px -40px -40px); transform: rotate(var(--r)); transition: clip-path 1.1s steps(18) .15s, opacity 0s .15s, transform .9s var(--bounce) 1.1s; animation: pzPrint 1.3s ease-out .15s both; }
+@keyframes pzPrint { 0% { clip-path: inset(0 0 100% 0); transform: translateY(-14px); } 85% { clip-path: inset(0 0 0 0); transform: translateY(0); } 100% { clip-path: inset(-40px -40px -40px -40px); transform: rotate(var(--r)); } }
+.pz-tkt__head { display: flex; justify-content: space-between; padding-bottom: 12px; border-bottom: 1.5px dashed rgba(38,44,34,.3); font: 600 12px/1 'IBM Plex Mono', ui-monospace, monospace; letter-spacing: .12em; text-transform: uppercase; color: rgba(38,44,34,.6); }
+.pz-tkt__flag { padding: 3px 7px; border: 1.5px solid #c2402d; border-radius: 4px; color: #c2402d; transform: rotate(-4deg); }
+.pz-tkt__title { margin: 18px 0 14px; font: 600 clamp(24px, 2.2vw, 34px)/1.12 var(--f-display); letter-spacing: -0.02em; }
+.pz-tkt__line { min-height: 6.4em; font: 400 clamp(14px, 1.1vw, 16px)/1.6 'IBM Plex Mono', ui-monospace, monospace; color: rgba(38,44,34,.85); }
+.pz-tkt__line.is-typing::after { content: "▌"; margin-left: 1px; animation: pzCaret .8s steps(2) infinite; }
+@keyframes pzCaret { 50% { opacity: 0; } }
+.pz-tkt__foot { margin-top: 16px; font: 500 12px/1 'IBM Plex Mono', monospace; color: rgba(38,44,34,.35); white-space: nowrap; overflow: hidden; }
+
+.pz__hint { position: absolute; left: 50%; bottom: 96px; translate: -50% 0; font: 500 13px/1 var(--f-body); letter-spacing: .06em; color: rgba(250,247,240,.6); opacity: calc(1 - var(--p, 0) * 6); }
+.pz__hint::after { content: ""; display: block; width: 1px; height: 26px; margin: 10px auto 0; background: linear-gradient(rgba(250,247,240,.7), transparent); animation: sdHint 1.6s ease-in-out infinite; }
+
+@media (max-width: 860px) {
+  .pz__left { top: calc(clamp(78px, 11vh, 104px) + 40px); bottom: auto; width: auto; right: var(--gutter); }
+  .pz__head { font-size: 26px; }
+  .pz__stat { position: absolute; right: 0; top: 0; margin: 0; font-size: 22vw; opacity: .9; }
+  .pz__stat > span { left: auto; right: 0; bottom: auto; top: 0; }
+  .pz__printer { left: 50%; right: auto; translate: -50% 0; top: 44vh; width: 84vw; }
+  .pz__tickets { left: 50%; right: auto; translate: -50% 0; top: calc(44vh + 32px); width: calc(84vw - 44px); }
+  .pz-tkt { padding: 18px 16px 22px; }
+  .pz-tkt__title { margin: 12px 0 8px; font-size: 21px; }
+  .pz-tkt__line { min-height: 0; font-size: 13px; }
+  .pz__stubs { right: 12px; gap: 6px; }
+  .pz-stub { width: 30px; height: 40px; }
+}
+@media (prefers-reduced-motion: reduce) { .pz-tkt, .pz-tkt.is-active, .pz__bell, .pz-stub { animation: none !important; transition: opacity .3s !important; clip-path: none !important; } }
+@media (min-width: 861px) {
+  .pz__stubs { right: auto; left: 50%; translate: -50% 0; }
+  .pz__printer { width: min(540px, 40vw); right: calc(var(--gutter) + clamp(10px, 4vw, 80px)); }
+  .pz__tickets { width: calc(min(540px, 40vw) - 56px); right: calc(var(--gutter) + clamp(10px, 4vw, 80px) + 28px); }
+  .pz-tkt { padding: 30px 30px 36px; }
+  .pz-tkt__title { font-size: clamp(28px, 2.6vw, 40px); margin: 22px 0 16px; }
+  .pz-tkt__line { font-size: clamp(15px, 1.2vw, 18px); line-height: 1.65; }
+  .pz__hint { left: auto; right: calc(var(--gutter) + clamp(10px, 4vw, 80px)); translate: 0 0; bottom: 90px; width: min(540px, 40vw); text-align: center; }
+}
+.pz__stubs { left: var(--gutter) !important; right: auto !important; translate: 0 0 !important; }
+.pz__left { top: calc(clamp(78px, 11vh, 104px) + 76px); }
+@media (max-width: 860px) {
+  .pz__stat { position: relative; right: auto; top: auto; margin-top: 10px; font-size: 19vw; }
+  .pz__stat > span { left: 0; right: auto; top: auto; bottom: 0; }
+  .pz__printer { top: 50vh; }
+  .pz__tickets { top: calc(50vh + 32px); }
+}
