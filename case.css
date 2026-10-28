@@ -3998,25 +3998,7 @@ html:lang(zh) .zen-cap h3 { font-family: 'Cormorant Garamond', "Songti SC", "STS
   .sd-eco__map figcaption { max-width: 60em; font-size: 13.5px; text-align: center; }
 }
 .persona__facts .dot { display: none; }
-@media (min-width: 861px) and (min-height: 620px) and (max-height: 820px) {
-  .sd-research .rs-lead { font-size: 16px; }
-  .sd-research .rs-grid { margin-top: 12px; gap: 8px; }
-  .sd-research .rs-grid li { padding: 12px 14px; }
-  .sd-research .rs-grid h3 { margin: 6px 0 4px; font-size: 15.5px; }
-  .sd-research .rs-grid p { font-size: 13px; line-height: 1.42; }
-  .sd-research .rs-split { grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr); gap: 24px; }
-  .sd-research .rs-bubbles { gap: 6px; margin-top: 10px; }
-  .sd-research .rs-bubbles li { padding: 7px 12px; font-size: 13px; }
-  .sd-research .rs-points li, .sd-research .rs-close { font-size: 14px; }
-  .sd-research .rs-close { margin-top: 10px; }
-  .sd-research .rs-quotes { gap: 10px; }
-  .sd-research .rs-quotes blockquote { padding: 14px 16px 14px 40px; font-size: 14px; }
-  .sd-research .rs-quotes blockquote::before { left: 14px; top: 4px; font-size: 40px; }
-  .sd-research .rs-points { gap: 8px; }
-  .sd-persona .persona__main img { max-height: calc(100svh - 480px); }
-  .sd-persona .persona__facts li { padding: 5px 12px; font-size: 13px; }
-  .sd-persona .persona__name { font-size: 30px; }
-}
+
 
 /* Safe Dining problem: one number that matters, and the Big 9 set like a menu */
 .sd-problem__left .c-head { max-width: 11em; }
@@ -4493,16 +4475,7 @@ button:has(.ti--orbit):hover .tl { letter-spacing: .06em; }
   .sd-problem .sd-menu { padding-top: clamp(20px, 3.4vh, 36px); padding-bottom: clamp(16px, 2.6vh, 28px); }
   .sd-problem .sd-menu__list li { padding-top: clamp(4px, .8vh, 9px); padding-bottom: clamp(5px, .9vh, 10px); }
 }
-@media (min-width: 861px) and (min-height: 620px) and (max-height: 820px) {
-  .sd-big__num { font-size: clamp(100px, min(14vw, 22vh), 200px); }
-  .sd-problem .sd-menu__title { font-size: 32px; }
-  .sd-problem .sd-menu__list li { padding-top: 3px; padding-bottom: 4px; }
-  .sd-problem .sd-menu__list span { font-size: 14.5px; }
-  .sd-problem .sd-menu__list b { font-size: 15.5px; }
-  .sd-problem .sd-menu__quote { margin-top: 8px; padding-top: 8px; font-size: 13.5px; }
-  .sd-facts { margin-top: 16px; padding-top: 10px; }
-  .sd-fact__num { font-size: 28px; }
-}
+
 
 /* ---------- folder switch: colour changes at once, tab and body move as one ---------- */
 .sd-research .switcher__stage { transition: none; }
@@ -4711,12 +4684,59 @@ button:has(.ti--orbit):hover .tl { letter-spacing: .06em; }
   .case--olive .c-desk .flip { --pw: min(40vw, 620px, calc((100svh - 420px) * 2026 / 1566)); }
   .case--olive .c-desk .flip__hint { display: none; }
 }
-@media (min-width: 861px) and (min-height: 620px) and (max-height: 820px) {
-  .sd-research .rs-split > img, .sd-research .rs-photos { max-height: calc(100svh - 480px); }
-  .sd-research .rs-grid li { padding: 12px 14px; }
-  .sd-research .rs-grid h3 { font-size: 15.5px; margin: 4px 0; }
-  .sd-research .rs-close, .sd-research .rs-split .rs-lead { font-size: 18px; }
-  .sd-research__stats .c-stat__num { font-size: 34px; }
-  .dossier__photo img { max-height: calc(100svh - 580px); min-height: 120px; }
-  .dossier__fields li { padding: 4px 0; }
+
+
+/* ---------- Safe Dining: readable first. Sizes never shrink with screen height;
+   a chapter grows past one screen rather than shrinking its content ---------- */
+@media (min-width: 861px) {
+  .sd-screen .c-head { font-size: clamp(32px, 3.4vw, 52px); }
+  .sd-screen.sd-problem .c-head { font-size: clamp(40px, 4.4vw, 66px); }
+  .sd-big { margin-top: 48px; }
+  .sd-big__num { font-size: clamp(150px, 17vw, 270px); }
+  .sd-big__label { font-size: clamp(19px, 1.6vw, 24px); }
+  .sd-problem .sd-menu { padding: 40px clamp(28px, 2.8vw, 44px) 32px; }
+  .sd-problem .sd-menu__title { font-size: clamp(40px, 3.6vw, 54px); }
+  .sd-problem .sd-menu__list li { padding: 9px 0 10px; }
+  .sd-problem .sd-menu__list span { font-size: 17.5px; }
+  .sd-problem .sd-menu__list b { font-size: 19px; }
+  .sd-problem .sd-menu__quote { margin-top: 20px; padding-top: 16px; font-size: 16px; }
+
+  .sd-research__stats .c-stat__num { font-size: clamp(44px, 4.2vw, 62px); }
+  .sd-research__stats .c-stat__label { font-size: 14.5px; }
+  .sd-research .switcher__stage { padding: 36px clamp(24px, 3vw, 48px); }
+  .sd-research .rs-grid li { padding: 24px 20px 20px; }
+  .sd-research .rs-grid h3 { margin: 8px 0 8px; font-size: clamp(18px, 1.5vw, 22px); }
+  .sd-research .rs-grid p { font-size: 15px; line-height: 1.55; }
+  .sd-research .rs-close, .sd-research .rs-split .rs-lead { font-size: clamp(22px, 2vw, 30px); }
+  .sd-research .rs-points li { font-size: 16px; }
+  .sd-research .rs-bubbles li { padding: 11px 16px; font-size: 15px; }
+  .sd-research .rs-quotes blockquote { padding: 22px 22px 22px 50px; font-size: 17px; }
+  .sd-research .rs-split > img, .sd-research .rs-photos { max-height: 460px; }
+  .sd-research .rs-workshops img { height: 260px; }
+  .sd-research .rs-workshops h3 { font-size: 21px; }
+  .sd-research .rs-workshops p { font-size: 15px; }
+
+  .dossier__photo img { max-height: 380px; min-height: 0; }
+  .dossier__fields li { padding: 10px 0; font-size: 15.5px; }
+  .dossier__list li { padding: 7px 0 7px 30px; font-size: 16px; }
+  .dossier__list li::before { top: 8px; }
+  .dossier__note { font-size: 15px; }
+
+  .sd-track li { font-size: 19px; padding: 7px 0; }
+  .sd-jm__map img { max-height: max(640px, calc(100svh - 160px)); }
+
+  .sd-outputs .px-stage { max-height: none; max-width: none; width: 100%; }
+  .px--eco .px-stage { max-width: 760px; }
+  .px-note strong { font-size: 16.5px; }
+  .px-note__more > span { font-size: 15px; }
+
+  .sd-eco__rest .sd-relay-head { font-size: clamp(30px, 3vw, 44px); }
+}
+@media (min-width: 981px) { .sd-eco__rest .relay { --row: 175px; } }
+@media (min-width: 861px) {
+  .tkt__title { font-size: clamp(19px, 1.6vw, 23px); }
+  .tkt__stat { font-size: clamp(48px, 4.4vw, 68px); }
+  .tkt__text { font-size: 14px; }
+  .case--olive .c-desk .flip { --pw: min(42vw, 620px); }
+  .sd-film .film video { max-height: max(560px, calc(100svh - 240px)); }
 }
