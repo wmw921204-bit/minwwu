@@ -1310,6 +1310,8 @@ $$("[data-flip]").forEach((flip) => {
   };
   const open = (img) => {
     group = groupOf(img);
+    // an image that isn't part of the page's showcase (a poster in an explorer) opens on its own
+    if (!group.includes(img)) group = [img];
     lastFocus = document.activeElement;
     show(Math.max(0, group.indexOf(img)));
     lb.classList.add("is-open");
@@ -1607,6 +1609,7 @@ $$("[data-poster]").forEach((box) => {
   $$(".px-note", box).forEach((el) => el.addEventListener("click", () => focus(el.classList.contains("is-on") ? null : el.dataset.n)));
   $$(".px-pin", box).forEach((el) => el.addEventListener("click", (e) => { e.stopPropagation(); focus(el.dataset.n); }));
   $(".px-reset", box).addEventListener("click", () => focus(null));
+  $(".px-full", box)?.addEventListener("click", (e) => { e.stopPropagation(); window.__lightbox?.open($("img", views[cur])); });
   // clicking the whole poster jumps to the note whose area was clicked; clicking a zoomed poster steps back out
   views.forEach((v) => v.addEventListener("click", (e) => {
     if (box.classList.contains("is-zoomed")) return focus(null);
@@ -1619,58 +1622,35 @@ $$("[data-poster]").forEach((box) => {
   addEventListener("keydown", (e) => { if (e.key === "Escape" && box.classList.contains("is-zoomed")) focus(null); });
 });
 
-/* ---------- Button hover: letters wobble like hand lettering, the icon joins in, never twice the same ---------- */
-if (!reduceMotion && matchMedia("(hover: hover)").matches) {
-  const STYLES = [
-    // wave: letters ride a small swell left to right
-    (i, n) => [{ transform: "none" }, { transform: `translateY(${-5 - Math.random() * 3}px) rotate(${(Math.random() - .5) * 10}deg)`, offset: .45 }, { transform: "none" }],
-    // jitter: each letter twitches on its own
-    () => [{ transform: "none" }, { transform: `translate(${(Math.random() - .5) * 5}px, ${(Math.random() - .5) * 6}px) rotate(${(Math.random() - .5) * 22}deg)`, offset: .35 }, { transform: `rotate(${(Math.random() - .5) * 6}deg)`, offset: .7 }, { transform: "none" }],
-    // hop: letters jump in turn and land with a squash
-    () => [{ transform: "none" }, { transform: `translateY(-7px) scale(1.12, .9) rotate(${(Math.random() - .5) * 8}deg)`, offset: .4 }, { transform: "translateY(1px) scale(.96, 1.06)", offset: .75 }, { transform: "none" }],
-  ];
-  const ICON = [
-    [{ transform: "none" }, { transform: "translateX(5px) rotate(-12deg)", offset: .5 }, { transform: "none" }],
-    [{ transform: "none" }, { transform: "rotate(25deg) scale(1.2)", offset: .4 }, { transform: "rotate(-10deg)", offset: .7 }, { transform: "none" }],
-    [{ transform: "none" }, { transform: "translateY(-4px) scale(1.25)", offset: .5 }, { transform: "none" }],
-  ];
-  const buttons = $$(".case .pill, .case .switcher__tabs button, .px-tab, .px-reset, .flip__zoom, .c-next .pill");
-  buttons.forEach((btn, k) => {
-    if (btn.dataset.wobble) return;
-    btn.dataset.wobble = "1";
-    if (!btn.hasAttribute("aria-label")) btn.setAttribute("aria-label", btn.textContent.replace(/\s+/g, " ").trim());
-    const nodes = [];
-    const tw = document.createTreeWalker(btn, NodeFilter.SHOW_TEXT);
-    while (tw.nextNode()) if (tw.currentNode.nodeValue.trim()) nodes.push(tw.currentNode);
-    for (const node of nodes) {
-      // one wrapper per text run, so flex buttons don't treat every letter as its own item
-      const frag = document.createElement("span");
-      frag.className = "wl-run";
-      for (const ch of node.nodeValue.replace(/\s+/g, " ").trim()) {
-        if (ch === " ") { frag.append(ch); continue; }
-        const span = document.createElement("span");
-        span.className = "wl";
-        span.setAttribute("aria-hidden", "true");
-        span.textContent = ch;
-        frag.append(span);
-      }
-      node.replaceWith(frag);
-    }
-    const letters = $$(".wl", btn);
-    const icons = $$("svg, .pill__arrow, i:not(.wl)", btn);
-    let busy = false;
-    btn.addEventListener("mouseenter", () => {
-      if (busy) return;
-      busy = true;
-      // each button keeps its own personality, with a little chance of a surprise
-      const style = Math.random() < .25 ? Math.floor(Math.random() * STYLES.length) : k % STYLES.length;
-      const step = 18 + Math.random() * 14;
-      letters.forEach((el, i) => el.animate(STYLES[style](i, letters.length), { duration: 520 + Math.random() * 160, delay: i * step, easing: "cubic-bezier(.34, 1.56, .64, 1)" }));
-      icons.forEach((el) => el.animate(ICON[style], { duration: 620, delay: 60, easing: "cubic-bezier(.34, 1.56, .64, 1)" }));
-      setTimeout(() => { busy = false; }, 260 + letters.length * step);
-    });
+// the sticky note on the workshops tab lands at the far end of its own label, whatever the language
+$$(".ti__fly").forEach((el) => {
+  const btn = el.closest("button");
+  const set = () => el.style.setProperty("--land", `${btn.offsetWidth - 34}px`);
+  set();
+  btn.addEventListener("mouseenter", set);
+});
+
+// research folders: switching tabs drops the whole folder a touch and lifts the new sheet out, tab and body together
+$$(".sd-research [data-tabs]").forEach((sw) => {
+  sw.addEventListener("click", (e) => {
+    if (!e.target.closest('[role="tab"]')) return;
+    sw.classList.remove("is-swap");
+    void sw.offsetWidth;
+    sw.classList.add("is-swap");
   });
-}
+  sw.addEventListener("animationend", (e) => { if (e.target.matches(".switcher__stage")) sw.classList.remove("is-swap"); });
+});
+
+// opportunity slats: the one under the pointer or focus opens
+$$("[data-opps]").forEach((list) => {
+  const items = $$(".opp", list);
+  const open = (el) => items.forEach((it) => it.classList.toggle("is-open", it === el));
+  items.forEach((it) => {
+    it.addEventListener("mouseenter", () => open(it));
+    it.addEventListener("focus", () => open(it));
+    it.addEventListener("click", () => open(it));
+  });
+});
 
 document.documentElement.classList.add("js-ready");
 requestScrollFrame();

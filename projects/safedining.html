@@ -19,7 +19,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&family=Poppins:wght@400;500;600&family=Sulphur+Point:wght@400&family=IBM+Plex+Mono:wght@400;500;600&family=Caveat:wght@600&display=swap">
   <link rel="stylesheet" href="../styles.css?v=20261026x">
-  <link rel="stylesheet" href="../case.css?v=20261038f">
+  <link rel="stylesheet" href="../case.css?v=20261040b">
 </head>
 <body class="case case--olive">
   <a class="skip" href="#main">Skip to content</a>
@@ -133,9 +133,14 @@
           <blockquote class="sd-menu__quote">For someone with food allergies, eating out isn’t just about food. It’s about trust.<small>FARE, Food Allergy Research &amp; Education</small></blockquote>
         </aside>
       </div>
+      <div class="sd-facts reveal-stagger">
+        <div class="sd-fact"><span class="sd-fact__num">33M</span><span class="c-stat__label">American adults with food allergies, <b>1 in 9</b></span></div>
+        <div class="sd-fact"><span class="sd-fact__num">5.6M</span><span class="c-stat__label">children, <b>1 in 13</b></span></div>
+        <div class="sd-fact"><span class="sd-fact__num">3.4M</span><span class="c-stat__label">ER visits a year from <b>food allergies</b></span></div>
+      </div>
     </section>
 
-    <div class="sd-ticker" aria-hidden="true"><div class="marquee__track"><span><b>33M</b> adults · 1 in 9</span><span><b>5.6M</b> children · 1 in 13</span><span><b>3.4M</b> ER visits a year</span><span><b>44%</b> of staff trained</span><span><b>33M</b> adults · 1 in 9</span><span><b>5.6M</b> children · 1 in 13</span><span><b>3.4M</b> ER visits a year</span><span><b>44%</b> of staff trained</span><span><b>33M</b> adults · 1 in 9</span><span><b>5.6M</b> children · 1 in 13</span><span><b>3.4M</b> ER visits a year</span><span><b>44%</b> of staff trained</span></div></div>
+    <div class="sd-ticker" aria-hidden="true"><div class="marquee__track"><span>Shellfish</span><span>Milk</span><span>Peanuts</span><span>Tree nuts</span><span>Fish</span><span>Egg</span><span>Wheat</span><span>Soy</span><span>Sesame</span><span>Shellfish</span><span>Milk</span><span>Peanuts</span><span>Tree nuts</span><span>Fish</span><span>Egg</span><span>Wheat</span><span>Soy</span><span>Sesame</span></div></div>
 
     <!-- 02 Research -->
     <section class="wrap c-sec sd-screen sd-research" id="research" data-chapter="Research" data-screen>
@@ -151,11 +156,11 @@
       </div>
       <div class="switcher research" data-tabs>
         <div class="switcher__tabs" role="tablist" aria-label="Research methods">
-          <button role="tab" aria-selected="true">Secondary research</button>
-          <button role="tab" aria-selected="false" tabindex="-1">Survey</button>
-          <button role="tab" aria-selected="false" tabindex="-1">Interviews</button>
-          <button role="tab" aria-selected="false" tabindex="-1">Field observation</button>
-          <button role="tab" aria-selected="false" tabindex="-1">Co-creation workshops</button>
+          <button role="tab" aria-selected="true"><span class="ti ti--search" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="10" cy="10" r="6"/><path d="M14.5 14.5 20 20"/></svg></span><span class="tl">Secondary research</span></button>
+          <button role="tab" aria-selected="false" tabindex="-1"><span class="ti ti--check" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="3.5" y="3.5" width="17" height="17" rx="4"/><path class="ti__tick" d="M8 12.5l3 3 5.5-6"/></svg></span><span class="tl">Survey</span></button>
+          <button role="tab" aria-selected="false" tabindex="-1"><span class="ti ti--chat" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 6.5A2.5 2.5 0 0 1 6.5 4h11A2.5 2.5 0 0 1 20 6.5v7a2.5 2.5 0 0 1-2.5 2.5H11l-4.5 4v-4h0A2.5 2.5 0 0 1 4 13.5z"/><circle class="ti__dot" cx="8.5" cy="10" r="1.1"/><circle class="ti__dot" cx="12" cy="10" r="1.1"/><circle class="ti__dot" cx="15.5" cy="10" r="1.1"/></svg></span><span class="tl"><span class="tl__in">Interviews</span></span></button>
+          <button role="tab" aria-selected="false" tabindex="-1"><span class="ti ti--eye" aria-hidden="true"><svg viewBox="0 0 24 24"><g class="ti__lid"><path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12z"/><circle class="ti__pupil" cx="12" cy="12" r="2.8"/></g></svg></span><span class="tl">Field observation</span></button>
+          <button role="tab" aria-selected="false" tabindex="-1"><span class="ti ti--note" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 4h14v11l-5 5H5z"/><path d="M14 20v-5h5"/></svg><i class="ti__fly"></i></span><span class="tl">Co-creation workshops</span></button>
         </div>
         <div class="switcher__stage">
           <div class="switcher__panel is-active" role="tabpanel">
@@ -261,22 +266,32 @@
         </div>
       </div>
     </section>
-    <section class="wrap c-sec sd-journeymap">
-      <p class="c-text reveal">We followed her through seven stages, from the first pang of hunger to the review she leaves afterwards, mapping her jobs to be done, needs and emotions at each one. Her mood dips hardest while searching, walking in and ordering, where information is missing and staff knowledge is a gamble. Scoring importance against satisfaction showed where to act first.</p>
-      <figure class="c-figure c-figure--tall reveal"><img src="../assets/projects/safedining/journey-map.webp?v=2" alt="Allergy-friendly dining customer journey map: stages, touchpoints, emotions, jobs to be done, needs, pain points, opportunities and opportunity scores" width="2600" height="3994" loading="lazy"></figure>
+    <section class="wrap c-sec sd-screen sd-journeymap">
+      <div class="sd-jm">
+        <div class="sd-jm__text">
+          <p class="c-kicker">Customer journey map</p>
+          <p class="c-text reveal">We followed her through seven stages, from the first pang of hunger to the review she leaves afterwards, mapping her jobs to be done, needs and emotions at each one. Her mood dips hardest while searching, walking in and ordering, where information is missing and staff knowledge is a gamble. Scoring importance against satisfaction showed where to act first.</p>
+          <p class="sd-jm__hint"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M3 8V3h5M17 12v5h-5M12 3h5v5M8 17H3v-5" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>Click the map to read it full size</p>
+        </div>
+        <figure class="sd-jm__map reveal"><img src="../assets/projects/safedining/journey-map.webp?v=2" alt="Allergy-friendly dining customer journey map: stages, touchpoints, emotions, jobs to be done, needs, pain points, opportunities and opportunity scores" width="2600" height="3994" loading="lazy"></figure>
+      </div>
     </section>
 
     <!-- 04 Ecosystem -->
     <section class="c-band" id="ecosystem" data-chapter="Ecosystem" data-screen>
       <div class="wrap c-sec sd-screen sd-eco">
         <div class="c-chapter"><span class="c-chapter__num">04</span><h2 class="c-kicker">Ecosystem analysis</h2></div>
-        <div class="sd-eco__grid">
-        <div class="sd-eco__left">
-        <p class="c-head reveal-mask">Many players, shared responsibility.</p>
-          <p class="c-text reveal">Food allergy safety doesn’t fail in isolation, <strong>it fails in connection</strong>. Suppliers, restaurants, platforms, regulators and diners each carry part of the responsibility, yet no one can guarantee safety alone.</p>
-          <p class="c-text reveal">The system is complex, fragmented and unevenly informed, leaving gaps exactly where trust, data and accountability should flow.</p>
-        </div>
-        <figure class="c-figure c-figure--map sd-eco__map reveal"><img src="../assets/projects/safedining/system-map.webp" alt="Allergy-friendly dining ecosystem map: the restaurant at the centre, surrounded by suppliers, certification bodies, review and delivery platforms, regulators, advocacy groups, the medical system and tourism" width="3000" height="2680" loading="lazy"><figcaption>Six kinds of flow (service, money, physical goods, information, intangible value and regulation) between everyone who touches the meal.</figcaption></figure>
+        <div class="px px--eco" data-poster>
+          <div class="px-side">
+            <p class="c-head reveal-mask">Many players, shared responsibility.</p>
+            <p class="c-text reveal">Food allergy safety doesn’t fail in isolation, <strong>it fails in connection</strong>. Suppliers, restaurants, platforms, regulators and diners each carry part of the responsibility, yet no one can guarantee safety alone.</p>
+            <div class="px-set"><ol class="px-notes"><li><button class="px-note" type="button" data-n="1" data-box="0.46,0.43,0.22,0.24"><b>01</b><span><strong>At the table</strong><span class="px-note__more"><span>The diner, friends and family, and the restaurant’s staff, cook and manager. Safety is decided here, in the moment.</span></span></span></button></li><li><button class="px-note" type="button" data-n="2" data-box="0.35,0.55,0.14,0.16"><b>02</b><span><strong>Suppliers</strong><span class="px-note__more"><span>Raw material suppliers, processors and distributors, allergen-safe suppliers and third-party testing. Ingredient information starts here.</span></span></span></button></li><li><button class="px-note" type="button" data-n="3" data-box="0.34,0.38,0.15,0.16"><b>03</b><span><strong>Certification</strong><span class="px-note__more"><span>Labs and certifiers such as Eurofins, NSF, SGS, Intertek and FARE Check verify what goes into the food.</span></span></span></button></li><li><button class="px-note" type="button" data-n="4" data-box="0.53,0.29,0.13,0.15"><b>04</b><span><strong>Review platforms</strong><span class="px-note__more"><span>Yelp, Google Maps, Tripadvisor, OpenTable and Zomato steer where diners go, yet rarely say anything about allergy safety.</span></span></span></button></li><li><button class="px-note" type="button" data-n="5" data-box="0.77,0.31,0.14,0.15"><b>05</b><span><strong>Delivery platforms</strong><span class="px-note__more"><span>DoorDash, Grubhub, Uber Eats and ChowNow carry orders, and allergy notes, between the diner and the kitchen.</span></span></span></button></li><li><button class="px-note" type="button" data-n="6" data-box="0.62,0.56,0.31,0.37"><b>06</b><span><strong>Regulators & law</strong><span class="px-note__more"><span>The FDA, CDC and USDA, federal and state lawmakers and city ordinances set the rules everyone else works within.</span></span></span></button></li><li><button class="px-note" type="button" data-n="7" data-box="0.41,0.80,0.13,0.15"><b>07</b><span><strong>Advocacy</strong><span class="px-note__more"><span>FARE, the Allergy & Asthma Network and Kids with Food Allergies speak up for diners and push for change.</span></span></span></button></li><li><button class="px-note" type="button" data-n="8" data-box="0.05,0.74,0.17,0.20"><b>08</b><span><strong>Six kinds of flow</strong><span class="px-note__more"><span>Service, money, physical goods, information, intangible value and regulation: each line on the map is one of these.</span></span></span></button></li></ol></div>
+          </div>
+          <div class="px-stage">
+            <div class="px-view is-active"><div class="px-canvas"><img src="../assets/projects/safedining/system-map.webp" alt="Allergy-friendly dining ecosystem map: the restaurant at the centre, surrounded by suppliers, certification bodies, review and delivery platforms, regulators, advocacy groups, the medical system and tourism" width="3000" height="2680" loading="lazy" data-nozoom><button class="px-pin" type="button" data-n="1" style="left:57.0%;top:46.0%" aria-label="At the table">1</button><button class="px-pin" type="button" data-n="2" style="left:42.0%;top:58.0%" aria-label="Suppliers">2</button><button class="px-pin" type="button" data-n="3" style="left:41.5%;top:41.0%" aria-label="Certification">3</button><button class="px-pin" type="button" data-n="4" style="left:59.5%;top:32.0%" aria-label="Review platforms">4</button><button class="px-pin" type="button" data-n="5" style="left:84.0%;top:34.0%" aria-label="Delivery platforms">5</button><button class="px-pin" type="button" data-n="6" style="left:77.5%;top:59.0%" aria-label="Regulators & law">6</button><button class="px-pin" type="button" data-n="7" style="left:47.5%;top:83.0%" aria-label="Advocacy">7</button><button class="px-pin" type="button" data-n="8" style="left:13.5%;top:77.0%" aria-label="Six kinds of flow">8</button></div></div>
+            <button class="px-full" type="button"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M3 8V3h5M17 12v5h-5M12 3h5v5M8 17H3v-5" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Full screen</span></button>
+            <button class="px-reset" type="button"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M8 3H3v5M12 17h5v-5M3 3l6 6M17 17l-6-6" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Whole map</span></button>
+          </div>
         </div>
       </div>
       <div class="wrap c-sec sd-eco__rest">
@@ -351,18 +366,11 @@
     </section>
 
     <!-- 05 Opportunity areas -->
-    <section class="wrap c-sec" id="opportunities" data-chapter="Opportunity areas">
+    <section class="wrap c-sec sd-screen sd-opps" id="opportunities" data-chapter="Opportunity areas" data-screen>
       <div class="c-chapter"><span class="c-chapter__num">06</span><h2 class="c-kicker">Opportunity areas</h2></div>
       <p class="c-head reveal-mask">Turn risk into confidence.</p>
       <p class="c-text reveal">Six places where restaurants, platforms and regulators can move from reacting to incidents to designing for trust. Each is backed by a real-world case study in the white paper.</p>
-      <ol class="c-list reveal-stagger">
-        <li><span class="c-list__num">#01</span><span class="c-list__text">Standardize communication pathways: make allergy communication a system, not a skill.</span></li>
-        <li><span class="c-list__num">#02</span><span class="c-list__text">Make the invisible visible: menus, displays and cues that show safety in action.</span></li>
-        <li><span class="c-list__num">#03</span><span class="c-list__text">Trust starts before you arrive: clear allergy-friendly information online, before the visit.</span></li>
-        <li><span class="c-list__num">#04</span><span class="c-list__text">Reimagine training as a culture of care, with real scenarios and real-time feedback.</span></li>
-        <li><span class="c-list__num">#05</span><span class="c-list__text">Let safety travel with every ingredient, through one shared data language from supplier to plate.</span></li>
-        <li><span class="c-list__num">#06</span><span class="c-list__text">One framework for regulation and accountability, across suppliers, platforms and restaurants.</span></li>
-      </ol>
+      <ol class="opps reveal" data-opps><li class="opp is-open" tabindex="0"><span class="opp__num">#01</span><span class="opp__icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 6h10M4 10h16M4 14h12M4 18h7"/></svg></span><h3 class="opp__title">Standard pathways</h3><p class="opp__text">Standardize communication pathways: make allergy communication a system, not a skill.</p></li><li class="opp" tabindex="0"><span class="opp__num">#02</span><span class="opp__icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12z"/><circle cx="12" cy="12" r="3"/></svg></span><h3 class="opp__title">Visible safety</h3><p class="opp__text">Make the invisible visible: menus, displays and cues that show safety in action.</p></li><li class="opp" tabindex="0"><span class="opp__num">#03</span><span class="opp__icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 21s-6.5-6-6.5-11a6.5 6.5 0 0 1 13 0c0 5-6.5 11-6.5 11z"/><circle cx="12" cy="10" r="2.4"/></svg></span><h3 class="opp__title">Trust before arrival</h3><p class="opp__text">Trust starts before you arrive: clear allergy-friendly information online, before the visit.</p></li><li class="opp" tabindex="0"><span class="opp__num">#04</span><span class="opp__icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/></svg></span><h3 class="opp__title">Training as care</h3><p class="opp__text">Reimagine training as a culture of care, with real scenarios and real-time feedback.</p></li><li class="opp" tabindex="0"><span class="opp__num">#05</span><span class="opp__icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M9 15l6-6"/><path d="M10.5 6.5l1.8-1.8a3.6 3.6 0 0 1 5 5l-1.8 1.8M13.5 17.5l-1.8 1.8a3.6 3.6 0 0 1-5-5l1.8-1.8"/></svg></span><h3 class="opp__title">Traceable ingredients</h3><p class="opp__text">Let safety travel with every ingredient, through one shared data language from supplier to plate.</p></li><li class="opp" tabindex="0"><span class="opp__num">#06</span><span class="opp__icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 3l7.5 3v5.5c0 4.6-3.2 8-7.5 9.5-4.3-1.5-7.5-4.9-7.5-9.5V6z"/><path d="M8.8 12l2.2 2.2 4.4-4.6"/></svg></span><h3 class="opp__title">One framework</h3><p class="opp__text">One framework for regulation and accountability, across suppliers, platforms and restaurants.</p></li></ol>
     </section>
 
     <!-- Vision film -->
@@ -381,8 +389,8 @@
       <div class="px" data-poster>
         <div class="px-side">
           <div class="px-tabs" role="tablist" aria-label="Posters">
-            <button class="px-tab" type="button" role="tab" aria-selected="true">Customer journey</button>
-            <button class="px-tab" type="button" role="tab" aria-selected="false">Ecosystem</button>
+            <button class="px-tab" type="button" role="tab" aria-selected="true"><span class="ti ti--path" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="5" cy="18" r="2"/><circle cx="19" cy="6" r="2"/><path d="M7 17c5-1 3-8 8-10" stroke-dasharray="2 3"/></svg></span><span class="tl">Customer journey</span></button>
+            <button class="px-tab" type="button" role="tab" aria-selected="false"><span class="ti ti--orbit" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><circle cx="12" cy="12" r="8.5" stroke-dasharray="2 2.6"/><g class="ti__orbit"><circle cx="20.5" cy="12" r="1.8" class="ti__sat"/></g></svg></span><span class="tl">Ecosystem</span></button>
           </div>
           <div class="px-set">
             <p class="px-title">Between Anxiety and Assurance</p>
@@ -396,6 +404,7 @@
         <div class="px-stage">
           <div class="px-view is-active"><div class="px-canvas"><img src="../assets/projects/safedining/poster-journey.webp?v=2" alt="Infographic poster: Between Anxiety and Assurance, the customer journey map" width="4400" height="2779" loading="lazy" data-nozoom><button class="px-pin" type="button" data-n="1" style="left:2.2%;top:9.0%" aria-label="Why it matters">1</button><button class="px-pin" type="button" data-n="2" style="left:29.2%;top:9.0%" aria-label="Meet Agnes">2</button><button class="px-pin" type="button" data-n="3" style="left:29.2%;top:42.0%" aria-label="Pre-dining">3</button><button class="px-pin" type="button" data-n="4" style="left:41.2%;top:24.0%" aria-label="In-dining">4</button><button class="px-pin" type="button" data-n="5" style="left:79.2%;top:24.0%" aria-label="Post-dining">5</button><button class="px-pin" type="button" data-n="6" style="left:29.2%;top:84.0%" aria-label="Opportunity scores">6</button><button class="px-pin" type="button" data-n="7" style="left:82.2%;top:70.0%" aria-label="Key insight">7</button></div></div>
           <div class="px-view"><div class="px-canvas"><img src="../assets/projects/safedining/poster-ecosystem.webp?v=2" alt="Infographic poster: Who Keeps the Meal Safe, the ecosystem map" width="4400" height="2779" loading="lazy" data-nozoom><button class="px-pin" type="button" data-n="1" style="left:2.2%;top:42.0%" aria-label="The market">1</button><button class="px-pin" type="button" data-n="2" style="left:2.2%;top:62.0%" aria-label="Safe or risky">2</button><button class="px-pin" type="button" data-n="3" style="left:27.7%;top:10.0%" aria-label="Key stakeholders">3</button><button class="px-pin" type="button" data-n="4" style="left:53.2%;top:10.0%" aria-label="Ecosystem map">4</button><button class="px-pin" type="button" data-n="5" style="left:85.2%;top:53.0%" aria-label="Micro, meso, macro">5</button><button class="px-pin" type="button" data-n="6" style="left:53.2%;top:75.0%" aria-label="Key insights">6</button></div></div>
+          <button class="px-full" type="button"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M3 8V3h5M17 12v5h-5M12 3h5v5M8 17H3v-5" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Full screen</span></button>
           <button class="px-reset" type="button"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M8 3H3v5M12 17h5v-5M3 3l6 6M17 17l-6-6" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Whole poster</span></button>
         </div>
       </div>
@@ -472,7 +481,7 @@
   </footer>
 
   <script src="../assets/js/lenis.min.js" defer></script>
-  <script src="../i18n/zh/safedining.js?v=6" defer></script>
-  <script src="../main.js?v=20261038b" defer></script>
+  <script src="../i18n/zh/safedining.js?v=7" defer></script>
+  <script src="../main.js?v=20261040a" defer></script>
 </body>
 </html>

@@ -19,7 +19,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&family=Poppins:wght@400;500;600&family=Sulphur+Point:wght@400&display=swap">
   <link rel="stylesheet" href="../styles.css?v=20261026x">
-  <link rel="stylesheet" href="../case.css?v=20261038f">
+  <link rel="stylesheet" href="../case.css?v=20261040b">
 </head>
 <body class="case case--finra">
   <a class="skip" href="#main">Skip to content</a>
@@ -130,7 +130,7 @@
       return html;
     };
     const show = (html) => { document.open(); document.write(html); document.close(); };
-    const loadSite = () => JSON.parse('["../assets/js/lenis.min.js","../i18n/zh/finra.js?v=2","../main.js?v=20261038b"]').reduce((p, src) => p.then(() => new Promise((ok) => { const s = document.createElement("script"); s.src = src; s.onload = s.onerror = ok; document.body.appendChild(s); })), Promise.resolve());
+    const loadSite = () => JSON.parse('["../assets/js/lenis.min.js","../i18n/zh/finra.js?v=2","../main.js?v=20261040a"]').reduce((p, src) => p.then(() => new Promise((ok) => { const s = document.createElement("script"); s.src = src; s.onload = s.onerror = ok; document.body.appendChild(s); })), Promise.resolve());
     const tr = (en, zh) => (window.__i18n ? window.__i18n.t(en, zh) : en);
     const form = document.querySelector("[data-lock]"), msg = document.querySelector("[data-lock-msg]"), input = form.querySelector("input");
     form.addEventListener("submit", async (e) => {
