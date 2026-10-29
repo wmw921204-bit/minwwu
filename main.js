@@ -1593,10 +1593,10 @@ $$("[data-poster]").forEach((box) => {
     box.classList.toggle("is-live", !!note && note.hasAttribute("data-live"));
     if (!note) { canvas.style.transform = ""; canvas.style.setProperty("--s", 1); return; }
     const [x, y, w, h] = note.dataset.box.split(",").map(Number);
-    // a long, narrow area still zooms in, starting from its top
-    const s = Math.min(3.2, Math.max(1.6, 0.94 / Math.max(w, h)));
+    // zoom only as far as the whole area still fits, centred on it
+    const s = Math.min(3.2, Math.max(1, 0.96 / Math.max(w, h)));
     const tx = Math.min(0, Math.max(1 - s, 0.5 - (x + w / 2) * s));
-    const ty = Math.min(0, Math.max(1 - s, h * s > 0.94 ? 0.03 - y * s : 0.5 - (y + h / 2) * s));
+    const ty = Math.min(0, Math.max(1 - s, 0.5 - (y + h / 2) * s));
     canvas.style.setProperty("--s", s);
     canvas.style.transform = `translate(${(tx * 100).toFixed(2)}%, ${(ty * 100).toFixed(2)}%) scale(${s.toFixed(3)})`;
   };
