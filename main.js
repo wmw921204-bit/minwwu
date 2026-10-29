@@ -399,7 +399,7 @@ function typeLine(el) {
   el.textContent = "";
   el.classList.add("is-typing");
   const start = performance.now();
-  const speed = 22; // ms per character
+  const speed = Number(el.dataset.type) || 22; // ms per character
   const step = (now) => {
     const n = Math.min(text.length, Math.floor((now - start) / speed));
     el.textContent = text.slice(0, n);
@@ -1639,6 +1639,23 @@ $$(".sd-research [data-tabs]").forEach((sw) => {
     sw.classList.add("is-swap");
   });
   sw.addEventListener("animationend", (e) => { if (e.target.matches(".switcher__stage")) sw.classList.remove("is-swap"); });
+});
+
+// interview photo: the interviewee answers in turn, one theme at a time; the theme chips pick a line
+$$("[data-talk]").forEach((talk) => {
+  const panel = talk.closest(".switcher__panel");
+  const lines = $$(".rs-talk__a", talk), chips = $$(".rs-themes [data-say]", panel);
+  let cur = 0, timer = 0;
+  const say = (k) => {
+    cur = k;
+    lines.forEach((el, i) => el.classList.toggle("is-on", i === k));
+    chips.forEach((el, i) => el.classList.toggle("is-on", i === k));
+  };
+  const loop = () => { clearInterval(timer); if (!reduceMotion) timer = setInterval(() => { if (panel.classList.contains("is-active")) say((cur + 1) % lines.length); }, 3600); };
+  chips.forEach((el, i) => el.addEventListener("click", () => { say(i); loop(); }));
+  talk.addEventListener("mouseenter", () => clearInterval(timer));
+  talk.addEventListener("mouseleave", loop);
+  loop();
 });
 
 // opportunity slats: the one under the pointer or focus opens
