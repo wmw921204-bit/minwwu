@@ -1589,6 +1589,8 @@ $$("[data-poster]").forEach((box) => {
     $$(".px-note", sets[cur]).forEach((el) => el.setAttribute("aria-pressed", el === note));
     $$(".px-pin", view).forEach((el) => el.classList.toggle("is-on", el.dataset.n === String(n)));
     box.classList.toggle("is-zoomed", !!note);
+    // a note marked data-live zooms into its part of the poster, which then comes alive as the interactive version
+    box.classList.toggle("is-live", !!note && note.hasAttribute("data-live"));
     if (!note) { canvas.style.transform = ""; canvas.style.setProperty("--s", 1); return; }
     const [x, y, w, h] = note.dataset.box.split(",").map(Number);
     // a long, narrow area still zooms in, starting from its top

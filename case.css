@@ -4997,3 +4997,35 @@ button:has(.ti--orbit):hover .tl { letter-spacing: .06em; }
 .sd-research .rs-talk .rs-talk__a { width: 70%; font-size: 15px; }
 .rs-talk__a cite { display: block; margin-top: 6px; font: 600 11px/1 var(--f-body); font-style: normal; letter-spacing: .1em; text-transform: uppercase; color: #b35e2e; }
 .rs-talk__a cite::before { content: "— "; }
+
+/* journey and ecosystem: the finished infographic posters, explored part by part */
+.px--poster { margin-top: clamp(8px, 1.6vh, 20px); }
+.px--poster .px-side .c-head { margin: 0 0 clamp(10px, 2vh, 22px); font-size: clamp(26px, min(2.4vw, 4.4vh), 38px); }
+.px--poster .px-notes { gap: 2px; }
+.px--poster .px-note { padding-top: 6px; padding-bottom: 6px; }
+@media (min-width: 861px) {
+  .px--poster { grid-template-columns: minmax(0, 8fr) minmax(260px, 3.6fr); }
+  .px--poster .px-stage { width: 100%; max-width: calc((100svh - 130px) * 4400 / 2779); justify-self: center; }
+}
+
+/* ecosystem poster: note 05 zooms into the poster's micro/meso/macro cone, which then turns into the live diagram */
+.px-live { position: absolute; inset: 0; z-index: 3; display: grid; place-items: center; border-radius: 18px; background: #2f362b; color: #faf7f0; opacity: 0; visibility: hidden; transform: scale(.96); transition: opacity .4s, transform .5s var(--ease), visibility 0s .4s; }
+.px.is-live .px-live { opacity: 1; visibility: visible; transform: none; transition: opacity .5s .75s, transform .7s var(--ease) .75s, visibility 0s .75s; }
+.px-live .relay { --row: clamp(90px, calc((min(100svh - 130px, 62vw) * 2779 / 4400 - 40px) / 3), 160px); --c-fg: #faf7f0; --c-muted: rgba(250,247,240,.72); margin: 0; grid-template-columns: auto minmax(0, 360px); column-gap: clamp(24px, 3vw, 48px); justify-content: center; align-items: center; }
+.px-live .relay__cone { width: auto; height: calc(var(--row) * 3); aspect-ratio: 470 / 600; }
+.px-live .relay__list { grid-template-rows: repeat(3, var(--row)); gap: 0; margin: 0; }
+.px-live .relay__list > li { padding-left: 34px; }
+.px-live .relay__list > li::before { display: none; }
+.px-live .relay__list > li::after { left: 8px; }
+.px-live .relay__list h4 { margin: 6px 0 4px; font-size: clamp(16px, 1.4vw, 20px); }
+.px-live .relay__list p { font-size: 13.5px; line-height: 1.45; }
+.px-live .relay__link { display: none; }
+.px.is-live .px-reset { z-index: 4; }
+.px.is-live .px-full { opacity: 0; pointer-events: none; }
+@media (max-width: 860px) {
+  .px-live { position: static; display: none; padding: 20px 16px; transform: none; }
+  .px.is-live .px-live { display: block; }
+  .px-live .relay { grid-template-columns: 1fr; }
+  .px-live .relay__cone { width: 100%; max-width: 300px; height: auto; justify-self: center; }
+  .px-live .relay__list { grid-template-rows: none; gap: 16px; margin-top: 16px; }
+}
