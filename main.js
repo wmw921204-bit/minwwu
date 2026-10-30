@@ -1657,8 +1657,6 @@ $$("[data-talk]").forEach((talk) => {
   let seen = false, visible = false;
   const loop = () => { clearInterval(timer); if (!reduceMotion) timer = setInterval(() => { if (visible && panel.classList.contains("is-active")) say((cur + 1) % lines.length); }, 3600); };
   chips.forEach((el, i) => el.addEventListener("click", () => { say(i); loop(); }));
-  talk.addEventListener("mouseenter", () => clearInterval(timer));
-  talk.addEventListener("mouseleave", loop);
   say(0);
   new IntersectionObserver(([en]) => {
     visible = en.isIntersecting;
@@ -1916,8 +1914,6 @@ $$("[data-jm]").forEach((box) => {
   };
   box.__seek = (v) => { t = v; render(); };
   tabs.forEach((b, i) => b.addEventListener("click", () => { hold = SEEK[i]; }));
-  view.addEventListener("pointerenter", () => { hover = true; });
-  view.addEventListener("pointerleave", () => { hover = false; });
   addEventListener("resize", () => render());
   if (reduceMotion) { t = SEEK[5]; render(); return; }
   render();
