@@ -5608,19 +5608,18 @@ button:has(.ti--orbit):hover .tl { letter-spacing: .06em; }
 /* ---------- The design: a guided tour, Koji at each part of the screen ---------- */
 .bl-banner { margin-top: 8px; }
 .bl-banner img { width: 100%; border-radius: 28px; box-shadow: var(--bl-shadow); }
-.bl-design { margin-top: clamp(24px, 4vh, 48px); }
-/* both tours sit on one screen and play through on their own (data-autoplay) */
-.bl-design__pin, .bl-test__pin { display: flex; align-items: center; min-height: 100vh; min-height: 100svh; padding: 40px 0; }
+.bl-design { height: calc(var(--beats) * 60vh + 100vh); margin-top: clamp(24px, 4vh, 48px); }
+.bl-test { height: calc(var(--beats) * 50vh + 100vh); }
+.bl-design__pin, .bl-test__pin { position: sticky; top: 0; display: flex; align-items: center; height: 100vh; height: 100svh; }
 .bl-design__in { display: grid; grid-template-columns: minmax(0, 4fr) minmax(0, 8fr); gap: clamp(28px, 4vw, 64px); align-items: center; width: 100%; }
 .bl-design__steps { display: flex; flex-wrap: wrap; gap: 8px; }
 .bl-design__steps button { display: grid; place-items: center; width: 38px; height: 38px; padding: 0; border: 2px solid rgba(0,0,0,.1); border-bottom-width: 4px; border-radius: 12px; background: #fff; color: var(--c-muted); font: 600 14px/1 var(--f-display); cursor: pointer; transition: background .3s, color .3s, border-color .3s; }
 .bl-design__steps button.is-active { background: var(--bl-blue2); border-color: #3a52d6; color: #fff; }
 .bl-design__steps button { position: relative; overflow: hidden; isolation: isolate; }
 .bl-design__steps span { position: relative; z-index: 1; }
-/* the current step fills up while it plays, so it is clear the next one is coming */
+/* the current step fills up as you scroll through it, so it is clear the next one is coming */
 .bl-design__steps button::before { content: ""; position: absolute; inset: 0; z-index: -1; background: #2f47c9; transform: scaleY(0); transform-origin: bottom; }
-.bl-design.is-playing .bl-design__steps button.is-active::before { animation: bl-fill var(--every, 5s) linear forwards; }
-@keyframes bl-fill { to { transform: scaleY(1); } }
+.bl-design__steps button.is-active::before { transform: scaleY(var(--bp, 0)); }
 .bl-test__map li { cursor: pointer; }
 .bl-design[data-beat="1"] .bl-design__steps li:nth-child(-n+1) button, .bl-design[data-beat="2"] .bl-design__steps li:nth-child(-n+2) button, .bl-design[data-beat="3"] .bl-design__steps li:nth-child(-n+3) button, .bl-design[data-beat="4"] .bl-design__steps li:nth-child(-n+4) button, .bl-design[data-beat="5"] .bl-design__steps li:nth-child(-n+5) button, .bl-design[data-beat="6"] .bl-design__steps li:nth-child(-n+6) button { background: var(--bl-mint); border-color: #9fe3b2; color: #0f7a33; }
 .bl-design__panels, .bl-test__cards { display: grid; margin-top: 26px; }
@@ -5835,7 +5834,9 @@ button:has(.ti--orbit):hover .tl { letter-spacing: .06em; }
 }
 @media (max-width: 767px) {
   .bl-lvl { min-width: 0; padding: 8px 18px 9px; }
-  .bl-design__pin, .bl-test__pin { align-items: flex-start; min-height: 0; padding: 24px 0; }
+  .bl-design { height: calc(var(--beats) * 55vh + 100vh); }
+  .bl-test { height: calc(var(--beats) * 45vh + 100vh); }
+  .bl-design__pin, .bl-test__pin { align-items: flex-start; padding-top: 80px; }
   .bl-design__in, .bl-test__in { grid-template-columns: minmax(0, 1fr); gap: 14px; }
   .bl-design__copy { display: contents; }
   .bl-design__steps { order: 1; gap: 6px; }

@@ -424,30 +424,6 @@ $$("[data-scene]").forEach((scene) => {
     });
     dots.forEach((d) => d.classList.toggle("is-active", Number(d.dataset.goto) === i));
   };
-  // data-autoplay="ms": the scene sits on one screen and steps through its beats on a timer while in view
-  const every = Number(scene.dataset.autoplay);
-  if (every) {
-    let timer = 0;
-    scene.style.setProperty("--every", `${every}ms`);
-    const go = (i) => {
-      activate(i);
-      scene.dispatchEvent(new CustomEvent("beat"));
-      window.__koji?.kick(); // the guide only re-picks its spot when nudged
-      clearTimeout(timer);
-      if (reduceMotion || !scene.classList.contains("is-playing")) return;
-      if (i < beats - 1) timer = setTimeout(() => go(i + 1), every);
-      else if (scene.hasAttribute("data-loop")) timer = setTimeout(() => go(0), every * 1.4);
-    };
-    dots.forEach((d) => d.addEventListener("click", () => go(Number(d.dataset.goto))));
-    activate(0);
-    new IntersectionObserver(([e]) => {
-      const on = e.intersectionRatio >= 0.5 || e.intersectionRect.height >= innerHeight * 0.6;
-      if (on === scene.classList.contains("is-playing")) return;
-      scene.classList.toggle("is-playing", on);
-      if (on) go(current); else clearTimeout(timer);
-    }, { threshold: [0, 0.2, 0.35, 0.5, 0.65, 0.8, 1] }).observe(scene);
-    return;
-  }
   const update = () => {
     const r = scene.getBoundingClientRect();
     const total = Math.max(1, r.height - innerHeight);
@@ -2120,7 +2096,7 @@ if (kGuide) {
     back = setTimeout(() => { delete koji.dataset.react; koji.dataset.mood = active ? active.dataset.koji : "happy"; fx.innerHTML = ""; }, 2600);
   });
   // other parts of the page can change a spot's mood and line
-  window.__koji = { kick, refresh(spot, quiet) { if (spot === active && !koji.dataset.react) { koji.dataset.mood = spot.dataset.koji; koji.dataset.prop = spot.dataset.prop || ""; hop(); if (!quiet) say(line(spot)); } kick(); } };
+  window.__koji = { refresh(spot, quiet) { if (spot === active && !koji.dataset.react) { koji.dataset.mood = spot.dataset.koji; koji.dataset.prop = spot.dataset.prop || ""; hop(); if (!quiet) say(line(spot)); } kick(); } };
   frame();
 }
 
@@ -2282,8 +2258,10 @@ $$(".bl-test").forEach((test) => {
     xpRaf = requestAnimationFrame(step);
   };
   const update = () => {
-    if (!test.classList.contains("is-playing") && !reduceMotion) return;
-    test.classList.add("is-live");
+    if (!test.classList.contains("is-live")) {
+      if (!reduceMotion && test.getBoundingClientRect().top > innerHeight * 0.35) return;
+      test.classList.add("is-live");
+    }
     const beat = Number(test.dataset.beat) || 0;
     if (beat === shown) return;
     shown = beat;
@@ -2292,7 +2270,7 @@ $$(".bl-test").forEach((test) => {
     countTo(runs.slice(0, beat + 1).reduce((sum, r) => sum + Number(r.dataset.xp), 0));
     window.__koji?.refresh($("[data-koji]", discs[beat]), true);
   };
-  test.addEventListener("beat", update);
+  onScrollFns.push(update);
   update();
 });
 
