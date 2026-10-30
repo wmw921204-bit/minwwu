@@ -5608,8 +5608,8 @@ button:has(.ti--orbit):hover .tl { letter-spacing: .06em; }
 /* ---------- The design: a guided tour, Koji at each part of the screen ---------- */
 .bl-banner { margin-top: 8px; }
 .bl-banner img { width: 100%; border-radius: 28px; box-shadow: var(--bl-shadow); }
-.bl-design { height: calc(var(--beats) * 60vh + 100vh); margin-top: clamp(24px, 4vh, 48px); }
-.bl-test { height: calc(var(--beats) * 50vh + 100vh); }
+.bl-design { height: calc(var(--beats) * 100vh + 100vh); margin-top: clamp(24px, 4vh, 48px); }
+.bl-test { height: calc(var(--beats) * 100vh + 100vh); }
 .bl-design__pin, .bl-test__pin { position: sticky; top: 0; display: flex; align-items: center; height: 100vh; height: 100svh; }
 .bl-design__in { display: grid; grid-template-columns: minmax(0, 4fr) minmax(0, 8fr); gap: clamp(28px, 4vw, 64px); align-items: center; width: 100%; }
 .bl-design__steps { display: flex; flex-wrap: wrap; gap: 8px; }
@@ -5834,8 +5834,6 @@ button:has(.ti--orbit):hover .tl { letter-spacing: .06em; }
 }
 @media (max-width: 767px) {
   .bl-lvl { min-width: 0; padding: 8px 18px 9px; }
-  .bl-design { height: calc(var(--beats) * 55vh + 100vh); }
-  .bl-test { height: calc(var(--beats) * 45vh + 100vh); }
   .bl-design__pin, .bl-test__pin { align-items: flex-start; padding-top: 80px; }
   .bl-design__in, .bl-test__in { grid-template-columns: minmax(0, 1fr); gap: 14px; }
   .bl-design__copy { display: contents; }
