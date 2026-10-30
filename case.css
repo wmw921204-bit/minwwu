@@ -5257,6 +5257,8 @@ button:has(.ti--orbit):hover .tl { letter-spacing: .06em; }
   .eco2 { grid-template-columns: minmax(260px, 0.72fr) minmax(0, 2fr); justify-items: stretch; align-items: center; gap: clamp(28px, 3.4vw, 56px); }
   .eco2-map { justify-self: end; max-width: min(1080px, calc((100svh - 96px) * 1991 / 1837)); }
 }
+/* narrow screens: heading and map only */
+@media (max-width: 980px) { .eco2-levels { display: none; } }
 
 /* the cone in the poster's own colours: olive micro, pink meso, pale blue macro, dark rims */
 .eco2 { --micro: #a7aa87; --meso: #f6d7d1; --macro: #d6e3e6; --micro-ink: #6f7a3e; --meso-ink: #a8553a; --macro-ink: #3f6d86; }

@@ -1935,10 +1935,10 @@ $$("[data-eco2]").forEach((box) => {
   const cone = $(".eco2-cone", box);
   let k = -1, hold = false, timer = 0;
   const set = (v) => { k = +v; box.dataset.active = v; if (cone) cone.dataset.active = v; };
-  // a level is picked by clicking (or Enter), so passing the pointer over the map changes nothing
   const hover = (el, v) => {
+    el.addEventListener("pointerenter", () => { hold = true; set(v); });
+    el.addEventListener("focus", () => { hold = true; set(v); });
     el.addEventListener("click", () => { hold = true; set(v); });
-    el.addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); hold = true; set(v); } });
   };
   if (cone) $$(".relay__layer", cone).forEach((g) => hover(g, g.dataset.layer));
   $$(".eco2-levels li", box).forEach((li) => hover(li, li.dataset.layer));
