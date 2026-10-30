@@ -5579,8 +5579,6 @@ button:has(.ti--orbit):hover .tl { letter-spacing: .06em; }
 .bl-route__frame { position: relative; height: 100%; max-width: 100%; aspect-ratio: 420 / 1000; }
 .bl-route__frame--strip { display: none; }
 .bl-route__svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
-.bl-circ { fill: none; stroke: #e4e0da; stroke-width: 2.5; stroke-linejoin: round; stroke-linecap: round; }
-.bl-circ-dot { fill: #e4e0da; }
 .bl-seg { fill: none; stroke: #dedad4; stroke-width: 9; stroke-linejoin: round; stroke-linecap: round; transition: stroke .5s; }
 .bl-seg.is-done { stroke: #a9b4ff; }
 .bl-node { --t1: #7c7c7c; --l1: #555; --r1: #444; --t2: #9a9a9a; --l2: #666; --r2: #555; }
@@ -5907,4 +5905,45 @@ button:has(.ti--orbit):hover .tl { letter-spacing: .06em; }
 #interviews .bl-nums { margin-top: clamp(56px, 8vh, 96px); }
 @media (max-width: 1024px) {
   .bl-voices { min-height: 0; }
+}
+
+/* Koji's props and costumes: each spot can hand Koji something that fits what it is talking about */
+.koji__prop { opacity: 0; transform: scale(.6); transform-box: fill-box; transform-origin: center bottom; transition: opacity .3s, transform .45s cubic-bezier(.3,1.6,.5,1); }
+.koji[data-prop="headset"] .koji__prop--headset, .koji[data-prop="cap"] .koji__prop--cap, .koji[data-prop="party"] .koji__prop--party,
+.koji[data-prop="bulb"] .koji__prop--bulb, .koji[data-prop="flame"] .koji__prop--flame, .koji[data-prop="flag"] .koji__prop--flag,
+.koji[data-prop="magnifier"] .koji__prop--magnifier, .koji[data-prop="trophy"] .koji__prop--trophy, .koji[data-prop="pencil"] .koji__prop--pencil,
+.koji[data-prop="calendar"] .koji__prop--calendar, .koji[data-prop="clipboard"] .koji__prop--clipboard { opacity: 1; transform: none; }
+.koji__pointer, .koji__flame, .koji__flagset, .koji__cloth, .koji__lens, .koji__cup, .koji__pen, .koji__cal, .koji__board, .koji__glow { transform-box: fill-box; }
+.koji__glow { opacity: .45; transform-origin: center; animation: k-glow 1.6s ease-in-out infinite; }
+.koji__pointer { transform-origin: 0% 100%; animation: k-point 1.6s ease-in-out infinite; }
+.koji__flame { transform-origin: center bottom; animation: k-flicker .5s ease-in-out infinite alternate; }
+.koji__cloth { transform-origin: 0% 50%; animation: k-wave-flag 1s ease-in-out infinite alternate; }
+.koji__lens { transform-origin: center; animation: k-scan 2.6s ease-in-out infinite; }
+.koji__cup { transform-origin: center bottom; animation: k-lift 1.4s ease-in-out infinite; }
+.koji__pen { transform-origin: center; animation: k-write .6s ease-in-out infinite; }
+.koji__cal { transform-origin: center bottom; animation: k-show 2.4s ease-in-out infinite; }
+.koji__board { transform-origin: center bottom; animation: k-show 2.8s ease-in-out infinite; }
+.koji__cal-num { font: 700 20px/1 var(--f-display); fill: #111; }
+.koji__cal-mark, .koji__tick { stroke-dasharray: 80; stroke-dashoffset: 80; }
+.koji[data-prop="calendar"] .koji__cal-mark { animation: k-draw 2.4s ease-in-out infinite; }
+.koji[data-prop="clipboard"] .koji__tick { animation: k-draw 2.8s ease-in-out infinite; }
+@keyframes k-glow { 50% { opacity: .8; transform: scale(1.18); } }
+@keyframes k-point { 0%, 100% { transform: rotate(0); } 40% { transform: rotate(-14deg); } 55% { transform: rotate(4deg); } }
+@keyframes k-flicker { from { transform: scale(1, 1) rotate(-3deg); } to { transform: scale(.92, 1.08) rotate(3deg); } }
+@keyframes k-wave-flag { from { transform: skewY(-6deg) scaleX(1); } to { transform: skewY(6deg) scaleX(.9); } }
+@keyframes k-scan { 0%, 100% { transform: translate(0, 0); } 33% { transform: translate(-6px, -5px); } 66% { transform: translate(4px, 4px); } }
+@keyframes k-lift { 0%, 100% { transform: translateY(0) rotate(0); } 50% { transform: translateY(-8px) rotate(-6deg); } }
+@keyframes k-write { 0%, 100% { transform: translate(0, 0); } 25% { transform: translate(-3px, 2px); } 50% { transform: translate(2px, 3px); } 75% { transform: translate(-1px, -1px); } }
+@keyframes k-show { 0%, 100% { transform: rotate(-8deg) translateY(0); } 50% { transform: rotate(4deg) translateY(-6px); } }
+@keyframes k-draw { 0%, 20% { stroke-dashoffset: 80; } 55%, 100% { stroke-dashoffset: 0; } }
+@media (prefers-reduced-motion: reduce) { .koji__prop * { animation: none !important; } .koji__cal-mark, .koji__tick { stroke-dashoffset: 0; } }
+
+/* the design tour: Koji explains on the left with a prop that fits each feature, the full screen sits on the right */
+@media (min-width: 768px) { .bl-design__in { grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); } }
+.bl-feat__koji { display: flex; align-items: center; min-height: 170px; margin-bottom: 18px; }
+.kspot--feat { width: 140px; height: 140px; }
+.bl-design__screen { overflow: hidden; }
+@media (max-width: 767px) {
+  .bl-feat__koji { min-height: 96px; margin-bottom: 6px; }
+  .kspot--feat { width: 84px; height: 84px; }
 }

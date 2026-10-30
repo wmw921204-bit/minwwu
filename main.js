@@ -2008,6 +2008,7 @@ if (kGuide) {
     if (s !== active) {
       active = s;
       if (!koji.dataset.react) koji.dataset.mood = s ? s.dataset.koji : "happy";
+      koji.dataset.prop = s ? s.dataset.prop || "" : "";
       kGuide.classList.toggle("is-docked", !s);
       if (!first) hop();
       say(s ? line(s) : "");
@@ -2095,7 +2096,7 @@ if (kGuide) {
     back = setTimeout(() => { delete koji.dataset.react; koji.dataset.mood = active ? active.dataset.koji : "happy"; fx.innerHTML = ""; }, 2600);
   });
   // other parts of the page can change a spot's mood and line
-  window.__koji = { refresh(spot, quiet) { if (spot === active && !koji.dataset.react) { koji.dataset.mood = spot.dataset.koji; hop(); if (!quiet) say(line(spot)); } kick(); } };
+  window.__koji = { refresh(spot, quiet) { if (spot === active && !koji.dataset.react) { koji.dataset.mood = spot.dataset.koji; koji.dataset.prop = spot.dataset.prop || ""; hop(); if (!quiet) say(line(spot)); } kick(); } };
   frame();
 }
 
@@ -2198,25 +2199,6 @@ $$("[data-route]").forEach((route) => {
         if (i === now) { k.dataset.koji = now === stages.length - 1 ? "cheer" : "walk"; window.__koji?.refresh(k, true); }
       });
     });
-  };
-  onScrollFns.push(update);
-  update();
-});
-
-// the design tour: in each beat Koji explains first, then steps back to the window's corner
-// and the frame lifts, leaving the whole screen clear to look at
-$$(".bl-design").forEach((tour) => {
-  const rest = $(".kspot--rest", tour), hots = $$(".kspot--hot", tour);
-  let clear = null;
-  const update = () => {
-    const bp = Number(tour.style.getPropertyValue("--bp")) || 0;
-    const now = bp > 0.6;
-    if (now === clear) return;
-    clear = now;
-    tour.classList.toggle("is-clear", now);
-    rest.toggleAttribute("data-off", !now);
-    hots.forEach((h) => h.toggleAttribute("data-off", now));
-    window.__koji?.refresh(now ? rest : $(".bl-hot.is-active .kspot--hot", tour) || rest, true);
   };
   onScrollFns.push(update);
   update();
