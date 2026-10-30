@@ -26,6 +26,14 @@
   const shield = `<svg viewBox="0 0 48 48" class="bp-shield"><path d="M24 3 42 10v14c0 11-8 18-18 21C14 42 6 35 6 24V10z" fill="#4c4c4c"/><path d="M24 8 37 13v11c0 8-6 13.5-13 16-7-2.5-13-8-13-16V13z" fill="#999"/><path d="M27 14l-9 12h6l-3 9 9-12h-6z" fill="#fff"/></svg>`;
   const lessonsIco = `<svg viewBox="0 0 24 24" class="bp-ico"><ellipse cx="12" cy="10" rx="8" ry="4.5" fill="none" stroke="currentColor" stroke-width="2.2"/><path d="M4 10v3.5c0 2.5 3.6 4.5 8 4.5s8-2 8-4.5V10" fill="none" stroke="currentColor" stroke-width="2.2"/></svg>`;
   const practiceIco = `<svg viewBox="0 0 24 24" class="bp-ico"><path d="M5 11l8-8 3 3-8 8zM11 19l8-8 3 3-8 8z" fill="currentColor" transform="scale(.85) translate(1 1)"/><path d="M9 15l6-6" stroke="currentColor" stroke-width="2.4"/></svg>`;
+  const restartIco = `<svg viewBox="0 0 24 24" class="bp-ico"><path d="M4.5 12a7.5 7.5 0 1 0 2.2-5.3M4.5 4v4h4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+  const sendIco = `<svg viewBox="0 0 24 24" class="bp-ico"><path d="M12 19V5m-6 6 6-6 6 6" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+  const courses = [[t("Foundational math", "基础数学"), t("Solving Equations", "解方程")], [t("Basic algebra", "初级代数"), t("Linear Equations", "线性方程")], [t("Algebra", "代数"), t("Visual Algebra", "可视化代数")], [t("Advanced algebra", "高级代数"), t("Exponents and Radicals", "指数与根式")]];
+  const mistakes = [
+    [t("Which value of x makes 3x + 4 = 19?", "x 等于多少时 3x + 4 = 19？"), [3, 5, 7, 15], 5, 7, t("Take 4 from both sides: 3x = 15. Then divide by 3: x = 5.", "两边同时减 4：3x = 15，再除以 3：x = 5。")],
+    [t("Solve x − 6 = 11.", "解方程 x − 6 = 11。"), [5, 11, 17, 66], 17, 5, t("Add 6 to both sides: x = 11 + 6 = 17.", "两边同时加 6：x = 11 + 6 = 17。")],
+    [t("Four boxes weigh 28. What does one box weigh?", "四个盒子一共 28，一个盒子多重？"), [4, 7, 24, 32], 7, 24, t("Divide both sides by 4: 28 ÷ 4 = 7.", "两边同时除以 4：28 ÷ 4 = 7。")],
+  ];
   const week = [t("W", "三"), t("Th", "四"), t("F", "五"), t("S", "六"), t("Su", "日")];
   // the lesson path: blocks zig-zag on Brilliant's 30° grid, joined by one-bend tracks
   const nodes = [[150, 150], [240, 262], [330, 374], [240, 486]];
@@ -65,9 +73,10 @@
       <nav class="bp-tabs"><button data-act="screen:home" data-tab="home">${house}${t("Home", "首页")}</button><button data-act="screen:course" data-tab="course">${cards}${t("Courses", "课程")}</button></nav>
       <div class="bp-nav__right">
         <button class="bp-qa" data-act="qa">Q &amp; A</button>
-        <span class="bp-premium">${t("Go Premium", "升级高级版")}</span>
-        <span class="bp-streakpill"><b data-streak>2</b>${bolt}</span>
-        <span class="bp-menu"><i></i><i></i><i></i></span>
+        <button class="bp-premium" data-act="premium">${t("Go Premium", "升级高级版")}</button>
+        <button class="bp-streakpill" data-act="streakinfo" aria-label="streak"><b data-streak>2</b>${bolt}</button>
+        <button class="bp-menu" data-act="menu" aria-label="menu"><i></i><i></i><i></i></button>
+        <div class="bp-dd"><button data-act="screen:home">${house}${t("Home", "首页")}</button><button data-act="screen:course">${cards}${t("Courses", "课程")}</button><button data-act="restart">${restartIco}${t("Restart prototype", "重新开始原型")}</button></div>
       </div>
     </header>
 
@@ -81,18 +90,18 @@
             <p class="bp-streak__plan" data-plan></p>
           </div>
           <div class="bp-card bp-league">
-            <div class="bp-league__head">${shield}<div><b>${t("Lithium league", "锂联赛")}</b><small>${t("Top 15 advance · 2 days left", "前 15 名晋级 · 还剩 2 天")}</small></div><span class="bp-league__x">${expand}</span></div>
+            <div class="bp-league__head">${shield}<div><b>${t("Lithium league", "锂联赛")}</b><small>${t("Top 15 advance · 2 days left", "前 15 名晋级 · 还剩 2 天")}</small></div><button class="bp-league__x" data-act="league" aria-label="expand">${expand}</button></div>
             <ol>${[["20", "Jaya H", 70, "#b689ff,#874de5"], ["22", t("You", "你"), 55, "#9d62ff,#9d62ff"], ["23", "Janiya M", 50, "#ff8585,#ffb6b6"]].map(([r, n, x, c], i) => `<li class="${i === 1 ? "is-me" : ""}"><b>${r}</b><i style="background:linear-gradient(160deg,${c})">${n[0]}</i><span>${n}</span><em>${i === 1 ? `<b data-xp>${x}</b>` : x} XP</em></li>`).join("")}</ol>
           </div>
         </div>
         <div class="bp-home__right">
-          <button class="bp-coursecard" data-act="screen:course">
+          <button class="bp-coursecard" data-act="opencourse">
             <span class="bp-coursecard__tag">${t("Foundational math", "基础数学")}</span>
             <span class="bp-coursecard__name">${t("Solving Equations", "解方程")}</span>
             <span class="bp-coursecard__art"><svg viewBox="0 0 400 260" class="bp-coursecard__grid"><g fill="none" stroke="#c9d3ff" stroke-width="3" stroke-linejoin="round"><path d="M40 150 200 58l160 92-160 92z" opacity=".55"/><path d="M90 150 200 87l110 63-110 63z"/></g><g fill="#e6ebff"><path d="M70 60l34-19 34 19-34 19z"/><path d="M262 214l34-19 34 19-34 19z"/></g></svg><span class="bp-coursecard__glow"></span>${block("is-now")}${koji("bp-coursecard__koji")}</span>
             <span class="bp-coursecard__pill">${t("Finding Unknowns", "寻找未知数")}</span>
           </button>
-          <div class="bp-carousel">${["course-equations", "cat-basic-algebra", "cat-algebra", "cat-adv-algebra"].map((n, i) => `<span class="${i === 0 ? "is-on" : ""}"><img src="${ASSET}${n}.png" alt=""></span>`).join("")}</div>
+          <div class="bp-carousel">${["course-equations", "cat-basic-algebra", "cat-algebra", "cat-adv-algebra"].map((n, i) => `<button class="${i === 0 ? "is-on" : ""}" data-act="pick" data-i="${i}" aria-label="${courses[i][1]}"><img src="${ASSET}${n}.png" alt=""></button>`).join("")}</div>
         </div>
       </div>
     </section>
@@ -115,7 +124,7 @@
           <svg class="bp-path__bg" viewBox="0 0 520 620"><g fill="none" stroke="#ececec" stroke-width="2.5" stroke-linejoin="round"><path d="M40 20l60 35-60 35 60 35-60 35"/><path d="M470 120l-60 35 60 35-60 35 60 35"/><path d="M30 380l60 35-60 35 60 35"/><path d="M480 420l-50 29 50 29-50 29"/></g></svg>
           <svg class="bp-path__line" viewBox="0 0 520 620"><path class="is-lit" d="${trail[0]}"/>${trail.slice(1).map((d) => `<path d="${d}"/>`).join("")}</svg>
           <span class="bp-badge" style="left:${badge[0]}px;top:${badge[1]}px"><small>LEVEL</small><b>1</b></span>
-          ${path.map(([n, s, kind], i) => `<div class="bp-node is-${s}" style="left:${nodes[i][0]}px;top:${nodes[i][1]}px" ${i === 0 ? 'data-act="screen:lesson"' : ""}>${block(kind)}<b>${n}</b></div>`).join("")}
+          ${path.map(([n, s, kind], i) => `<div class="bp-node is-${s}" style="left:${nodes[i][0]}px;top:${nodes[i][1]}px" data-act="node" data-i="${i}">${block(kind)}<b>${n}</b></div>`).join("")}
           <span class="bp-path__koji" style="left:${nodes[0][0]}px;top:${nodes[0][1]}px">${koji()}</span>
         </div>
       </div>
@@ -135,7 +144,7 @@
             <header>${koji()}<b>Koji</b><button class="bp-iconbtn" data-act="chatclose" aria-label="close">${close}</button></header>
             <ol class="bp-chat__log"><li class="bp-m bp-m--koji"><span class="bp-m__who">${koji()}Koji</span>${t("Hi John! Stuck? Ask me anything about this problem.", "嗨 John！卡住了吗？关于这道题随便问我。")}</li></ol>
             <div class="bp-chat__chips"><button data-act="ask" data-q="0">${t("Give me a hint", "给我一点提示")}</button><button data-act="ask" data-q="1">${t("What is algebra?", "什么是代数？")}</button><button data-act="ask" data-q="2">${t("Explain in detail", "详细讲讲")}</button></div>
-            <div class="bp-chat__input"><span>${t("Type here…", "在这里输入…")}</span><i>${plus}</i></div>
+            <form class="bp-chat__input" data-chatform><input type="text" placeholder="${t("Type a question…", "输入你的问题…")}" aria-label="${t("Message Koji", "给 Koji 发消息")}"><button type="submit" aria-label="send">${sendIco}</button></form>
           </aside>
         </div>
       </div>
@@ -151,7 +160,7 @@
         <ol class="bp-pretest__dots">${"<li></li>".repeat(5)}</ol>
         <button class="bp-btn bp-btn--green" data-act="pretest">${t("Start pre-test", "开始预测试")}</button>
       </div>
-      <ul class="bp-lessons">${path.slice(0, 4).map(([n], i) => `<li><span>${i + 1}</span><b>${n}</b><i class="bp-info" data-act="tip" tabindex="0">i<em>${[t("Spot the unknown in a picture puzzle.", "在图形谜题里找出未知数。"), t("Drag weights to balance the scale.", "拖动砝码让天平平衡。"), t("Write the puzzle as an equation.", "把谜题写成方程。"), t("Mixed practice, no timer.", "综合练习，不计时。")][i]}</em></i></li>`).join("")}</ul>
+      <ul class="bp-lessons">${path.slice(0, 4).map(([n], i) => `<li data-act="row" data-i="${i}"><span>${i + 1}</span><b>${n}</b><i class="bp-info" data-act="tip" tabindex="0">i<em>${[t("Spot the unknown in a picture puzzle.", "在图形谜题里找出未知数。"), t("Drag weights to balance the scale.", "拖动砝码让天平平衡。"), t("Write the puzzle as an equation.", "把谜题写成方程。"), t("Mixed practice, no timer.", "综合练习，不计时。")][i]}</em></i></li>`).join("")}</ul>
     </section>
 
     <section class="bp-panel" data-panel="review">
@@ -161,14 +170,7 @@
         <div class="bp-week-xp">${[30, 55, 20, 70, 45, 0, 0].map((h, i) => `<i style="--h:${h}%"><span>${days[i]}</span></i>`).join("")}</div>
         <ul class="bp-goals">${goals.map(([k, g, xp], i) => `<li data-act="goal" data-reward="${xp}" class="${i === 1 ? "" : ""}"><i>${check}</i><div><b>${g}</b><small>${k === "daily" ? t("Daily", "每日") : t("Weekly", "每周")}</small></div><em>+${xp} XP</em></li>`).join("")}</ul>
       </div>
-      <div class="bp-tab" data-tabbody="mistakes">
-        <p class="bp-mis__count">1 / 3</p>
-        <h4>${t("Which value of x makes 3x + 4 = 19?", "x 等于多少时 3x + 4 = 19？")}</h4>
-        <p class="bp-mis__was">${t("Last time you chose 7", "上次你选了 7")}</p>
-        <div class="bp-opts bp-opts--mis">${[3, 5, 7, 15].map((n) => `<button data-act="fix" data-n="${n}" class="${n === 7 ? "was" : ""}">${n}</button>`).join("")}</div>
-        <button class="bp-explain" data-act="explain">${t("Show explanation", "查看解析")}</button>
-        <p class="bp-explain__body">${t("Take 4 from both sides: 3x = 15. Then divide by 3: x = 5.", "两边同时减 4：3x = 15，再除以 3：x = 5。")}</p>
-      </div>
+      <div class="bp-tab" data-tabbody="mistakes" data-mis></div>
       <div class="bp-tab" data-tabbody="notes">
         <div class="bp-notes">${[[t("Balance both sides", "两边要平衡"), t("Whatever you do to one side, do to the other.", "对一边做什么，另一边也要做。")], [t("Undo in reverse", "倒着撤销"), t("Undo + and − first, then × and ÷.", "先撤销加减，再撤销乘除。")], [t("Check by plugging in", "代回去检查"), t("Put x back in and see if both sides match.", "把 x 代回去，看两边是否相等。")]].map(([h, p], i) => `<article style="--r:${[-2, 1.5, -1][i]}deg"><b>${h}</b><p>${p}</p></article>`).join("")}</div>
       </div>
@@ -205,7 +207,7 @@
     root.innerHTML = app();
     const $ = (s) => root.querySelector(s), $$ = (s) => [...root.querySelectorAll(s)];
     const stage = $(".bp__stage"), cursor = $(".bp-cursor");
-    const st = { streak: 2, xp: 55, day: 0, time: "", mode: root.dataset.bp };
+    const st = { streak: 2, xp: 55, day: 0, time: "", mode: root.dataset.bp, course: 0, lesson: 0, mis: 0 };
     const fit = () => root.style.setProperty("--bps", root.clientWidth / W);
     const ro = new ResizeObserver(fit);
     ro.observe(root);
@@ -242,6 +244,38 @@
     const panel = (name) => { root.dataset.panel = name || ""; };
     const tab = (name) => { root.dataset.tab = name; $$(".bp-seg button").forEach((b) => b.classList.toggle("is-on", b.dataset.seg === name)); };
 
+    // the review deck: one mistake at a time, retried until right, then on to the next
+    const renderMis = () => {
+      const box = $("[data-mis]"), m = mistakes[st.mis];
+      if (!m) {
+        box.innerHTML = `<div class="bp-mis__clear">${koji()}<h4>${t("All mistakes cleared!", "错题全部清完了！")}</h4><p>${t("Nice work. New ones will show up here after your next lesson.", "干得好。下一节课的新错题会出现在这里。")}</p><button class="bp-btn bp-btn--green" data-act="tab:goals">${t("Back to my goals", "回到我的目标")}</button></div>`;
+        return;
+      }
+      const [q, opts, , was, ex] = m;
+      root.classList.remove("explain-open");
+      box.innerHTML = `<p class="bp-mis__count">${st.mis + 1} / ${mistakes.length}</p><h4>${q}</h4><p class="bp-mis__was">${t(`Last time you chose ${was}`, `上次你选了 ${was}`)}</p><div class="bp-opts bp-opts--mis">${opts.map((n) => `<button data-act="fix" data-n="${n}" class="${n === was ? "was" : ""}">${n}</button>`).join("")}</div><div class="bp-mis__foot"><button class="bp-explain" data-act="explain">${t("Show explanation", "查看解析")}</button><button class="bp-btn bp-btn--green bp-mis__next" data-act="nextmis">${st.mis < mistakes.length - 1 ? t("Next mistake", "下一题") : t("Finish", "完成")}</button></div><p class="bp-explain__body">${ex}</p>`;
+    };
+    const say = async (question, text) => {
+      const log = $(".bp-chat__log");
+      const me = document.createElement("li"); me.className = "bp-m bp-m--me"; me.textContent = question; log.append(me);
+      const k = document.createElement("li"); k.className = "bp-m bp-m--koji is-typing"; k.innerHTML = "<i></i><i></i><i></i>"; log.append(k);
+      log.scrollTop = log.scrollHeight;
+      await wait(reduce ? 0 : 900);
+      k.classList.remove("is-typing"); k.textContent = "";
+      for (let i = 1; i <= text.length; i += reduce ? text.length : 2) { k.textContent = text.slice(0, i); log.scrollTop = log.scrollHeight; await wait(14); }
+      k.textContent = text; log.scrollTop = log.scrollHeight;
+    };
+    const resetLesson = () => {
+      $$(".bp-q .bp-opts button").forEach((b) => b.classList.remove("is-on", "is-right", "is-wrong"));
+      const c = $(".bp-check"); c.dataset.act = "checkans"; c.textContent = t("Check", "检查"); c.classList.remove("is-go");
+      $(".bp-lesson__bar .bp-progress i").style.setProperty("--w", "12%");
+    };
+    const moveKoji = (i) => {
+      $$(".bp-node").forEach((n, j) => { n.classList.toggle("is-done", j < i); n.classList.toggle("is-now", j === i); n.classList.remove("is-next"); if (j > i) n.classList.add("is-next"); });
+      $$(".bp-path__line path").forEach((g, j) => g.classList.toggle("is-lit", j <= i));
+      const k = $(".bp-path__koji"); k.style.left = `${nodes[i][0]}px`; k.style.top = `${nodes[i][1]}px`;
+    };
+
     const acts = {
       screen: (el, v) => { panel(""); screen(v); },
       panel: (el, v) => panel(v),
@@ -253,22 +287,53 @@
         el.classList.remove("is-today"); el.classList.add("is-done");
         setStreak(st.streak + 1); toast(t("3-day streak! See you tomorrow.", "连续 3 天！明天见。"));
       },
-      qa: () => { panel(""); screen("lesson"); root.classList.add("chat-open"); },
+      qa: () => { panel(""); resetLesson(); screen("lesson"); root.classList.add("chat-open"); },
+      premium: () => toast(t("Premium isn’t part of this prototype. Everything here is free to try.", "原型里没有高级版，这里的一切都可以免费试。")),
+      streakinfo: () => { panel(""); screen("home"); const c = $(".bp-streak"); c.classList.remove("is-flash"); void c.offsetWidth; c.classList.add("is-flash"); toast(t(`${st.streak}-day streak. Finish today’s lesson to keep it going!`, `已连续 ${st.streak} 天，完成今天的课就能续上！`)); },
+      menu: () => root.classList.toggle("menu-open"),
+      restart: () => { destroy(); Proto(root); },
+      league: () => toast(t("The top 15 move up a league on Sunday. You’re 15 XP away!", "前 15 名周日晋级，你还差 15 XP！")),
+      pick: (el) => {
+        st.course = Number(el.dataset.i);
+        $$(".bp-carousel button").forEach((b) => b.classList.toggle("is-on", b === el));
+        $(".bp-coursecard__tag").textContent = courses[st.course][0]; $(".bp-coursecard__name").textContent = courses[st.course][1];
+        $(".bp-coursecard__pill").textContent = st.course ? t("Start course", "开始这门课") : t("Finding Unknowns", "寻找未知数");
+      },
+      opencourse: () => {
+        if (st.course) { toast(t("This prototype is built around Solving Equations, so here it is.", "这个原型围绕“解方程”搭建，带你去看这门课。")); acts.pick($(".bp-carousel button")); }
+        panel(""); screen("course");
+      },
+      node: (el) => {
+        const i = Number(el.dataset.i);
+        if (el.classList.contains("is-now") || el.classList.contains("is-done")) { panel(""); resetLesson(); screen("lesson"); }
+        else toast(t(`Finish “${path[i - 1][0]}” to unlock this one.`, `先完成“${path[i - 1][0]}”才能解锁这一关。`));
+      },
+      row: (el) => {
+        const i = Number(el.dataset.i);
+        if (i <= st.lesson) { panel(""); resetLesson(); screen("lesson"); }
+        else toast(t(`Unlocks after “${path[i - 1][0]}”.`, `完成“${path[i - 1][0]}”后解锁。`));
+      },
       goal: (el) => {
         if (el.classList.contains("is-done")) return;
         el.classList.add("is-done"); st.prevXP = st.xp; setXP(st.xp + Number(el.dataset.reward), el.querySelector("em"));
       },
       fix: (el) => {
+        if (root.classList.contains("mis-done")) return;
         $$(".bp-opts--mis button").forEach((b) => b.classList.remove("is-wrong"));
-        if (el.dataset.n === "5") { el.classList.add("is-right"); root.classList.add("mis-done"); toast(t("Fixed! One mistake cleared.", "改对了！清掉一道错题。")); }
-        else el.classList.add("is-wrong");
+        if (Number(el.dataset.n) === mistakes[st.mis][2]) { el.classList.add("is-right"); root.classList.add("mis-done"); st.prevXP = st.xp; setXP(st.xp + 5, el); }
+        else { el.classList.add("is-wrong"); toast(t("Not yet. Peek at the explanation?", "还不对，看看解析？")); }
       },
+      nextmis: () => { root.classList.remove("mis-done"); st.mis++; renderMis(); if (st.mis >= mistakes.length) toast(t("All 3 mistakes fixed!", "3 道错题都改对了！")); },
       explain: () => root.classList.toggle("explain-open"),
       tip: (el) => { $$(".bp-info").forEach((i) => i !== el && i.classList.remove("is-on")); el.classList.toggle("is-on"); },
       pretest: async () => {
         const dots = $$(".bp-pretest__dots li");
+        const btn = $(".bp-pretest .bp-btn");
+        if (btn.classList.contains("is-done")) return;
+        btn.removeAttribute("data-act");
         for (const d of dots) { d.classList.add("is-on"); await wait(220); }
-        toast(t("You can skip the first 2 lessons.", "你可以跳过前 2 节课。"));
+        btn.classList.add("is-done"); btn.innerHTML = `${check}${t("Done", "已完成")}`;
+        toast(t("Nice! You already know the basics of lesson 1.", "不错！第一课的基础你已经会了。"));
       },
       day: (el) => {
         if (el.classList.contains("past")) return;
@@ -283,27 +348,28 @@
         $$(`.bp-cal__grid button[data-d="${st.day}"]`).forEach((b) => b.classList.add("planned"));
         toast(t(`Booked March ${st.day} at ${st.time}. I’ll remind you!`, `已约 3 月 ${st.day} 日 ${st.time}，我会提醒你！`));
       },
-      answer: (el) => { $$(".bp-q .bp-opts button").forEach((b) => b.classList.remove("is-on", "is-right", "is-wrong")); el.classList.add("is-on"); },
+      answer: (el) => {
+        if ($(".bp-check").classList.contains("is-go")) return;
+        $$(".bp-q .bp-opts button").forEach((b) => b.classList.remove("is-on", "is-right", "is-wrong")); el.classList.add("is-on");
+      },
       checkans: () => {
         const on = $(".bp-q .bp-opts .is-on");
         if (!on) return toast(t("Pick an answer first.", "先选一个答案。"));
         on.classList.add(on.dataset.n === "4" ? "is-right" : "is-wrong");
-        if (on.dataset.n === "4") { st.prevXP = st.xp; setXP(st.xp + 10, on); }
-        else toast(t("Not quite. Ask Koji for a hint?", "不太对。要不要问问 Koji？"));
+        if (on.dataset.n === "4") {
+          st.prevXP = st.xp; setXP(st.xp + 10, on);
+          const c = $(".bp-check"); c.dataset.act = "finish"; c.textContent = t("Continue", "继续"); c.classList.add("is-go");
+          $(".bp-lesson__bar .bp-progress i").style.setProperty("--w", "100%");
+        } else toast(t("Not quite. Ask Koji for a hint?", "不太对。要不要问问 Koji？"));
+      },
+      finish: () => {
+        st.lesson = Math.min(st.lesson + 1, path.length - 1);
+        screen("course"); moveKoji(st.lesson);
+        toast(t("Lesson complete! On to the next one.", "这一课完成了！继续下一课。"));
       },
       chat: () => root.classList.add("chat-open"),
       chatclose: () => root.classList.remove("chat-open"),
-      ask: async (el) => {
-        const log = $(".bp-chat__log");
-        const me = document.createElement("li"); me.className = "bp-m bp-m--me"; me.textContent = el.textContent; log.append(me);
-        el.disabled = true;
-        const k = document.createElement("li"); k.className = "bp-m bp-m--koji is-typing"; k.innerHTML = "<i></i><i></i><i></i>"; log.append(k);
-        log.scrollTop = log.scrollHeight;
-        await wait(reduce ? 0 : 900);
-        const text = answers[el.dataset.q]; k.classList.remove("is-typing"); k.textContent = "";
-        for (let i = 1; i <= text.length; i += reduce ? text.length : 2) { k.textContent = text.slice(0, i); log.scrollTop = log.scrollHeight; await wait(14); }
-        k.textContent = text;
-      },
+      ask: (el) => { el.disabled = true; say(el.textContent, answers[el.dataset.q]); },
     };
     const run = (el) => {
       if (!el) return;
@@ -312,19 +378,32 @@
     };
     const onClick = (e) => {
       const el = e.target.closest("[data-act]");
+      if (!e.target.closest(".bp-menu, .bp-dd")) root.classList.remove("menu-open");
+      else if (el && el.closest(".bp-dd")) root.classList.remove("menu-open");
       if (el && root.contains(el)) run(el);
     };
-    if (st.mode === "explore") root.addEventListener("click", onClick);
-    const destroy = () => { ro.disconnect(); root.removeEventListener("click", onClick); };
+    // anything typed to Koji gets an answer: hints, the meaning of algebra, or the worked solution
+    const onSubmit = (e) => {
+      if (!e.target.matches("[data-chatform]")) return;
+      e.preventDefault();
+      const input = e.target.querySelector("input"), q = input.value.trim();
+      if (!q) return input.focus();
+      input.value = "";
+      const lq = q.toLowerCase();
+      say(q, /hint|help|stuck|提示|帮/.test(lq) ? answers[0] : /algebra|代数/.test(lq) ? answers[1] : /answer|solve|explain|why|how|答案|解|为什么|怎么/.test(lq) ? answers[2] : t("Good question! Here’s how I’d start: ", "好问题！我会这样开始：") + answers[0]);
+    };
+    if (st.mode === "explore") { root.addEventListener("click", onClick); root.addEventListener("submit", onSubmit); }
+    const destroy = () => { ro.disconnect(); root.removeEventListener("click", onClick); root.removeEventListener("submit", onSubmit); };
 
-    screen("home"); tab("goals"); panel("");
+    renderMis(); moveKoji(0);
+    screen("home"); tab("goals"); panel(""); root.classList.remove("menu-open", "chat-open", "mis-done", "explain-open");
     return { root, $, $$, run, screen, panel, tab, rel, cursor, st, setXP, setStreak, toast, destroy };
   }
 
   // ---------- the scripted tour ----------
   // each beat: put the app in a starting state, then move a pointer around and click things, on a loop
   const scripts = [
-    async (p, go) => { p.screen("home"); await go(".bp-week li.is-today"); await go(".bp-carousel span:nth-child(2)", false); await go(".bp-coursecard", false); },
+    async (p, go) => { p.screen("home"); await go(".bp-week li.is-today"); await go(".bp-carousel button:nth-child(2)", false); await go(".bp-coursecard", false); },
     async (p, go, alive) => {
       p.screen("course");
       const els = p.$$(".bp-node"), k = p.$(".bp-path__koji"), segs = p.$$(".bp-path__line path");
