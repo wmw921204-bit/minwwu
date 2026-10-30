@@ -1060,14 +1060,14 @@ $$("[data-proto-guide]").forEach((guide) => {
 
 /* ---------- Key features: the phone runs the real prototype and taps through each feature ----------
    <div class="vn__screen" data-app="…/app/"> + <script type="application/json" data-app-tour>[[steps for beat 0], …]</script>
-   steps: {"tab": "screen"} jumps there, {"tap": "label", "nth"?: i} presses the hotspot with that label (a dot shows the tap) */
+   steps: {"tab": "screen"} jumps there, {"tap": "label", "nth"?: i, "hold"?: ms} presses the hotspot with that label (a dot shows the tap) */
 $$(".vn__screen[data-app]").forEach((screen) => {
   const scene = screen.closest("[data-scene]"), tour = JSON.parse($("[data-app-tour]", scene).textContent);
   const frame = document.createElement("iframe"), dot = document.createElement("span");
   frame.className = "vn__app"; frame.title = t("Prototype playing the feature", "原型正在演示这个功能"); frame.tabIndex = -1;
   frame.setAttribute("aria-hidden", "true"); frame.setAttribute("data-app-tour-frame", "");
   dot.className = "vn__tap";
-  let ready = false, visible = false, beat = -1, done = 0, busy = false;
+  let ready = false, visible = false, beat = -1;
   // each app has its own canvas (Fitfido 393×852, SwiftHome 402×874); the phone screen takes that shape
   const AW = Number(screen.dataset.appW) || 393, AH = Number(screen.dataset.appH) || 852;
   frame.style.width = `${AW}px`; frame.style.height = `${AH}px`; screen.style.aspectRatio = `${AW} / ${AH}`;
@@ -1085,43 +1085,45 @@ $$(".vn__screen[data-app]").forEach((screen) => {
     })[nth];
   };
   const closeSheets = () => doc().querySelectorAll(".sheet.is-on").forEach((o) => o.classList.remove("is-on"));
-  const apply = (st) => {
-    if (st.tab) { closeSheets(); go({ tab: st.tab }); return; }
-    const el = find(st.tap, st.nth);
-    if (el) el.click();
-  };
-  // steps follow the scroll: the first lands as the beat opens, the last by 80% of it; scrolling back replays up to there
-  const tick = async () => {
-    if (!ready || !visible || busy) return;
-    const b = Number(scene.dataset.beat) || 0, steps = tour[b] || [];
-    if (!steps.length) return;
-    const bp = parseFloat(scene.style.getPropertyValue("--bp")) || 0;
-    const want = Math.max(1, Math.min(steps.length, Math.ceil((bp / 0.8) * (steps.length - 1)) + 1));
-    if (b !== beat || want < done) { const n = b !== beat ? 1 : want; steps.slice(0, n).forEach(apply); beat = b; done = n; return; }
-    if (want === done) return;
-    busy = true;
-    const st = steps[done];
-    if (st.tap && !reduceMotion) {
-      const el = find(st.tap, st.nth);
-      if (el) {
-        const r = el.getBoundingClientRect(), k = screen.clientWidth / AW;
-        dot.style.left = `${(r.left + r.width / 2) * k}px`; dot.style.top = `${(r.top + r.height / 2) * k}px`;
-        dot.classList.remove("is-on"); void dot.offsetWidth; dot.classList.add("is-on");
-        await wait(380);
+  // once a feature is on screen it plays through on its own: a dot glides to each hotspot and taps it, then it loops.
+  // a small bar beside the phone fills step by step, so it reads as something playing
+  const bar = document.createElement("span");
+  bar.className = "vn__play"; bar.setAttribute("aria-hidden", "true"); bar.innerHTML = "<i></i><b><s></s></b>";
+  screen.parentElement.append(bar);
+  const progress = (k, reset) => { bar.classList.toggle("is-reset", !!reset); bar.style.setProperty("--play", k.toFixed(3)); };
+  let token = 0;
+  const run = async (b) => {
+    const my = ++token, alive = () => my === token && visible && ready;
+    while (alive()) {
+      const steps = tour[b] || [];
+      progress(0, true); await wait(30);
+      for (const [i, st] of steps.entries()) {
+        if (!alive()) return;
+        progress((i + 1) / steps.length);
+        if (st.tab) { closeSheets(); go({ tab: st.tab }); await wait(1100); continue; }
+        const el = find(st.tap, st.nth);
+        if (!el) continue;
+        if (!reduceMotion) {
+          const r = el.getBoundingClientRect(), k = screen.clientWidth / AW;
+          dot.style.left = `${(r.left + r.width / 2) * k}px`; dot.style.top = `${(r.top + r.height / 2) * k}px`;
+          dot.classList.remove("is-on"); void dot.offsetWidth; dot.classList.add("is-on");
+          await wait(420);
+        }
+        if (!alive()) return;
+        el.click();
+        await wait(st.hold || 1500);
       }
+      await wait(2000);
     }
-    if (b === beat) { apply(st); done++; }
-    await wait(st.tab ? 500 : 250);
-    busy = false;
-    tick();
   };
-  onScrollFns.push(tick);
+  const sync = () => { if (ready && visible) run(Number(scene.dataset.beat) || 0); };
+  new MutationObserver(() => { if (Number(scene.dataset.beat) !== beat) { beat = Number(scene.dataset.beat); sync(); } }).observe(scene, { attributes: true, attributeFilter: ["data-beat"] });
   new IntersectionObserver(([e]) => {
     if (e.isIntersecting && !frame.src) { frame.src = screen.dataset.app; screen.append(frame, dot); fit(); }
-    visible = e.isIntersecting;
-    if (visible) { beat = -1; tick(); }
+    const was = visible; visible = e.isIntersecting;
+    if (visible && !was) sync(); else if (!visible) token++;
   }, { rootMargin: "200px 0px" }).observe(screen);
-  frame.addEventListener("load", () => { ready = true; screen.classList.add("has-app"); fit(); beat = -1; tick(); });
+  frame.addEventListener("load", () => { ready = true; screen.classList.add("has-app"); fit(); beat = Number(scene.dataset.beat) || 0; sync(); });
 });
 
 /* ---------- Prototypes: a veil that says what this is, lifted with one click ---------- */

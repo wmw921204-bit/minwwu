@@ -439,67 +439,78 @@
   }
 
   // ---------- the scripted tour ----------
-  // each beat is a list of steps: a setup, then taps (sel) or hovers (hover). Scrolling through the beat plays them
-  // one by one with a pointer; scrolling back rebuilds the app and replays the earlier steps instantly.
-  const hopTo = (i) => (p) => {
-    p.$$(".bp-node").forEach((n, j) => { n.classList.toggle("is-done", j < i); n.classList.toggle("is-now", j === i); });
-    p.$$(".bp-path__line path").forEach((g, j) => g.classList.toggle("is-lit", j <= i));
-    const k = p.$(".bp-path__koji"); k.style.left = `${nodes[i][0]}px`; k.style.top = `${nodes[i][1]}px`;
-  };
+  // each beat: put the app in a starting state, then move a pointer around and click things, on a loop
   const scripts = [
-    [{ f: (p) => p.screen("home") }, { sel: ".bp-week li.is-today" }, { hover: ".bp-carousel button:nth-child(2)" }, { hover: ".bp-coursecard" }],
-    [{ f: (p) => p.screen("course") }, { f: hopTo(1) }, { f: hopTo(2) }, { hover: ".bp-node.is-now" }],
-    [{ f: (p) => p.screen("course") }, { sel: '.bp-tile[data-act="panel:overview"]' }, { hover: ".bp-lessons li:nth-child(2) .bp-info" }, { sel: ".bp-pretest .bp-btn" }],
-    [{ f: (p) => { p.screen("course"); p.tab("goals"); } }, { sel: '.bp-tile[data-act="review:goals"]' }, { sel: ".bp-goals li:nth-child(2)" }, { sel: ".bp-goals li:nth-child(4)" }],
-    [{ f: (p) => { p.screen("course"); p.tab("mistakes"); p.panel("review"); } }, { sel: '.bp-opts--mis [data-n="3"]' }, { sel: '.bp-opts--mis [data-n="5"]' }, { sel: ".bp-explain" }],
-    [{ f: (p) => p.screen("home") }, { sel: ".bp-calbtn" }, { sel: '.bp-cal__grid [data-d="7"]' }, { sel: '.bp-times [data-h="9:00"]' }, { sel: ".bp-cal__side .bp-btn--green" }],
-    [{ f: (p) => p.screen("lesson") }, { sel: '.bp-q .bp-opts [data-n="6"]' }, { sel: ".bp-check" }, { sel: ".bp-feedback__ghost" }, { sel: '.bp-q .bp-opts [data-n="4"]' }, { sel: ".bp-check" }],
+    async (p, go) => { p.screen("home"); await go(".bp-week li.is-today"); await go(".bp-carousel button:nth-child(2)", false); await go(".bp-coursecard", false); },
+    async (p, go, alive) => {
+      p.screen("course");
+      const els = p.$$(".bp-node"), k = p.$(".bp-path__koji"), segs = p.$$(".bp-path__line path");
+      for (let i = 0; i < 3 && alive(); i++) {
+        els.forEach((n, j) => { n.classList.toggle("is-done", j < i); n.classList.toggle("is-now", j === i); });
+        segs.forEach((g, j) => g.classList.toggle("is-lit", j <= i));
+        k.style.left = `${nodes[i][0]}px`; k.style.top = `${nodes[i][1]}px`;
+        progress(++stepN / STEPS[1]);
+        await wait(1200);
+      }
+      await go(".bp-node.is-now", false);
+    },
+    async (p, go) => { p.screen("course"); await go('.bp-tile[data-act="panel:overview"]'); await go(".bp-lessons li:nth-child(2) .bp-info"); await go(".bp-pretest .bp-btn"); },
+    async (p, go) => { p.screen("course"); p.tab("goals"); await go('.bp-tile[data-act="review:goals"]'); await go(".bp-goals li:nth-child(2)"); await go(".bp-goals li:nth-child(4)"); },
+    async (p, go) => { p.screen("course"); p.tab("mistakes"); p.panel("review"); await wait(500); await go('.bp-opts--mis [data-n="3"]'); await go('.bp-opts--mis [data-n="5"]'); await go(".bp-explain"); },
+    async (p, go) => { p.screen("home"); await go(".bp-calbtn"); await go('.bp-cal__grid [data-d="7"]'); await go('.bp-times [data-h="9:00"]'); await go(".bp-cal__side .bp-btn--green"); },
+    async (p, go) => { p.screen("lesson"); await go('.bp-q .bp-opts [data-n="6"]'); await go(".bp-check"); await go(".bp-feedback__ghost"); await wait(2800); await go('.bp-q .bp-opts [data-n="4"]'); await go(".bp-check"); await wait(600); },
   ];
-  // how many steps of a beat should have played at a given point in it (the last steps land by 80% of the beat)
-  const stepsAt = (bp, n) => Math.max(1, Math.min(n, Math.ceil((bp / 0.8) * (n - 1)) + 1));
 
+  // how many pointer moves (and Koji hops) each beat makes, for the progress bar under the window
+  const STEPS = [3, 4, 3, 3, 3, 4, 5];
   function Demo(root) {
     const scene = root.closest("[data-scene]");
-    let p = Proto(root), beat = -1, done = 0, busy = false, visible = false;
-    const c = () => p.cursor;
-    const point = (el, instant) => {
-      const r = p.rel(el), cur = c();
-      if (instant) { cur.style.transition = "none"; cur.style.transform = `translate(${r.x}px, ${r.y}px)`; void cur.offsetWidth; cur.style.transition = ""; }
-      else cur.style.transform = `translate(${r.x}px, ${r.y}px)`;
-      cur.classList.add("is-on");
+    let p = Proto(root), token = 0, beat = -1, visible = false;
+    const bar = document.createElement("div");
+    bar.className = "bl-playbar"; bar.setAttribute("aria-hidden", "true"); bar.innerHTML = "<i></i><b><s></s></b>";
+    root.closest("figure").querySelector(".bl-window__bar").append(bar);
+    let stepN = 0;
+    const progress = (k, reset) => { bar.classList.toggle("is-reset", !!reset); bar.style.setProperty("--play", Math.min(1, k).toFixed(3)); };
+    const play = async (b) => {
+      const my = ++token;
+      const alive = () => my === token && visible;
+      while (alive()) {
+        p.destroy(); p = Proto(root); root.classList.remove("chat-open", "mis-done", "explain-open");
+        stepN = 0; progress(0, true);
+        const c = p.cursor;
+        c.style.transition = "none"; c.style.transform = `translate(${W * 0.62}px, ${H * 0.86}px)`; c.classList.add("is-on");
+        await wait(60);
+        c.style.transition = "";
+        // move the pointer to an element, then optionally click it
+        const go = async (sel, click = true) => {
+          if (!alive()) throw 0;
+          await wait(reduce ? 0 : 650);
+          const el = p.$(sel); if (!el || !alive()) throw 0;
+          progress(++stepN / STEPS[b]);
+          const r = p.rel(el);
+          c.style.transform = `translate(${r.x}px, ${r.y}px)`;
+          await wait(reduce ? 0 : 850);
+          if (!alive()) throw 0;
+          if (click) { c.classList.remove("is-press"); void c.offsetWidth; c.classList.add("is-press"); p.run(el); }
+          else el.classList.add("is-hover");
+          await wait(reduce ? 0 : 450);
+          if (!click) el.classList.remove("is-hover");
+        };
+        try { await scripts[b](p, go, alive); await wait(2400); } catch (e) { return; }
+      }
     };
-    const apply = (st, instant) => {
-      if (st.f) { st.f(p); return; }
-      const el = p.$(st.sel || st.hover);
-      if (!el) return;
-      point(el, instant);
-      if (st.sel) { if (!instant) { const cur = c(); cur.classList.remove("is-press"); void cur.offsetWidth; cur.classList.add("is-press"); } p.run(el); }
-      else if (!instant) { el.classList.add("is-hover"); setTimeout(() => el.classList.remove("is-hover"), 900); }
+    const sync = () => {
+      const b = Number(scene.dataset.beat) || 0;
+      if (b === beat && token) return;
+      beat = b;
+      if (visible) play(b);
     };
-    // rebuild the app and jump straight to step n of beat b
-    const jump = (b, n) => {
-      p.destroy(); p = Proto(root);
-      const cur = c(); cur.style.transition = "none"; cur.style.transform = `translate(${W * 0.62}px, ${H * 0.86}px)`; void cur.offsetWidth; cur.style.transition = "";
-      scripts[b].slice(0, n).forEach((st) => apply(st, true));
-      beat = b; done = n;
-    };
-    const tick = async () => {
-      if (!visible || busy) return;
-      const b = Number(scene.dataset.beat) || 0, steps = scripts[b];
-      const want = stepsAt(parseFloat(scene.style.getPropertyValue("--bp")) || 0, steps.length);
-      if (b !== beat || want < done) { jump(b, b !== beat ? 1 : want); return; }
-      if (want === done) return;
-      // play forward one step at a time: glide the pointer over, then tap
-      busy = true;
-      const st = steps[done], el = !st.f && p.$(st.sel || st.hover);
-      if (el && !reduce) { point(el); await wait(650); }
-      if (b === beat) { apply(st, !!reduce); done++; }
-      busy = false;
-      tick();
-    };
-    addEventListener("scroll", tick, { passive: true });
-    new MutationObserver(tick).observe(scene, { attributes: true, attributeFilter: ["data-beat", "style"] });
-    new IntersectionObserver(([e]) => { visible = e.isIntersecting; if (visible) { beat = -1; tick(); } }, { threshold: 0.3 }).observe(root);
+    new MutationObserver(sync).observe(scene, { attributes: true, attributeFilter: ["data-beat"] });
+    new IntersectionObserver(([e]) => {
+      const was = visible; visible = e.isIntersecting;
+      if (visible && !was) { beat = -1; sync(); }
+      if (!visible) token++;
+    }, { threshold: 0.3 }).observe(root);
   }
 
   // the guide beside the playground follows whatever screen or panel is open, like the other prototypes on the site
