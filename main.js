@@ -1701,7 +1701,7 @@ $$("[data-jm]").forEach((box) => {
     // the waitress: down to their table, up to the pass with the order, back down with the plate
     waitress: [[0, 1557, 858], [27.4, 1557, 858], [29.8, 1560, 1100], [34.8, 1560, 1100], [38.2, 1420, 760], [50.4, 1420, 760], [53, 1560, 1100], [END, 1560, 1100]],
     // the chef: behind the pass, to the stove, back with the plate
-    chef: [[0, 1495, 662], [43.4, 1495, 662], [45.2, 1645, 560], [48, 1645, 560], [49.4, 1495, 662], [END, 1495, 662]],
+    chef: [[0, 1495, 662], [43.4, 1495, 662], [44.6, 1562, 620], [47.6, 1562, 620], [49.4, 1495, 662], [END, 1495, 662]],
     // the supplier carries the crate in from the label photo to the store
     supplier: [[0, 2275, 560], [40.7, 2275, 560], [43.2, 2045, 588], [END, 2045, 588]],
   };
@@ -1710,7 +1710,7 @@ $$("[data-jm]").forEach((box) => {
     friend: [[0, "f-walk"], [4.5, "f-talk"], [14.4, "f-walk"], [18.2, "f-talk"], [23.9, "f-walk"], [26.9, "f-front"], [27.9, "f-sit"], [62.8, "f-walk"], [68.1, "f-talk"]],
     host: [[0, "host"]],
     waitress: [[0, "w-write"], [27.4, "w-walk"], [29.8, "w-write"], [34.8, "w-back"], [41.2, "w-write"], [49.2, "w-back"], [50.4, "w-carry"], [53.6, "w-write"], [57.4, "w-sorry"]],
-    chef: [[0, "k-stand"], [43.4, "k-back"], [45.2, "k-cook"], [48, "k-carry"], [50.4, "k-stand"]],
+    chef: [[0, "k-stand"], [43.4, "k-back"], [47.6, "k-carry"], [50.4, "k-stand"]],
     supplier: [[0, "supplier"]],
   };
   // 1 = as drawn, -1 = mirrored; a turn takes a quarter second
@@ -1725,6 +1725,8 @@ $$("[data-jm]").forEach((box) => {
   const SHOW = { agnes: [0, END], friend: [1.4, END], host: [13.4, 30.5], waitress: [0, END], chef: [0, END], supplier: [40.6, 50.4] };
   // the waitress and the chef belong to the poster: faint until their part of the story, faint again after it
   const LIT = { waitress: [27, 66], chef: [38, 51.5] };
+  // the chef steps into the kitchen out of sight and comes back out with the plate
+  const AWAY = { chef: [44.2, 47.9] };
   const pathAt = (P, t) => {
     for (let i = 0; i < P.length - 1; i++) {
       const [t0, x0, y0] = P[i], [t1, x1, y1] = P[i + 1];
@@ -1840,7 +1842,8 @@ $$("[data-jm]").forEach((box) => {
       const [s0, s1] = SHOW[who];
       const vis = t > s0 && t < s1;
       const L = LIT[who];
-      C.g.style.opacity = !vis ? 0 : L ? 0.26 + 0.74 * smooth((t - L[0]) / 0.5) * (1 - smooth((t - L[1]) / 0.6)) : smooth((t - s0) / 0.4) * smooth((s1 - t) / 0.4);
+      const A = AWAY[who], gone = A ? smooth((t - A[0]) / 0.45) * (1 - smooth((t - A[1] + 0.45) / 0.45)) : 0;
+      C.g.style.opacity = (!vis ? 0 : L ? 0.26 + 0.74 * smooth((t - L[0]) / 0.5) * (1 - smooth((t - L[1]) / 0.6)) : smooth((t - s0) / 0.4) * smooth((s1 - t) / 0.4)) * (1 - gone);
       const at = pathAt(WAY[who], t), p = poseAt(POSE[who], t);
       C.y = at.y;
       // storming out: faster, leaning into it
