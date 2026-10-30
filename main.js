@@ -1964,5 +1964,347 @@ $$("[data-opps]").forEach((list) => {
   });
 });
 
+/* ---------- Brilliant: Koji guides the reader ----------
+   Koji flies to the [data-koji] spot nearest the middle of the screen, takes on its mood and says its line;
+   with no spot on screen it peeks in from the right edge. Spots move with the page, so Koji trails them a touch. */
+const kGuide = $(".kguide");
+if (kGuide) {
+  const koji = $(".koji", kGuide), bubble = $(".kguide__say", kGuide), footer = $(".footer");
+  const gaze = $(".koji__gaze", koji), track = $(".koji__track", koji), fx = $(".koji__fx", koji);
+  const spots = $$("[data-koji]");
+  const phone = () => innerWidth < 768;
+  let x = 0, y = 0, lastX = 0, active, raf = 0, hush = 0, first = true, size = 64;
+  const firstSec = spots[0] && spots[0].closest("section");
+  const line = (s) => t(s.dataset.say || "", s.dataset.sayZh || s.dataset.say || "");
+  const say = (text) => {
+    clearTimeout(hush);
+    kGuide.classList.toggle("is-talking", !!text);
+    if (!text) return;
+    bubble.dataset.text = text;
+    typeLine(bubble);
+    hush = setTimeout(() => kGuide.classList.remove("is-talking"), 2800 + text.length * 50);
+  };
+  const hop = () => { kGuide.classList.remove("is-hop"); void kGuide.offsetWidth; kGuide.classList.add("is-hop"); };
+  // a spot that's switched off, or sits in a scene beat that isn't showing, doesn't count
+  const usable = (s) => {
+    if (s.hasAttribute("data-off")) return false;
+    const beat = s.closest("[data-beat]:not([data-scene])");
+    return !beat || beat.classList.contains("is-active");
+  };
+  const pick = () => {
+    let best = null, bd = Infinity;
+    for (const s of spots) {
+      if (!usable(s)) continue;
+      const r = s.getBoundingClientRect();
+      if (!r.width || r.bottom < 70 || r.top > innerHeight - 40) continue;
+      const d = Math.abs(r.top + r.height / 2 - innerHeight * 0.5);
+      if (d < bd) { bd = d; best = s; }
+    }
+    return best;
+  };
+  const frame = () => {
+    raf = 0;
+    const s = pick();
+    if (s !== active) {
+      active = s;
+      if (!koji.dataset.react) koji.dataset.mood = s ? s.dataset.koji : "happy";
+      kGuide.classList.toggle("is-docked", !s);
+      if (!first) hop();
+      say(s ? line(s) : "");
+    }
+    let tx, ty, side = "top";
+    if (s) {
+      const r = s.getBoundingClientRect();
+      size = r.width; tx = r.left + size / 2; ty = r.top + r.height / 2;
+      side = s.dataset.side || "top";
+      // on a phone a chapter's Koji stands on its own row under the title and talks to its left
+      if (phone() && s.closest(".bl-ch")) side = "left";
+      if (side === "right" && tx + size / 2 + 230 > innerWidth) side = "top";
+      if (side === "left" && tx - size / 2 - 230 < 0) side = "top";
+      if (side === "top" && tx < innerWidth / 2) side = "top-l";
+    } else {
+      // between spots Koji peeks in from the right edge, mostly tucked into the page margin
+      size = 56;
+      tx = innerWidth + size * 0.12;
+      ty = innerHeight * 0.62;
+    }
+    kGuide.dataset.side = side;
+    kGuide.classList.toggle("is-on-dark", !!s && s.hasAttribute("data-dark"));
+    kGuide.style.setProperty("--kj", `${size}px`);
+    // Koji stays out of the opening until the first chapter, and steps aside for the footer
+    const early = !!firstSec && firstSec.getBoundingClientRect().top > innerHeight * 0.6;
+    kGuide.classList.toggle("is-away", early || (!!footer && footer.getBoundingClientRect().top < innerHeight - 40));
+    const k = first || reduceMotion ? 1 : 0.2;
+    x += (tx - x) * k; y += (ty - y) * k;
+    kGuide.style.transform = `translate3d(${x.toFixed(1)}px, ${y.toFixed(1)}px, 0)`;
+    // lean into the direction of travel
+    koji.style.setProperty("--tilt", `${clamp((x - lastX) * 0.5, -14, 14).toFixed(1)}deg`);
+    lastX = x;
+    if (first) { first = false; kGuide.classList.add("is-ready"); }
+    if (Math.abs(tx - x) + Math.abs(ty - y) > 0.4) raf = requestAnimationFrame(frame);
+    else koji.style.setProperty("--tilt", "0deg");
+  };
+  const kick = () => { if (!raf) raf = requestAnimationFrame(frame); };
+  onScrollFns.push(kick);
+  addEventListener("load", kick);
+  document.fonts?.ready.then(kick);
+
+  // Koji's eye follows the pointer: the pupil moves most, the eye itself a little, for depth
+  if (!reduceMotion && matchMedia("(hover: hover) and (pointer: fine)").matches) {
+    let idle = 0;
+    addEventListener("pointermove", (e) => {
+      const dx = e.clientX - x, dy = e.clientY - y, d = Math.hypot(dx, dy) || 1;
+      const reach = Math.min(1, d / 220);
+      const ux = (dx / d) * reach, uy = (dy / d) * reach;
+      track.style.transform = `translate(${(ux * 6.5).toFixed(2)}px, ${(uy * 6.5).toFixed(2)}px)`;
+      gaze.style.transform = `translate(${(ux * 3).toFixed(2)}px, ${(uy * 3).toFixed(2)}px)`;
+      koji.classList.add("is-tracking");
+      clearTimeout(idle);
+      idle = setTimeout(() => { koji.classList.remove("is-tracking"); track.style.transform = gaze.style.transform = ""; }, 2500);
+    }, { passive: true });
+  }
+
+  // poke Koji: a different reaction each time, with its own face, move, effect and line
+  const reactions = [
+    ["love", "Aww, thank you!", "谢谢你呀！", "heart"],
+    ["dizzy", "Whoa… everything’s spinning.", "哇……转晕了。", "star"],
+    ["surprise", "Oh! You found me!", "哇！被你发现了！", "spark"],
+    ["cool", "Too cool for school.", "酷吧？", "spark"],
+    ["sleepy", "Five more minutes… zzz", "再睡五分钟……zzz", null],
+    ["laugh", "Hehe, that tickles!", "嘿嘿，好痒！", "confetti"],
+  ];
+  const colors = ["#29cc57", "#ffc93c", "#7b61ff", "#456dff", "#ff8a65"];
+  const burst = (kind) => {
+    if (!kind || reduceMotion) return;
+    const n = kind === "confetti" ? 18 : 8;
+    fx.innerHTML = Array.from({ length: n }, (_, i) => {
+      const a = (i / n) * Math.PI * 2 + Math.random() * 0.5, d = 46 + Math.random() * 40;
+      const up = kind === "heart" ? -40 - Math.random() * 30 : 0;
+      return `<i class="fx fx--${kind}" style="--x:${(Math.cos(a) * d).toFixed(0)}px;--y:${(Math.sin(a) * d * 0.8 + up).toFixed(0)}px;--r:${(Math.random() * 540 - 270).toFixed(0)}deg;--c:${colors[i % colors.length]};--t:${(Math.random() * 0.15).toFixed(2)}s"></i>`;
+    }).join("");
+  };
+  let poke = Math.floor(Math.random() * reactions.length), back = 0;
+  koji.addEventListener("click", () => {
+    const [name, en, zh, kind] = reactions[poke++ % reactions.length];
+    clearTimeout(back);
+    koji.dataset.react = name;
+    koji.dataset.mood = "react";
+    hop();
+    burst(kind);
+    say(t(en, zh));
+    back = setTimeout(() => { delete koji.dataset.react; koji.dataset.mood = active ? active.dataset.koji : "happy"; fx.innerHTML = ""; }, 2600);
+  });
+  // other parts of the page can change a spot's mood and line
+  window.__koji = { refresh(spot, quiet) { if (spot === active && !koji.dataset.react) { koji.dataset.mood = spot.dataset.koji; hop(); if (!quiet) say(line(spot)); } kick(); } };
+  frame();
+}
+
+// things that play once when they come into view
+const playOnce = (els, fn, threshold = 0.35) => {
+  if (!els.length) return;
+  if (reduceMotion || !("IntersectionObserver" in window)) { els.forEach(fn); return; }
+  const io = new IntersectionObserver((entries) => {
+    for (const e of entries) if (e.isIntersecting) { io.unobserve(e.target); fn(e.target); }
+  }, { threshold });
+  els.forEach((el) => io.observe(el));
+};
+
+// research quiz: the options get tried in turn, then the answer locks in and Koji cheers
+playOnce($$("[data-quiz]"), (quiz) => {
+  const opts = $$(".bl-quiz__opts li", quiz), right = opts.findIndex((o) => o.hasAttribute("data-right"));
+  const spot = $("[data-koji]", quiz);
+  const solve = () => {
+    opts.forEach((o, i) => { o.classList.remove("is-hover"); o.classList.add(i === right ? "is-right" : "is-dim"); });
+    quiz.classList.add("is-solved");
+    if (spot) {
+      Object.assign(spot.dataset, { koji: "cheer", say: spot.dataset.doneSay, sayZh: spot.dataset.doneSayZh });
+      window.__koji?.refresh(spot);
+    }
+  };
+  if (reduceMotion) return solve();
+  [0, 1, 3, 2].forEach((n, k) => setTimeout(() => opts.forEach((o, i) => o.classList.toggle("is-hover", i === n)), 1000 + k * 600));
+  setTimeout(solve, 3600);
+}, 0.6);
+
+// competitor ticks drop in along the diagonal
+$$("[data-matrix]").forEach((m) => $$("tbody tr", m).forEach((tr, r) => $$("td", tr).forEach((td, c) => td.style.setProperty("--d", `${(r + c) * 0.05}s`))));
+playOnce($$("[data-matrix]"), (m) => m.classList.add("is-in"));
+
+// theme mentions as stacks of blocks, about three mentions each
+$$("[data-blocks] li").forEach((li, row) => {
+  const n = Number(getComputedStyle(li).getPropertyValue("--n")) || 0;
+  li.style.setProperty("--row", row);
+  $("i", li).innerHTML = Array.from({ length: n }, (_, k) => `<s style="--k:${k}"></s>`).join("");
+});
+playOnce($$("[data-blocks]"), (b) => b.classList.add("is-in"));
+
+// learners' quotes arrive one by one, each tagged by Koji
+playOnce($$("[data-chat]"), (chat) => {
+  const msgs = $$(".bl-msg", chat);
+  chat.classList.add("is-in");
+  if (reduceMotion) { msgs.forEach((m) => m.classList.add("is-on")); chat.classList.add("is-done"); return; }
+  // Koji, beside the chat, sums up each need as its tag lands
+  const spot = $(".kspot--voices"), notes = {
+    Retention: ["A routine brings them back. That’s retention.", "有规律才会回来，这就是留存。"],
+    Guidance: ["They want feedback. That’s guidance.", "他们想要反馈，这是引导。"],
+    Clarity: ["A clear structure. That’s clarity.", "结构要清楚，这是清晰。"],
+    Validation: ["Ticking things off feels good. Validation!", "打勾的感觉真好，这是认可！"],
+  };
+  const keys = Object.keys(notes);
+  let at = 200, tag = 0;
+  msgs.forEach((m) => {
+    const koji = m.classList.contains("bl-msg--koji"), n = koji ? keys[tag++] : null;
+    at += koji ? 650 : 1100;
+    setTimeout(() => {
+      m.classList.add("is-on");
+      if (n && spot) {
+        Object.assign(spot.dataset, { koji: n === "Validation" ? "cheer" : "happy", say: notes[n][0], sayZh: notes[n][1] });
+        window.__koji?.refresh(spot);
+      }
+    }, at);
+  });
+  setTimeout(() => chat.classList.add("is-done"), at + 300);
+}, 0.3);
+
+// lesson discs on the test map: done ones go green, the current one glows blue, and only its Koji spot is on
+const setDiscs = (discs, now) => discs.forEach((d, i) => {
+  d.classList.toggle("is-done", i < now);
+  d.classList.toggle("is-now", i === now);
+  const spot = $("[data-koji]", d);
+  if (spot) spot.toggleAttribute("data-off", i !== now);
+});
+
+// the iteration route: the stage card nearest the middle of the screen is the current step;
+// the map lights the track up to it and Koji hops onto its block (both the tall map and the phone strip)
+$$("[data-route]").forEach((route) => {
+  const stages = $$(".bl-stage", route), frames = $$(".bl-route__frame", route);
+  let now = -2;
+  const update = () => {
+    const r = route.getBoundingClientRect();
+    if (r.bottom < -200 || r.top > innerHeight + 200) return;
+    let cur = 0, best = Infinity;
+    stages.forEach((st, i) => {
+      const b = st.getBoundingClientRect(), d = Math.abs(b.top + b.height / 2 - innerHeight * 0.55);
+      if (d < best) { best = d; cur = i; }
+    });
+    if (cur === now) return;
+    now = cur;
+    stages.forEach((st, i) => st.classList.toggle("is-now", i === now));
+    frames.forEach((f) => {
+      $$(".bl-node", f).forEach((n, i) => { n.classList.toggle("is-done", i < now); n.classList.toggle("is-now", i === now); });
+      $$(".bl-seg", f).forEach((g, i) => g.classList.toggle("is-done", i <= now));
+      $$("[data-koji]", f).forEach((k, i) => {
+        k.toggleAttribute("data-off", i !== now);
+        if (i === now) { k.dataset.koji = now === stages.length - 1 ? "cheer" : "walk"; window.__koji?.refresh(k, true); }
+      });
+    });
+  };
+  onScrollFns.push(update);
+  update();
+});
+
+// the design tour: in each beat Koji explains first, then steps back to the window's corner
+// and the frame lifts, leaving the whole screen clear to look at
+$$(".bl-design").forEach((tour) => {
+  const rest = $(".kspot--rest", tour), hots = $$(".kspot--hot", tour);
+  let clear = null;
+  const update = () => {
+    const bp = Number(tour.style.getPropertyValue("--bp")) || 0;
+    const now = bp > 0.6;
+    if (now === clear) return;
+    clear = now;
+    tour.classList.toggle("is-clear", now);
+    rest.toggleAttribute("data-off", !now);
+    hots.forEach((h) => h.toggleAttribute("data-off", now));
+    window.__koji?.refresh(now ? rest : $(".bl-hot.is-active .kspot--hot", tour) || rest, true);
+  };
+  onScrollFns.push(update);
+  update();
+});
+
+// the vision film only runs while it is properly on screen
+$$("video[data-play-in-view]").forEach((v) => {
+  if (reduceMotion || !("IntersectionObserver" in window)) return;
+  new IntersectionObserver(([e]) => { if (e.isIntersecting) v.play().catch(() => {}); else v.pause(); }, { threshold: 0.45 }).observe(v);
+});
+
+// usability level map: the gauges wait until the stage is well on screen, Koji hops along the discs
+// and the XP from every flow so far adds up in the corner
+$$(".bl-test").forEach((test) => {
+  const nodes = $$(".bl-test__map li", test), discs = nodes.map((n) => $(".bl-disc", n));
+  const runs = $$(".bl-run", test), total = $("[data-xp-total]", test);
+  // join the steps with the same 30° track as the iteration route, measured from where the steps actually sit
+  const map = $(".bl-test__map", test), track = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+  track.classList.add("bl-test__track");
+  track.setAttribute("aria-hidden", "true");
+  map.prepend(track);
+  const drawTrack = () => {
+    const m = map.getBoundingClientRect();
+    const pts = discs.map((d) => { const r = d.getBoundingClientRect(); return [r.left + r.width / 2 - m.left, r.top + r.height * 0.62 - m.top]; });
+    track.setAttribute("viewBox", `0 0 ${m.width} ${m.height}`);
+    track.innerHTML = pts.slice(1).map(([x2, y2], i) => {
+      const [x1, y1] = pts[i], dx = x2 - x1, dy = y2 - y1, s = 0.577;
+      // one bend: a 30° run toward the next step, then the opposite 30° run into it
+      const a = (dy / s + Math.abs(dx)) / 2, b = (dy / s - Math.abs(dx)) / 2;
+      const mid = b > 0 ? ` L${(x1 + Math.sign(dx || 1) * a).toFixed(1)} ${(y1 + s * a).toFixed(1)}` : "";
+      return `<path class="bl-seg" d="M${x1.toFixed(1)} ${y1.toFixed(1)}${mid} L${x2.toFixed(1)} ${y2.toFixed(1)}"/>`;
+    }).join("");
+    $$(".bl-seg", track).forEach((g, i) => g.classList.toggle("is-done", i < shown));
+  };
+  addEventListener("resize", drawTrack);
+  addEventListener("load", drawTrack);
+  requestAnimationFrame(drawTrack);
+  let shown = -1, xp = 0, xpRaf = 0;
+  const countTo = (to) => {
+    cancelAnimationFrame(xpRaf);
+    if (reduceMotion) { total.textContent = to; xp = to; return; }
+    const from = xp, t0 = performance.now();
+    const step = (now) => {
+      const k = clamp((now - t0) / 1200), v = Math.round(from + (to - from) * (1 - Math.pow(1 - k, 3)));
+      total.textContent = v; xp = v;
+      if (k < 1) xpRaf = requestAnimationFrame(step);
+    };
+    xpRaf = requestAnimationFrame(step);
+  };
+  const update = () => {
+    if (!test.classList.contains("is-live")) {
+      if (!reduceMotion && test.getBoundingClientRect().top > innerHeight * 0.35) return;
+      test.classList.add("is-live");
+    }
+    const beat = Number(test.dataset.beat) || 0;
+    if (beat === shown) return;
+    shown = beat;
+    setDiscs(discs, beat);
+    $$(".bl-seg", track).forEach((g, i) => g.classList.toggle("is-done", i < beat));
+    countTo(runs.slice(0, beat + 1).reduce((sum, r) => sum + Number(r.dataset.xp), 0));
+    window.__koji?.refresh($("[data-koji]", discs[beat]), true);
+  };
+  onScrollFns.push(update);
+  update();
+});
+
+// the vision film plays muted; one button brings the sound in
+$$("[data-sound]").forEach((btn) => {
+  const v = $("video", btn.closest("figure"));
+  btn.addEventListener("click", () => {
+    v.muted = !v.muted;
+    if (!v.muted) v.play().catch(() => {});
+    btn.setAttribute("aria-pressed", String(!v.muted));
+    btn.textContent = v.muted ? t("Sound on", "打开声音") : t("Sound off", "关闭声音");
+  });
+});
+
+// course complete: the badge and confetti go off once the card is well in view
+playOnce($$("[data-done]"), (done) => done.classList.add("is-pop"), 0.6);
+
+// course complete: a burst of confetti
+$$("[data-done]").forEach((done) => {
+  const box = $(".bl-confetti", done), colors = ["#29cc57", "#ffc93c", "#7b61ff", "#456dff", "#ff8a65"];
+  box.innerHTML = Array.from({ length: 28 }, (_, i) => {
+    const a = (i / 28) * Math.PI * 2 + Math.random() * 0.4, d = 120 + Math.random() * 160;
+    return `<i style="--c:${colors[i % colors.length]};--x:${(Math.cos(a) * d * 1.6).toFixed(0)}px;--y:${(Math.sin(a) * d - 60).toFixed(0)}px;--r:${(Math.random() * 720 - 360).toFixed(0)}deg;--t:${(0.2 + Math.random() * 0.25).toFixed(2)}s"></i>`;
+  }).join("");
+});
+
 document.documentElement.classList.add("js-ready");
 requestScrollFrame();

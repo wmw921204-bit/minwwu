@@ -11,17 +11,17 @@
   <meta property="og:title" content="Brilliant.org Redesign — Minwei Wu">
   <meta property="og:description" content="UX case study: research, iteration and usability testing for a more engaging learning experience.">
   <meta property="og:image" content="https://emmawu.me/assets/projects/brilliant/cover-1.webp">
-  <meta name="theme-color" content="#ffffff">
+  <meta name="theme-color" content="#f5f3f1">
   <link rel="icon" href="../assets/img/favicon.svg" type="image/svg+xml">
   <link rel="icon" href="../assets/img/favicon-32.png" sizes="32x32" type="image/png">
   <link rel="apple-touch-icon" href="../assets/img/apple-touch-icon.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&family=Poppins:wght@400;500;600&family=Sulphur+Point:wght@400&display=swap">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;1,9..144,400;1,9..144,500&family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&family=Poppins:wght@400;500;600&family=Sulphur+Point:wght@400&display=swap">
   <link rel="stylesheet" href="../styles.css?v=20261026x">
-  <link rel="stylesheet" href="../case.css?v=20261046b">
+  <link rel="stylesheet" href="../case.css?v=20261118">
 </head>
-<body class="case case--light">
+<body class="case case--light case--brilliant">
   <a class="skip" href="#main">Skip to content</a>
 
   <header class="topbar" id="top">
@@ -67,8 +67,38 @@
     </nav>
   </header>
 
+  <!-- Koji, the page's guide: flies to each [data-koji] spot as you scroll, and naps in the corner in between -->
+  <div class="kguide" aria-hidden="true">
+    <p class="kguide__say"></p>
+    <div class="koji" data-mood="happy">
+      <svg class="koji__svg" viewBox="-12 -24 144 150">
+        <defs>
+          <linearGradient id="kojiFill" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#6fe88c"/><stop offset=".5" stop-color="#2fd160"/><stop offset="1" stop-color="#1aa94a"/></linearGradient>
+        </defs>
+        <ellipse class="koji__shadow" cx="60" cy="120" rx="34" ry="5"/>
+        <g class="koji__body">
+          <path class="koji__blob" d="M60 8 C72 8 81 25 88 32 C95 39 112 48 112 60 C112 72 95 81 88 88 C81 95 72 112 60 112 C48 112 39 95 32 88 C25 81 8 72 8 60 C8 48 25 39 32 32 C39 25 48 8 60 8 Z" fill="url(#kojiFill)"/>
+          <path class="koji__shine" d="M44 22 Q50 15 60 15" fill="none" stroke="#fff" stroke-opacity=".55" stroke-width="5" stroke-linecap="round"/>
+          <g class="koji__gaze"><g class="koji__eye"><rect class="koji__white" x="43" y="41" width="34" height="34" rx="8" fill="#fff"/><g class="koji__look"><g class="koji__track"><rect class="koji__pupil" x="51" y="49" width="17" height="17" rx="3" fill="#111"/><path class="koji__heart" d="M60 67 C52 61 48.5 57 48.5 53.5 C48.5 50.5 51 48 54 48 C56.5 48 58.5 49.5 60 51.5 C61.5 49.5 63.5 48 66 48 C69 48 71.5 50.5 71.5 53.5 C71.5 57 68 61 60 67 Z"/></g></g><path class="koji__spiral" d="M60 58 m-1.5 0 a1.5 1.5 0 1 1 3 0 a4 4 0 1 1 -7 -1 a7 7 0 1 1 12 4 a10 10 0 0 1 -12 7"/></g><path class="koji__eye-happy" d="M46 64 Q60 46 74 64" fill="none" stroke="#111" stroke-width="7" stroke-linecap="round"/><path class="koji__eye-shut" d="M46 59 Q60 68 74 59" fill="none" stroke="#111" stroke-width="6" stroke-linecap="round"/><g class="koji__shades"><path d="M14 52 L106 52" stroke="#111" stroke-width="5" stroke-linecap="round"/><rect x="33" y="39" width="54" height="38" rx="11" fill="#111"/><path d="M41 47 L53 47" stroke="#fff" stroke-opacity=".7" stroke-width="3" stroke-linecap="round"/></g></g>
+        </g>
+        <g class="koji__sweat"><path d="M10 6 Q3 17 10 21 Q17 17 10 6 Z"/><path d="M-2 26 Q-7 34 -2 37 Q3 34 -2 26 Z"/></g>
+        <text class="koji__q" x="100" y="2">?</text><text class="koji__ex" x="104" y="4">!</text><g class="koji__zz"><text x="96" y="10">z</text><text x="108" y="-6">z</text><text x="118" y="-20">z</text></g>
+        <g class="koji__stars"><path d="M0 -12 L3 -3 L12 0 L3 3 L0 12 L-3 3 L-12 0 L-3 -3 Z" transform="translate(-2 4)"/><path d="M0 -9 L2 -2 L9 0 L2 2 L0 9 L-2 2 L-9 0 L-2 -2 Z" transform="translate(118 -6)"/><path d="M0 -7 L1.6 -1.6 L7 0 L1.6 1.6 L0 7 L-1.6 1.6 L-7 0 L-1.6 -1.6 Z" transform="translate(124 70)"/></g>
+      </svg>
+      <span class="koji__fx"></span>
+    </div>
+  </div>
+
+  <!-- a still Koji for avatars and badges -->
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+    <symbol id="koji-mini" viewBox="0 0 120 120">
+      <path d="M60 8 C72 8 81 25 88 32 C95 39 112 48 112 60 C112 72 95 81 88 88 C81 95 72 112 60 112 C48 112 39 95 32 88 C25 81 8 72 8 60 C8 48 25 39 32 32 C39 25 48 8 60 8 Z" fill="#29cc57"/>
+      <rect x="43" y="41" width="34" height="34" rx="8" fill="#fff"/><rect x="51" y="49" width="17" height="17" rx="3" fill="#111"/>
+    </symbol>
+  </svg>
+
   <main id="main">
-    <section class="c-hero c-hero--title" data-scene style="--beats:1;--hero-bg:#fff">
+    <section class="c-hero c-hero--title" data-scene style="--beats:1;--hero-bg:#f5f3f1">
       <div class="c-hero__pin">
         <video class="c-hero__media" autoplay muted loop playsinline preload="auto" poster="../assets/projects/brilliant/hero-poster.webp" aria-hidden="true">
           <source src="../assets/projects/brilliant/hero.mp4" type="video/mp4">
@@ -115,151 +145,352 @@
     </section>
 
     <!-- 01 Vision -->
-    <section class="wrap c-sec" id="vision" data-chapter="Vision">
-      <div class="c-chapter"><span class="c-chapter__num">01</span><h2 class="c-kicker">Vision</h2></div>
-      <p class="c-head reveal-mask">What if a Brilliant.org student could stay consistently engaged?</p>
-      <figure class="c-figure reveal">
-        <video controls playsinline preload="none" poster="../assets/projects/brilliant/vision-poster.webp">
-          <source data-src="../assets/projects/brilliant/vision.mp4" type="video/mp4">
-        </video>
-      </figure>
+    <section class="bl-sec" id="vision" data-chapter="Vision">
+      <div class="wrap">
+        <header class="bl-ch">
+          <p class="bl-lvl reveal"><small>Level 1</small><span>Vision</span></p>
+          <h2 class="bl-ch__title reveal-mask">What if a Brilliant learner could <em>stay</em> <em>engaged?</em></h2>
+          <span class="kspot" data-koji="wave" data-say="Hi, I’m Koji! Scroll, and I’ll walk you through the project." data-say-zh="嗨，我是 Koji！往下滑，我带你走一遍这个项目。"></span>
+        </header>
+        <figure class="bl-window reveal">
+          <div class="bl-window__bar"><i></i><i></i><i></i><span>brilliant.org</span><button class="bl-sound" type="button" aria-pressed="false" data-sound>Sound on</button></div>
+          <video class="bl-window__video" muted loop data-play-in-view playsinline preload="none" poster="../assets/projects/brilliant/vision-poster.webp">
+            <source data-src="../assets/projects/brilliant/vision.mp4" type="video/mp4">
+          </video>
+        </figure>
+      </div>
     </section>
 
     <!-- 02 Research -->
-    <section class="wrap c-sec" id="research" data-chapter="Research">
-      <div class="c-chapter"><span class="c-chapter__num">02</span><h2 class="c-kicker">Research</h2></div>
-      <p class="c-head reveal-mask">Learners want engaging ways to close their STEM gaps.</p>
-      <div class="c-split">
-        <div>
-          <p class="c-text reveal">Our audience: <strong>students in higher education</strong> actively trying to fill accumulated knowledge gaps.</p>
-          <div class="c-stats reveal-stagger" style="margin-top:32px">
-            <div class="c-stat"><span class="c-stat__num" data-count="35" data-suffix="%">35%</span><span class="c-stat__label"><b>dropout risk post-pandemic</b> among learners with a bachelor’s degree or higher</span></div>
+    <section class="bl-sec" id="research" data-chapter="Research">
+      <div class="wrap">
+        <header class="bl-ch">
+          <p class="bl-lvl reveal"><small>Level 2</small><span>Research</span></p>
+          <h2 class="bl-ch__title reveal-mask">Learners want <em>engaging</em> ways to close their STEM gaps.</h2>
+        </header>
+
+        <div class="bl-research">
+          <div class="bl-research__copy">
+            <p class="bl-text reveal">Our audience: <strong>students in higher education</strong> actively trying to fill accumulated knowledge gaps.</p>
+            <figure class="bl-card bl-research__chart reveal">
+              <img src="../assets/projects/brilliant/audience.webp" alt="U.S. civilian unemployment rate, 2004 to 2024" width="784" height="626" loading="lazy">
+            </figure>
+          </div>
+          <div class="bl-quiz reveal" data-quiz>
+            <p class="bl-quiz__tag">Quick question</p>
+            <p class="bl-quiz__q">Since the pandemic, what share of learners with a bachelor’s degree or higher are at risk of dropping out?</p>
+            <ul class="bl-quiz__opts">
+              <li>12%</li>
+              <li>20%</li>
+              <li data-right>35%</li>
+              <li>50%</li>
+            </ul>
+            <p class="bl-quiz__a"><b>35%</b> dropout risk post-pandemic among learners with a bachelor’s degree or higher</p>
+            <div class="bl-quiz__koji"><span class="kspot kspot--quiz" data-koji="think" data-side="right" data-say="Hmm… take a guess." data-say-zh="嗯……猜猜看？" data-done-say="Right, 35%. That’s a lot of learners slipping away." data-done-say-zh="没错，35%。很多学习者就这样流失了。"></span></div>
           </div>
         </div>
-        <img class="reveal" src="../assets/projects/brilliant/audience.webp" alt="Unemployment and dropout trend chart" width="784" height="626" loading="lazy">
-      </div>
 
-      <div class="switcher" data-tabs>
-        <div class="switcher__tabs" role="tablist" aria-label="Research methods">
-          <button role="tab" aria-selected="true">Journey map</button>
-          <button role="tab" aria-selected="false" tabindex="-1">Secondary research</button>
-          <button role="tab" aria-selected="false" tabindex="-1">Direct competitors</button>
-          <button role="tab" aria-selected="false" tabindex="-1">Indirect competitors</button>
+        <div class="bl-maps">
+          <figure class="bl-card reveal">
+            <img src="../assets/projects/brilliant/journey-map.webp" alt="Stakeholder map of the product" width="1234" height="633" loading="lazy">
+            <figcaption><b>Stakeholder map</b>Everyone the product touches, from learners and educators to app stores and regulators.</figcaption>
+          </figure>
+          <figure class="bl-card reveal">
+            <img src="../assets/projects/brilliant/secondary-research.webp" alt="Secondary research on puzzle-based learning" width="2000" height="1130" loading="lazy">
+            <figcaption><b>Secondary research</b>Learning puzzles need a balance between clarity and solvability.</figcaption>
+          </figure>
         </div>
-        <div class="switcher__stage">
-          <figure class="switcher__panel is-active" role="tabpanel"><img src="../assets/projects/brilliant/journey-map.webp" alt="Product journey map" width="1234" height="633" loading="lazy"><p>Stakeholders and touchpoints across the product journey.</p></figure>
-          <figure class="switcher__panel" role="tabpanel"><img src="../assets/projects/brilliant/secondary-research.webp" alt="Secondary research on puzzle-based learning" width="2000" height="1130" loading="lazy"><p>Learning puzzles need a balance between clarity and solvability.</p></figure>
-          <figure class="switcher__panel" role="tabpanel"><img src="../assets/projects/brilliant/competitors-1.webp" alt="Direct competitor feature comparison" width="2000" height="1130" loading="lazy"><p>Coursera, Udacity, Khan Academy and MasterClass compared on six learning features.</p></figure>
-          <figure class="switcher__panel" role="tabpanel"><img src="../assets/projects/brilliant/competitors-2.webp" alt="Indirect competitor feature comparison" width="2000" height="1130" loading="lazy"><p>Duolingo, LinkedIn Learning and Udemy compared on the same features.</p></figure>
+
+        <div class="bl-compare">
+          <div class="bl-compare__head">
+            <p class="bl-text">Brilliant already leads on streaks, rewards and gamification. The gaps are <strong>community</strong> and <strong>certifications</strong>, the things that give learners a reason to return.</p>
+            <span class="kspot" data-koji="curious" data-side="right" data-say="See those two gaps in my column?" data-say-zh="看到我这一列的两个空缺了吗？"></span>
+          </div>
+          <div class="bl-matrices">
+            <div class="bl-matrix" data-matrix>
+              <p class="bl-matrix__title">Direct competitors</p>
+              <table>
+                <thead><tr><th scope="col"><span class="sr-only">Feature</span></th><th scope="col" class="is-us"><span>Brilliant</span></th><th scope="col"><span>Coursera</span></th><th scope="col"><span>Udacity</span></th><th scope="col"><span>Khan Academy</span></th><th scope="col"><span>Codecademy</span></th></tr></thead>
+                <tbody>
+                  <tr><th scope="row">Personalised learning paths</th><td class="y"></td><td class="y"></td><td class="y"></td><td class="y"></td><td class="y"></td></tr>
+                  <tr><th scope="row">Streaks &amp; rewards</th><td class="y"></td><td></td><td></td><td class="y"></td><td class="y"></td></tr>
+                  <tr><th scope="row">Bite-sized lessons</th><td class="y"></td><td class="y"></td><td class="y"></td><td class="y"></td><td class="y"></td></tr>
+                  <tr><th scope="row">Gamification</th><td class="y"></td><td></td><td></td><td class="y"></td><td class="y"></td></tr>
+                  <tr><th scope="row">Community</th><td class="gap"></td><td class="y"></td><td></td><td class="y"></td><td class="y"></td></tr>
+                  <tr><th scope="row">Certifications</th><td class="gap"></td><td class="y"></td><td class="y"></td><td></td><td class="y"></td></tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="bl-matrix" data-matrix>
+              <p class="bl-matrix__title">Indirect competitors</p>
+              <table>
+                <thead><tr><th scope="col"><span class="sr-only">Feature</span></th><th scope="col" class="is-us"><span>Brilliant</span></th><th scope="col"><span>Duolingo</span></th><th scope="col"><span>LinkedIn Learning</span></th><th scope="col"><span>Skillshare</span></th><th scope="col"><span>Udemy</span></th></tr></thead>
+                <tbody>
+                  <tr><th scope="row">Personalised learning paths</th><td class="y"></td><td class="y"></td><td class="y"></td><td></td><td></td></tr>
+                  <tr><th scope="row">Streaks &amp; rewards</th><td class="y"></td><td class="y"></td><td></td><td></td><td></td></tr>
+                  <tr><th scope="row">Bite-sized lessons</th><td class="y"></td><td class="y"></td><td class="y"></td><td class="y"></td><td class="y"></td></tr>
+                  <tr><th scope="row">Gamification</th><td class="y"></td><td class="y"></td><td></td><td></td><td></td></tr>
+                  <tr><th scope="row">Community</th><td class="gap"></td><td class="y"></td><td class="y"></td><td class="y"></td><td class="y"></td></tr>
+                  <tr><th scope="row">Certifications</th><td class="gap"></td><td></td><td class="y"></td><td></td><td class="y"></td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
         </div>
       </div>
     </section>
 
     <!-- 03 Interviews -->
-    <section class="wrap c-sec" id="interviews" data-chapter="Interviews">
-      <div class="c-chapter"><span class="c-chapter__num">03</span><h2 class="c-kicker">Interviews</h2></div>
-      <p class="c-head reveal-mask">Engagement and retention came up most.</p>
-      <div class="c-stats reveal-stagger">
-        <div class="c-stat"><span class="c-stat__num" data-count="11">11</span><span class="c-stat__label">interviewees</span></div>
-        <div class="c-stat"><span class="c-stat__num" data-count="218">218</span><span class="c-stat__label">data points</span></div>
-        <div class="c-stat"><span class="c-stat__num" data-count="7">7</span><span class="c-stat__label">recurring themes</span></div>
-      </div>
-      <div class="c-split" style="align-items:start">
-        <div>
-          <h3 class="c-kicker" style="margin-bottom:12px">Mentions per theme</h3>
-          <ul class="c-bars reveal-stagger">
-            <li><span>Engaging</span><i style="--w:100"></i><span>33</span></li>
-            <li><span>Retention</span><i style="--w:85"></i><span>28</span></li>
-            <li><span>Flexibility</span><i style="--w:73"></i><span>24</span></li>
-            <li><span>Motivation</span><i style="--w:64"></i><span>21</span></li>
-            <li><span>Clarity</span><i style="--w:61"></i><span>20</span></li>
-            <li><span>Guidance</span><i style="--w:52"></i><span>17</span></li>
-            <li><span>Validation</span><i style="--w:42"></i><span>14</span></li>
-          </ul>
-        </div>
-        <div>
-          <h3 class="c-kicker">Feasibility priority</h3>
-          <ol class="c-rank reveal-stagger">
-            <li><b>A</b>Retention</li>
-            <li><b>B</b>Guidance</li>
-            <li><b>C</b>Clarity</li>
-            <li><b>D</b>Validation</li>
-          </ol>
-          <p class="c-text">Retention was both frequent and feasible, so it became the focus of the redesign.</p>
-        </div>
-      </div>
-    </section>
+    <section class="bl-sec" id="interviews" data-chapter="Interviews">
+      <div class="wrap">
+        <header class="bl-ch">
+          <p class="bl-lvl reveal"><small>Level 3</small><span>Interviews</span></p>
+          <h2 class="bl-ch__title reveal-mask"><em>Engagement</em> and <em>retention</em> came up most.</h2>
+        </header>
 
-    <section class="vn" data-scene style="--beats:4" aria-label="Learners in their own words">
-      <div class="vn__stage">
-        <div class="vn__bg vn__bg--blur">
-          <img data-beat="0,1,2,3" src="../assets/projects/brilliant/affinity.webp" alt="" loading="lazy">
-        </div>
-        <div class="vn__shade"></div>
-        <p class="vn__chapter"><b>03</b> In their own words</p>
-        <h3 class="vn__title"><span data-beat="0,1,2,3">What learners told us they want.</span></h3>
-        <p class="vn__big vn__big--word" aria-hidden="true"><span data-beat="0">Retention</span><span data-beat="1">Guidance</span><span data-beat="2">Clarity</span><span data-beat="3">Validation</span></p>
-        <div class="vn__box">
-          <p class="vn__name"><span data-beat="0">Learner · Retention</span><span data-beat="1">Learner · Guidance</span><span data-beat="2">Learner · Clarity</span><span data-beat="3">Learner · Validation</span></p>
-          <div class="vn__lines">
-              <p data-beat="0" data-type>“I need to have a routine to make me come back to learn.”</p>
-              <p data-beat="1" data-type>“I want to ask questions to receive feedback because the details help my understanding of meaning.”</p>
-              <p data-beat="2" data-type>“I want the course structure to be clear because it will help me better understand the coherence of the course content.”</p>
-              <p data-beat="3" data-type>“I want to check something off my goal list because it helps me be productive.”</p>
+        <div class="bl-voices">
+          <div class="bl-voices__side">
+            <h3 class="bl-voices__title">What learners told us</h3>
+            <p class="bl-text">Eleven students told us how they study and what brings them back. Koji tags each quote with the need behind it.</p>
+            <div class="bl-voices__koji"><span class="kspot kspot--voices" data-koji="curious" data-side="right" data-say="Listen in. These are real quotes." data-say-zh="仔细听，这些都是真实的原话。"></span></div>
           </div>
-          <span class="vn__next" aria-hidden="true"></span>
+          <div class="bl-chat" data-chat>
+            <div class="bl-chat__head"><svg viewBox="0 0 120 120" aria-hidden="true"><use href="#koji-mini"/></svg><b>Koji</b></div>
+            <ol class="bl-chat__log">
+              <li class="bl-msg bl-msg--me"><span class="bl-msg__who">Learner</span><p>“I need to have a routine to make me come back to learn.”</p></li>
+              <li class="bl-msg bl-msg--koji"><span class="bl-msg__tag">Retention</span></li>
+              <li class="bl-msg bl-msg--me"><span class="bl-msg__who">Learner</span><p>“I want to ask questions to receive feedback because the details help my understanding of meaning.”</p></li>
+              <li class="bl-msg bl-msg--koji"><span class="bl-msg__tag">Guidance</span></li>
+              <li class="bl-msg bl-msg--me"><span class="bl-msg__who">Learner</span><p>“I want the course structure to be clear because it will help me better understand the coherence of the course content.”</p></li>
+              <li class="bl-msg bl-msg--koji"><span class="bl-msg__tag">Clarity</span></li>
+              <li class="bl-msg bl-msg--me"><span class="bl-msg__who">Learner</span><p>“I want to check something off my goal list because it helps me be productive.”</p></li>
+              <li class="bl-msg bl-msg--koji"><span class="bl-msg__tag">Validation</span></li>
+            </ol>
+            <p class="bl-chat__typing" aria-hidden="true"><i></i><i></i><i></i></p>
+            <div class="bl-chat__input" aria-hidden="true"><span>Ask Koji anything…</span><i></i></div>
+          </div>
         </div>
-        <div class="vn__dots"><button data-goto="0" aria-label="Retention"></button><button data-goto="1" aria-label="Guidance"></button><button data-goto="2" aria-label="Clarity"></button><button data-goto="3" aria-label="Validation"></button></div>
-        <div class="vn__progress"></div>
+        <div class="bl-nums reveal-stagger">
+          <div><b data-count="11">11</b><span>interviewees</span></div>
+          <div><b data-count="218">218</b><span>data points</span></div>
+          <div><b data-count="7">7</b><span>recurring themes</span></div>
+        </div>
+
+        <div class="bl-themes">
+          <div class="bl-card bl-blocks" data-blocks>
+            <h3 class="bl-label">Mentions per theme</h3>
+            <ul>
+              <li style="--n:11"><span>Engaging</span><i></i><b>33</b></li>
+              <li style="--n:9" class="is-focus"><span>Retention</span><i></i><b>28</b></li>
+              <li style="--n:8"><span>Flexibility</span><i></i><b>24</b></li>
+              <li style="--n:7"><span>Motivation</span><i></i><b>21</b></li>
+              <li style="--n:7"><span>Clarity</span><i></i><b>20</b></li>
+              <li style="--n:6"><span>Guidance</span><i></i><b>17</b></li>
+              <li style="--n:5"><span>Validation</span><i></i><b>14</b></li>
+            </ul>
+          </div>
+          <div class="bl-card bl-rank">
+            <h3 class="bl-label">Feasibility priority</h3>
+            <ol class="reveal-stagger">
+              <li class="is-focus"><b>A</b><span>Retention</span><em>Focus</em></li>
+              <li><b>B</b><span>Guidance</span></li>
+              <li><b>C</b><span>Clarity</span></li>
+              <li><b>D</b><span>Validation</span></li>
+            </ol>
+            <p class="bl-text">Retention was both frequent and feasible, so it became the focus of the redesign.</p>
+          </div>
+        </div>
+
       </div>
     </section>
 
     <!-- 04 Ideation & iteration -->
-    <section class="wrap c-sec" id="iteration" data-chapter="Iteration">
-      <div class="c-chapter"><span class="c-chapter__num">04</span><h2 class="c-kicker">Ideation &amp; iteration</h2></div>
-      <p class="c-head reveal-mask">From ideas to a tested flow, step by step.</p>
-      <div class="switcher stepper" data-tabs>
-        <div class="switcher__tabs" role="tablist" aria-label="Design process">
-          <button role="tab" aria-selected="true"><span>01</span>Brainstorm</button>
-          <button role="tab" aria-selected="false" tabindex="-1"><span>02</span>Prioritise</button>
-          <button role="tab" aria-selected="false" tabindex="-1"><span>03</span>Sketch</button>
-          <button role="tab" aria-selected="false" tabindex="-1"><span>04</span>Low-fi</button>
-          <button role="tab" aria-selected="false" tabindex="-1"><span>05</span>Mid-fi</button>
-        </div>
-        <div class="switcher__stage">
-          <figure class="switcher__panel is-active" role="tabpanel"><img src="../assets/projects/brilliant/brainstorm-1.webp" alt="Ideas for consistency and feedback" width="2000" height="1130" loading="lazy"><p>Ideas for building consistency and giving feedback.</p></figure>
-          <figure class="switcher__panel" role="tabpanel"><img src="../assets/projects/brilliant/brainstorm-2.webp" alt="Ideas for structure and goals" width="2000" height="1130" loading="lazy"><p>Ideas for clearer structure and goal-oriented learning.</p></figure>
-          <figure class="switcher__panel" role="tabpanel"><img src="../assets/projects/brilliant/sketch.webp" alt="Interface sketches" width="2000" height="1130" loading="lazy"><p>Early sketches of the interface and learning flow.</p></figure>
-          <figure class="switcher__panel" role="tabpanel"><img src="../assets/projects/brilliant/low-fi.webp" alt="Low-fidelity prototype" width="2000" height="1130" loading="lazy"><p>Low-fi prototypes tested the basic structure and flow.</p></figure>
-          <figure class="switcher__panel" role="tabpanel"><img src="../assets/projects/brilliant/mid-fi.webp" alt="Mid-fidelity prototype" width="2000" height="1130" loading="lazy"><p>Mid-fi prototypes refined layout and interaction.</p></figure>
+    <section class="bl-sec" id="iteration" data-chapter="Iteration">
+      <div class="wrap">
+        <header class="bl-ch">
+          <p class="bl-lvl reveal"><small>Level 4</small><span>Ideation &amp; iteration</span></p>
+          <h2 class="bl-ch__title reveal-mask">From ideas to a tested flow, <em>one</em> <em>level</em> <em>at</em> <em>a</em> <em>time.</em></h2>
+        </header>
+
+        <div class="bl-route" data-route>
+          <div class="bl-route__map">
+            <div class="bl-route__frame bl-route__frame--tall"><svg class="bl-route__svg" viewBox="0 0 420 1000" aria-hidden="true"><path class="bl-circ" d="M12 70 L66 101 L66 160 L18 188"/><circle class="bl-circ-dot" cx="18" cy="188" r="4"/><path class="bl-circ" d="M408 170 L352 202 L392 225"/><circle class="bl-circ-dot" cx="392" cy="225" r="4"/><path class="bl-circ" d="M10 400 L58 428 L18 451"/><circle class="bl-circ-dot" cx="18" cy="451" r="4"/><path class="bl-circ" d="M412 450 L360 480 L360 528 L404 553"/><circle class="bl-circ-dot" cx="404" cy="553" r="4"/><path class="bl-circ" d="M14 640 L64 669 L64 728"/><circle class="bl-circ-dot" cx="64" cy="728" r="4"/><path class="bl-circ" d="M410 790 L360 819 L398 841"/><circle class="bl-circ-dot" cx="398" cy="841" r="4"/><path class="bl-circ" d="M24 980 L76 950 L128 980"/><circle class="bl-circ-dot" cx="128" cy="980" r="4"/><path class="bl-circ" d="M396 950 L350 976"/><circle class="bl-circ-dot" cx="350" cy="976" r="4"/><path class="bl-seg" data-i="0" d="M300 70 L98.0 186.5 L130 205"/><path class="bl-seg" data-i="1" d="M130 205 L358.0 336.5 L300 370"/><path class="bl-seg" data-i="2" d="M300 370 L74.5 500.1 L135 535"/><path class="bl-seg" data-i="3" d="M135 535 L360.5 665.1 L300 700"/><path class="bl-seg" data-i="4" d="M300 700 L77.0 828.7 L140 865"/><g class="bl-badge"><text class="bl-badge__lvl" x="300" y="36">LEVEL</text><polygon class="bl-badge__base" points="300.0,54.9 310.3,60.5 324.0,61.1 324.9,69.6 334.0,76.0 324.9,82.4 324.0,90.9 310.3,91.5 300.0,97.1 289.7,91.5 276.0,90.9 275.1,82.4 266.0,76.0 275.1,69.6 276.0,61.1 289.7,60.5"/><polygon class="bl-badge__top" points="300.0,48.9 310.3,54.5 324.0,55.1 324.9,63.6 334.0,70.0 324.9,76.4 324.0,84.9 310.3,85.5 300.0,91.1 289.7,85.5 276.0,84.9 275.1,76.4 266.0,70.0 275.1,63.6 276.0,55.1 289.7,54.5"/><text class="bl-badge__num" x="300" y="77">4</text></g><g class="bl-node" data-i="0"><polygon class="f-l1" points="83.2,210.2 130.0,237.2 130.0,252.8 83.2,225.8"/><polygon class="f-r1" points="130.0,237.2 176.8,210.2 176.8,225.8 130.0,252.8"/><polygon class="f-t1" points="130.0,183.2 176.8,210.2 130.0,237.2 83.2,210.2"/><polygon class="f-l2" points="101.4,192.0 130.0,208.5 130.0,221.5 101.4,205.0"/><polygon class="f-r2" points="130.0,208.5 158.6,192.0 158.6,205.0 130.0,221.5"/><polygon class="f-t2" points="130.0,175.5 158.6,192.0 130.0,208.5 101.4,192.0"/><ellipse class="bl-node__pad" cx="130.0" cy="192.0" rx="15.7" ry="9.1"/><text class="bl-node__label" x="130" y="281">Brainstorm I</text></g><g class="bl-node" data-i="1"><polygon class="f-l1" points="253.2,375.2 300.0,402.2 300.0,417.8 253.2,390.8"/><polygon class="f-r1" points="300.0,402.2 346.8,375.2 346.8,390.8 300.0,417.8"/><polygon class="f-t1" points="300.0,348.2 346.8,375.2 300.0,402.2 253.2,375.2"/><polygon class="f-l2" points="271.4,357.0 300.0,373.5 300.0,386.5 271.4,370.0"/><polygon class="f-r2" points="300.0,373.5 328.6,357.0 328.6,370.0 300.0,386.5"/><polygon class="f-t2" points="300.0,340.5 328.6,357.0 300.0,373.5 271.4,357.0"/><ellipse class="bl-node__pad" cx="300.0" cy="357.0" rx="15.7" ry="9.1"/><text class="bl-node__label" x="300" y="446">Brainstorm II</text></g><g class="bl-node" data-i="2"><polygon class="f-l1" points="88.2,540.2 135.0,567.2 135.0,582.8 88.2,555.8"/><polygon class="f-r1" points="135.0,567.2 181.8,540.2 181.8,555.8 135.0,582.8"/><polygon class="f-t1" points="135.0,513.2 181.8,540.2 135.0,567.2 88.2,540.2"/><polygon class="f-l2" points="106.4,522.0 135.0,538.5 135.0,551.5 106.4,535.0"/><polygon class="f-r2" points="135.0,538.5 163.6,522.0 163.6,535.0 135.0,551.5"/><polygon class="f-t2" points="135.0,505.5 163.6,522.0 135.0,538.5 106.4,522.0"/><ellipse class="bl-node__pad" cx="135.0" cy="522.0" rx="15.7" ry="9.1"/><text class="bl-node__label" x="135" y="611">Sketch</text></g><g class="bl-node" data-i="3"><polygon class="f-l1" points="253.2,705.2 300.0,732.2 300.0,747.8 253.2,720.8"/><polygon class="f-r1" points="300.0,732.2 346.8,705.2 346.8,720.8 300.0,747.8"/><polygon class="f-t1" points="300.0,678.2 346.8,705.2 300.0,732.2 253.2,705.2"/><polygon class="f-l2" points="271.4,687.0 300.0,703.5 300.0,716.5 271.4,700.0"/><polygon class="f-r2" points="300.0,703.5 328.6,687.0 328.6,700.0 300.0,716.5"/><polygon class="f-t2" points="300.0,670.5 328.6,687.0 300.0,703.5 271.4,687.0"/><ellipse class="bl-node__pad" cx="300.0" cy="687.0" rx="15.7" ry="9.1"/><text class="bl-node__label" x="300" y="776">Low-fi</text></g><g class="bl-node" data-i="4"><polygon class="f-l1" points="93.2,870.2 140.0,897.2 140.0,912.8 93.2,885.8"/><polygon class="f-r1" points="140.0,897.2 186.8,870.2 186.8,885.8 140.0,912.8"/><polygon class="f-t1" points="140.0,843.2 186.8,870.2 140.0,897.2 93.2,870.2"/><polygon class="f-l2" points="111.4,852.0 140.0,868.5 140.0,881.5 111.4,865.0"/><polygon class="f-r2" points="140.0,868.5 168.6,852.0 168.6,865.0 140.0,881.5"/><polygon class="f-t2" points="140.0,835.5 168.6,852.0 140.0,868.5 111.4,852.0"/><ellipse class="bl-node__pad" cx="140.0" cy="852.0" rx="15.7" ry="9.1"/><text class="bl-node__label" x="140" y="941">Mid-fi</text></g></svg><span class="kspot kspot--iso" data-koji="walk" data-say="" style="left:30.95%;top:12.10%"></span><span class="kspot kspot--iso" data-koji="walk" data-say="" style="left:71.43%;top:28.60%"></span><span class="kspot kspot--iso" data-koji="walk" data-say="" style="left:32.14%;top:45.10%"></span><span class="kspot kspot--iso" data-koji="walk" data-say="" style="left:71.43%;top:61.60%"></span><span class="kspot kspot--iso" data-koji="walk" data-say="" style="left:33.33%;top:78.10%"></span></div>
+            <div class="bl-route__frame bl-route__frame--strip"><svg class="bl-route__svg" viewBox="0 0 360 140" aria-hidden="true"><path class="bl-seg" data-i="0" d="M30 70 L88 58"/><path class="bl-seg" data-i="1" d="M88 58 L152 92"/><path class="bl-seg" data-i="2" d="M152 92 L216 58"/><path class="bl-seg" data-i="3" d="M216 58 L280 92"/><path class="bl-seg" data-i="4" d="M280 92 L336 58"/><g class="bl-badge"><polygon class="bl-badge__base" points="30.0,61.8 35.4,65.0 42.7,65.1 42.9,69.7 48.0,73.0 42.9,76.3 42.7,80.9 35.4,81.0 30.0,84.2 24.6,81.0 17.3,80.9 17.1,76.3 12.0,73.0 17.1,69.7 17.3,65.1 24.6,65.0"/><polygon class="bl-badge__top" points="30.0,58.8 35.4,62.0 42.7,62.1 42.9,66.7 48.0,70.0 42.9,73.3 42.7,77.9 35.4,78.0 30.0,81.2 24.6,78.0 17.3,77.9 17.1,73.3 12.0,70.0 17.1,66.7 17.3,62.1 24.6,62.0"/><text class="bl-badge__num" x="30" y="75">4</text></g><g class="bl-node" data-i="0"><polygon class="f-l1" points="66.4,60.4 88.0,72.9 88.0,80.1 66.4,67.6"/><polygon class="f-r1" points="88.0,72.9 109.6,60.4 109.6,67.6 88.0,80.1"/><polygon class="f-t1" points="88.0,47.9 109.6,60.4 88.0,72.9 66.4,60.4"/><polygon class="f-l2" points="74.8,52.0 88.0,59.6 88.0,65.6 74.8,58.0"/><polygon class="f-r2" points="88.0,59.6 101.2,52.0 101.2,58.0 88.0,65.6"/><polygon class="f-t2" points="88.0,44.4 101.2,52.0 88.0,59.6 74.8,52.0"/><ellipse class="bl-node__pad" cx="88.0" cy="52.0" rx="7.3" ry="4.2"/></g><g class="bl-node" data-i="1"><polygon class="f-l1" points="130.4,94.4 152.0,106.9 152.0,114.1 130.4,101.6"/><polygon class="f-r1" points="152.0,106.9 173.6,94.4 173.6,101.6 152.0,114.1"/><polygon class="f-t1" points="152.0,81.9 173.6,94.4 152.0,106.9 130.4,94.4"/><polygon class="f-l2" points="138.8,86.0 152.0,93.6 152.0,99.6 138.8,92.0"/><polygon class="f-r2" points="152.0,93.6 165.2,86.0 165.2,92.0 152.0,99.6"/><polygon class="f-t2" points="152.0,78.4 165.2,86.0 152.0,93.6 138.8,86.0"/><ellipse class="bl-node__pad" cx="152.0" cy="86.0" rx="7.3" ry="4.2"/></g><g class="bl-node" data-i="2"><polygon class="f-l1" points="194.4,60.4 216.0,72.9 216.0,80.1 194.4,67.6"/><polygon class="f-r1" points="216.0,72.9 237.6,60.4 237.6,67.6 216.0,80.1"/><polygon class="f-t1" points="216.0,47.9 237.6,60.4 216.0,72.9 194.4,60.4"/><polygon class="f-l2" points="202.8,52.0 216.0,59.6 216.0,65.6 202.8,58.0"/><polygon class="f-r2" points="216.0,59.6 229.2,52.0 229.2,58.0 216.0,65.6"/><polygon class="f-t2" points="216.0,44.4 229.2,52.0 216.0,59.6 202.8,52.0"/><ellipse class="bl-node__pad" cx="216.0" cy="52.0" rx="7.3" ry="4.2"/></g><g class="bl-node" data-i="3"><polygon class="f-l1" points="258.4,94.4 280.0,106.9 280.0,114.1 258.4,101.6"/><polygon class="f-r1" points="280.0,106.9 301.6,94.4 301.6,101.6 280.0,114.1"/><polygon class="f-t1" points="280.0,81.9 301.6,94.4 280.0,106.9 258.4,94.4"/><polygon class="f-l2" points="266.8,86.0 280.0,93.6 280.0,99.6 266.8,92.0"/><polygon class="f-r2" points="280.0,93.6 293.2,86.0 293.2,92.0 280.0,99.6"/><polygon class="f-t2" points="280.0,78.4 293.2,86.0 280.0,93.6 266.8,86.0"/><ellipse class="bl-node__pad" cx="280.0" cy="86.0" rx="7.3" ry="4.2"/></g><g class="bl-node" data-i="4"><polygon class="f-l1" points="314.4,60.4 336.0,72.9 336.0,80.1 314.4,67.6"/><polygon class="f-r1" points="336.0,72.9 357.6,60.4 357.6,67.6 336.0,80.1"/><polygon class="f-t1" points="336.0,47.9 357.6,60.4 336.0,72.9 314.4,60.4"/><polygon class="f-l2" points="322.8,52.0 336.0,59.6 336.0,65.6 322.8,58.0"/><polygon class="f-r2" points="336.0,59.6 349.2,52.0 349.2,58.0 336.0,65.6"/><polygon class="f-t2" points="336.0,44.4 349.2,52.0 336.0,59.6 322.8,52.0"/><ellipse class="bl-node__pad" cx="336.0" cy="52.0" rx="7.3" ry="4.2"/></g></svg><span class="kspot kspot--iso" data-koji="walk" data-say="" style="left:24.44%;top:15.71%"></span><span class="kspot kspot--iso" data-koji="walk" data-say="" style="left:42.22%;top:40.00%"></span><span class="kspot kspot--iso" data-koji="walk" data-say="" style="left:60.00%;top:15.71%"></span><span class="kspot kspot--iso" data-koji="walk" data-say="" style="left:77.78%;top:40.00%"></span><span class="kspot kspot--iso" data-koji="walk" data-say="" style="left:93.33%;top:15.71%"></span></div>
+          </div>
+          <ol class="bl-route__stages">
+            <li class="bl-stage"><figure class="bl-card"><img src="../assets/projects/brilliant/brainstorm-1.webp" alt="Ideas for consistency and feedback" width="2000" height="1130" loading="lazy"><figcaption><b>Brainstorm I</b>Ideas for building learning routines and giving feedback.</figcaption></figure></li>
+            <li class="bl-stage"><figure class="bl-card"><img src="../assets/projects/brilliant/brainstorm-2.webp" alt="Ideas for structure and goals" width="2000" height="1130" loading="lazy"><figcaption><b>Brainstorm II</b>Ideas for clearer course structure and goal-oriented learning.</figcaption></figure></li>
+            <li class="bl-stage"><figure class="bl-card"><img src="../assets/projects/brilliant/sketch.webp" alt="Interface sketches" width="2000" height="1130" loading="lazy"><figcaption><b>Sketch</b>Early whiteboard sketches of the interface and learning flow.</figcaption></figure></li>
+            <li class="bl-stage"><figure class="bl-card"><img src="../assets/projects/brilliant/low-fi.webp" alt="Low-fidelity prototype" width="2000" height="1130" loading="lazy"><figcaption><b>Low-fi</b>Paper prototypes tested the basic structure and flow.</figcaption></figure></li>
+            <li class="bl-stage"><figure class="bl-card"><img src="../assets/projects/brilliant/mid-fi.webp" alt="Mid-fidelity prototype" width="2000" height="1130" loading="lazy"><figcaption><b>Mid-fi</b>Mid-fi prototypes refined layout and interaction.</figcaption></figure></li>
+          </ol>
         </div>
       </div>
     </section>
 
-    <!-- 05 Usability -->
-    <section class="wrap c-sec" id="testing" data-chapter="Usability tests">
-      <div class="c-chapter"><span class="c-chapter__num">05</span><h2 class="c-kicker">Usability tests</h2></div>
-      <p class="c-head reveal-mask">Testing task completion and navigation.</p>
-      <div class="c-stack" data-stack style="max-width:1000px;margin-inline:auto">
-        <div style="--n:0"><img src="../assets/projects/brilliant/usability-1.webp" alt="Usability test 1" width="2000" height="1130" loading="lazy" style="width:100%;border-radius:20px"></div>
-        <div style="--n:1"><img src="../assets/projects/brilliant/usability-2.webp" alt="Usability test 2" width="2000" height="1130" loading="lazy" style="width:100%;border-radius:20px"></div>
-        <div style="--n:2"><img src="../assets/projects/brilliant/usability-3.webp" alt="Usability test 3" width="2000" height="1130" loading="lazy" style="width:100%;border-radius:20px"></div>
-        <div style="--n:3"><img src="../assets/projects/brilliant/usability-4.webp" alt="Usability test 4" width="2000" height="1130" loading="lazy" style="width:100%;border-radius:20px"></div>
-        <div style="--n:4"><img src="../assets/projects/brilliant/usability-5.webp" alt="Usability test results" width="2000" height="1130" loading="lazy" style="width:100%;border-radius:20px"></div>
+    <!-- 05 The design: Koji walks the reader through each part of the screens -->
+    <section class="bl-sec" id="design" data-chapter="Design">
+      <div class="wrap">
+        <header class="bl-ch">
+          <p class="bl-lvl reveal"><small>Level 5</small><span>The design</span></p>
+          <h2 class="bl-ch__title reveal-mask">Meet the redesign, <em>one</em> <em>feature</em> <em>at</em> <em>a</em> <em>time.</em></h2>
+          <span class="kspot" data-koji="wave" data-say="Let me show you around!" data-say-zh="我带你逛一圈！"></span>
+        </header>
+        <figure class="bl-banner reveal">
+          <img src="../assets/projects/brilliant/final-1.webp" alt="The redesigned Brilliant screens together" width="1498" height="848" loading="lazy">
+        </figure>
+      </div>
+      <div class="bl-design" data-scene style="--beats:7">
+        <div class="bl-design__pin">
+          <div class="bl-design__in wrap">
+            <div class="bl-design__copy">
+              <ol class="bl-design__steps">
+              <li><button type="button" data-goto="0" aria-label="Home & streaks"><span>1</span></button></li>
+              <li><button type="button" data-goto="1" aria-label="Learning path"><span>2</span></button></li>
+              <li><button type="button" data-goto="2" aria-label="Course overview"><span>3</span></button></li>
+              <li><button type="button" data-goto="3" aria-label="Goals & review"><span>4</span></button></li>
+              <li><button type="button" data-goto="4" aria-label="Mistake review"><span>5</span></button></li>
+              <li><button type="button" data-goto="5" aria-label="Pick a time"><span>6</span></button></li>
+              <li><button type="button" data-goto="6" aria-label="Ask Koji"><span>7</span></button></li>
+              </ol>
+              <div class="bl-design__panels">
+              <article class="bl-feat" data-beat="0">
+                <h3>Home &amp; streaks</h3>
+                <p class="bl-feat__text">The home page opens on your streak and today’s lesson, so coming back becomes a routine.</p>
+              </article>
+              <article class="bl-feat" data-beat="1">
+                <h3>Learning path</h3>
+                <p class="bl-feat__text">A course reads as a path of lessons, so learners always know where they are and what comes next.</p>
+              </article>
+              <article class="bl-feat" data-beat="2">
+                <h3>Course overview</h3>
+                <p class="bl-feat__text">An overview and pre-test before each course, with rollover text explaining every lesson widget.</p>
+              </article>
+              <article class="bl-feat" data-beat="3">
+                <h3>Goals &amp; review</h3>
+                <p class="bl-feat__text">Daily goals pay out XP, and the review panel tracks activity, goals and mistakes in one place.</p>
+              </article>
+              <article class="bl-feat" data-beat="4">
+                <h3>Mistake review</h3>
+                <p class="bl-feat__text">Every wrong answer waits in a review deck, ready to retry with an explanation one click away.</p>
+              </article>
+              <article class="bl-feat" data-beat="5">
+                <h3>Pick a time</h3>
+                <p class="bl-feat__text">Learners schedule lessons on a calendar and get reminded by email or phone.</p>
+              </article>
+              <article class="bl-feat" data-beat="6">
+                <h3>Ask Koji</h3>
+                <p class="bl-feat__text">An AI tutor sits beside every problem, answering questions and explaining in more detail.</p>
+              </article>
+              </div>
+            </div>
+            <figure class="bl-window bl-design__screen">
+              <div class="bl-window__bar"><i></i><i></i><i></i><span>brilliant.org</span></div>
+              <span class="kspot kspot--rest" data-koji="happy" data-say="" data-off></span>
+              <div class="bl-design__shots">
+                <img data-beat="0" src="../assets/projects/brilliant/gallery-1.webp" alt="Home screen with streak" width="1920" height="1080" loading="lazy">
+                <img data-beat="1" src="../assets/projects/brilliant/gallery-3.webp" alt="Course page with learning path" width="1920" height="1080" loading="lazy">
+                <img data-beat="2" src="../assets/projects/brilliant/gallery-5.webp" alt="Course overview screen" width="1920" height="1080" loading="lazy">
+                <img data-beat="3" src="../assets/projects/brilliant/gallery-6.webp" alt="Goals and review screen" width="1920" height="1080" loading="lazy">
+                <img data-beat="4" src="../assets/projects/brilliant/gallery-7.webp" alt="Mistake correction screen" width="1920" height="1080" loading="lazy">
+                <img data-beat="5" src="../assets/projects/brilliant/gallery-4.webp" alt="Calendar scheduling screen" width="1920" height="1080" loading="lazy">
+                <img data-beat="6" src="../assets/projects/brilliant/gallery-9.webp" alt="Ask Koji chat screen" width="1920" height="1080" loading="lazy">
+                <i class="bl-hot" data-beat="0" style="--x:19%;--y:31%;--w:25%;--h:28%"><span class="kspot kspot--hot" data-koji="happy" data-side="top" data-say="Your streak lives right here." data-say-zh="你的连续学习记录就在这里。"></span></i>
+                <i class="bl-hot" data-beat="1" style="--x:51%;--y:19%;--w:30%;--h:80%"><span class="kspot kspot--hot" data-koji="curious" data-side="top" data-say="One clear path through the course." data-say-zh="一条清楚的课程路径。"></span></i>
+                <i class="bl-hot" data-beat="2" style="--x:49%;--y:24%;--w:38%;--h:75%"><span class="kspot kspot--hot" data-koji="happy" data-side="top" data-say="Peek before you start." data-say-zh="开始之前，先看一眼。"></span></i>
+                <i class="bl-hot" data-beat="3" style="--x:49%;--y:24%;--w:38%;--h:75%"><span class="kspot kspot--hot" data-koji="cheer" data-side="top" data-say="Check off a goal, earn XP!" data-say-zh="完成一个目标，赚点 XP！"></span></i>
+                <i class="bl-hot" data-beat="4" style="--x:49%;--y:24%;--w:36%;--h:75%"><span class="kspot kspot--hot" data-koji="think" data-side="top" data-say="Mistakes are just practice." data-say-zh="错题就是练习。"></span></i>
+                <i class="bl-hot" data-beat="5" style="--x:49%;--y:23%;--w:41%;--h:76%"><span class="kspot kspot--hot" data-koji="happy" data-side="top" data-say="Book a time, I’ll remind you." data-say-zh="约个时间，我来提醒你。"></span></i>
+                <i class="bl-hot" data-beat="6" style="--x:59%;--y:18%;--w:38%;--h:80%"><span class="kspot kspot--hot" data-koji="wave" data-side="top" data-say="That’s me! Ask me anything." data-say-zh="就是我！随便问。"></span></i>
+              </div>
+            </figure>
+          </div>
+        </div>
       </div>
     </section>
 
-    <!-- 06 Outcome -->
-    <section class="wrap c-sec" id="outcome" data-chapter="Outcome">
-      <div class="c-chapter"><span class="c-chapter__num">06</span><h2 class="c-kicker">Outcome</h2></div>
-      <p class="c-head reveal-mask">The final design.</p>
-      <figure class="c-figure reveal"><img src="../assets/projects/brilliant/final-1.webp" alt="Final design 1" width="1498" height="848" loading="lazy"></figure>
-      <figure class="c-figure reveal"><img src="../assets/projects/brilliant/final-2.webp" alt="Final design 2" width="1498" height="848" loading="lazy"></figure>
-      <figure class="c-figure reveal"><img src="../assets/projects/brilliant/final-3.webp" alt="Final design 3" width="1498" height="848" loading="lazy"></figure>
+    <!-- 06 Usability tests: a level map; Koji hops from flow to flow and the XP adds up -->
+    <section class="bl-sec" id="testing" data-chapter="Usability tests">
+      <div class="wrap">
+        <header class="bl-ch">
+          <p class="bl-lvl reveal"><small>Level 6</small><span>Usability tests</span></p>
+          <h2 class="bl-ch__title reveal-mask">Five flows, five <em>test</em> <em>runs.</em></h2>
+          <span class="kspot" data-koji="cheer" data-say="Let’s see how learners did!" data-say-zh="来看看学习者表现如何！"></span>
+        </header>
+      </div>
+      <div class="bl-test" data-scene style="--beats:5">
+        <div class="bl-test__pin">
+          <div class="bl-test__in wrap">
+            <ol class="bl-test__map">
+              <li data-beat="0"><span class="bl-disc bl-iso"><svg class="bl-iso__svg" viewBox="0 0 120 100" aria-hidden="true"><g class="bl-node"><polygon class="f-l1" points="24.0,56.0 60.0,76.8 60.0,88.8 24.0,68.0"/><polygon class="f-r1" points="60.0,76.8 96.0,56.0 96.0,68.0 60.0,88.8"/><polygon class="f-t1" points="60.0,35.2 96.0,56.0 60.0,76.8 24.0,56.0"/><polygon class="f-l2" points="38.0,42.0 60.0,54.7 60.0,64.7 38.0,52.0"/><polygon class="f-r2" points="60.0,54.7 82.0,42.0 82.0,52.0 60.0,64.7"/><polygon class="f-t2" points="60.0,29.3 82.0,42.0 60.0,54.7 38.0,42.0"/><ellipse class="bl-node__pad" cx="60" cy="42.0" rx="12.1" ry="7.0"/></g></svg><span class="kspot kspot--node" data-koji="think" data-say=""></span></span><b>Course overview</b></li>
+              <li data-beat="1"><span class="bl-disc bl-iso"><svg class="bl-iso__svg" viewBox="0 0 120 100" aria-hidden="true"><g class="bl-node"><polygon class="f-l1" points="24.0,56.0 60.0,76.8 60.0,88.8 24.0,68.0"/><polygon class="f-r1" points="60.0,76.8 96.0,56.0 96.0,68.0 60.0,88.8"/><polygon class="f-t1" points="60.0,35.2 96.0,56.0 60.0,76.8 24.0,56.0"/><polygon class="f-l2" points="38.0,42.0 60.0,54.7 60.0,64.7 38.0,52.0"/><polygon class="f-r2" points="60.0,54.7 82.0,42.0 82.0,52.0 60.0,64.7"/><polygon class="f-t2" points="60.0,29.3 82.0,42.0 60.0,54.7 38.0,42.0"/><ellipse class="bl-node__pad" cx="60" cy="42.0" rx="12.1" ry="7.0"/></g></svg><span class="kspot kspot--node" data-koji="cheer" data-say=""></span></span><b>Set a goal</b></li>
+              <li data-beat="2"><span class="bl-disc bl-iso"><svg class="bl-iso__svg" viewBox="0 0 120 100" aria-hidden="true"><g class="bl-node"><polygon class="f-l1" points="24.0,56.0 60.0,76.8 60.0,88.8 24.0,68.0"/><polygon class="f-r1" points="60.0,76.8 96.0,56.0 96.0,68.0 60.0,88.8"/><polygon class="f-t1" points="60.0,35.2 96.0,56.0 60.0,76.8 24.0,56.0"/><polygon class="f-l2" points="38.0,42.0 60.0,54.7 60.0,64.7 38.0,52.0"/><polygon class="f-r2" points="60.0,54.7 82.0,42.0 82.0,52.0 60.0,64.7"/><polygon class="f-t2" points="60.0,29.3 82.0,42.0 60.0,54.7 38.0,42.0"/><ellipse class="bl-node__pad" cx="60" cy="42.0" rx="12.1" ry="7.0"/></g></svg><span class="kspot kspot--node" data-koji="cheer" data-say=""></span></span><b>Mistake correction</b></li>
+              <li data-beat="3"><span class="bl-disc bl-iso"><svg class="bl-iso__svg" viewBox="0 0 120 100" aria-hidden="true"><g class="bl-node"><polygon class="f-l1" points="24.0,56.0 60.0,76.8 60.0,88.8 24.0,68.0"/><polygon class="f-r1" points="60.0,76.8 96.0,56.0 96.0,68.0 60.0,88.8"/><polygon class="f-t1" points="60.0,35.2 96.0,56.0 60.0,76.8 24.0,56.0"/><polygon class="f-l2" points="38.0,42.0 60.0,54.7 60.0,64.7 38.0,52.0"/><polygon class="f-r2" points="60.0,54.7 82.0,42.0 82.0,52.0 60.0,64.7"/><polygon class="f-t2" points="60.0,29.3 82.0,42.0 60.0,54.7 38.0,42.0"/><ellipse class="bl-node__pad" cx="60" cy="42.0" rx="12.1" ry="7.0"/></g></svg><span class="kspot kspot--node" data-koji="worry" data-say=""></span></span><b>Calendar goal</b></li>
+              <li data-beat="4"><span class="bl-disc bl-iso"><svg class="bl-iso__svg" viewBox="0 0 120 100" aria-hidden="true"><g class="bl-node"><polygon class="f-l1" points="24.0,56.0 60.0,76.8 60.0,88.8 24.0,68.0"/><polygon class="f-r1" points="60.0,76.8 96.0,56.0 96.0,68.0 60.0,88.8"/><polygon class="f-t1" points="60.0,35.2 96.0,56.0 60.0,76.8 24.0,56.0"/><polygon class="f-l2" points="38.0,42.0 60.0,54.7 60.0,64.7 38.0,52.0"/><polygon class="f-r2" points="60.0,54.7 82.0,42.0 82.0,52.0 60.0,64.7"/><polygon class="f-t2" points="60.0,29.3 82.0,42.0 60.0,54.7 38.0,42.0"/><ellipse class="bl-node__pad" cx="60" cy="42.0" rx="12.1" ry="7.0"/></g></svg><span class="kspot kspot--node" data-koji="worry" data-say=""></span></span><b>Ask Koji</b></li>
+            </ol>
+            <div class="bl-test__board">
+              <p class="bl-test__xp"><span>Total XP</span><b data-xp-total>0</b></p>
+              <div class="bl-test__cards">
+              <article class="bl-run" data-beat="0" data-xp="231">
+                <h3>Course overview</h3>
+                <span class="bl-stamp">Room to grow</span>
+                <div class="bl-gauges"><div class="bl-gauge" style="--v:70"><b>70%</b><span>Idea success</span></div><div class="bl-gauge" style="--v:76"><b>76%</b><span>Action success</span></div><div class="bl-gauge" style="--v:85"><b>85%</b><span>Satisfaction</span></div></div>
+                <p class="bl-run__saw">Learners flipped through lesson content without trying the questions, but the detailed blurbs and rollover text made them more confident choosing a course.</p>
+                <p class="bl-run__idea"><b>Learner’s idea</b>Show the lesson widgets up front instead of asking questions.</p>
+                <p class="bl-run__koji" data-say-zh="悬停提示很受欢迎，题目还差点意思。">Rollover text won people over. The questions, not yet.</p>
+              </article>
+              <article class="bl-run" data-beat="1" data-xp="250">
+                <h3>Set a goal</h3>
+                <span class="bl-stamp bl-stamp--good">Nailed it</span>
+                <div class="bl-gauges"><div class="bl-gauge" style="--v:100"><b>100%</b><span>Idea success</span></div><div class="bl-gauge" style="--v:80"><b>80%</b><span>Action success</span></div><div class="bl-gauge" style="--v:70"><b>70%</b><span>Satisfaction</span></div></div>
+                <p class="bl-run__saw">Everyone understood goals as a way to measure success. Some went through several menus first, and it was unclear whether goals were set per lesson until the task was done.</p>
+                <p class="bl-run__idea"><b>Learner’s idea</b>Tie goals to XP, leaderboards and other rewards.</p>
+                <p class="bl-run__koji" data-say-zh="目标一看就懂，只是要找一会儿。">Goals clicked right away. Finding them took a while.</p>
+              </article>
+              <article class="bl-run" data-beat="2" data-xp="268">
+                <h3>Mistake correction</h3>
+                <span class="bl-stamp bl-stamp--good">Nailed it</span>
+                <div class="bl-gauges"><div class="bl-gauge" style="--v:100"><b>100%</b><span>Idea success</span></div><div class="bl-gauge" style="--v:88"><b>88%</b><span>Action success</span></div><div class="bl-gauge" style="--v:80"><b>80%</b><span>Satisfaction</span></div></div>
+                <p class="bl-run__saw">Learners found their mistakes quickly in the review panel, corrected all of them and read most explanations.</p>
+                <p class="bl-run__idea"><b>Learner’s idea</b>Retest failed content with similar questions, and give a little XP for each fix.</p>
+                <p class="bl-run__koji" data-say-zh="错题全改完了！给点 XP 吧。">All mistakes fixed! XP for that, please.</p>
+              </article>
+              <article class="bl-run" data-beat="3" data-xp="239">
+                <h3>Calendar goal</h3>
+                <span class="bl-stamp">Room to grow</span>
+                <div class="bl-gauges"><div class="bl-gauge" style="--v:93"><b>93%</b><span>Idea success</span></div><div class="bl-gauge" style="--v:70"><b>70%</b><span>Action success</span></div><div class="bl-gauge" style="--v:76"><b>76%</b><span>Satisfaction</span></div></div>
+                <p class="bl-run__saw">Picking a daily task was easy. Replacing a goal in progress pushed straight through the warning, and unevenly sized buttons bothered people, though they appreciated being warned.</p>
+                <p class="bl-run__idea"><b>Learner’s idea</b>Use cosmetics as an easy reward for collectors.</p>
+                <p class="bl-run__koji" data-say-zh="小心！那个目标还没完成呢。">Careful! That goal wasn’t finished.</p>
+              </article>
+              <article class="bl-run" data-beat="4" data-xp="212">
+                <h3>Ask Koji</h3>
+                <span class="bl-stamp">Room to grow</span>
+                <div class="bl-gauges"><div class="bl-gauge" style="--v:66"><b>66%</b><span>Idea success</span></div><div class="bl-gauge" style="--v:70"><b>70%</b><span>Action success</span></div><div class="bl-gauge" style="--v:76"><b>76%</b><span>Satisfaction</span></div></div>
+                <p class="bl-run__saw">Learners enjoyed exploring different perspectives with Koji, but struggled to phrase questions that it answered well.</p>
+                <p class="bl-run__idea"><b>Learner’s idea</b>An FAQ chatbot that links to the same articles as the rollover text.</p>
+                <p class="bl-run__koji" data-say-zh="向我提个好问题，比想象中难。">Asking me good questions is harder than it looks.</p>
+              </article>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="wrap">
+        <div class="bl-done reveal" data-done>
+          <div class="bl-done__badge" aria-hidden="true"><svg viewBox="0 0 100 100"><path d="M50 6 L90 28 L90 72 L50 94 L10 72 L10 28 Z" fill="#ffc93c"/><path d="M50 6 L90 28 L50 50 L10 28 Z" fill="#ffe08a"/><path d="M50 50 L90 28 L90 72 L50 94 Z" fill="#e8a400"/><path d="M36 50 L46 60 L66 40" fill="none" stroke="#111" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+          <div>
+            <p class="bl-done__title">Course complete</p>
+            <p class="bl-done__sub">6 levels · 11 interviews · 7 features · 5 tested flows</p>
+          </div>
+          <span class="kspot kspot--done" data-koji="cheer" data-side="left" data-dark data-say="You made it! +100 XP" data-say-zh="通关啦！+100 XP"></span>
+          <div class="bl-confetti" aria-hidden="true"></div>
+        </div>
+      </div>
     </section>
 
     <section class="gallery" aria-label="Project images">
-      <div class="wrap"><h2 class="c-kicker" style="margin-bottom:32px">More images</h2></div>
+      <div class="wrap"><h2 class="bl-label" style="margin-bottom:32px">More screens</h2></div>
       <div class="gallery__track" tabindex="0" data-cursor="Drag">
         <img src="../assets/projects/brilliant/gallery-1.webp" alt="Brilliant redesign screen" width="1920" height="1080" loading="lazy" draggable="false">
         <img src="../assets/projects/brilliant/gallery-2.webp" alt="Brilliant redesign screen" width="1920" height="1080" loading="lazy" draggable="false">
@@ -325,7 +556,7 @@
   </footer>
 
   <script src="../assets/js/lenis.min.js" defer></script>
-  <script src="../i18n/zh/brilliant.js?v=1" defer></script>
-  <script src="../main.js?v=20261086" defer></script>
+  <script src="../i18n/zh/brilliant.js?v=6" defer></script>
+  <script src="../main.js?v=20261118" defer></script>
 </body>
 </html>
