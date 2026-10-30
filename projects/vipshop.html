@@ -132,7 +132,7 @@
       return html;
     };
     const show = (html) => { document.open(); document.write(html); document.close(); };
-    const loadSite = () => JSON.parse('["../assets/js/lenis.min.js","../i18n/zh/vipshop.js?v=2","../main.js?v=20261086"]').reduce((p, src) => p.then(() => new Promise((ok) => { const s = document.createElement("script"); s.src = src; s.onload = s.onerror = ok; document.body.appendChild(s); })), Promise.resolve());
+    const loadSite = () => JSON.parse('["../assets/js/lenis.min.js","../i18n/zh/vipshop.js?v=2","../main.js?v=20261087"]').reduce((p, src) => p.then(() => new Promise((ok) => { const s = document.createElement("script"); s.src = src; s.onload = s.onerror = ok; document.body.appendChild(s); })), Promise.resolve());
     const tr = (en, zh) => (window.__i18n ? window.__i18n.t(en, zh) : en);
     const form = document.querySelector("[data-lock]"), msg = document.querySelector("[data-lock-msg]"), input = form.querySelector("input");
     form.addEventListener("submit", async (e) => {

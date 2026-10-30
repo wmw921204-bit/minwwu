@@ -1653,11 +1653,17 @@ $$("[data-talk]").forEach((talk) => {
     lines.forEach((el, i) => el.classList.toggle("is-on", i === k));
     chips.forEach((el, i) => el.classList.toggle("is-on", i === k));
   };
-  const loop = () => { clearInterval(timer); if (!reduceMotion) timer = setInterval(() => { if (panel.classList.contains("is-active")) say((cur + 1) % lines.length); }, 3600); };
+  // the lines only start turning once the photo is properly on screen, and begin from the first one
+  let seen = false, visible = false;
+  const loop = () => { clearInterval(timer); if (!reduceMotion) timer = setInterval(() => { if (visible && panel.classList.contains("is-active")) say((cur + 1) % lines.length); }, 3600); };
   chips.forEach((el, i) => el.addEventListener("click", () => { say(i); loop(); }));
   talk.addEventListener("mouseenter", () => clearInterval(timer));
   talk.addEventListener("mouseleave", loop);
-  loop();
+  say(0);
+  new IntersectionObserver(([en]) => {
+    visible = en.isIntersecting;
+    if (visible && !seen) { seen = true; say(0); loop(); }
+  }, { threshold: 0.6 }).observe(talk);
 });
 
 // journey map: Agnes's dinner out, played through on the poster itself. She and her friend meet, pick a place,
@@ -1915,7 +1921,7 @@ $$("[data-jm]").forEach((box) => {
   new IntersectionObserver(([en]) => {
     live = en.isIntersecting;
     if (live && !raf) { last = performance.now(); raf = requestAnimationFrame(frame); }
-  }, { threshold: 0.3 }).observe(view);
+  }, { threshold: 0.6 }).observe(view);
 });
 
 // "see the original poster" opens the infographic in the lightbox
@@ -1945,7 +1951,7 @@ $$("[data-eco2]").forEach((box) => {
     if (!en.isIntersecting) return;
     if (k < 0) set(0);
     if (!reduceMotion) timer = setInterval(() => { if (!hold) set((k + 1) % 3); }, 3200);
-  }, { threshold: 0.4 }).observe(box);
+  }, { threshold: 0.6 }).observe(box);
 });
 
 // opportunity slats: the one under the pointer or focus opens

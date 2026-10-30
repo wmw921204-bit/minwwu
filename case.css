@@ -5213,11 +5213,11 @@ button:has(.ti--orbit):hover .tl { letter-spacing: .06em; }
 .eco2[data-active="0"] li[data-layer="0"] p, .eco2[data-active="1"] li[data-layer="1"] p, .eco2[data-active="2"] li[data-layer="2"] p { max-height: 120px; margin-top: 6px; }
 .eco2-moral { margin: clamp(16px, 2.6vh, 28px) 0 0; padding-left: 14px; border-left: 3px solid #f2b84b; font: 500 clamp(15px, 1.15vw, 17px)/1.45 var(--f-display); letter-spacing: -0.01em; }
 .eco2-moral em { font-style: normal; color: #b35e2e; }
-.eco2-map { position: relative; width: 100%; min-width: 0; max-width: min(975px, calc((100svh - 140px) * 1991 / 1837)); justify-self: end; align-self: center; min-height: 0; aspect-ratio: 1991 / 1837; }
+.eco2-map { position: relative; width: 100%; min-width: 0; max-width: min(975px, calc((100svh - 140px) * 1991 / 1837)); justify-self: center; align-self: center; min-height: 0; aspect-ratio: 1991 / 1837; }
 .eco2-base { position: absolute; inset: 0; display: block; width: 100%; height: 100%; }
 /* only the circles change: the ring in focus gets a warm outline, the others go pale */
 .eco2-rings { position: absolute; inset: 0; width: 100%; height: 100%; }
-.eco2-rings circle { fill: #fff9eb; fill-opacity: 0; stroke: #e0a33a; stroke-width: 0; stroke-opacity: 0; cursor: pointer; transition: fill-opacity .45s, stroke-width .45s, stroke-opacity .45s; }
+.eco2-rings circle { fill: #faf7f0; fill-opacity: 0; stroke: #e0a33a; stroke-width: 0; stroke-opacity: 0; cursor: pointer; transition: fill-opacity .45s, stroke-width .45s, stroke-opacity .45s; }
 .eco2[data-active] .eco2-rings circle { fill-opacity: .62; }
 .eco2[data-active="0"] .eco2-rings circle[data-l="0"], .eco2[data-active="1"] .eco2-rings circle[data-l="1"], .eco2[data-active="2"] .eco2-rings circle[data-l="2"] { fill-opacity: 0; stroke-width: 9; stroke-opacity: 1; }
 /* the live cone sits in the poster's corner box */
@@ -5322,7 +5322,7 @@ button:has(.ti--orbit):hover .tl { letter-spacing: .06em; }
 
 .eco2[data-active="0"] .eco2-rings circle[data-l="0"], .eco2[data-active="1"] .eco2-rings circle[data-l="1"], .eco2[data-active="2"] .eco2-rings circle[data-l="2"] { stroke-width: 0; stroke-opacity: 0; fill-opacity: 0; }
 .eco2-rings circle { stroke-width: 0 !important; }
-.eco2-zone { fill: #fff9eb; fill-opacity: 0; cursor: pointer; transition: fill-opacity .45s; }
+.eco2-zone { fill: #faf7f0; fill-opacity: 0; cursor: pointer; transition: fill-opacity .45s; }
 .eco2[data-active] .eco2-zone { fill-opacity: .66; }
 .eco2[data-active="0"] .eco2-zone[data-l="0"], .eco2[data-active="1"] .eco2-zone[data-l="1"], .eco2[data-active="2"] .eco2-zone[data-l="2"] { fill-opacity: 0; }
 /* the corner cone is small on the poster, so it grows when you point at it */
