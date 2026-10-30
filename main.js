@@ -1052,7 +1052,7 @@ $$("[data-proto-guide]").forEach((guide) => {
 });
 
 /* ---------- Prototypes: a veil that says what this is, lifted with one click ---------- */
-$$('iframe[src*="/app/"]').forEach((frame) => {
+$$('iframe[src*="/app/"], [data-bp="explore"]').forEach((frame) => {
   const box = frame.parentElement;
   if (!box || box.querySelector(".proto-veil")) return;
   if (getComputedStyle(box).position === "static") box.style.position = "relative";
@@ -1060,7 +1060,7 @@ $$('iframe[src*="/app/"]').forEach((frame) => {
   veil.type = "button";
   veil.className = "proto-veil";
   veil.setAttribute("aria-label", t(`Start the interactive prototype: ${frame.title || "prototype"}`, `开始体验交互原型：${frame.title || "原型"}`));
-  veil.innerHTML = `<span class="proto-veil__tag">${t("Interactive prototype", "交互原型")}</span><span class="proto-veil__btn"><svg width="14" height="16" viewBox="0 0 14 16" aria-hidden="true"><path d="M2 1.5v13L13 8z" fill="currentColor"/></svg>${t("Click to try it", "点击试玩")}</span><span class="proto-veil__note">${box.closest(".fin-browser") ? t("Click around like the real site", "像真实网站一样随便点") : t("Tap around like a real app", "像真实 App 一样随便点")}</span>`;
+  veil.innerHTML = `<span class="proto-veil__tag">${t("Interactive prototype", "交互原型")}</span><span class="proto-veil__btn"><svg width="14" height="16" viewBox="0 0 14 16" aria-hidden="true"><path d="M2 1.5v13L13 8z" fill="currentColor"/></svg>${t("Click to try it", "点击试玩")}</span><span class="proto-veil__note">${box.closest(".fin-browser, .bl-window") ? t("Click around like the real site", "像真实网站一样随便点") : t("Tap around like a real app", "像真实 App 一样随便点")}</span>`;
   veil.addEventListener("click", () => {
     veil.classList.add("is-gone");
     setTimeout(() => { veil.remove(); try { frame.focus({ preventScroll: true }); } catch (e) {} }, 450);

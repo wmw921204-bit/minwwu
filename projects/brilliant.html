@@ -17,9 +17,9 @@
   <link rel="apple-touch-icon" href="../assets/img/apple-touch-icon.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;1,9..144,400;1,9..144,500&family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&family=Poppins:wght@400;500;600&family=Sulphur+Point:wght@400&display=swap">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;1,9..144,400;1,9..144,500&family=Figtree:wght@400;500;600;700;800&family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&family=Poppins:wght@400;500;600&family=Sulphur+Point:wght@400&display=swap">
   <link rel="stylesheet" href="../styles.css?v=20261026x">
-  <link rel="stylesheet" href="../case.css?v=20261131">
+  <link rel="stylesheet" href="../case.css?v=20261204">
 </head>
 <body class="case case--light case--brilliant">
   <a class="skip" href="#main">Skip to content</a>
@@ -417,17 +417,27 @@
             <figure class="bl-window bl-design__screen">
               <div class="bl-window__bar"><i></i><i></i><i></i><span>brilliant.org</span></div>
               <div class="bl-design__shots">
-                <img data-beat="0" src="../assets/projects/brilliant/gallery-1.webp" alt="Home screen with streak" width="1920" height="1080" loading="lazy">
-                <img data-beat="1" src="../assets/projects/brilliant/gallery-3.webp" alt="Course page with learning path" width="1920" height="1080" loading="lazy">
-                <img data-beat="2" src="../assets/projects/brilliant/gallery-5.webp" alt="Course overview screen" width="1920" height="1080" loading="lazy">
-                <img data-beat="3" src="../assets/projects/brilliant/gallery-6.webp" alt="Goals and review screen" width="1920" height="1080" loading="lazy">
-                <img data-beat="4" src="../assets/projects/brilliant/gallery-7.webp" alt="Mistake correction screen" width="1920" height="1080" loading="lazy">
-                <img data-beat="5" src="../assets/projects/brilliant/gallery-4.webp" alt="Calendar scheduling screen" width="1920" height="1080" loading="lazy">
-                <img data-beat="6" src="../assets/projects/brilliant/gallery-9.webp" alt="Ask Koji chat screen" width="1920" height="1080" loading="lazy">
+                <div class="bp" data-bp="demo"></div>
               </div>
             </figure>
           </div>
         </div>
+      </div>
+
+      <div class="wrap bl-play">
+        <div class="bl-play__head">
+          <div>
+            <h3>Now it’s your <em>turn.</em></h3>
+            <p>The same prototype, free to explore. Plan a study time, tick off a goal, fix a mistake or ask Koji for a hint.</p>
+            <p class="bl-play__phone">Best on a larger screen.</p>
+          </div>
+          <span class="kspot kspot--play" data-koji="cheer" data-prop="cap" data-side="left" data-say="Click anything!" data-say-zh="随便点点看！"></span>
+        </div>
+        <figure class="bl-window bl-play__window">
+          <div class="bl-window__bar"><i></i><i></i><i></i><span>brilliant.org</span></div>
+          <div class="bp" data-bp="explore"></div>
+        </figure>
+        <div class="bl-play__tips"><span>Calendar button</span><span>Course card → In Review</span><span>Overview</span><span>Start a lesson → Q&amp;A</span></div>
       </div>
     </section>
 
@@ -579,7 +589,8 @@
   </footer>
 
   <script src="../assets/js/lenis.min.js" defer></script>
-  <script src="../i18n/zh/brilliant.js?v=7" defer></script>
-  <script src="../main.js?v=20261123" defer></script>
+  <script src="../i18n/zh/brilliant.js?v=8" defer></script>
+  <script src="../main.js?v=20261124" defer></script>
+  <script src="../assets/js/brilliant-proto.js?v=2" defer></script>
 </body>
 </html>
