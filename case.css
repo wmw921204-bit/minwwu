@@ -5851,7 +5851,7 @@ button:has(.ti--orbit):hover .tl { letter-spacing: .06em; }
   .bl-test__board { padding: 18px 18px 20px; border-radius: 22px; }
   .bl-test__xp { right: 12px; top: 12px; gap: 6px; padding: 5px 10px 5px 8px; font-size: 10px; }
   .bl-test__xp b { font-size: 18px; }
-  .bl-run h3 { margin-top: 0; font-size: 24px; padding-right: 96px; }
+  .bl-run h3 { margin-top: 0; font-size: 24px; padding-right: 132px; }
   .bl-stamp { position: static; display: inline-block; margin-top: 8px; padding: 4px 8px; font-size: 10px; rotate: -3deg; }
   .bl-run .bl-gauges { grid-template-columns: repeat(3, minmax(0, 86px)); gap: 8px; margin-top: 12px; }
   .bl-run__saw { margin-top: 12px; font-size: 13.5px; line-height: 1.5; }
@@ -6006,3 +6006,29 @@ button:has(.ti--orbit):hover .tl { letter-spacing: .06em; }
 @media (prefers-reduced-motion: reduce) {
   .bl-nums > div, .bl-nums__viz s { opacity: 1 !important; transform: none !important; animation: none !important; }
 }
+
+/* tour backdrops: Brilliant's isometric grid slides along as you scroll, and its 3D solids drift past at different speeds */
+.bl-design__pin, .bl-test__pin { overflow: hidden; }
+.bl-design__in, .bl-test__in { position: relative; z-index: 1; }
+.bl-backdrop { position: absolute; inset: 0; pointer-events: none; }
+.bl-backdrop::before { content: ""; position: absolute; inset: -60px 0; background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='96' height='55.43'%3E%3Cpath d='M0 27.71 48 0l48 27.71-48 27.72z' fill='none' stroke='%23000' stroke-opacity='.07' stroke-width='1.2'/%3E%3C/svg%3E") 0 0 / 96px 55.43px; background-position: calc(var(--p, 0) * -1152px) calc(var(--p, 0) * -665.16px); -webkit-mask: radial-gradient(ellipse 75% 70% at 50% 50%, #000 30%, transparent 85%); mask: radial-gradient(ellipse 75% 70% at 50% 50%, #000 30%, transparent 85%); }
+.bl-geo { position: absolute; width: var(--z, 64px); height: var(--z, 64px); filter: drop-shadow(0 12px 16px rgba(60, 75, 204, .16)); transform: translate3d(calc((0.5 - var(--p, 0)) * var(--s) * 2px), 0, 0) rotate(calc(var(--p, 0) * var(--r) * 2deg)); will-change: transform; }
+.bl-geo use { animation: bl-geo-float 6s ease-in-out infinite; transform-box: fill-box; transform-origin: center; }
+.bl-geo--2 use { animation-delay: -1s; } .bl-geo--3 use { animation-delay: -2s; } .bl-geo--4 use { animation-delay: -3s; } .bl-geo--5 use { animation-delay: -4s; } .bl-geo--6 use { animation-delay: -5s; }
+@keyframes bl-geo-float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
+/* the solids keep to the empty bands above and below the content and drift sideways as you scroll */
+.bl-geo--1 { left: 12%; top: 11%; --z: 58px; }
+.bl-geo--2 { left: 46%; top: 10%; --z: 46px; }
+.bl-geo--5 { left: 78%; top: 12%; --z: 62px; }
+.bl-geo--3 { left: 20%; bottom: 4%; --z: 72px; }
+.bl-geo--4 { left: 58%; bottom: 7%; --z: 50px; }
+.bl-geo--6 { left: 86%; bottom: 3%; --z: 66px; }
+@media (max-width: 767px) {
+  .bl-geo { --z: 40px !important; }
+  .bl-geo--1, .bl-geo--2, .bl-geo--5 { display: none; }
+  .bl-geo--4 { display: block; }
+  .bl-geo--3 { left: 14%; bottom: 14%; }
+  .bl-geo--4 { left: 50%; bottom: 17%; }
+  .bl-geo--6 { left: 80%; bottom: 13%; }
+}
+@media (prefers-reduced-motion: reduce) { .bl-geo, .bl-geo use, .bl-backdrop::before { transform: none !important; animation: none !important; } }

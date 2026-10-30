@@ -19,7 +19,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;1,9..144,400;1,9..144,500&family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&family=Poppins:wght@400;500;600&family=Sulphur+Point:wght@400&display=swap">
   <link rel="stylesheet" href="../styles.css?v=20261026x">
-  <link rel="stylesheet" href="../case.css?v=20261125">
+  <link rel="stylesheet" href="../case.css?v=20261131">
 </head>
 <body class="case case--light case--brilliant">
   <a class="skip" href="#main">Skip to content</a>
@@ -108,6 +108,13 @@
       <path d="M60 8 C72 8 81 25 88 32 C95 39 112 48 112 60 C112 72 95 81 88 88 C81 95 72 112 60 112 C48 112 39 95 32 88 C25 81 8 72 8 60 C8 48 25 39 32 32 C39 25 48 8 60 8 Z" fill="#29cc57"/>
       <rect x="43" y="41" width="34" height="34" rx="8" fill="#fff"/><rect x="51" y="49" width="17" height="17" rx="3" fill="#111"/>
     </symbol>
+    <!-- Brilliant-style 3D solids for the tour backdrops -->
+    <symbol id="geo-cube" viewBox="0 0 100 100"><polygon points="14,35 50,56 50,92 14,71" fill="#5b6cf0"/><polygon points="50,56 86,35 86,71 50,92" fill="#3c4bcc"/><polygon points="50,14 86,35 50,56 14,35" fill="#8f9dff"/></symbol>
+    <symbol id="geo-slabs" viewBox="0 0 100 100"><g fill="#7454e6"><polygon points="14,69 50,90 50,96 14,75"/></g><polygon points="50,90 86,69 86,75 50,96" fill="#5a3fc4"/><polygon points="50,48 86,69 50,90 14,69" fill="#9b7bff"/><polygon points="14,51 50,72 50,78 14,57" fill="#5b6cf0"/><polygon points="50,72 86,51 86,57 50,78" fill="#3c4bcc"/><polygon points="50,30 86,51 50,72 14,51" fill="#8f9dff"/><polygon points="14,33 50,54 50,60 14,39" fill="#7454e6"/><polygon points="50,54 86,33 86,39 50,60" fill="#5a3fc4"/><polygon points="50,12 86,33 50,54 14,33" fill="#c4b5ff"/></symbol>
+    <symbol id="geo-pyramid" viewBox="0 0 100 100"><polygon points="50,8 14,64 50,86" fill="#9b7bff"/><polygon points="50,8 50,86 86,64" fill="#7454e6"/></symbol>
+    <symbol id="geo-cylinder" viewBox="0 0 100 100"><defs><linearGradient id="geoSide" x1="0" x2="1"><stop offset="0" stop-color="#6f7ff6"/><stop offset="1" stop-color="#3846bd"/></linearGradient></defs><path d="M16 30 V70 A34 14 0 0 0 84 70 V30 Z" fill="url(#geoSide)"/><ellipse cx="50" cy="30" rx="34" ry="14" fill="#a9b4ff"/></symbol>
+    <symbol id="geo-sphere" viewBox="0 0 100 100"><defs><radialGradient id="geoBall" cx=".35" cy=".3" r=".75"><stop offset="0" stop-color="#e0d6ff"/><stop offset=".45" stop-color="#9b7bff"/><stop offset="1" stop-color="#5a3fc4"/></radialGradient></defs><circle cx="50" cy="50" r="36" fill="url(#geoBall)"/></symbol>
+    <symbol id="geo-ring" viewBox="0 0 100 100"><ellipse cx="50" cy="54" rx="34" ry="18" fill="none" stroke="#1aa94a" stroke-width="15"/><ellipse cx="50" cy="50" rx="34" ry="18" fill="none" stroke="#6fe88c" stroke-width="15"/></symbol>
   </svg>
 
   <main id="main">
@@ -357,6 +364,7 @@
       </div>
       <div class="bl-design" data-scene style="--beats:7">
         <div class="bl-design__pin">
+          <div class="bl-backdrop" aria-hidden="true"><svg class="bl-geo bl-geo--1" style="--s:260;--r:90"><use href="#geo-cube"/></svg><svg class="bl-geo bl-geo--2" style="--s:-180;--r:0"><use href="#geo-sphere"/></svg><svg class="bl-geo bl-geo--3" style="--s:340;--r:-60"><use href="#geo-slabs"/></svg><svg class="bl-geo bl-geo--4" style="--s:-260;--r:120"><use href="#geo-pyramid"/></svg><svg class="bl-geo bl-geo--5" style="--s:200;--r:-40"><use href="#geo-cylinder"/></svg><svg class="bl-geo bl-geo--6" style="--s:-320;--r:80"><use href="#geo-ring"/></svg></div>
           <div class="bl-design__in wrap">
             <div class="bl-design__copy">
               <ol class="bl-design__steps">
@@ -434,6 +442,7 @@
       </div>
       <div class="bl-test" data-scene style="--beats:5">
         <div class="bl-test__pin">
+          <div class="bl-backdrop" aria-hidden="true"><svg class="bl-geo bl-geo--1" style="--s:280;--r:-90"><use href="#geo-pyramid"/></svg><svg class="bl-geo bl-geo--2" style="--s:-200;--r:60"><use href="#geo-cube"/></svg><svg class="bl-geo bl-geo--3" style="--s:320;--r:-70"><use href="#geo-ring"/></svg><svg class="bl-geo bl-geo--4" style="--s:-260;--r:40"><use href="#geo-slabs"/></svg><svg class="bl-geo bl-geo--5" style="--s:220;--r:0"><use href="#geo-sphere"/></svg><svg class="bl-geo bl-geo--6" style="--s:-300;--r:90"><use href="#geo-cylinder"/></svg></div>
           <div class="bl-test__in wrap">
             <ol class="bl-test__map">
               <li data-beat="0" data-goto="0"><span class="bl-disc bl-iso"><svg class="bl-iso__svg" viewBox="0 0 120 100" aria-hidden="true"><g class="bl-node"><polygon class="f-l1" points="24.0,56.0 60.0,76.8 60.0,88.8 24.0,68.0"/><polygon class="f-r1" points="60.0,76.8 96.0,56.0 96.0,68.0 60.0,88.8"/><polygon class="f-t1" points="60.0,35.2 96.0,56.0 60.0,76.8 24.0,56.0"/><polygon class="f-l2" points="38.0,42.0 60.0,54.7 60.0,64.7 38.0,52.0"/><polygon class="f-r2" points="60.0,54.7 82.0,42.0 82.0,52.0 60.0,64.7"/><polygon class="f-t2" points="60.0,29.3 82.0,42.0 60.0,54.7 38.0,42.0"/><ellipse class="bl-node__pad" cx="60" cy="42.0" rx="12.1" ry="7.0"/></g></svg><span class="kspot kspot--node" data-prop="clipboard" data-koji="think" data-say=""></span></span><b>Course overview</b></li>
