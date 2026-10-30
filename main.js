@@ -1058,8 +1058,74 @@ $$("[data-proto-guide]").forEach((guide) => {
   if (restart) restart.addEventListener("click", () => { seen.clear(); current = ""; frame.src = frame.src; });
 });
 
+/* ---------- Key features: the phone runs the real prototype and taps through each feature ----------
+   <div class="vn__screen" data-app="…/app/"> + <script type="application/json" data-app-tour>[[steps for beat 0], …]</script>
+   steps: {"tab": "screen"} jumps there, {"tap": "label", "nth"?: i} presses the hotspot with that label (a dot shows the tap) */
+$$(".vn__screen[data-app]").forEach((screen) => {
+  const scene = screen.closest("[data-scene]"), tour = JSON.parse($("[data-app-tour]", scene).textContent);
+  const frame = document.createElement("iframe"), dot = document.createElement("span");
+  frame.className = "vn__app"; frame.title = t("Prototype playing the feature", "原型正在演示这个功能"); frame.tabIndex = -1;
+  frame.setAttribute("aria-hidden", "true"); frame.setAttribute("data-app-tour-frame", "");
+  dot.className = "vn__tap";
+  let ready = false, visible = false, beat = -1, done = 0, busy = false;
+  // each app has its own canvas (Fitfido 393×852, SwiftHome 402×874); the phone screen takes that shape
+  const AW = Number(screen.dataset.appW) || 393, AH = Number(screen.dataset.appH) || 852;
+  frame.style.width = `${AW}px`; frame.style.height = `${AH}px`; screen.style.aspectRatio = `${AW} / ${AH}`;
+  const fit = () => screen.style.setProperty("--app-s", (screen.clientWidth / AW).toFixed(4));
+  addEventListener("resize", fit);
+  const wait = (ms) => new Promise((r) => setTimeout(r, ms));
+  const win = () => frame.contentWindow, doc = () => frame.contentDocument;
+  const go = (obj) => { try { win().eval(`act(${JSON.stringify(obj)})`); } catch (e) {} };
+  // an open sheet takes the taps first; otherwise the current screen. nth picks among buttons with the same label
+  const find = (label, nth = 0) => {
+    const d = doc(), cur = d.querySelector(".sheet.is-on") || d.querySelector(".scr.is-cur") || d;
+    return [...cur.querySelectorAll("button, [data-go], [data-tab], [data-act]")].filter((b) => {
+      const l = b.getAttribute("aria-label") || b.dataset.go || b.dataset.tab || b.dataset.act || b.textContent.trim();
+      return l === label || l.startsWith(label);
+    })[nth];
+  };
+  const closeSheets = () => doc().querySelectorAll(".sheet.is-on").forEach((o) => o.classList.remove("is-on"));
+  const apply = (st) => {
+    if (st.tab) { closeSheets(); go({ tab: st.tab }); return; }
+    const el = find(st.tap, st.nth);
+    if (el) el.click();
+  };
+  // steps follow the scroll: the first lands as the beat opens, the last by 80% of it; scrolling back replays up to there
+  const tick = async () => {
+    if (!ready || !visible || busy) return;
+    const b = Number(scene.dataset.beat) || 0, steps = tour[b] || [];
+    if (!steps.length) return;
+    const bp = parseFloat(scene.style.getPropertyValue("--bp")) || 0;
+    const want = Math.max(1, Math.min(steps.length, Math.ceil((bp / 0.8) * (steps.length - 1)) + 1));
+    if (b !== beat || want < done) { const n = b !== beat ? 1 : want; steps.slice(0, n).forEach(apply); beat = b; done = n; return; }
+    if (want === done) return;
+    busy = true;
+    const st = steps[done];
+    if (st.tap && !reduceMotion) {
+      const el = find(st.tap, st.nth);
+      if (el) {
+        const r = el.getBoundingClientRect(), k = screen.clientWidth / AW;
+        dot.style.left = `${(r.left + r.width / 2) * k}px`; dot.style.top = `${(r.top + r.height / 2) * k}px`;
+        dot.classList.remove("is-on"); void dot.offsetWidth; dot.classList.add("is-on");
+        await wait(380);
+      }
+    }
+    if (b === beat) { apply(st); done++; }
+    await wait(st.tab ? 500 : 250);
+    busy = false;
+    tick();
+  };
+  onScrollFns.push(tick);
+  new IntersectionObserver(([e]) => {
+    if (e.isIntersecting && !frame.src) { frame.src = screen.dataset.app; screen.append(frame, dot); fit(); }
+    visible = e.isIntersecting;
+    if (visible) { beat = -1; tick(); }
+  }, { rootMargin: "200px 0px" }).observe(screen);
+  frame.addEventListener("load", () => { ready = true; screen.classList.add("has-app"); fit(); beat = -1; tick(); });
+});
+
 /* ---------- Prototypes: a veil that says what this is, lifted with one click ---------- */
-$$('iframe[src*="/app/"], [data-bp="explore"]').forEach((frame) => {
+$$('iframe[src*="/app/"]:not([data-app-tour-frame]), [data-bp="explore"]').forEach((frame) => {
   const box = frame.parentElement;
   if (!box || box.querySelector(".proto-veil")) return;
   if (getComputedStyle(box).position === "static") box.style.position = "relative";
