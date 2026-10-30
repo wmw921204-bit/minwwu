@@ -1660,6 +1660,294 @@ $$("[data-talk]").forEach((talk) => {
   loop();
 });
 
+// journey map: Agnes's dinner out, played through on the poster itself. She and her friend meet, pick a place,
+// talk to the host, sit, order, wait, eat, find the allergen and leave a review, while the poster's own people
+// act out their parts around them. The stage on show is in full colour; the rest waits, faint and still.
+// One clock drives everything, so hovering a stage runs the story back or forward to it.
+$$("[data-jm]").forEach((box) => {
+  const START = [0, 7, 14, 27, 35, 50, 64], END = 80;
+  const SEEK = [5, 11, 20, 31, 42.5, 57.6, 70];
+  const view = $(".jm-view", box), pan = $(".jm-pan", box);
+  const tabs = $$(".jm-stage", box), bars = $$(".jm-bar", box), says = $$(".jm-say", box);
+  const wipes = $$(".jm-wipe", box);
+  const els = $$(".jm-el", box).map((g) => ({ g, s: +g.dataset.s, i: +g.dataset.i }));
+  const partsOf = (g) => Object.fromEntries($$(".jm-part", g).map((p) => [p.dataset.p, { g: p, o: p.dataset.o.split(",").map(Number) }]));
+  const figs = $$(".jm-fig", box).map((g) => ({ g, n: g.dataset.fig, s: +g.dataset.s, mv: $(".jm-mv", g), w: +$("image", g).getAttribute("width"), h: +$("image", g).getAttribute("height"), parts: partsOf(g) }));
+  const cast = Object.fromEntries($$(".jm-cast", box).map((g) => [g.dataset.c, { g, in: $(".jm-cast__in", g), anger: $(".jm-anger", g), alarm: $(".jm-alarm", g), poses: Object.fromEntries($$(".jm-pose", g).map((p) => [p.dataset.pose, { g: p, parts: partsOf(p) }])) }]));
+  const table = $(".jm-table", box);
+  const labels = $$(".jm-label", box).map((el) => Object.assign(el, { _t: +el.dataset.t }));
+  const fx = Object.fromEntries($$(".jm-x", box).map((g) => [g.dataset.fx, g]));
+  const k01 = (v) => clamp(v, 0, 1);
+  const smooth = (v) => { v = k01(v); return v * v * (3 - 2 * v); };
+  const sin = Math.sin;
+  const stageAt = (t) => { let s = 0; START.forEach((v, i) => { if (t >= v) s = i; }); return s; };
+  const endOf = (s) => (s + 1 < START.length ? START[s + 1] : END);
+  const SC = 0.4; // cast drawing scale, poster pixels per image pixel
+
+  // ---- the story cast: where they stand [t, x, y], which drawing they are in, and which way they face ----
+  const WAY = {
+    agnes: [[0, 40, 1460], [0.3, 40, 1460], [3.3, 230, 1332], [14, 230, 1332], [17.6, 900, 1185], [23.6, 900, 1185], [24.3, 1000, 1060], [25.4, 1300, 1040], [26.1, 1455, 1065], [27.1, 1470, 1245], [27.3, 1488, 1250],
+      [62, 1488, 1250], [62.3, 1520, 1225], [63.3, 1600, 1040], [64, 1740, 890], [66.6, 2660, 640], [END, 2660, 640]],
+    friend: [[0, -60, 1520], [1.5, -60, 1520], [4.5, 142, 1392], [14.4, 142, 1392], [18.2, 822, 1228], [23.9, 822, 1228], [24.6, 960, 1080], [25.8, 1250, 1030], [26.9, 1640, 1035], [27.8, 1680, 1215], [28, 1685, 1222],
+      [62.8, 1685, 1222], [63.9, 1700, 1050], [64.6, 1820, 880], [68, 2560, 712], [END, 2560, 712]],
+    // the host waves them in and steps out of their way
+    host: [[0, 1150, 1100], [22.9, 1150, 1100], [24, 1060, 1260], [END, 1060, 1260]],
+    // the waitress: down to their table, up to the pass with the order, back down with the plate
+    waitress: [[0, 1557, 858], [27.4, 1557, 858], [29.8, 1560, 1100], [34.8, 1560, 1100], [38.2, 1420, 760], [50.4, 1420, 760], [53, 1560, 1100], [END, 1560, 1100]],
+    // the chef: behind the pass, to the stove, back with the plate
+    chef: [[0, 1495, 662], [43.4, 1495, 662], [45.2, 1645, 560], [48, 1645, 560], [49.4, 1495, 662], [END, 1495, 662]],
+    // the supplier carries the crate in from the label photo to the store
+    supplier: [[0, 2275, 560], [40.7, 2275, 560], [43.2, 2045, 588], [END, 2045, 588]],
+  };
+  const POSE = {
+    agnes: [[0, "a-walk"], [3.3, "a-talk"], [7.6, "a-phone"], [14, "a-walk"], [17.6, "a-talk"], [23.6, "a-walk"], [26.1, "a-front"], [27.2, "a-menu"], [54.2, "a-eat"], [56.5, "a-recoil"], [62, "a-walk"], [66.7, "a-review"]],
+    friend: [[0, "f-walk"], [4.5, "f-talk"], [14.4, "f-walk"], [18.2, "f-talk"], [23.9, "f-walk"], [26.9, "f-front"], [27.9, "f-sit"], [62.8, "f-walk"], [68.1, "f-talk"]],
+    host: [[0, "host"]],
+    waitress: [[0, "w-write"], [27.4, "w-walk"], [29.8, "w-write"], [34.8, "w-back"], [41.2, "w-write"], [49.2, "w-back"], [50.4, "w-carry"], [53.6, "w-write"], [57.4, "w-sorry"]],
+    chef: [[0, "k-stand"], [43.4, "k-back"], [45.2, "k-cook"], [48, "k-carry"], [50.4, "k-stand"]],
+    supplier: [[0, "supplier"]],
+  };
+  // 1 = as drawn, -1 = mirrored; a turn takes a quarter second
+  const FACE = {
+    agnes: [[0, 1], [17.6, -1], [23.6, 1]],
+    friend: [[0, 1], [4.5, -1], [14.4, 1], [18.2, -1], [23.9, 1], [68.1, -1]],
+    host: [[0, 1]],
+    waitress: [[0, 1], [34.8, -1], [38.2, 1], [50.4, -1], [53, 1]],
+    chef: [[0, 1]],
+    supplier: [[0, 1]],
+  };
+  const SHOW = { agnes: [0, END], friend: [1.4, END], host: [13.4, 30.5], waitress: [0, END], chef: [0, END], supplier: [40.6, 50.4] };
+  // the waitress and the chef belong to the poster: faint until their part of the story, faint again after it
+  const LIT = { waitress: [27, 66], chef: [38, 51.5] };
+  const pathAt = (P, t) => {
+    for (let i = 0; i < P.length - 1; i++) {
+      const [t0, x0, y0] = P[i], [t1, x1, y1] = P[i + 1];
+      if (t <= t1) { const f = k01((t - t0) / (t1 - t0 || 1)); const jump = t1 - t0 < 0.2; const moving = !jump && (x1 !== x0 || y1 !== y0) && f > 0 && f < 1; return { x: x0 + (x1 - x0) * f, y: y0 + (y1 - y0) * f, moving, ease: moving ? Math.min(1, f * 5, (1 - f) * 5) : 0 }; }
+    }
+    const l = P[P.length - 1]; return { x: l[1], y: l[2], moving: false, ease: 0 };
+  };
+  // the drawing in use, the one before it and how far the cross-fade between them has got
+  const poseAt = (list, t) => { let k = list[0][1], prev = k, at = -9; for (const [a, n] of list) if (t >= a) { prev = k; k = n; at = a; } return { k, prev, f: smooth((t - at) / 0.3) }; };
+  const faceAt = (list, t) => { let v = list[0][1], prev = v, at = -9; for (const [a, n] of list) if (t >= a) { prev = v; v = n; at = a; } return prev + (v - prev) * smooth((t - at) / 0.25); };
+
+  // ---- the poster's own people: their acting, l = seconds into their stage ----
+  // people glide along their path in their stride pose, rising and settling once per step
+  const bob = (at, amp) => (sin(t * 4.6) ** 2) * amp * at.ease;
+  const react = () => smooth((t - 56.9) / 0.3) * (1 - smooth((t - 60.6) / 0.5));
+  const ACT = {
+    hand: { mv: (l) => [0, sin(l * 3) * 3, sin(l * 1.5) * 2.5] },
+    bar: { tender: (l) => -3 - sin(l * 2.2) * 3, guest: (l) => sin(l * 1.6) * 2 },
+    // the waitress passes the order on, then the chef takes it in
+    // the family at the next table turns to look when Agnes recoils
+    group: { waitress: (l) => sin(l * 6) * 1.6, kid: (l) => Math.max(0, sin(l * 3.2)) * 4 * (1 - react()) - 12 * react(), man: (l) => Math.max(0, sin(l * 2.7 + 1)) * 3.5 * (1 - react()) - 10 * react() },
+    waiter: { arm: (l) => { const q = k01((l - 5) / 1.2) * (1 - k01((l - 8) / 1)); return -9 * q + sin(l * 2) * 1.2; } },
+    rate: { her: (l) => sin(l * 3.1) * 2.6, him: (l) => sin(l * 2.2 + 2) * 2.2 },
+  };
+  const node = (x, y, ox, oy) => [(x - ox) / 1.158, (y - oy) / 1.158];
+  const MOVED = {};
+  // the cooks and store staff drawn into the poster itself, which speech should not cover
+  const DRAWN = [[1590, 450, 1650, 535], [1740, 505, 1795, 590], [1910, 385, 1970, 495], [1985, 415, 2040, 515]];
+
+  // ---- the poster's emotion curve, lit up to where Agnes is ----
+  const mood = $(".jm-mood", box), mdot = $(".jm-mood__dot", box), mhalo = $(".jm-mood__halo", box), mgrad = $("#jm-mood-g", box);
+  const MP = mood.dataset.pts.split(" | ").map((run) => run.split(" ").map((v) => v.split(",").map(Number)));
+  const MOOD = [[0, 87], [4, 160], [7, 280], [11, 440], [13.4, 580], [14, 637], [14.3, 750], [17.6, 890], [22, 1096], [27, 1240], [31, 1440], [35, 1600], [38.4, 1690], [47, 1956], [50, 2100], [54.4, 2220], [57.4, 2470], [63.6, 2507], [64, 2590], [72, 2800], [END, 2860]];
+  const moodX = (t) => { for (let i = 0; i < MOOD.length - 1; i++) { const [t0, x0] = MOOD[i], [t1, x1] = MOOD[i + 1]; if (t <= t1) return x0 + (x1 - x0) * smooth((t - t0) / (t1 - t0)); } return MOOD[MOOD.length - 1][1]; };
+  const drawMood = () => {
+    const mx = moodX(t);
+    // everything left of the dot shows the poster's curve and its colour; the rest is still blank road
+    mgrad.setAttribute("x1", mx - 26); mgrad.setAttribute("x2", mx + 4);
+    let at = MP[0][0];
+    for (const run of MP) {
+      if (mx < run[0][0]) break;
+      at = run[run.length - 1];
+      for (let i = 1; i < run.length; i++) if (run[i][0] >= mx) { const [xa, ya] = run[i - 1], [xb, yb] = run[i]; at = [mx, ya + ((yb - ya) * (mx - xa)) / (xb - xa || 1)]; break; }
+      if (at[0] === mx) break;
+    }
+    for (const c of [mdot, mhalo]) { c.setAttribute("cx", at[0]); c.setAttribute("cy", at[1]); }
+    // the low point throbs
+    const low = t > 56.6 && t < 62 ? 1 : 0;
+    mhalo.setAttribute("r", 16 + (low ? 10 + sin(t * 9) * 6 : sin(t * 3) * 3));
+    mood.dataset.low = low;
+  };
+
+  const svg = $(".jm-svg", box), counter = $(".jm-counter", box), fxStart = $(".jm-x", box);
+  for (const F of figs) { const v = F.g.getAttribute("transform").match(/matrix\(([^)]+)\)/)[1].split(/[ ,]+/).map(Number); F.y = v[5] + v[3] * F.h; }
+  let order = "";
+  const sortDepth = () => {
+    const list = figs.map((F) => [F.g, F.y]).concat([[table, 1200], [counter, 740]], Object.values(cast).map((C) => [C.g, C.y]));
+    list.sort((a, b) => a[1] - b[1]);
+    const key = list.map((e) => e[1].toFixed(0)).join();
+    if (key === order) return;
+    order = key;
+    for (const [el] of list) svg.insertBefore(el, fxStart);
+  };
+  const bodyRects = () => {
+    const pr = pan.getBoundingClientRect(), list = [];
+    // measure the drawing in use, not the whole group, which also holds the hidden marks above their heads
+    for (const C of Object.values(cast)) if (+C.g.style.opacity > 0.3) { const P = Object.values(C.poses).find((q) => q.g.style.display !== "none" && +q.g.style.opacity > 0.5); list.push((P ? P.g : C.g).getBoundingClientRect()); }
+    for (const F of figs) if (F.g.style.display !== "none" && +F.g.style.opacity > 0.5) list.push(F.mv.getBoundingClientRect());
+    const sc = pr.width / 3036;
+    // the cooks and store staff drawn into the poster itself
+    return list.map((r) => [r.left - pr.left + r.width * 0.18, r.top - pr.top + r.height * 0.06, r.right - pr.left - r.width * 0.18, r.bottom - pr.top]).concat(DRAWN.map((q) => q.map((v) => v * sc)));
+  };
+
+  let t = 0, last = performance.now(), hold = null, hover = false, raf = 0, live = false, cur = -1;
+  const render = () => {
+    const st = stageAt(t);
+    pan.style.opacity = t > END - 0.9 ? 1 - (t - (END - 0.9)) / 0.9 : 1;
+    for (const r of wipes) r.setAttribute("width", 3100);
+    const focus = (s, d = 0) => smooth((t - START[s] - d) / 0.8) * (1 - smooth((t - endOf(s) + (s === START.length - 1 ? -9 : 0)) / 0.8));
+    for (const e of els) e.g.style.opacity = focus(e.s, e.i * 0.15);
+    drawMood();
+    for (const el of labels) el.style.opacity = smooth((t - el._t) / 0.6);
+    for (const F of figs) {
+      const M = MOVED[F.n];
+      if (/^(couple|reader|board|boh)$/.test(F.n)) { F.g.style.display = "none"; continue; }
+      if (F.n === "tray") { F.g.style.opacity = 0.26; continue; }
+      if (M) {
+        const lit = smooth((t - M.lit[0]) / 0.5) * (1 - smooth((t - M.lit[1]) / 0.6));
+        F.g.style.opacity = M.gone && t > M.gone ? 1 - smooth((t - M.gone) / 0.4)
+          : M.appear && t < M.appear ? 0.26 * (1 - smooth((t - M.appear + 0.3) / 0.3))
+          : M.appear ? 0.26 + 0.74 * lit * smooth((t - M.appear) / 0.4) : 0.26 + 0.74 * lit;
+        const home = M.appear ? t < M.appear : t < M.way[0][0];
+        const at = home ? { x: M.home[0], y: M.home[1], ease: 0 } : pathAt(M.way, t), [dx, dy] = node(at.x, at.y, M.home[0], M.home[1]);
+        const sx = faceAt(M.face, t);
+        const hop = M.hop && t > M.hop && t < M.hop + 0.35 ? sin(((t - M.hop) / 0.35) * Math.PI) * 10 : 0;
+        const bow = M.bow ? -8 * smooth((t - M.bow[0]) / 0.4) * (1 - smooth((t - M.bow[1] + 0.4) / 0.4)) : 0;
+        F.mv.setAttribute("transform", `translate(${dx} ${dy - bob(at, 3) - hop}) translate(${F.w / 2} ${F.h}) rotate(${bow}) scale(${sx} 1) translate(${-F.w / 2} ${-F.h})`);
+        const P = F.parts;
+        if (P.pen) P.pen.g.setAttribute("transform", t > M.pen[0] && t < M.pen[1] ? `rotate(${sin(t * 13) * 4} ${P.pen.o})` : "");
+        continue;
+      }
+      F.g.style.opacity = 0.26 + 0.74 * focus(F.s, 0.2);
+      const l = clamp(t - START[F.s], 0, endOf(F.s) - START[F.s]);
+      const A = ACT[F.n] || {};
+      const [dx, dy, r] = A.mv ? A.mv(l) : [0, 0, 0];
+      F.mv.setAttribute("transform", dx || dy || r ? `translate(${dx} ${dy}) rotate(${r || 0} ${F.w / 2} ${F.h})` : "");
+      for (const [pn, P] of Object.entries(F.parts)) { const v = A[pn] ? A[pn](l) : 0; P.g.setAttribute("transform", v ? `rotate(${v} ${P.o[0]} ${P.o[1]})` : ""); }
+    }
+    // the table is theirs from the moment they sit down
+    table.style.opacity = 0.26 + 0.74 * smooth((t - 26.6) / 0.6) * (1 - smooth((t - 63) / 0.6));
+    // the story cast
+    for (const [who, C] of Object.entries(cast)) {
+      const [s0, s1] = SHOW[who];
+      const vis = t > s0 && t < s1;
+      const L = LIT[who];
+      C.g.style.opacity = !vis ? 0 : L ? 0.26 + 0.74 * smooth((t - L[0]) / 0.5) * (1 - smooth((t - L[1]) / 0.6)) : smooth((t - s0) / 0.4) * smooth((s1 - t) / 0.4);
+      const at = pathAt(WAY[who], t), p = poseAt(POSE[who], t);
+      C.y = at.y;
+      // storming out: faster, leaning into it
+      const mad = who === "agnes" && t > 62 && t < 66.8;
+      C.g.setAttribute("transform", `translate(${at.x} ${at.y - bob(at, mad ? 10 : 7)}) scale(${SC})`);
+      for (const [pk, P] of Object.entries(C.poses)) {
+        const o = pk === p.k ? p.f : pk === p.prev && p.f < 1 ? 1 - p.f : 0;
+        P.g.style.display = o > 0 ? "" : "none";
+        P.g.style.opacity = o;
+      }
+      const sx = faceAt(FACE[who], t);
+      // a small shake when she finds the allergen
+      const shake = who === "agnes" && t > 56.5 && t < 57.9 ? sin(t * 60) * 4 : 0;
+      C.in.setAttribute("transform", `translate(${shake} 0) scale(${sx} 1)${mad ? " rotate(4)" : ""}`);
+      // the waitress starts when Agnes recoils
+      if (C.alarm) { const q = smooth((t - 56.9) / 0.2) * (1 - smooth((t - 59) / 0.4)); C.alarm.style.opacity = q; C.in.setAttribute("transform", `translate(0 ${t > 57 && t < 57.35 ? -sin(((t - 57) / 0.35) * Math.PI) * 30 : 0}) scale(${sx} 1)`); }
+      if (C.anger) { C.anger.style.opacity = t > 62.1 && t < 67.4 ? smooth((t - 62.1) / 0.3) * (1 - smooth((t - 67) / 0.4)) : 0; C.anger.setAttribute("transform", `translate(105 -470) scale(${1.4 + sin(t * 7) * 0.15})`); }
+    }
+    sortDepth();
+    // speech, pinned above whoever is talking and kept inside the picture
+    const pw = pan.getBoundingClientRect().width, sc = pw / 3036, ph = pan.getBoundingClientRect().height;
+    let bodies = null;
+    const placed = [];
+    // lines already on screen keep their spot; new ones are placed around them
+    for (const el of [...says].sort((a, b) => !!b._off - !!a._off)) {
+      const t0 = +el.dataset.t0, t1 = +el.dataset.t1, on = t > t0 && t < t1;
+      el.style.opacity = on ? smooth((t - t0) / 0.25) * smooth((t1 - t) / 0.25) : 0;
+      if (!on) { el._off = null; continue; }
+      const w = el.dataset.who;
+      let x, y;
+      if (MOVED[w]) { const a = pathAt(MOVED[w].way, t); x = a.x; y = a.y - 270; }
+      else { const a = pathAt(WAY[w], t); x = a.x; y = a.y - (/menu|eat|recoil|f-sit/.test(poseAt(POSE[w], t).k) ? 195 : 232); }
+      const bw = el.offsetWidth, bh = el.offsetHeight;
+      const place = (dx, dy) => [clamp(x * sc + dx, bw / 2 + 8, pw - bw / 2 - 8), clamp(y * sc - dy, bh + 12, ph)];
+      if (!el._off) {
+        // when a line starts, try spots beside and above the speaker and keep the one that hides the fewest people
+        // ...and that does not land on another line already showing
+        bodies = bodies || bodyRects();
+        const hit = (l, tp, r, bt, list, w) => { let c = 0; for (const [a, b, cc, d] of list) c += Math.max(0, Math.min(r, cc) - Math.max(l, a)) * Math.max(0, Math.min(bt, d) - Math.max(tp, b)) * w; return c; };
+        let best = Infinity;
+        for (const dy of [0, 30, 60, 95, 130]) for (const f of [0, -0.18, 0.18, -0.34, 0.34]) {
+          const [qx, qy] = place(f * bw, dy), l = qx - bw / 2, r = qx + bw / 2, tp = qy - bh - 8;
+          const cost = (Math.abs(f) * 0.25 + (dy / bh) * 0.12) * bw * bh + hit(l, tp, r, qy + 8, bodies, 4) + hit(l - 6, tp - 6, r + 6, qy + 14, placed, 4);
+          if (cost < best) { best = cost; el._off = [f * bw, dy]; }
+        }
+      }
+      const [px, py] = place(el._off[0], el._off[1]);
+      placed.push([px - bw / 2, py - bh - 8, px + bw / 2, py + 8]);
+      el.style.setProperty("--tail", `${clamp(x * sc - px, -bw / 2 + 18, bw / 2 - 18)}px`);
+      el.style.transform = `translate(${px}px, ${py}px) translate(-50%, -100%)`;
+    }
+    const L = (s) => t - START[s];
+    if (fx.ring) { const q = (t % 1.4) / 1.4; fx.ring.style.opacity = st === 4 && L(4) > 3.6 ? 1 - q : 0; fx.ring.setAttribute("transform", `translate(2034 900) scale(${0.7 + q * 1.3}) translate(-2034 -900)`); }
+    if (fx.huh) fx.huh.style.opacity = react();
+    // she gives them one star
+    if (fx.stars) $$("path", fx.stars).forEach((s, i) => { s.style.opacity = t > 69 && t < END ? (i === 0 ? smooth((t - 69) / 0.4) : 0.16) : 0; });
+    if (st !== cur) { cur = st; tabs.forEach((b, i) => b.classList.toggle("is-on", i === st)); box.dataset.stage = st; }
+    bars.forEach((b, i) => { b.style.transform = `scaleX(${k01((t - START[i]) / (endOf(i) - START[i]))})`; });
+    // on a narrow screen the poster is wider than the view, so the view follows the action
+    const over = pan.offsetWidth - view.clientWidth, ax = t > 38 && t < 51 ? 1750 : pathAt(WAY.agnes, t).x;
+    pan.style.transform = over > 2 ? `translateX(${-clamp((ax / 3036) * pan.offsetWidth - view.clientWidth * 0.5, 0, over)}px)` : "";
+  };
+  const frame = (now) => {
+    const dt = Math.min(0.1, (now - last) / 1000); last = now;
+    if (hold != null) { const gap = hold - t; t += Math.sign(gap) * Math.min(Math.abs(gap), dt * Math.max(5, Math.abs(gap) * 2.5)); }
+    else if (!hover) { t += dt; if (t > END) t = 0; }
+    render();
+    raf = live ? requestAnimationFrame(frame) : 0;
+  };
+  box.__seek = (v) => { t = v; render(); };
+  tabs.forEach((b, i) => { for (const ev of ["pointerenter", "focus", "click"]) b.addEventListener(ev, () => { hold = SEEK[i]; }); });
+  $(".jm-stages", box).addEventListener("pointerleave", () => { hold = null; });
+  view.addEventListener("pointerenter", () => { hover = true; });
+  view.addEventListener("pointerleave", () => { hover = false; });
+  addEventListener("resize", () => render());
+  if (reduceMotion) { t = SEEK[5]; render(); return; }
+  render();
+  new IntersectionObserver(([en]) => {
+    live = en.isIntersecting;
+    if (live && !raf) { last = performance.now(); raf = requestAnimationFrame(frame); }
+  }, { threshold: 0.3 }).observe(view);
+});
+
+// "see the original poster" opens the infographic in the lightbox
+$$(".jw-poster").forEach((btn) => btn.addEventListener("click", () => {
+  const img = btn.parentElement.querySelector(".jw-poster-img");
+  if (img) window.__lightbox?.open(img);
+}));
+
+// ecosystem: the poster map with its corner cone made live; the level in focus lights up every circle on its ring
+$$("[data-eco2]").forEach((box) => {
+  const cone = $(".eco2-cone", box);
+  let k = -1, hold = false, timer = 0;
+  const set = (v) => { k = +v; box.dataset.active = v; if (cone) cone.dataset.active = v; };
+  const hover = (el, v) => {
+    el.addEventListener("pointerenter", () => { hold = true; set(v); });
+    el.addEventListener("focus", () => { hold = true; set(v); });
+    el.addEventListener("click", () => { hold = true; set(v); });
+  };
+  if (cone) $$(".relay__layer", cone).forEach((g) => hover(g, g.dataset.layer));
+  $$(".eco2-levels li", box).forEach((li) => hover(li, li.dataset.layer));
+  $$(".eco2-rings circle", box).forEach((c) => hover(c, c.dataset.l));
+  $$(".eco2-zone", box).forEach((z) => hover(z, z.dataset.l));
+  box.addEventListener("pointerleave", () => { hold = false; });
+  // left alone it walks micro, meso, macro in turn
+  new IntersectionObserver(([en]) => {
+    clearInterval(timer);
+    if (!en.isIntersecting) return;
+    if (k < 0) set(0);
+    if (!reduceMotion) timer = setInterval(() => { if (!hold) set((k + 1) % 3); }, 3200);
+  }, { threshold: 0.4 }).observe(box);
+});
+
 // opportunity slats: the one under the pointer or focus opens
 $$("[data-opps]").forEach((list) => {
   const items = $$(".opp", list);
