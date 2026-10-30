@@ -139,6 +139,7 @@
             <svg viewBox="0 0 260 170" class="bp-scale"><g fill="#f0a35a" stroke="#d98536" stroke-width="2" stroke-linejoin="round">${[[115, 10], [100, 44], [130, 44], [85, 78], [115, 78], [145, 78]].map(([x, y]) => `<polygon points="${x},${y + 32} ${x + 15},${y} ${x + 30},${y + 32}"/>`).join("")}</g><rect x="50" y="113" width="160" height="7" rx="3.5" fill="#b3b3b3"/><path d="M118 120h24v8h-24z" fill="#999"/><path d="M62 128h136l14 34H48z" fill="#4c4c4c"/><path d="M62 128h136l3 8H59z" fill="#666"/><rect x="88" y="138" width="84" height="18" rx="3" fill="#111"/><text x="130" y="152" text-anchor="middle" font-size="13" fill="#fff" font-family="ui-monospace,monospace">24</text></svg>
             <div class="bp-opts">${[2, 4, 6, 8].map((n) => `<button data-act="answer" data-n="${n}">${n}</button>`).join("")}</div>
             <button class="bp-check" data-act="checkans">${t("Check", "检查")}</button>
+            <div class="bp-feedback" aria-live="polite"><div class="bp-feedback__msg"><b data-fb-title></b><span data-fb-sub></span></div><div class="bp-feedback__acts" data-fb-acts></div></div>
           </div>
           <aside class="bp-chat">
             <header>${koji()}<b>Koji</b><button class="bp-iconbtn" data-act="chatclose" aria-label="close">${close}</button></header>
@@ -213,6 +214,8 @@
     ro.observe(root);
     fit();
 
+    // tell the page what just happened, so Koji beside the prototype can react
+    const emit = (type) => root.dispatchEvent(new CustomEvent("bp", { bubbles: true, detail: { type } }));
     const toast = (msg) => {
       $("[data-toast]").textContent = msg;
       const el = $(".bp-toast");
@@ -265,7 +268,17 @@
       for (let i = 1; i <= text.length; i += reduce ? text.length : 2) { k.textContent = text.slice(0, i); log.scrollTop = log.scrollHeight; await wait(14); }
       k.textContent = text; log.scrollTop = log.scrollHeight;
     };
+    const feedback = (kind) => {
+      root.dataset.fb = kind;
+      if (!kind) return;
+      $("[data-fb-title]").textContent = kind === "right" ? t("Correct!", "答对了！") : t("Not quite", "还差一点");
+      $("[data-fb-sub]").textContent = kind === "right" ? t("Six equal triangles weigh 24, so one weighs 4.", "六个一样的三角形重 24，所以一个重 4。") : t("Try sharing the 24 equally between the triangles.", "试着把 24 平均分给这几个三角形。");
+      $("[data-fb-acts]").innerHTML = kind === "right"
+        ? `<span class="bp-feedback__xp">+10 XP</span><button class="bp-btn bp-btn--green" data-act="finish">${t("Continue", "继续")}</button>`
+        : `<button class="bp-feedback__ghost" data-act="hint">${koji()}${t("Ask Koji", "问问 Koji")}</button><button class="bp-btn bp-btn--dark" data-act="retry">${t("Try again", "再试一次")}</button>`;
+    };
     const resetLesson = () => {
+      feedback("");
       $$(".bp-q .bp-opts button").forEach((b) => b.classList.remove("is-on", "is-right", "is-wrong"));
       const c = $(".bp-check"); c.dataset.act = "checkans"; c.textContent = t("Check", "检查"); c.classList.remove("is-go");
       $(".bp-lesson__bar .bp-progress i").style.setProperty("--w", "12%");
@@ -278,26 +291,34 @@
 
     const acts = {
       screen: (el, v) => { panel(""); screen(v); },
-      panel: (el, v) => panel(v),
-      review: (el, v) => { if (root.dataset.screen === "lesson") screen("course"); tab(v); panel("review"); },
+      panel: (el, v) => { panel(v); emit(v); },
+      review: (el, v) => { if (root.dataset.screen === "lesson") screen("course"); tab(v); panel("review"); emit("review"); },
       closepanel: () => panel(""),
       tab: (el, v) => tab(v),
       streak: (el) => {
         if (el.classList.contains("is-done")) return;
-        el.classList.remove("is-today"); el.classList.add("is-done");
-        setStreak(st.streak + 1); toast(t("3-day streak! See you tomorrow.", "连续 3 天！明天见。"));
+        el.classList.remove("is-today"); el.classList.add("is-done", "is-lit", "is-bounce");
+        const days = $$(".bp-week li"), at = days.indexOf(el);
+        days.forEach((d, i) => { if (i !== at && Math.abs(i - at) <= 2) { d.style.setProperty("--ripple-direction", Math.sign(i - at)); d.style.setProperty("--ripple-delay", `${Math.abs(i - at) * 0.08}s`); d.classList.remove("is-ripple"); void d.offsetWidth; d.classList.add("is-ripple"); } });
+        const burst = document.createElement("span"); burst.className = "bp-burst";
+        burst.innerHTML = Array.from({ length: 8 }, (_, k) => { const a = (k / 8) * Math.PI * 2; return `<s style="--x:${Math.cos(a).toFixed(2)};--y:${Math.sin(a).toFixed(2)};--d:${(0.45 + (k % 2) * 0.05).toFixed(2)}s"></s>`; }).join("");
+        el.append(burst); setTimeout(() => burst.remove(), 1200);
+        setStreak(st.streak + 1); setTimeout(() => toast(t("3-day streak! See you tomorrow.", "连续 3 天！明天见。")), 700);
+        $$(".bp-streakpill, .bp-streak__top b").forEach((b) => { b.classList.remove("is-bump"); void b.offsetWidth; b.classList.add("is-bump"); });
+        emit("streak");
       },
-      qa: () => { panel(""); resetLesson(); screen("lesson"); root.classList.add("chat-open"); },
-      premium: () => toast(t("Premium isn’t part of this prototype. Everything here is free to try.", "原型里没有高级版，这里的一切都可以免费试。")),
+      qa: () => { panel(""); resetLesson(); screen("lesson"); root.classList.add("chat-open"); emit("chat"); },
+      premium: () => { toast(t("Premium isn’t part of this prototype. Everything here is free to try.", "原型里没有高级版，这里的一切都可以免费试。")); emit("premium"); },
       streakinfo: () => { panel(""); screen("home"); const c = $(".bp-streak"); c.classList.remove("is-flash"); void c.offsetWidth; c.classList.add("is-flash"); toast(t(`${st.streak}-day streak. Finish today’s lesson to keep it going!`, `已连续 ${st.streak} 天，完成今天的课就能续上！`)); },
       menu: () => root.classList.toggle("menu-open"),
-      restart: () => { destroy(); Proto(root); },
+      restart: () => { destroy(); Proto(root); emit("restart"); },
       league: () => toast(t("The top 15 move up a league on Sunday. You’re 15 XP away!", "前 15 名周日晋级，你还差 15 XP！")),
       pick: (el) => {
         st.course = Number(el.dataset.i);
         $$(".bp-carousel button").forEach((b) => b.classList.toggle("is-on", b === el));
         $(".bp-coursecard__tag").textContent = courses[st.course][0]; $(".bp-coursecard__name").textContent = courses[st.course][1];
         $(".bp-coursecard__pill").textContent = st.course ? t("Start course", "开始这门课") : t("Finding Unknowns", "寻找未知数");
+        emit("pick");
       },
       opencourse: () => {
         if (st.course) { toast(t("This prototype is built around Solving Equations, so here it is.", "这个原型围绕“解方程”搭建，带你去看这门课。")); acts.pick($(".bp-carousel button")); }
@@ -305,25 +326,25 @@
       },
       node: (el) => {
         const i = Number(el.dataset.i);
-        if (el.classList.contains("is-now") || el.classList.contains("is-done")) { panel(""); resetLesson(); screen("lesson"); }
-        else toast(t(`Finish “${path[i - 1][0]}” to unlock this one.`, `先完成“${path[i - 1][0]}”才能解锁这一关。`));
+        if (el.classList.contains("is-now") || el.classList.contains("is-done")) { panel(""); resetLesson(); screen("lesson"); emit("lesson"); }
+        else { toast(t(`Finish “${path[i - 1][0]}” to unlock this one.`, `先完成“${path[i - 1][0]}”才能解锁这一关。`)); emit("locked"); }
       },
       row: (el) => {
         const i = Number(el.dataset.i);
-        if (i <= st.lesson) { panel(""); resetLesson(); screen("lesson"); }
-        else toast(t(`Unlocks after “${path[i - 1][0]}”.`, `完成“${path[i - 1][0]}”后解锁。`));
+        if (i <= st.lesson) { panel(""); resetLesson(); screen("lesson"); emit("lesson"); }
+        else { toast(t(`Unlocks after “${path[i - 1][0]}”.`, `完成“${path[i - 1][0]}”后解锁。`)); emit("locked"); }
       },
       goal: (el) => {
         if (el.classList.contains("is-done")) return;
-        el.classList.add("is-done"); st.prevXP = st.xp; setXP(st.xp + Number(el.dataset.reward), el.querySelector("em"));
+        el.classList.add("is-done"); st.prevXP = st.xp; setXP(st.xp + Number(el.dataset.reward), el.querySelector("em")); emit("goal");
       },
       fix: (el) => {
         if (root.classList.contains("mis-done")) return;
         $$(".bp-opts--mis button").forEach((b) => b.classList.remove("is-wrong"));
-        if (Number(el.dataset.n) === mistakes[st.mis][2]) { el.classList.add("is-right"); root.classList.add("mis-done"); st.prevXP = st.xp; setXP(st.xp + 5, el); }
-        else { el.classList.add("is-wrong"); toast(t("Not yet. Peek at the explanation?", "还不对，看看解析？")); }
+        if (Number(el.dataset.n) === mistakes[st.mis][2]) { el.classList.add("is-right"); root.classList.add("mis-done"); st.prevXP = st.xp; setXP(st.xp + 5, el); emit("fixed"); }
+        else { el.classList.add("is-wrong"); toast(t("Not yet. Peek at the explanation?", "还不对，看看解析？")); emit("wrong"); }
       },
-      nextmis: () => { root.classList.remove("mis-done"); st.mis++; renderMis(); if (st.mis >= mistakes.length) toast(t("All 3 mistakes fixed!", "3 道错题都改对了！")); },
+      nextmis: () => { root.classList.remove("mis-done"); st.mis++; renderMis(); if (st.mis >= mistakes.length) { toast(t("All 3 mistakes fixed!", "3 道错题都改对了！")); emit("cleared"); } },
       explain: () => root.classList.toggle("explain-open"),
       tip: (el) => { $$(".bp-info").forEach((i) => i !== el && i.classList.remove("is-on")); el.classList.toggle("is-on"); },
       pretest: async () => {
@@ -333,7 +354,7 @@
         btn.removeAttribute("data-act");
         for (const d of dots) { d.classList.add("is-on"); await wait(220); }
         btn.classList.add("is-done"); btn.innerHTML = `${check}${t("Done", "已完成")}`;
-        toast(t("Nice! You already know the basics of lesson 1.", "不错！第一课的基础你已经会了。"));
+        toast(t("Nice! You already know the basics of lesson 1.", "不错！第一课的基础你已经会了。")); emit("pretest");
       },
       day: (el) => {
         if (el.classList.contains("past")) return;
@@ -346,28 +367,34 @@
         panel("");
         $("[data-plan]").textContent = t(`Next lesson: March ${st.day}, ${st.time}`, `下一节课：3 月 ${st.day} 日 ${st.time}`);
         $$(`.bp-cal__grid button[data-d="${st.day}"]`).forEach((b) => b.classList.add("planned"));
-        toast(t(`Booked March ${st.day} at ${st.time}. I’ll remind you!`, `已约 3 月 ${st.day} 日 ${st.time}，我会提醒你！`));
+        toast(t(`Booked March ${st.day} at ${st.time}. I’ll remind you!`, `已约 3 月 ${st.day} 日 ${st.time}，我会提醒你！`)); emit("booked");
       },
       answer: (el) => {
-        if ($(".bp-check").classList.contains("is-go")) return;
+        if (root.dataset.fb === "right") return;
+        feedback("");
         $$(".bp-q .bp-opts button").forEach((b) => b.classList.remove("is-on", "is-right", "is-wrong")); el.classList.add("is-on");
+      },
+      retry: () => { feedback(""); $$(".bp-q .bp-opts button").forEach((b) => b.classList.remove("is-on", "is-wrong")); },
+      hint: () => {
+        acts.retry(); root.classList.add("chat-open"); emit("chat");
+        const chip = $('.bp-chat__chips [data-q="0"]');
+        if (chip && !chip.disabled) acts.ask(chip);
       },
       checkans: () => {
         const on = $(".bp-q .bp-opts .is-on");
         if (!on) return toast(t("Pick an answer first.", "先选一个答案。"));
-        on.classList.add(on.dataset.n === "4" ? "is-right" : "is-wrong");
-        if (on.dataset.n === "4") {
-          st.prevXP = st.xp; setXP(st.xp + 10, on);
-          const c = $(".bp-check"); c.dataset.act = "finish"; c.textContent = t("Continue", "继续"); c.classList.add("is-go");
-          $(".bp-lesson__bar .bp-progress i").style.setProperty("--w", "100%");
-        } else toast(t("Not quite. Ask Koji for a hint?", "不太对。要不要问问 Koji？"));
+        const ok = on.dataset.n === "4";
+        on.classList.add(ok ? "is-right" : "is-wrong");
+        feedback(ok ? "right" : "wrong");
+        if (ok) { st.prevXP = st.xp; setXP(st.xp + 10, on); $(".bp-lesson__bar .bp-progress i").style.setProperty("--w", "100%"); }
+        emit(ok ? "correct" : "wrong");
       },
       finish: () => {
         st.lesson = Math.min(st.lesson + 1, path.length - 1);
         screen("course"); moveKoji(st.lesson);
-        toast(t("Lesson complete! On to the next one.", "这一课完成了！继续下一课。"));
+        toast(t("Lesson complete! On to the next one.", "这一课完成了！继续下一课。")); emit("finish");
       },
-      chat: () => root.classList.add("chat-open"),
+      chat: () => { root.classList.add("chat-open"); emit("chat"); },
       chatclose: () => root.classList.remove("chat-open"),
       ask: (el) => { el.disabled = true; say(el.textContent, answers[el.dataset.q]); },
     };
@@ -376,11 +403,20 @@
       const [name, v] = el.dataset.act.split(":");
       acts[name]?.(el, v);
     };
+    // which step of the guide this is: the open panel, or the screen (and, in a lesson, its result or the chat)
+    const stateId = () => {
+      const pn = root.dataset.panel;
+      if (pn === "review") return `review-${root.dataset.tab}`;
+      if (pn) return pn;
+      if (root.dataset.screen === "lesson") return root.classList.contains("chat-open") ? "chat" : root.dataset.fb ? `lesson-${root.dataset.fb}` : "lesson";
+      return root.dataset.screen;
+    };
+    const report = () => root.dispatchEvent(new CustomEvent("bpstate", { bubbles: true, detail: stateId() }));
     const onClick = (e) => {
       const el = e.target.closest("[data-act]");
       if (!e.target.closest(".bp-menu, .bp-dd")) root.classList.remove("menu-open");
       else if (el && el.closest(".bp-dd")) root.classList.remove("menu-open");
-      if (el && root.contains(el)) run(el);
+      if (el && root.contains(el)) { run(el); if (root.contains(el) || el.dataset.act === "restart") report(); }
     };
     // anything typed to Koji gets an answer: hints, the meaning of algebra, or the worked solution
     const onSubmit = (e) => {
@@ -395,8 +431,10 @@
     if (st.mode === "explore") { root.addEventListener("click", onClick); root.addEventListener("submit", onSubmit); }
     const destroy = () => { ro.disconnect(); root.removeEventListener("click", onClick); root.removeEventListener("submit", onSubmit); };
 
-    renderMis(); moveKoji(0);
+    renderMis(); moveKoji(0); feedback("");
+    root.__restart = () => acts.restart();
     screen("home"); tab("goals"); panel(""); root.classList.remove("menu-open", "chat-open", "mis-done", "explain-open");
+    report();
     return { root, $, $$, run, screen, panel, tab, rel, cursor, st, setXP, setStreak, toast, destroy };
   }
 
@@ -419,7 +457,7 @@
     async (p, go) => { p.screen("course"); p.tab("goals"); await go('.bp-tile[data-act="review:goals"]'); await go(".bp-goals li:nth-child(2)"); await go(".bp-goals li:nth-child(4)"); },
     async (p, go) => { p.screen("course"); p.tab("mistakes"); p.panel("review"); await wait(500); await go('.bp-opts--mis [data-n="3"]'); await go('.bp-opts--mis [data-n="5"]'); await go(".bp-explain"); },
     async (p, go) => { p.screen("home"); await go(".bp-calbtn"); await go('.bp-cal__grid [data-d="7"]'); await go('.bp-times [data-h="9:00"]'); await go(".bp-cal__side .bp-btn--green"); },
-    async (p, go) => { p.screen("lesson"); await go('.bp-q .bp-opts [data-n="6"]'); await go(".bp-lesson .bp-qa"); await go('.bp-chat__chips [data-q="0"]'); await wait(2600); await go('.bp-q .bp-opts [data-n="4"]'); await go(".bp-check"); },
+    async (p, go) => { p.screen("lesson"); await go('.bp-q .bp-opts [data-n="6"]'); await go(".bp-check"); await go(".bp-feedback__ghost"); await wait(2800); await go('.bp-q .bp-opts [data-n="4"]'); await go(".bp-check"); await wait(600); },
   ];
 
   function Demo(root) {
@@ -465,5 +503,23 @@
     }, { threshold: 0.3 }).observe(root);
   }
 
+  // the guide beside the playground follows whatever screen or panel is open, like the other prototypes on the site
+  document.querySelectorAll("[data-bp-guide]").forEach((guide) => {
+    const box = guide.closest(".bl-demo"), steps = [...guide.querySelectorAll("[data-step]")], items = [...guide.querySelectorAll(".fin-guide__list li")];
+    const count = guide.querySelector("[data-bp-count]"), seen = new Set();
+    let current = "";
+    box.addEventListener("bpstate", (e) => {
+      const id = e.detail;
+      if (id === current || !steps.some((s) => s.dataset.step === id)) return;
+      current = id;
+      let group = 0;
+      steps.forEach((s) => { const on = s.dataset.step === id; s.classList.toggle("is-active", on); if (on) group = Number(s.dataset.group); });
+      seen.add(group);
+      items.forEach((li, i) => { li.classList.toggle("is-active", i === group); li.classList.toggle("is-done", seen.has(i) && i !== group); });
+      count.textContent = String(group + 1).padStart(2, "0");
+      guide.style.setProperty("--pct", ((group + 1) / items.length).toFixed(3));
+    });
+    box.querySelector("[data-bp-restart]")?.addEventListener("click", () => { seen.clear(); current = ""; box.querySelector('[data-bp="explore"]').__restart?.(); });
+  });
   document.querySelectorAll("[data-bp]").forEach((root) => (root.dataset.bp === "demo" ? Demo(root) : Proto(root)));
 })();

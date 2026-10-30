@@ -1019,6 +1019,8 @@ $$("[data-proto-guide]").forEach((guide) => {
   const items = $$(".fin-guide__list li", guide);
   const count = $("[data-proto-count]", guide);
   const seen = new Set();
+  const label = count && Object.assign(document.createElement("span"), { className: "fin-guide__label" });
+  if (label) count.parentElement.append(label);
   let current = "";
   const show = (id) => {
     if (id === current) return;
@@ -1032,6 +1034,11 @@ $$("[data-proto-guide]").forEach((guide) => {
     seen.add(group);
     items.forEach((li, i) => { li.classList.toggle("is-active", i === group); li.classList.toggle("is-done", seen.has(i) && i !== group); });
     if (count) count.textContent = String(group + 1).padStart(2, "0");
+    // each project dresses the guide its own way: progress as a ring, the step name as a speaker tag, the line typed out
+    guide.style.setProperty("--pct", ((group + 1) / Math.max(1, items.length)).toFixed(3));
+    if (label && items[group]) label.textContent = items[group].textContent;
+    const line = guide.closest(".sh-demo") && $(`[data-step="${id}"] > p:not([class])`, guide);
+    if (line && !reduceMotion) typeLine(line);
   };
   const check = () => {
     let doc;
@@ -1997,7 +2004,8 @@ if (kGuide) {
       if (!usable(s)) continue;
       const r = s.getBoundingClientRect();
       if (!r.width || r.bottom < 70 || r.top > innerHeight - 40) continue;
-      const d = Math.abs(r.top + r.height / 2 - innerHeight * 0.5);
+      // a spot marked data-force (e.g. beside the prototype someone is using) wins while it's on screen
+      const d = s.hasAttribute("data-force") ? -1 : Math.abs(r.top + r.height / 2 - innerHeight * 0.5);
       if (d < bd) { bd = d; best = s; }
     }
     return best;
@@ -2096,9 +2104,60 @@ if (kGuide) {
     back = setTimeout(() => { delete koji.dataset.react; koji.dataset.mood = active ? active.dataset.koji : "happy"; fx.innerHTML = ""; }, 2600);
   });
   // other parts of the page can change a spot's mood and line
-  window.__koji = { refresh(spot, quiet) { if (spot === active && !koji.dataset.react) { koji.dataset.mood = spot.dataset.koji; koji.dataset.prop = spot.dataset.prop || ""; hop(); if (!quiet) say(line(spot)); } kick(); } };
+  // cue: a quick reaction from the spot Koji is standing on (mood, a hop, maybe a burst and a line), then back to its usual mood
+  let cueBack = 0;
+  const cue = (spot, mood, text, kind) => {
+    if (spot !== active || koji.dataset.react) return;
+    clearTimeout(cueBack);
+    koji.dataset.mood = mood;
+    hop();
+    burst(kind);
+    if (text) say(text);
+    cueBack = setTimeout(() => { if (active === spot && !koji.dataset.react) koji.dataset.mood = spot.dataset.koji; fx.innerHTML = ""; }, 2400);
+  };
+  window.__koji = { cue, refresh(spot, quiet) { if (spot === active && !koji.dataset.react) { koji.dataset.mood = spot.dataset.koji; koji.dataset.prop = spot.dataset.prop || ""; hop(); if (!quiet) say(line(spot)); } kick(); } };
   frame();
 }
+
+// while someone is using the playground, Koji stays on its top-right corner
+$$('[data-bp="explore"]').forEach((bp) => {
+  const side = $(".kspot--playside"), fig = bp.closest("figure");
+  if (!side || !fig) return;
+  let leave = 0;
+  fig.addEventListener("pointerenter", () => { clearTimeout(leave); side.setAttribute("data-force", ""); window.__koji?.refresh(side, true); });
+  fig.addEventListener("pointerleave", () => { leave = setTimeout(() => side.removeAttribute("data-force"), 3000); });
+});
+
+// Koji reacts to what happens in the Brilliant prototype: out loud beside the playground,
+// and with just a face and a hop beside the feature tour (where the bubble is the feature's own line)
+document.addEventListener("bp", (e) => {
+  if (!window.__koji?.cue) return;
+  const demo = e.target.dataset.bp === "demo";
+  const spot = demo ? $(".bl-feat.is-active .kspot") : $(".kspot--playside");
+  const lines = {
+    correct: ["cheer", "Yes! One triangle weighs 4.", "对了！一个三角形重 4。", "confetti"],
+    wrong: ["worry", "Close! Try sharing 24 between 6.", "差一点！把 24 平分给 6 个试试。"],
+    finish: ["cheer", "Lesson done. Next block unlocked!", "这课完成，下一关解锁了！", "star"],
+    goal: ["cheer", "Goal ticked off. XP for you!", "目标完成，送你 XP！", "spark"],
+    streak: ["cheer", "Three days in a row!", "连续三天了！", "confetti"],
+    fixed: ["happy", "Fixed it. That one won’t trip you again.", "改对了，下次不会再错。", "spark"],
+    cleared: ["cheer", "Review deck cleared!", "错题本清空了！", "confetti"],
+    pretest: ["happy", "You can skip ahead a little.", "你可以往前跳一点了。", "spark"],
+    booked: ["happy", "Booked. I’ll remind you then!", "约好了，到时我提醒你！", "heart"],
+    calendar: ["curious", "Pick a time that suits you.", "挑个你方便的时间吧。"],
+    overview: ["curious", "Have a peek before you start.", "开始前先看一眼。"],
+    review: ["curious", "Your goals, mistakes and notes live here.", "目标、错题和笔记都在这里。"],
+    locked: ["think", "That one’s locked. Finish the one before it.", "这关还锁着，先完成前一关。"],
+    lesson: ["curious", "Let’s solve this one together.", "我们一起来解这题。"],
+    chat: ["happy", "That’s me in there. Ask away!", "里面那个就是我，尽管问！", "heart"],
+    premium: ["happy", "Everything’s free in here!", "这里全都免费！"],
+    pick: ["curious", "Ooh, another course.", "哦，换一门课。"],
+    restart: ["wave", "Fresh start!", "重新开始！"],
+  };
+  const l = lines[e.detail.type];
+  if (!l || !spot) return;
+  window.__koji.cue(spot, l[0], demo ? "" : t(l[1], l[2]), l[3]);
+});
 
 // things that play once when they come into view
 const playOnce = (els, fn, threshold = 0.35) => {

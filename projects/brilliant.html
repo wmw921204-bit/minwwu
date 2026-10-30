@@ -19,7 +19,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;1,9..144,400;1,9..144,500&family=Figtree:wght@400;500;600;700;800&family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&family=Poppins:wght@400;500;600&family=Sulphur+Point:wght@400&display=swap">
   <link rel="stylesheet" href="../styles.css?v=20261026x">
-  <link rel="stylesheet" href="../case.css?v=20261208">
+  <link rel="stylesheet" href="../case.css?v=20261218">
 </head>
 <body class="case case--light case--brilliant">
   <a class="skip" href="#main">Skip to content</a>
@@ -431,13 +431,34 @@
             <p>The same prototype, free to explore. Plan a study time, tick off a goal, fix a mistake or ask Koji for a hint.</p>
             <p class="bl-play__phone">Best on a larger screen.</p>
           </div>
-          <span class="kspot kspot--play" data-koji="cheer" data-prop="cap" data-side="left" data-say="Click anything!" data-say-zh="随便点点看！"></span>
         </div>
-        <figure class="bl-window bl-play__window">
-          <div class="bl-window__bar"><i></i><i></i><i></i><span>brilliant.org</span></div>
-          <div class="bp" data-bp="explore"></div>
-        </figure>
-        <div class="bl-play__tips"><span>Calendar button</span><span>Course card → In Review</span><span>Overview</span><span>Start a lesson → Q&amp;A</span></div>
+        <div class="fin-demo bl-demo">
+          <div class="bl-demo__col">
+            <figure class="bl-window bl-play__window">
+              <div class="bl-window__bar"><i></i><i></i><i></i><span>brilliant.org</span></div>
+              <div class="bp" data-bp="explore"></div>
+            </figure>
+            <button class="ff-restart bl-restart" type="button" data-bp-restart>Restart</button>
+          </div>
+          <aside class="fin-guide bl-guide" data-bp-guide aria-live="polite">
+            <div class="bl-guide__koji"><span class="kspot kspot--playside" data-koji="cheer" data-prop="cap" data-side="left" data-say="Your turn! Click anything." data-say-zh="轮到你了！随便点。"></span></div>
+            <div class="bl-guide__card">
+              <div class="bl-guide__top"><span class="bl-guide__bar"><i></i></span><p class="fin-guide__count"><span data-bp-count>01</span> / 06</p></div>
+              <div class="fin-step" data-step="home" data-group="0"><h3>Home: your streak first</h3><p>The streak and today’s course open the page, so coming back becomes a routine.</p><p class="fin-try"><b>Try</b>Tap today’s bolt, or the purple calendar.</p></div>
+              <div class="fin-step" data-step="calendar" data-group="0"><h3>Pick a time</h3><p>Book a study time and choose how Koji reminds you.</p><p class="fin-try"><b>Try</b>Pick a day and a time, then Add to calendar.</p></div>
+              <div class="fin-step" data-step="course" data-group="1"><h3>One clear path</h3><p>Brilliant’s course page: the path on the right, the course on the left.</p><p class="fin-try"><b>Try</b>Open Overview, or tap the block Koji stands on.</p></div>
+              <div class="fin-step" data-step="overview" data-group="2"><h3>Peek before you start</h3><p>A short pre-test, and a line on what every lesson asks you to do.</p><p class="fin-try"><b>Try</b>Hover an i, or Start pre-test.</p></div>
+              <div class="fin-step" data-step="review-goals" data-group="3"><h3>Goals that pay XP</h3><p>Daily and weekly goals, with this week’s activity on top.</p><p class="fin-try"><b>Try</b>Tick a goal.</p></div>
+              <div class="fin-step" data-step="review-mistakes" data-group="3"><h3>Retry your mistakes</h3><p>Every wrong answer waits here with an explanation.</p><p class="fin-try"><b>Try</b>Pick the right answer, then Next mistake.</p></div>
+              <div class="fin-step" data-step="review-notes" data-group="3"><h3>Notebook</h3><p>Short notes from the lessons, kept in one place.</p></div>
+              <div class="fin-step" data-step="lesson" data-group="4"><h3>Learn by doing</h3><p>Brilliant’s own lesson screen, with a Q&A button added at the top.</p><p class="fin-try"><b>Try</b>Pick an answer and press Check.</p></div>
+              <div class="fin-step" data-step="lesson-wrong" data-group="4"><h3>Not quite</h3><p>Brilliant’s result bar slides up; Koji is one tap away.</p><p class="fin-try"><b>Try</b>Ask Koji, or Try again.</p></div>
+              <div class="fin-step" data-step="lesson-right" data-group="4"><h3>Correct!</h3><p>XP lands and the next block on the path unlocks.</p><p class="fin-try"><b>Try</b>Press Continue.</p></div>
+              <div class="fin-step" data-step="chat" data-group="5"><h3>Ask Koji</h3><p>An AI tutor beside the problem: hints first, the answer only if you ask.</p><p class="fin-try"><b>Try</b>Tap a suggestion, or type your own question.</p></div>
+            </div>
+            <ol class="fin-guide__list bl-guide__path"><li>Home</li><li>Course</li><li>Overview</li><li>In review</li><li>Lesson</li><li>Ask Koji</li></ol>
+          </aside>
+        </div>
       </div>
     </section>
 
@@ -589,8 +610,8 @@
   </footer>
 
   <script src="../assets/js/lenis.min.js" defer></script>
-  <script src="../i18n/zh/brilliant.js?v=8" defer></script>
-  <script src="../main.js?v=20261124" defer></script>
-  <script src="../assets/js/brilliant-proto.js?v=4" defer></script>
+  <script src="../i18n/zh/brilliant.js?v=9" defer></script>
+  <script src="../main.js?v=20261129" defer></script>
+  <script src="../assets/js/brilliant-proto.js?v=8" defer></script>
 </body>
 </html>
