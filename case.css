@@ -5242,6 +5242,21 @@ button:has(.ti--orbit):hover .tl { letter-spacing: .06em; }
 /* the cone carries the levels, so the map stands alone under the heading */
 .eco2 { grid-template-columns: 1fr; justify-items: center; gap: clamp(12px, 2vh, 20px); }
 .eco2-side { justify-self: stretch; }
+/* wide screens: the three levels on the left, the map as large as the screen allows on the right */
+.eco2-levels li { outline: none; }
+.eco2-levels li:focus-visible { box-shadow: 0 0 0 2px #e0a33a; }
+.eco2-levels h4 { font-size: clamp(17px, 1.3vw, 20px); }
+.eco2-levels p { font-size: clamp(14px, 1.05vw, 15.5px); }
+.eco2[data-active="0"] li[data-layer="0"] { border-left-color: #6f7a3e; }
+.eco2[data-active="1"] li[data-layer="1"] { border-left-color: #a8553a; }
+.eco2[data-active="2"] li[data-layer="2"] { border-left-color: #3f6d86; }
+.eco2-levels li[data-layer="0"] small { color: #6f7a3e; }
+.eco2-levels li[data-layer="1"] small { color: #a8553a; }
+.eco2-levels li[data-layer="2"] small { color: #3f6d86; }
+@media (min-width: 981px) {
+  .eco2 { grid-template-columns: minmax(260px, 0.72fr) minmax(0, 2fr); justify-items: stretch; align-items: center; gap: clamp(28px, 3.4vw, 56px); }
+  .eco2-map { justify-self: end; max-width: min(1080px, calc((100svh - 96px) * 1991 / 1837)); }
+}
 
 /* the cone in the poster's own colours: olive micro, pink meso, pale blue macro, dark rims */
 .eco2 { --micro: #a7aa87; --meso: #f6d7d1; --macro: #d6e3e6; --micro-ink: #6f7a3e; --meso-ink: #a8553a; --macro-ink: #3f6d86; }

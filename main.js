@@ -1905,14 +1905,14 @@ $$("[data-jm]").forEach((box) => {
   };
   const frame = (now) => {
     const dt = Math.min(0.1, (now - last) / 1000); last = now;
-    if (hold != null) { const gap = hold - t; t += Math.sign(gap) * Math.min(Math.abs(gap), dt * Math.max(5, Math.abs(gap) * 2.5)); }
+    // a clicked stage: run back or forward to it, then play on from there
+    if (hold != null) { const gap = hold - t; t += Math.sign(gap) * Math.min(Math.abs(gap), dt * Math.max(5, Math.abs(gap) * 2.5)); if (Math.abs(hold - t) < 0.01) hold = null; }
     else if (!hover) { t += dt; if (t > END) t = 0; }
     render();
     raf = live ? requestAnimationFrame(frame) : 0;
   };
   box.__seek = (v) => { t = v; render(); };
-  tabs.forEach((b, i) => { for (const ev of ["pointerenter", "focus", "click"]) b.addEventListener(ev, () => { hold = SEEK[i]; }); });
-  $(".jm-stages", box).addEventListener("pointerleave", () => { hold = null; });
+  tabs.forEach((b, i) => b.addEventListener("click", () => { hold = SEEK[i]; }));
   view.addEventListener("pointerenter", () => { hover = true; });
   view.addEventListener("pointerleave", () => { hover = false; });
   addEventListener("resize", () => render());
@@ -1935,10 +1935,10 @@ $$("[data-eco2]").forEach((box) => {
   const cone = $(".eco2-cone", box);
   let k = -1, hold = false, timer = 0;
   const set = (v) => { k = +v; box.dataset.active = v; if (cone) cone.dataset.active = v; };
+  // a level is picked by clicking (or Enter), so passing the pointer over the map changes nothing
   const hover = (el, v) => {
-    el.addEventListener("pointerenter", () => { hold = true; set(v); });
-    el.addEventListener("focus", () => { hold = true; set(v); });
     el.addEventListener("click", () => { hold = true; set(v); });
+    el.addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); hold = true; set(v); } });
   };
   if (cone) $$(".relay__layer", cone).forEach((g) => hover(g, g.dataset.layer));
   $$(".eco2-levels li", box).forEach((li) => hover(li, li.dataset.layer));
