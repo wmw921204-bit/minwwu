@@ -1719,7 +1719,7 @@ $$(".sd-research [data-tabs]").forEach((sw) => {
 });
 
 // interview photo: the interviewee answers in turn, one theme at a time; the theme chips pick a line
-$$("[data-talk]").forEach((talk) => {
+$$(".rs-talk[data-talk]").forEach((talk) => {
   const panel = talk.closest(".switcher__panel");
   const lines = $$(".rs-talk__a", talk), chips = $$(".rs-themes [data-say]", panel);
   let cur = 0, timer = 0;
