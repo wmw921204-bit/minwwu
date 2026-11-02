@@ -39,6 +39,7 @@
     } },
     brilliant: { w: "clamp(260px,30vw,460px)", r: 114 / 27, mask: "brilliant/logo.svg" },
     moment: { w: "clamp(220px,24vw,380px)", r: 2, mask: "moment/logo-mask.png" },
+    reco: { w: "clamp(130px,13vw,200px)", r: 333 / 300, mask: "reco/logo-mask.png" },
     zenbloom: { w: "clamp(200px,22vw,340px)", r: 720 / 500, mask: "zenbloom/logo-mask.png" },
     // the client projects show the lockup with SCADpro, as on the presentation covers
     finra: { w: "clamp(220px,22vw,340px)", r: 688 / 354, mask: "finra/logo-scadpro.svg" },
