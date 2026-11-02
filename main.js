@@ -1983,7 +1983,7 @@ $$("[data-jm]").forEach((box) => {
     const dt = Math.min(0.1, (now - last) / 1000); last = now;
     // a clicked stage: run back or forward to it, then play on from there
     if (hold != null) { const gap = hold - t; t += Math.sign(gap) * Math.min(Math.abs(gap), dt * Math.max(5, Math.abs(gap) * 2.5)); if (Math.abs(hold - t) < 0.01) hold = null; }
-    else if (!hover) { t += dt; if (t > END) t = 0; }
+    else if (!hover) { t += dt * 1.35; if (t > END) t = 0; }
     render();
     raf = live ? requestAnimationFrame(frame) : 0;
   };
