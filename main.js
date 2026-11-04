@@ -1334,131 +1334,65 @@ $$("[data-flip]").forEach((flip) => {
     return $$("img", box).filter(zoomable).filter((i) => box.matches(own) || !i.closest(own));
   };
 
-  const lb = document.createElement("div");
-  lb.className = "lb";
-  lb.setAttribute("role", "dialog");
-  lb.setAttribute("aria-modal", "true");
-  lb.setAttribute("aria-label", t("Image viewer", "图片查看器"));
-  lb.innerHTML = `
-    <div class="lb__stage"><img class="lb__img" alt=""></div>
-    <button class="lb__btn lb__close" type="button" aria-label="Close">✕</button>
-    <button class="lb__btn lb__prev" type="button" aria-label="${t("Previous image", "上一张")}">←</button>
-    <button class="lb__btn lb__next" type="button" aria-label="${t("Next image", "下一张")}">→</button>
-    <div class="lb__bar"><span class="lb__count"></span><span class="lb__cap"></span><span class="lb__hint">${t("Click or scroll to zoom", "点击或滚动缩放")}</span></div>`;
-  document.body.append(lb);
-  const stage = $(".lb__stage", lb), view = $(".lb__img", lb);
-  let group = [], idx = 0, scale = 1, tx = 0, ty = 0, lastFocus = null;
-
-  const apply = (anim = true) => {
-    view.style.transition = anim ? "" : "none";
-    view.style.transform = `translate3d(${tx}px, ${ty}px, 0) scale(${scale})`;
-    lb.classList.toggle("is-zoomed", scale > 1.01);
+  // PhotoSwipe opens a picture from where it sits, swipes through its group and zooms by pinch, wheel or click.
+  // It is fetched the first time a picture opens, so pages only pay for it when it is used.
+  const base = new URL(".", $('script[src*="main.js"]')?.src || location.href).href;
+  let loading = null;
+  const loadViewer = () => loading || (loading = new Promise((ok, fail) => {
+    const css = document.createElement("link");
+    css.rel = "stylesheet";
+    css.href = base + "assets/css/photoswipe.css";
+    document.head.append(css);
+    const js = document.createElement("script");
+    js.src = base + "assets/js/photoswipe.umd.min.js";
+    js.onload = ok; js.onerror = fail;
+    document.head.append(js);
+  }));
+  const seen = (img) => { const r = img.getBoundingClientRect(); return r.width > 0 && r.bottom > 0 && r.top < innerHeight; };
+  const slide = (img) => {
+    const w = img.naturalWidth || +img.getAttribute("width"), h = img.naturalHeight || +img.getAttribute("height");
+    const src = img.currentSrc || img.src || img.dataset.src;
+    return { src, msrc: src, width: w || 1600, height: h || 1000, sized: !!(w && h), alt: img.alt || "", caption: img.dataset.label || img.alt || "",
+      element: img, thumbCropped: getComputedStyle(img).objectFit === "cover" };
   };
-  // keep the zoomed image covering the screen instead of drifting off it
-  const clampPan = () => {
-    const w = view.offsetWidth * scale, h = view.offsetHeight * scale;
-    const mx = Math.max(0, (w - innerWidth) / 2), my = Math.max(0, (h - innerHeight) / 2);
-    tx = Math.min(mx, Math.max(-mx, tx));
-    ty = Math.min(my, Math.max(-my, ty));
-  };
-  const maxScale = () => Math.max(2.5, (view.naturalWidth || 0) / Math.max(1, view.offsetWidth));
-  const zoomAt = (next, cx, cy) => {
-    next = Math.min(maxScale(), Math.max(1, next));
-    // zoom around the pointer: keep the point under it fixed
-    const ox = cx - innerWidth / 2, oy = cy - innerHeight / 2;
-    tx = ox - (ox - tx) * (next / scale);
-    ty = oy - (oy - ty) * (next / scale);
-    scale = next;
-    if (scale === 1) { tx = 0; ty = 0; }
-    clampPan();
-  };
-
-  const show = (i) => {
-    idx = (i + group.length) % group.length;
-    const src = group[idx];
-    scale = 1; tx = 0; ty = 0; apply(false);
-    view.src = src.currentSrc || src.src || src.dataset.src;
-    view.alt = src.alt || "";
-    $(".lb__cap", lb).textContent = src.dataset.label || src.alt || "";
-    $(".lb__count", lb).textContent = group.length > 1 ? `${String(idx + 1).padStart(2, "0")} / ${String(group.length).padStart(2, "0")}` : "";
-    lb.classList.toggle("is-single", group.length < 2);
-  };
-  const open = (img) => {
-    group = groupOf(img);
+  const open = async (img) => {
+    let group = groupOf(img);
     // an image that isn't part of the page's showcase (a poster in an explorer) opens on its own
     if (!group.includes(img)) group = [img];
-    lastFocus = document.activeElement;
-    show(Math.max(0, group.indexOf(img)));
-    lb.classList.add("is-open");
-    document.documentElement.classList.add("lb-open");
-    window.__lenis?.stop();
-    $(".lb__close", lb).focus({ preventScroll: true });
-  };
-  const close = () => {
-    lb.classList.remove("is-open");
-    document.documentElement.classList.remove("lb-open");
-    window.__lenis?.start();
-    lastFocus?.focus?.({ preventScroll: true });
+    await loadViewer();
+    const items = group.map(slide);
+    const pswp = new window.PhotoSwipe({
+      dataSource: items,
+      index: Math.max(0, group.indexOf(img)),
+      bgOpacity: 0.94,
+      // grow from the picture when it is on screen; a hidden one (a deck sheet, a book page) fades in
+      showHideAnimationType: seen(img) ? "zoom" : "fade",
+      wheelToZoom: true,
+      secondaryZoomLevel: (zl) => Math.max(zl.fit * 2.5, Math.min(1, zl.fit * 4)),
+      maxZoomLevel: (zl) => Math.max(zl.fit * 4, 1),
+      paddingFn: (vp) => vp.x < 700 ? { top: 56, bottom: 64, left: 0, right: 0 } : { top: 64, bottom: 80, left: 80, right: 80 },
+      closeTitle: t("Close", "关闭"), zoomTitle: t("Zoom", "缩放"),
+      arrowPrevTitle: t("Previous image", "上一张"), arrowNextTitle: t("Next image", "下一张"),
+      errorMsg: t("The image couldn’t be loaded", "图片加载失败")
+    });
+    pswp.on("uiRegister", () => {
+      pswp.ui.registerElement({
+        name: "caption", order: 9, isButton: false, appendTo: "root", className: "pswp__caption",
+        onInit: (el) => pswp.on("change", () => { el.textContent = pswp.currSlide.data.caption; })
+      });
+    });
+    pswp.on("beforeOpen", () => window.__lenis?.stop());
+    pswp.on("destroy", () => window.__lenis?.start());
+    pswp.init();
+    // pictures that hadn't loaded yet: fix their size once they arrive
+    items.forEach((it, i) => {
+      if (it.sized) return;
+      const probe = new Image();
+      probe.onload = () => { it.width = probe.naturalWidth; it.height = probe.naturalHeight; it.sized = true; if (!pswp.isDestroying) pswp.refreshSlideContent(i); };
+      probe.src = it.src;
+    });
   };
   window.__lightbox = { open };
-
-  $(".lb__close", lb).addEventListener("click", close);
-  $(".lb__prev", lb).addEventListener("click", () => show(idx - 1));
-  $(".lb__next", lb).addEventListener("click", () => show(idx + 1));
-  addEventListener("keydown", (e) => {
-    if (!lb.classList.contains("is-open")) return;
-    if (e.key === "Escape") close();
-    else if (e.key === "ArrowRight") show(idx + 1);
-    else if (e.key === "ArrowLeft") show(idx - 1);
-    else if (e.key === "+" || e.key === "=") { zoomAt(scale * 1.5, innerWidth / 2, innerHeight / 2); apply(); }
-    else if (e.key === "-") { zoomAt(scale / 1.5, innerWidth / 2, innerHeight / 2); apply(); }
-    else return;
-    e.preventDefault();
-  });
-  stage.addEventListener("wheel", (e) => {
-    e.preventDefault();
-    zoomAt(scale * Math.exp(-e.deltaY * 0.0025), e.clientX, e.clientY);
-    apply(false);
-  }, { passive: false });
-
-  // pointers: tap toggles zoom, drag pans, two fingers pinch; tapping the dark backdrop closes
-  const pts = new Map();
-  let start = null, pinch = null, moved = false;
-  stage.addEventListener("pointerdown", (e) => {
-    stage.setPointerCapture(e.pointerId);
-    pts.set(e.pointerId, { x: e.clientX, y: e.clientY });
-    moved = false;
-    start = { x: e.clientX, y: e.clientY, tx, ty, onImg: e.target === view };
-    if (pts.size === 2) {
-      const [a, b] = [...pts.values()];
-      pinch = { d: Math.hypot(a.x - b.x, a.y - b.y), s: scale };
-    }
-  });
-  stage.addEventListener("pointermove", (e) => {
-    if (!pts.has(e.pointerId)) return;
-    pts.set(e.pointerId, { x: e.clientX, y: e.clientY });
-    if (pinch && pts.size === 2) {
-      const [a, b] = [...pts.values()];
-      zoomAt(pinch.s * Math.hypot(a.x - b.x, a.y - b.y) / pinch.d, (a.x + b.x) / 2, (a.y + b.y) / 2);
-      moved = true; apply(false); return;
-    }
-    const dx = e.clientX - start.x, dy = e.clientY - start.y;
-    if (Math.abs(dx) + Math.abs(dy) > 6) moved = true;
-    if (scale > 1 && moved) { tx = start.tx + dx; ty = start.ty + dy; clampPan(); apply(false); }
-  });
-  const up = (e) => {
-    if (!pts.has(e.pointerId)) return;
-    pts.delete(e.pointerId);
-    if (pts.size < 2) pinch = null;
-    if (pts.size || moved) return;
-    if (!start.onImg) { close(); return; }
-    if (scale > 1.01) { scale = 1; tx = 0; ty = 0; }
-    else zoomAt(Math.min(maxScale(), 2.5), e.clientX, e.clientY);
-    apply();
-  };
-  stage.addEventListener("pointerup", up);
-  stage.addEventListener("pointercancel", (e) => { pts.delete(e.pointerId); pinch = null; });
-  addEventListener("resize", () => { if (lb.classList.contains("is-open")) { clampPan(); apply(false); } });
 
   // hook the page images up
   // in drag galleries a real drag only scrolls (the drag handler swallows that click); a still click opens that image

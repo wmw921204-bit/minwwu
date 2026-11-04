@@ -618,3 +618,10 @@ html:lang(zh) { font-synthesis-style: none; }
   .lang-btn i, .lang-en .lang-btn__en, .lang-zh .lang-btn__zh { display: none; }
   .lang-btn span { opacity: .75; }
 }
+
+/* Project pictures in Atropos: the frame tilts, the picture shifts inside it */
+.project__pic { width: 100%; --atropos-perspective: 1200px; }
+.project__pic .atropos-inner { border-radius: 16px; }
+.project__pic img { transform: scale(1.06); transition: none; }
+.project:hover .project__pic img { transform: scale(1.06); }
+.project__pic .atropos-highlight { background-image: radial-gradient(circle at 50%, rgba(255, 255, 255, .22), transparent 50%); }

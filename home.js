@@ -370,5 +370,19 @@
     host.addEventListener("pointerleave", () => spans.forEach((s) => { s.style.translate = ""; s.style.rotate = ""; }));
   }
 
+  /* ---------- Project pictures tilt in 3D toward the pointer, the picture shifting inside its frame (Atropos) ---------- */
+  if (window.Atropos && finePointer && !reduce) {
+    $$(".project__row img").forEach((img) => {
+      const box = document.createElement("div");
+      box.className = "atropos project__pic";
+      box.innerHTML = '<div class="atropos-scale"><div class="atropos-rotate"><div class="atropos-inner"></div></div></div>';
+      img.before(box);
+      img.dataset.atroposOffset = "-3";
+      $(".atropos-inner", box).append(img);
+      // the whole card drives the tilt, so it answers wherever the pointer is on the card
+      window.Atropos({ el: box, eventsEl: box.closest(".project"), activeOffset: 24, rotateXMax: 9, rotateYMax: 12, shadow: false, highlight: true, duration: 500 });
+    });
+  }
+
   // the cursor dot lives in main.js so every page has it
 })();
