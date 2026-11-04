@@ -2049,6 +2049,7 @@ img.is-zoomable { cursor: zoom-in; }
 /* Kohler: slow flowing water light behind the page */
 
 /* Kohler: the app's look on the page. Frosted glass over the moving water, edged with a single hairline */
+.kh-flow { position: fixed; inset: 0; width: 100vw; height: 100vh; z-index: 0; pointer-events: none; filter: blur(20px); transform: scale(1.1); opacity: 1; }
 .case--kohler { --glass: rgba(150,200,205,.07); --glass-hi: rgba(170,215,220,.13); --hair: rgba(205,235,240,.18); --hair-hi: rgba(225,245,248,.55); --blur: blur(22px) saturate(1.25); }
 .case--kohler .c-stat, .case--kohler .fin-lessons p, .case--kohler .kh-out button, .case--kohler .c-facts, .case--kohler .c-role > div,
 .case--kohler .fin-try, .case--kohler .kh-tank__glass, .case--kohler .kh-cap, .case--kohler .kh-p {
