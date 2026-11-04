@@ -2047,7 +2047,6 @@ img.is-zoomable { cursor: zoom-in; }
 .case--kohler .fin-orbit__stats p { border-color: var(--c-line); }
 
 /* Kohler: slow flowing water light behind the page */
-.kh-flow { position: fixed; inset: 0; width: 100vw; height: 100vh; z-index: 0; pointer-events: none; filter: blur(20px); transform: scale(1.1); opacity: 1; }
 
 /* Kohler: the app's look on the page. Frosted glass over the moving water, edged with a single hairline */
 .case--kohler { --glass: rgba(150,200,205,.07); --glass-hi: rgba(170,215,220,.13); --hair: rgba(205,235,240,.18); --hair-hi: rgba(225,245,248,.55); --blur: blur(22px) saturate(1.25); }
