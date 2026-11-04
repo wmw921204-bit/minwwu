@@ -2064,6 +2064,9 @@ img.is-zoomable { cursor: zoom-in; }
 .case--kohler .kh-out button::before { display: none; }
 .case--kohler .kh-out button[aria-selected="true"] { background-color: var(--glass-hi); border-color: var(--hair-hi); }
 .case--kohler .c-facts { padding: 30px 30px 18px; border-radius: 24px; }
+/* the pinned card must fit a laptop screen: smaller summary, and on short screens it pins higher */
+.case--kohler .c-summary { font-size: clamp(18px, 1.45vw, 21px); line-height: 1.45; margin-bottom: 26px; }
+@media (max-height: 820px) { .case--kohler .c-facts { top: 88px; } }
 .case--kohler .c-facts dl > div { border-top: 1px solid var(--hair); }
 .case--kohler .c-role > div { padding: 30px; border-radius: 24px; }
 .case--kohler .c-role__list li, .case--kohler .fin-guide__list li, .case--kohler .kh-p__tags i {

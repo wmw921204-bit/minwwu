@@ -1,6 +1,7 @@
-// Shader textures (Paper Shaders) behind a block: [data-texture="water|grain|paper"].
-// The layer spans the screen width, fades out downward, renders only near the screen,
-// and stands still for reduced motion.
+// Shader textures (Paper Shaders): [data-texture="water|grain|paper"].
+// On <body> the texture is the page's own background, fixed behind everything while the content scrolls over it.
+// On a block it spans the screen width, fades out downward and renders only near the screen.
+// Either way it stands still for reduced motion.
 (function () {
   var P = window.PaperShaders;
   var els = document.querySelectorAll("[data-texture]");
@@ -43,10 +44,12 @@
 
   var css = document.createElement("style");
   css.textContent =
-    "[data-texture]{position:relative;isolation:isolate}" +
+    "[data-texture]:not(body){position:relative;isolation:isolate}" +
     ".tx{position:absolute;z-index:-1;top:0;left:50%;width:100vw;height:min(100vh,100%);translate:-50% 0;pointer-events:none;" +
     "-webkit-mask:linear-gradient(#000 55%,transparent);mask:linear-gradient(#000 55%,transparent);opacity:0;transition:opacity 1.2s ease}" +
-    ".tx.is-on{opacity:var(--tx-o,1)}";
+    ".tx.is-on{opacity:var(--tx-o,1)}" +
+    // behind the whole page: sits under the content, above the page colour
+    ".tx--page{position:fixed;inset:0;left:0;width:auto;height:auto;translate:none;-webkit-mask:none;mask:none}";
   document.head.appendChild(css);
 
   // the shaders read these images, which must be loaded before a shader mounts
@@ -62,7 +65,8 @@
     if (!kind) return;
     var spec = kind((el.dataset.colors || "").split(",").map(function (s) { return s.trim(); }).filter(Boolean));
     var box = document.createElement("div");
-    box.className = "tx";
+    var page = el === document.body;
+    box.className = page ? "tx tx--page" : "tx";
     box.setAttribute("aria-hidden", "true");
     if (el.dataset.textureOpacity) box.style.setProperty("--tx-o", el.dataset.textureOpacity);
     if (el.dataset.textureBlend) box.style.mixBlendMode = el.dataset.textureBlend;
@@ -72,8 +76,8 @@
     // a pixel ratio of 1 keeps a full-width layer light; textures don't need retina sharpness
     var m = new P.ShaderMount(box, spec.shader, spec.uniforms, { premultipliedAlpha: false }, speed, 0, 1, 1920 * 1080);
     requestAnimationFrame(function () { box.classList.add("is-on"); });
-    // only animate while on screen
-    new IntersectionObserver(function (es) { m.setSpeed(es[0].isIntersecting ? speed : 0); }).observe(box);
+    // a block only animates while on screen; the page background always is
+    if (!page) new IntersectionObserver(function (es) { m.setSpeed(es[0].isIntersecting ? speed : 0); }).observe(box);
   }
 
   var io = new IntersectionObserver(function (es) {
@@ -83,5 +87,8 @@
       ready.then(function () { mount(e.target); });
     });
   }, { rootMargin: "50% 0px" });
-  els.forEach(function (el) { io.observe(el); });
+  els.forEach(function (el) {
+    if (el === document.body) ready.then(function () { mount(el); });
+    else io.observe(el);
+  });
 })();
